@@ -1,6 +1,6 @@
 var geojsonFiles = ['./data/naturereserve.geojson', './data/fire.geojson', './data/zones.geojson'];
 
-var map = L.map('map', { zoomControl: false }).setView([57.621816, 14.925924], 17);
+var map = L.map('map', { zoomControl: false }).setView([57.621111, 14.927857], 17);
 
 // map.createPane('labels');
 // map.getPane('labels').style.zIndex = 650; // This pane is above markers but below popups
