@@ -121,7 +121,7 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
     {
         L.geoJson(response, {style: function(feature) 
         {
-            let color = 'gray';
+            let color = '#69bfbe';
 
             //loop thourgh sheetdata
             for (let i = 0; i < sheetdata.length; i++)
@@ -130,8 +130,8 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
                 {
                     if (sheetdata[i][1] > 490) color = 'red';
                     else if (sheetdata[i][1] > 250) color = 'orange';
-                    else if (sheetdata[i][1] > 1) color = 'green';
-                    else color = 'blue';
+                    else if (sheetdata[i][1] > 1) color = 'darkgreen';
+                    // else color = 'blue';
                     break;
 
                     // return {
@@ -147,7 +147,7 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
             return {
                 "color": color,
                 "fillColor": color,
-                "weight": 3,
+                "weight": 2,
                 "opacity": 1,
                 "fillOpacity": 0.1
             };
