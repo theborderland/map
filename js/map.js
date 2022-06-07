@@ -131,7 +131,7 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
                     if (sheetdata[i][1] > 490) color = 'red';
                     else if (sheetdata[i][1] > 250) color = 'orange';
                     else if (sheetdata[i][1] > 1) color = 'green';
-                    else color = 'gray';
+                    else color = 'blue';
                     break;
 
                     // return {
