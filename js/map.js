@@ -2,6 +2,13 @@ var geojsonFiles = ['./data/naturereserve.geojson', './data/fire.geojson', './da
 
 var map = L.map('map', { zoomControl: false }).setView([57.621816, 14.925924], 17);
 
+// Add Leaflet-locatecontrol plugin 
+L.control.locate(setView='once',
+                 keepCurrentZoomLevel=true,
+                 returnToPrevBounds=true,
+                 drawCircle=false, flyTo=true).addTo(map);
+
+
 // map.createPane('labels');
 // map.getPane('labels').style.zIndex = 650; // This pane is above markers but below popups
 // map.getPane('labels').style.pointerEvents = 'none'; // Layers in this pane are non-interactive and do not obscure mouse/touch events
