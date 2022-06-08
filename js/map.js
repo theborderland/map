@@ -1,5 +1,3 @@
-var geojsonFiles = ['./data/naturereserve.geojson'];
-
 var map = L.map('map', { zoomControl: false }).setView([57.621111, 14.927857], 17);
 
 // Add Leaflet-locatecontrol plugin 
@@ -8,129 +6,16 @@ L.control.locate(setView='once',
                  returnToPrevBounds=true,
                  drawCircle=false, flyTo=true).addTo(map);
 
-
 // map.createPane('labels');
 // map.getPane('labels').style.zIndex = 650; // This pane is above markers but below popups
 // map.getPane('labels').style.pointerEvents = 'none'; // Layers in this pane are non-interactive and do not obscure mouse/touch events
 
-
-
-//ADD POINTS AS CIRCLES
-// function createCircles (feature, latlng) 
-// {
-//   return L.circle(latlng)
-// }
-
-// fetch('./data/campcircles.geojson').then(response => response.json()).then(response => 
-//     {
-//         L.geoJson(response, {style: getStyle(response.name), onEachFeature: onEachFeature, pointToLayer: createCircles} )
-//         .addTo(map)
-//         .eachLayer(function (layer) 
-//         {
-// 		    layer.bindPopup(layer.feature.properties.name);
-//             // .bindTooltip(layer.feature.properties.name);
-// 	    });
-//     });
-
-// HIGHLIGHT FEATURES WITH BORDER
-//  --------------------------------
-// let highlightedLayer = null;
-// let highlightedLayerStyle = null;
-
-// function highlightFeature(e) {
-//     var layer = e.target;
-//     highlightedLayer = layer;
-//     highlightedLayerStyle = layer.options.style;
-
-//     layer.setStyle({ weight: 6 });
-// }
-
-//Reset object when deselected
-// map.on('popupclose', function(ev) {
-//     if (highlightedLayer) 
-//     {
-//         highlightedLayer.setStyle(highlightedLayerStyle);
-//         highlightedLayer = null;
-//         highlightedLayerStyle = null;
-//     }
-// });
-
-function onEachFeature(feature, layer) 
-{
-    // layer.on({
-    //     // mouseover: highlightFeature,
-    //     // mouseout: resetHighlight,
-    //     click: highlightFeature
-    // });
-}
-//  --------------------------------
-
 let sheetdata;
 
-fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/A1:B10?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0').then(resp => resp.json()).then(resp => 
+//ZONES
+fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/zones!A2:F30?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0').then(resp => resp.json()).then(resp => 
 {
-    //FIXME remove
-    // console.log(resp);
-    sheetdata = resp.values;
-    
-    fetch('./data/campclusters.geojson').then(response => response.json()).then(response => 
-    {
-        L.geoJson(response, {style: function(feature) 
-        {
-            let color = '#69bfbe';
-
-            //loop thourgh sheetdata
-            for (let i = 0; i < sheetdata.length; i++)
-            {
-                if (sheetdata[i][0] == feature.properties.name)
-                {
-                    if (sheetdata[i][1] > 490) color = 'red';
-                    else if (sheetdata[i][1] > 250) color = 'orange';
-                    else if (sheetdata[i][1] > 1) color = 'darkgreen';
-                    // else color = 'blue';
-
-                    feature.properties.sqmreserved = sheetdata[i][1];
-                    break;
-
-                    // return {
-                    //     "color": color,
-                    //     "fillColor": color,
-                    //     "weight": 3,
-                    //     "opacity": 1,
-                    //     "fillOpacity": 0.1
-                    // };
-                }
-            }
-
-            return {
-                "color": color,
-                "fillColor": color,
-                "weight": 2,
-                "opacity": 1,
-                "fillOpacity": 0.1
-            };
-        }, onEachFeature: matchClusterData} )
-        .addTo(map)
-        .eachLayer(function (layer) 
-        { 
-            let name = "";
-            if (layer.feature.properties.name == null)
-            {
-                name = layer.feature.properties.fid;
-            }
-            else name = layer.feature.properties.name;
-
-            content = "<H3>" + name + "</H3>";
-            content += "<B>Reserved: </B>" + layer.feature.properties.sqmreserved;
-            layer.bindPopup(content)
-        });
-    });
-
-});
-
-fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/zones!A2:D30?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0').then(resp => resp.json()).then(resp => 
-{
-    let zonesdata = resp.values;
+    let zonedata = resp.values;
     
     fetch('./data/zones.geojson').then(response => response.json()).then(response => 
     {
@@ -139,13 +24,14 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
             let color = 'yellow';
 
             //ok, really messy to have this in here. Where should it go?
-            for (let i = 0; i < zonesdata.length; i++)
+            for (let i = 0; i < zonedata.length; i++)
             {
-                if (zonesdata[i][0] == feature.properties.fid)
+                if (zonedata[i][0] == feature.properties.fid)
                 {
-                    feature.properties.sheetname = zonesdata[i][1];
-                    feature.properties.sound = zonesdata[i][2];
-                    feature.properties.description = zonesdata[i][3];
+                    feature.properties.sheetname = zonedata[i][1];
+                    feature.properties.notice = zonedata[i][2];
+                    feature.properties.sound = zonedata[i][3];
+                    feature.properties.description = zonedata[i][4];
                     break;
                 }
             }
@@ -162,48 +48,120 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
         .addTo(map)
         .eachLayer(function (layer) 
         { 
-            content = "<H3>" + layer.feature.properties.sheetname + "</H3>" 
-            + "<B>Sound:</B> " + layer.feature.properties.sound 
-            + "<BR><BR>" + layer.feature.properties.description;
-            layer.bindPopup(content)
+            let notice = "";
+            if (layer.feature.properties.notice) notice = "<h3>" + layer.feature.properties.notice + "</h3>";
+            
+            let sound = "";
+            if (layer.feature.properties.sound) sound = "<B>Sound:</B> " + layer.feature.properties.sound + "<BR><BR>";
+
+            let description = "";
+            if (layer.feature.properties.description) description = "<B>Description:</B> " + layer.feature.properties.description + "<BR>";
+
+            content = "<h2>" + layer.feature.properties.sheetname + "</h2>" 
+            + sound
+            + notice
+            + description;
+            layer.bindPopup(content);
+            layer.bringToBack();
         });
     });
 
 });
 
-function matchClusterData(feature, layer) 
+//NATURE RESERVE
+fetch('./data/naturereserve.geojson').then(response => response.json()).then(response => 
 {
-    // console.log(feature.properties.name);
-}
-
-//loop through geojsonfiles, use fetch to download them and add as a layer to the map
-for (var i = 0; i < geojsonFiles.length; i++) 
-{
-    fetch(geojsonFiles[i]).then(response => response.json()).then(response => 
-    {
-        L.geoJson(response, {style: getStyle(response.name), onEachFeature: onEachFeature} ).addTo(map)
-        .eachLayer(function (layer) {layer.bindPopup(layer.feature.properties.name)});
-    });
-}
-
-
-fetch('./data/fire.geojson').then(response => response.json()).then(response => 
-{
-    var options = { corridor: 5, className: 'route-corridor' };
-
-    L.geoJson(response, {style: getStyle(response.name), onEachFeature: onEachFeature} ).addTo(map)
-    .eachLayer(function (layer) {layer.bindPopup(layer.feature.properties.fid)});
+    L.geoJson(response, {style: getStyle(response.name)} ).addTo(map)
+    .eachLayer(function (layer) {layer.bindPopup('<H2>Nature Reserve</H2>')});
 });
 
+//FIRE ROADS
+fetch('./data/fire.geojson').then(response => response.json()).then(response => 
+{
+    L.geoJson(response, {style: getStyle(response.name)} ).addTo(map);
+    // .eachLayer(function (layer) {layer.bindPopup(layer.feature.properties.fid)});
+});
 
-	// //Loop through fire features and add a corridor for all coordinates
-	// for (var i = 0; i < fire.features.length; i++) 
-    // {
-	// 	// console.log(fire.features[i].type + i);
-	// 	var coordinates = fire.features[i].geometry.coordinates;
-	// 	map.addLayer(L.corridor(coordinates, options));
-	// }
+//CAMP CLUSTERS
+fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/allclusters!A2:H150?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0').then(resp => resp.json()).then(resp => 
+{
+    sheetdata = resp.values;
+    
+    fetch('./data/campclusters.geojson').then(response => response.json()).then(response => 
+    {
+        L.geoJson(response, {style: function(feature) 
+        {
+            let color = '#03d7fc';
+            let fillOpacity = 0;
 
+            //loop thourgh sheetdata and add it to each feature
+            for (let i = 0; i < sheetdata.length; i++)
+            {
+                if (sheetdata[i][0] == feature.properties.fid)
+                {
+                    feature.properties.sheetname = sheetdata[i][2];
+                    feature.properties.maxarea = sheetdata[i][3];
+                    feature.properties.reservedarea = sheetdata[i][4];
+                    feature.properties.notice = sheetdata[i][5];
+                    feature.properties.description = sheetdata[i][6];
+
+                    if (feature.properties.reservedarea > 500)
+                    {
+                         color = 'red';
+                         fillOpacity = 0.5;
+                    }
+                    else if (feature.properties.reservedarea > 0)
+                    {
+                        fillOpacity = (feature.properties.reservedarea / feature.properties.maxarea) * 0.75;
+                    }
+                    break;
+                }
+            }
+
+            return {
+                "color": color,
+                "fillColor": color,
+                "weight": 2,
+                "opacity": 0.5,
+                "fillOpacity": fillOpacity
+            };
+        }, onEachFeature: function(feature,layer){
+        layer.bindTooltip(feature.properties.sheetname,{permanent:true,direction:'center'});
+            } })
+        .addTo(map)
+        .eachLayer(function (layer) 
+        { 
+            let name = "";
+            if (layer.feature.properties.sheetname)
+            {
+                name = layer.feature.properties.sheetname;
+            }
+            else name = layer.feature.properties.fid;
+
+            let area = "";
+            if (layer.feature.properties.reservedarea)
+            {
+                area = layer.feature.properties.reservedarea + " sqm reserved of " + layer.feature.properties.maxarea + " sqm.<BR>";
+            }
+
+            let notice = "";
+            if (layer.feature.properties.notice) notice = "<h3>" + layer.feature.properties.notice + "</h3>";
+
+            let description = "";
+            if (layer.feature.properties.description) description = "<B>Description:</B> " + layer.feature.properties.description + "<BR>";
+
+            content = "<h2>" + name + "</h2>" 
+            + area
+            + notice
+            + description;
+
+            layer.bindPopup(content)
+            layer.bringToFront();
+        });
+    });
+});
+
+//MAP BASE LAYER
 var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
     maxZoom: 20,
     attribution: 'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
