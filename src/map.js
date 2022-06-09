@@ -9,15 +9,8 @@ import { loadCampClusters } from './loaders/loadCampClusters';
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false }).setView([57.621111, 14.927857], 17);
 
-    const keepCurrentZoomLevel = true;
-    const returnToPrevBounds = true;
-    const drawCircle = true;
-    const flyTo = true;
-
-    const setView = 'once';
-
     // Add Leaflet-locatecontrol plugin
-    L.control.locate(setView, keepCurrentZoomLevel, returnToPrevBounds, drawCircle, flyTo).addTo(map);
+    L.control.locate({ setView: 'once', keepCurrentZoomLevel: true, returnToPrevBounds: true, drawCircle: true, flyTo: true }).addTo(map);
 
     // map.createPane('labels');
     // map.getPane('labels').style.zIndex = 650; // This pane is above markers but below popups
