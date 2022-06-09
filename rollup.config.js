@@ -7,6 +7,8 @@ import { terser } from 'rollup-plugin-terser';
 // `npm run dev` -> `production` is false
 const production = !process.env.ROLLUP_WATCH;
 
+console.log('is production?', production);
+
 export default {
     input: 'src/main.js',
     output: {
@@ -18,7 +20,7 @@ export default {
         resolve(), // tells Rollup how to find date-fns in node_modules
         commonjs(), // converts date-fns to ES modules
         production && terser(), // minify, but only in production
-        serve({
+        !production && serve({
             port: 3001
         })
     ],
