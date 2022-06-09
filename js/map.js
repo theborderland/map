@@ -10,14 +10,12 @@ L.control.locate(setView='once',
 // map.getPane('labels').style.zIndex = 650; // This pane is above markers but below popups
 // map.getPane('labels').style.pointerEvents = 'none'; // Layers in this pane are non-interactive and do not obscure mouse/touch events
 
-let sheetdata;
-
 //ZONES
 fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/zones!A2:F30?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0').then(resp => resp.json()).then(resp => 
 {
     let zonedata = resp.values;
     
-    fetch('./data/zones.geojson').then(response => response.json()).then(response => 
+    fetch('./data/zone.geojson').then(response => response.json()).then(response => 
     {
         L.geoJson(response, {style: function(feature) 
         {
@@ -37,7 +35,7 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
             }
 
             return {
-                "weight": 2,
+                "weight": 3,
                 "opacity": 0.75,
                 "color": color,
                 "dashArray": '5',
@@ -85,16 +83,16 @@ fetch('./data/fire.geojson').then(response => response.json()).then(response =>
 //CAMP CLUSTERS
 fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/allclusters!A2:H150?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0').then(resp => resp.json()).then(resp => 
 {
-    sheetdata = resp.values;
+    let sheetdata = resp.values;
     
-    fetch('./data/campclusters.geojson').then(response => response.json()).then(response => 
+    fetch('./data/areas.geojson').then(response => response.json()).then(response => 
     {
         L.geoJson(response, {style: function(feature) 
         {
             let color = '#03d7fc';
-            let fillOpacity = 0;
+            let fillOpacity = 0.5;
 
-            //loop thourgh sheetdata and add it to each feature
+            //loop through sheetdata and add it to each feature
             for (let i = 0; i < sheetdata.length; i++)
             {
                 if (sheetdata[i][0] == feature.properties.fid)
@@ -105,14 +103,25 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
                     feature.properties.notice = sheetdata[i][5];
                     feature.properties.description = sheetdata[i][6];
 
-                    if (feature.properties.reservedarea > 500)
+                    if (sheetdata[i][1] == 'art') color = 'purple';
+                    else if (sheetdata[i][1] == 'camp') color = '#03d7fc';
+                    else if (sheetdata[i][1] == 'parking') color = 'grey';
+                    else if (sheetdata[i][1] == 'sound') color = 'blue';
+                    else if (sheetdata[i][1] == 'bridge') color = 'yellow';
+                    else if (sheetdata[i][1] == 'building') color = 'brown';
+                    
+                    if (sheetdata[i][1] == 'camp' || sheetdata[i][1] == 'art' || sheetdata[i][1] == 'building')
                     {
-                         color = 'red';
-                         fillOpacity = 0.5;
-                    }
-                    else if (feature.properties.reservedarea > 0)
-                    {
-                        fillOpacity = (feature.properties.reservedarea / feature.properties.maxarea) * 0.75;
+                        fillOpacity = 0;
+                        if (feature.properties.reservedarea > 500)
+                        {
+                            color = 'red';
+                            fillOpacity = 0.5;
+                        }
+                        else if (feature.properties.reservedarea > 0)
+                        {
+                            fillOpacity = (feature.properties.reservedarea / feature.properties.maxarea) * 0.75;
+                        }
                     }
                     break;
                 }
@@ -125,8 +134,9 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
                 "opacity": 0.5,
                 "fillOpacity": fillOpacity
             };
-        }, onEachFeature: function(feature,layer){
-        layer.bindTooltip(feature.properties.sheetname,{permanent:true,direction:'center'});
+        }, onEachFeature: function(feature,layer)
+            {
+                layer.bindTooltip("<span style='color: white; text-shadow: 2px 2px #000000; font-weight: bold'>"+feature.properties.sheetname+"</span>",{permanent:true,direction:'center'});
             } })
         .addTo(map)
         .eachLayer(function (layer) 
@@ -162,10 +172,15 @@ fetch('https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLV
 });
 
 //MAP BASE LAYER
-var tiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+// var mapBoxtiles = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+//     maxZoom: 20,
+//     attribution: 'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+//     id: 'mapbox/satellite-v9',
+//     tileSize: 512,
+//     zoomOffset: -1
+// }).addTo(map);
+
+var googleSatellite = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{
     maxZoom: 20,
-    attribution: 'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-    id: 'mapbox/satellite-v9',
-    tileSize: 512,
-    zoomOffset: -1
+    subdomains:['mt0','mt1','mt2','mt3']
 }).addTo(map);

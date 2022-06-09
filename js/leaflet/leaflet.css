@@ -573,8 +573,8 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .leaflet-tooltip {
 	position: absolute;
 	padding: 6px;
-	background-color: rgba(255, 255, 255, 0.832);
-	border: 2px solid #fff;
+	background-color: rgba(255, 255, 255, 0.0);
+	border: 0px solid #fff;
 	border-radius: 50px;
 	color: #222;
 	white-space: nowrap;
