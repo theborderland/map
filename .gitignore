@@ -353,3 +353,7 @@ MigrationBackup/
 
 #webstorm
 .idea/
+
+# generated code
+public/bundle.js
+public/bundle.js.map
