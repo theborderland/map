@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main  # Set a branch name to trigger deployment
-  pull_request:
+# uncomment to do a deploy on every pull request (and changes to it)
+#  pull_request:
 
 jobs:
   deploy:
@@ -16,16 +17,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: true  # Fetch Hugo themes (true OR recursive)
-          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+          ref: main
 
-      - name: NPM install
+      - name: Install dependencies
         run: npm install
 
       - name: Build
         run: npm run build
 
-      - name: Deploy
+      - name: Deploy to Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
