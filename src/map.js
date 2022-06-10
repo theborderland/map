@@ -18,6 +18,7 @@ export const createMap = async () => {
     await loadTooltipZoom(map);
     await loadBoarderlandMarker(map);
     await loadPositionControl(map);
+    L.control.scale({metric: true, imperial: false}).addTo(map);
 
     const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         maxZoom: 20,
