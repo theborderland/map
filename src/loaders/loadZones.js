@@ -31,6 +31,13 @@ export const loadZones = async (map) => {
                 fillOpacity: 0,
                 zIndex: 0,
             };
+        },onEachFeature: (feature, layer) => {
+            layer.bindTooltip(
+                "<span style='color: white; text-shadow: 2px 2px #000000; font-weight: bold; font-size: 1rem;'>" +
+                    feature.properties.name +
+                    '</span>',
+                { permanent: true, direction: 'center' },
+            );
         },
     }));
 
