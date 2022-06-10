@@ -12,12 +12,14 @@ export const loadZones = async (map) => {
 
             //ok, really messy to have this in here. Where should it go?
             for (let i = 0; i < zonedata.length; i++) {
-                if (zonedata[i][0] === feature.properties.fid) {
-                    feature.properties.sheetname = zonedata[i][1];
-                    feature.properties.notice = zonedata[i][2];
-                    feature.properties.sound = zonedata[i][3];
-                    feature.properties.description = zonedata[i][4];
-                    break;
+                const [id, name, abbrevation, notice, sound, description] = zonedata[i];
+
+                // convert to string
+                if (id === '' + feature.properties.fid) {
+                    feature.properties = {
+                        ...feature.properties,
+                        name, abbrevation, notice, sound, description,
+                    };
                 }
             }
 
@@ -32,7 +34,7 @@ export const loadZones = async (map) => {
         },
     }));
 
-    data.addTo(map).eachLayer(function (layer) {
+    data.addTo(map).eachLayer((layer) => {
         let notice = '';
         if (layer.feature.properties.notice) notice = '<h3>' + layer.feature.properties.notice + '</h3>';
 
@@ -43,7 +45,7 @@ export const loadZones = async (map) => {
         if (layer.feature.properties.description)
             description = '<B>Description:</B> ' + layer.feature.properties.description + '<BR>';
 
-        const content = '<h2>' + layer.feature.properties.sheetname + '</h2>' + sound + notice + description;
+        const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description;
         layer.bindPopup(content);
         layer.bringToBack();
     });
