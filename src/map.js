@@ -1,7 +1,6 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import { loadZones } from './loaders/loadZones';
-
 import { loadNatureReserve } from './loaders/loadNatureReserve';
 import { loadFireRoads } from './loaders/loadFireRoads';
 import { loadCampClusters } from './loaders/loadCampClusters';
@@ -12,19 +11,9 @@ export const createMap = async () => {
     // Add Leaflet-locatecontrol plugin
     L.control.locate({ setView: 'once', keepCurrentZoomLevel: true, returnToPrevBounds: true, drawCircle: true, flyTo: true }).addTo(map);
 
-    // map.createPane('labels');
-    // map.getPane('labels').style.zIndex = 650; // This pane is above markers but below popups
-    // map.getPane('labels').style.pointerEvents = 'none'; // Layers in this pane are non-interactive and do not obscure mouse/touch events
-
-    //ZONES
     await loadZones(map);
-
-    //NATURE RESERVE
     await loadNatureReserve(map);
-
-    //FIRE ROADS
     await loadFireRoads(map);
-    //CAMP CLUSTERS
     await loadCampClusters(map);
 
     //MAP BASE LAYER
@@ -36,7 +25,7 @@ export const createMap = async () => {
     //     zoomOffset: -1
     // }).addTo(map);
 
-    const googleSatellite = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         maxZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
