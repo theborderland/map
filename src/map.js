@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
+import 'leaflet.polylinemeasure';
 import { loadZones } from './loaders/loadZones';
 import { loadNatureReserve } from './loaders/loadNatureReserve';
 import { loadFireRoads } from './loaders/loadFireRoads';
@@ -19,6 +20,7 @@ export const createMap = async () => {
     await loadBoarderlandMarker(map);
     await loadPositionControl(map);
     L.control.scale({metric: true, imperial: false}).addTo(map);
+    L.control.polylineMeasure().addTo(map);
 
     const googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         maxZoom: 20,

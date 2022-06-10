@@ -26,7 +26,8 @@
     "homepage": "https://github.com/theborderland/map#readme",
     "dependencies": {
         "leaflet": "^1.8.0",
-        "leaflet.locatecontrol": "^0.76.1"
+        "leaflet.locatecontrol": "^0.76.1",
+        "leaflet.polylinemeasure": "^3.0.0"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^17.0.0",

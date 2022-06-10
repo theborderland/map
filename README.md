@@ -1,6 +1,8 @@
 The Borderland Map
 ==================
 
+https://www.theborderland.se/map/
+
 Running the code
 
 We use rollup to generate the javascript code.
