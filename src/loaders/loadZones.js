@@ -20,6 +20,8 @@ export const loadZones = async (map) => {
                         ...feature.properties,
                         name, abbrevation, notice, sound, description,
                     };
+                    // Set at which zoom-level the tooltip should dissappear
+                    feature.properties.minzoom = 16
                 }
             }
 
@@ -33,7 +35,7 @@ export const loadZones = async (map) => {
             };
         },onEachFeature: (feature, layer) => {
             layer.bindTooltip(
-                "<span style='color: white; text-shadow: 2px 2px #000000; font-weight: bold; font-size: 1rem;'>" +
+                "<span style='color: #ffa; opacity: 0.9; text-shadow: 2px 2px #000000; font-weight: bold; font-size: 0.8rem;'>" +
                     feature.properties.name +
                     '</span>',
                 { permanent: true, direction: 'center' },

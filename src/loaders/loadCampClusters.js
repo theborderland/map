@@ -42,6 +42,14 @@ export const loadCampClusters = async (map) => {
                             fillOpacity = (feature.properties.reservedarea / feature.properties.maxarea) * 0.75;
                         }
                     }
+
+                    // Set at which zoom-level the tooltip should dissappear
+                    if (sheetdata[i][1] == 'camp') feature.properties.minzoom = 17;
+                    if (sheetdata[i][1] == 'art') feature.properties.minzoom = 17;
+                    if (sheetdata[i][1] == 'parking') feature.properties.minzoom = 17;
+                    if (sheetdata[i][1] == 'building') feature.properties.minzoom = 17;
+                    if (sheetdata[i][1] == 'sound') feature.properties.minzoom = 17;
+                    if (sheetdata[i][1] == 'bridge') feature.properties.minzoom = 17;
                     break;
                 }
             }
