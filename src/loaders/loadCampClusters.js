@@ -2,7 +2,6 @@ import { CAMP_CAMPS_SPREADSHEET_JSON, CAMP_CLUSTERS_GEOJSON, CAMP_CLUSTERS_SPREA
 import L from 'leaflet';
 import { loadSpreadSheet } from '../utils/loadSpreadSheet';
 import { loadGeoJson } from '../utils/loadGeoJson';
-import { Console } from 'console';
 
 const loadAreaCamps = async () => {
     let areas = {};
@@ -229,6 +228,13 @@ export const loadCampClusters = async (map) => {
                         {
                             fillOpacity = (feature.properties.reservedarea / feature.properties.maxarea) * 0.75;
                         }
+                        // Hide tooltip when zooming in close to area, but only if any camps is there to be shown
+                        if (Object.keys(feature.properties.camps).length > 0)
+                        {
+                            if (sheetdata[i][1] == 'camp') feature.properties.maxzoom = 18;
+                            if (sheetdata[i][1] == 'art') feature.properties.maxzoom = 18;
+                            if (sheetdata[i][1] == 'sound') feature.properties.maxzoom = 18;
+                        }
                     }
 
                     // Set at which zoom-level the tooltip should dissappear
@@ -267,11 +273,14 @@ export const loadCampClusters = async (map) => {
 
         let area = '';
         if (layer.feature.properties.reservedarea) {
-            area =
-                layer.feature.properties.reservedarea +
-                ' sqm reserved of ' +
-                layer.feature.properties.maxarea +
-                ' sqm.<BR>';
+            area += layer.feature.properties.reservedarea;
+            area += ' m² reserved of ';
+            area += layer.feature.properties.maxarea;
+            area += ' m²';
+            area += ' (';
+            area += layer.feature.properties.size_usage_percent;
+            area += '%).';
+            area += '<BR>';
         }
 
         let camps = '';
@@ -280,13 +289,30 @@ export const loadCampClusters = async (map) => {
         {
             if (Object.keys(layer.feature.properties.camps).length > 0)
             {
-                camps = '<h3>Camps in this cluster:</h3><ul class="camps-list">';
+                camps = '<h3>Camps in this cluster:</h3><ul class="camps-list-popup">';
                 for (const [key, camp] of Object.entries(layer.feature.properties.camps))
                 {
                     // console.log(key, camp);
-                    camps += "<li>" + camp.name + "</li>";
+                    let percent = 0;
+                    camps += "<li>";
+                    camps += camp.name;
+                    camps +=   "<ul>";
+                    camps +=     "<li>";
+                    camps +=       "People: "+camp.number_of_people;
+                    camps +=     "</li>";
+                    camps +=     "<li>";
+                    camps +=       "Vans: "+camp.number_of_vans;
+                    camps +=     "</li>";
+                    camps +=     "<li>";
+                    camps +=       "Other structure: "+camp.other_structure_m2+"m²";
+                    camps +=     "</li>";
+                    camps +=     "<li>";
+                    camps +=       "Power: "+camp.power_usage+" W";
+                    camps +=     "</li>";
+                    camps +=   "</ul>";
+                    camps += "</li>";
                 }
-                camps += "</ul>"
+                camps += "</ul>";
             }
         }
 

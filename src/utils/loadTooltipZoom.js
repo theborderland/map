@@ -8,38 +8,26 @@ export const loadTooltipZoom = async(map) => {
 		{
 			if (layer.feature && layer.feature.properties)
 			{
-				if (layer.feature.properties.minzoom)
+				if (layer.feature.properties.minzoom || layer.feature.properties.maxzoom)
 				{
 					if (layer.getTooltip)
 					{
+						let min = 0;
+						if (layer.feature.properties.minzoom) min = layer.feature.properties.minzoom;
+						let max = 100;
+						if (layer.feature.properties.maxzoom) max = layer.feature.properties.maxzoom;
 						var tooltip = layer.getTooltip();
 						if (tooltip)
 						{
-							if (currentZoom < layer.feature.properties.minzoom)
-							{
-								tooltip._container.style.display = "none";
-							}
-							else
+							// If current zoom level is between objects min- and max-level, show
+							// console.log("Zoom:", currentZoom, "min:", min, "max:", max);
+							if (currentZoom >= min && currentZoom <= max)
 							{
 								tooltip._container.style.display = "block";
 							}
-						}
-					}
-				}
-				if (layer.feature.properties.maxzoom)
-				{
-					if (layer.getTooltip)
-					{
-						var tooltip = layer.getTooltip();
-						if (tooltip)
-						{
-							if (currentZoom > layer.feature.properties.maxzoom)
-							{
-								tooltip._container.style.display = "none";
-							}
 							else
 							{
-								tooltip._container.style.display = "block";
+								tooltip._container.style.display = "none";
 							}
 						}
 					}

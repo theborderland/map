@@ -6,6 +6,7 @@ import { loadNatureReserve } from './loaders/loadNatureReserve';
 import { loadFireRoads } from './loaders/loadFireRoads';
 import { loadCampClusters } from './loaders/loadCampClusters';
 import { loadTooltipZoom, loadBoarderlandMarker } from './utils/loadTooltipZoom';
+import { loadCampMarkers } from './utils/loadCampMarkers';
 import { loadPositionControl } from './utils/loadPositionControl';
 
 export const createMap = async () => {
@@ -18,6 +19,7 @@ export const createMap = async () => {
     await loadCampClusters(map);
     await loadTooltipZoom(map);
     await loadBoarderlandMarker(map);
+    await loadCampMarkers(map);
     await loadPositionControl(map);
     L.control.scale({metric: true, imperial: false}).addTo(map);
     L.control.polylineMeasure().addTo(map);
