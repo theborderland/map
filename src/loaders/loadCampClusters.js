@@ -355,7 +355,10 @@ export const loadCampClusters = async (map) => {
         if (layer.feature.properties.description)
             description = '<B>Description:</B> ' + layer.feature.properties.description + '<BR>';
 
-        const content = '<h2>' + name + '</h2>' + area + notice + description + camps;
+        let placement = '';
+        placement += '<p><a href="https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864">Placement Spreadsheet</a>';
+
+        const content = '<h2>' + name + '</h2>' + area + notice + description + camps + placement;
 
         layer.bindPopup(content);
         layer.bringToFront();
