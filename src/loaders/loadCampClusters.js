@@ -248,6 +248,7 @@ export const loadCampClusters = async (map) => {
                             if (sheetdata[i][1] == 'camp') feature.properties.maxzoom = 18;
                             if (sheetdata[i][1] == 'art') feature.properties.maxzoom = 18;
                             if (sheetdata[i][1] == 'sound') feature.properties.maxzoom = 18;
+                            if (sheetdata[i][1] == 'building') feature.properties.maxzoom = 18;
                         }
                     }
 
