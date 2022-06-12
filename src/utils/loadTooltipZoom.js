@@ -1,41 +1,54 @@
 import L from 'leaflet';
 
-export const loadTooltipZoom = async(map) => {
+export const showHideTooltipsZoom = async(map, goalZoom) => {
 	// Hide tooltips dependent on zoom level
-	map.on('zoomend', function() {
-		var currentZoom = map.getZoom();
-		map.eachLayer(function(layer)
+	let goal = goalZoom;
+	map.eachLayer(function(layer)
+	{
+		if (layer.feature && layer.feature.properties)
 		{
-			if (layer.feature && layer.feature.properties)
+			if (layer.feature.properties.minzoom || layer.feature.properties.maxzoom)
 			{
-				if (layer.feature.properties.minzoom || layer.feature.properties.maxzoom)
+				if (layer.getTooltip)
 				{
-					if (layer.getTooltip)
+					let min = 0;
+					if (layer.feature.properties.minzoom) min = layer.feature.properties.minzoom;
+					let max = 100;
+					if (layer.feature.properties.maxzoom) max = layer.feature.properties.maxzoom;
+					var tooltip = layer.getTooltip();
+					if (tooltip)
 					{
-						let min = 0;
-						if (layer.feature.properties.minzoom) min = layer.feature.properties.minzoom;
-						let max = 100;
-						if (layer.feature.properties.maxzoom) max = layer.feature.properties.maxzoom;
-						var tooltip = layer.getTooltip();
-						if (tooltip)
+						// If current zoom level is between objects min- and max-level, show
+						// console.log("Zoom:", goal, "min:", min, "max:", max);
+						if (goal >= min && goal <= max)
 						{
-							// If current zoom level is between objects min- and max-level, show
-							// console.log("Zoom:", currentZoom, "min:", min, "max:", max);
-							if (currentZoom >= min && currentZoom <= max)
-							{
-								tooltip._container.style.display = "block";
-							}
-							else
-							{
-								tooltip._container.style.display = "none";
-							}
+							tooltip._container.style.display = "block";
+						}
+						else
+						{
+							tooltip._container.style.display = "none";
 						}
 					}
 				}
 			}
-		});
+		}
 	});
-    return true;
+}
+
+export const loadTooltipZoom = async(map) => {
+	// Show or hide tooltips dependent on zoom level
+	map.on('zoomanim', function(event) {
+		// console.log(event);
+		let currentZoom = map.getZoom();
+		let goal = currentZoom;
+		if (event?.zoom)
+		{
+			goal = event.zoom;
+		}
+		// console.log("to zoom", goal);
+		// console.log("current zoom", currentZoom);
+		showHideTooltipsZoom(map, goal);
+	});
 }
 
 export const loadBoarderlandMarker = async(map) => {
