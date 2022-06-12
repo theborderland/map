@@ -10,11 +10,11 @@ export const loadSoundGuide = async (map) =>
         {
                 let color = 'green';
 
-                if (feature.properties.soundlevel == 'silent') color = 'green';
-                else if (feature.properties.soundlevel == 'low') color = 'orange';
-                else if (feature.properties.soundlevel == 'medium') color = 'darkorange';
-                else if (feature.properties.soundlevel == 'high') color = 'red';
-                else if (feature.properties.soundlevel == 'soundcamp') color = 'purple';
+                if (feature.properties.soundlevel == 'silent') color = '#1c9603';
+                else if (feature.properties.soundlevel == 'low') color = '#d19200';
+                else if (feature.properties.soundlevel == 'medium') color = '#b54800';
+                else if (feature.properties.soundlevel == 'high') color = '#b80000';
+                else if (feature.properties.soundlevel == 'soundcamp') color = '#82002e';
                 
                 return {
                     color: color,
@@ -26,10 +26,12 @@ export const loadSoundGuide = async (map) =>
         }
     }));
 
-    // data.addTo(map).eachLayer(function (layer) 
-    // {
-    //     layer.bindPopup('<H2>Sound guide</H2>');
-    // });
+    data.eachLayer(function (layer) 
+    {
+        let content = '<H2>Sound guide</H2>';
+        let soundlevel = '<B>Sound level:</B>' + layer.feature.properties.soundlevel;
+        layer.bindPopup(content + soundlevel);
+    });
 
     var baseLayers = {"Sound": data};
 
