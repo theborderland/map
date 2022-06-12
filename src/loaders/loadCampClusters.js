@@ -199,7 +199,7 @@ export const loadCampClusters = async (map) => {
     const data = await loadGeoJson(CAMP_CLUSTERS_GEOJSON, () => ({
         style: function (feature) {
             let color = '#03d7fc';
-            let fillOpacity = 0.5;
+            let fillOpacity = 0.0;
 
             // Loop through sheetdata and add it to each feature
             for (let i = 0; i < sheetdata.length; i++) {
