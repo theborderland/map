@@ -312,20 +312,29 @@ export const loadCampClusters = async (map) => {
         {
             if (Object.keys(layer.feature.properties.camps).length > 0)
             {
-                camps = '<h3>Camps in this cluster:</h3><ul class="camps-list-popup">';
+                camps = '<h3>In this cluster:</h3><ul class="camps-list-popup">';
                 for (const [key, camp] of Object.entries(layer.feature.properties.camps))
                 {
                     // console.log(key, camp);
                     let percent = 0;
                     camps += "<li>";
-                    camps += camp.name;
+                    camps += "["+camp.type+"] "+camp.name;
                     camps +=   "<ul>";
-                    camps +=     "<li>";
-                    camps +=       "People: "+camp.number_of_people;
-                    camps +=     "</li>";
-                    camps +=     "<li>";
-                    camps +=       "Vans: "+camp.number_of_vans;
-                    camps +=     "</li>";
+                    if (camp.type != "project")
+                    {
+                        if (camp.projects?.length > 0)
+                        {
+                            camps +=     "<li>";
+                            camps +=       "Projects: "+camp.projects;
+                            camps +=     "</li>";
+                        }
+                        camps +=     "<li>";
+                        camps +=       "People: "+camp.number_of_people;
+                        camps +=     "</li>";
+                        camps +=     "<li>";
+                        camps +=       "Vans: "+camp.number_of_vans;
+                        camps +=     "</li>";
+                    }
                     camps +=     "<li>";
                     camps +=       "Other structure: "+camp.other_structure_m2+"m²";
                     camps +=     "</li>";
