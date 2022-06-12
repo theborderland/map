@@ -3,6 +3,7 @@ import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import { loadZones } from './loaders/loadZones';
 import { loadNatureReserve } from './loaders/loadNatureReserve';
+import { loadSoundGuide } from './loaders/loadSoundGuide';
 import { loadFireRoads } from './loaders/loadFireRoads';
 import { loadCampClusters } from './loaders/loadCampClusters';
 import { loadTooltipZoom, loadBoarderlandMarker } from './utils/loadTooltipZoom';
@@ -15,6 +16,7 @@ export const createMap = async () => {
 
     await loadZones(map);
     await loadNatureReserve(map);
+    await loadSoundGuide(map);
     await loadFireRoads(map);
     await loadCampClusters(map);
     await loadTooltipZoom(map);
