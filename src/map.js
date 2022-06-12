@@ -18,11 +18,11 @@ export const createMap = async () => {
     loadZones(map);
     loadNatureReserve(map);
     loadFireRoads(map);
-    loadCampClusters(map);
     loadTooltipZoom(map);
     loadBoarderlandMarker(map);
-    loadCampMarkers(map);
     loadPositionControl(map);
+    await loadCampClusters(map);
+    await loadCampMarkers(map);
     let sound = await loadSoundGuide(map);
     let slope = await loadSlopeMap(map);
     L.control.scale({metric: true, imperial: false}).addTo(map);
