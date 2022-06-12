@@ -10,7 +10,7 @@ import { loadCampMarkers } from './utils/loadCampMarkers';
 import { loadPositionControl } from './utils/loadPositionControl';
 
 export const createMap = async () => {
-    const map = L.map('map', { zoomControl: false }).setView([57.621111, 14.927857], 17);
+    const map = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([57.621111, 14.927857], 17);
 
 
     await loadZones(map);
