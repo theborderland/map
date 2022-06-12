@@ -16,7 +16,7 @@ export const loadCampMarkers = async(map) => {
 					size_radious = 0.1;
 					let camps = '';
 					// layer.feature.properties.size_usage_percent
-					camps += '<h3 class="camps-list-tooltip-header">Area cluster: '
+					camps += '<h3 class="camps-list-tooltip-header">'
 					camps += layer.feature.properties.sheetname
 					camps += " (" + layer.feature.properties.size_usage_percent + " % used)"
 					camps += ':</h3>';
