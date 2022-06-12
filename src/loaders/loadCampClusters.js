@@ -79,92 +79,106 @@ const loadAreaCamps = async () => {
                         areas[row_segment_name].power_usage = parseInt(row[1]);
                     }
                 }
-                // Extract camp information
+                // Extract camp or project information
                 if (row.length >= 2)
                 {
-                    // It's considored a camp if we have at least a name, column number 2
+                    // It's considored a camp/project if we have at least a name, column number 2 (camp) 3 (project)
                     if (row.length >= 2)
                     {
-                        if (row[2]?.length > 0)
+                        if ((row[2]?.length > 0) || (row[3]?.length > 0))
                         {
                             // Init camp
-                            var camp_name = row[2];
-                            areas[row_segment_name].camps[camp_name] = {};
-                            areas[row_segment_name].camps[camp_name].name = camp_name;
-                            areas[row_segment_name].camps[camp_name].projects = "";
-                            areas[row_segment_name].camps[camp_name].number_of_people = 0;
-                            areas[row_segment_name].camps[camp_name].number_of_vans = 0;
-                            areas[row_segment_name].camps[camp_name].other_structure_m2 = 0;
-                            areas[row_segment_name].camps[camp_name].power_usage = 0;
-                            areas[row_segment_name].camps[camp_name].contact_person = "";
-                            areas[row_segment_name].camps[camp_name].contact_contact = "";
-                            areas[row_segment_name].camps[camp_name].lnt_person = "";
-                            areas[row_segment_name].camps[camp_name].lnt_contact = "";
-                            areas[row_segment_name].camps[camp_name].consent_person = "";
-                            areas[row_segment_name].camps[camp_name].consent_contact = "";
-                            areas[row_segment_name].camps[camp_name].comment = "";
+                            let extracted_name = "";
+                            let extracted_type = "";
+                            if (row[2]?.length > 0)
+                            {
+                                // Camp name
+                                extracted_name = row[2];
+                                extracted_type = "camp";
+                            }
+                            else if (row[3]?.length > 0)
+                            {
+                                // Project name
+                                extracted_name = row[3];
+                                extracted_type = "project";
+                            }
+                            areas[row_segment_name].camps[extracted_name] = {};
+                            areas[row_segment_name].camps[extracted_name].type = extracted_type;
+                            areas[row_segment_name].camps[extracted_name].name = extracted_name;
+                            areas[row_segment_name].camps[extracted_name].projects = "";
+                            areas[row_segment_name].camps[extracted_name].number_of_people = 0;
+                            areas[row_segment_name].camps[extracted_name].number_of_vans = 0;
+                            areas[row_segment_name].camps[extracted_name].other_structure_m2 = 0;
+                            areas[row_segment_name].camps[extracted_name].power_usage = 0;
+                            areas[row_segment_name].camps[extracted_name].contact_person = "";
+                            areas[row_segment_name].camps[extracted_name].contact_contact = "";
+                            areas[row_segment_name].camps[extracted_name].lnt_person = "";
+                            areas[row_segment_name].camps[extracted_name].lnt_contact = "";
+                            areas[row_segment_name].camps[extracted_name].consent_person = "";
+                            areas[row_segment_name].camps[extracted_name].consent_contact = "";
+                            areas[row_segment_name].camps[extracted_name].comment = "";
 
                             for (let col_i = 0; col_i < row.length; col_i++)
                             {
                                 if (col_i == 3)
                                 {
-                                    areas[row_segment_name].camps[camp_name].projects = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].projects = row[col_i];
                                 }
                                 else if (col_i == 4)
                                 {
                                     if (parseInt(row[col_i]))
                                     {
-                                        areas[row_segment_name].camps[camp_name].number_of_people = parseInt(row[col_i]);
+                                        areas[row_segment_name].camps[extracted_name].number_of_people = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 5)
                                 {
                                     if (parseInt(row[col_i]))
                                     {
-                                        areas[row_segment_name].camps[camp_name].number_of_vans = parseInt(row[col_i]);
+                                        areas[row_segment_name].camps[extracted_name].number_of_vans = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 6)
                                 {
                                     if (parseInt(row[col_i]))
                                     {
-                                        areas[row_segment_name].camps[camp_name].other_structure_m2 = parseInt(row[col_i]);
+                                        areas[row_segment_name].camps[extracted_name].other_structure_m2 = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 7)
                                 {
                                     if (parseInt(row[col_i]))
                                     {
-                                        areas[row_segment_name].camps[camp_name].power_usage = parseInt(row[col_i]);
+                                        areas[row_segment_name].camps[extracted_name].power_usage = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 8)
                                 {
-                                    areas[row_segment_name].camps[camp_name].contact_person = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].contact_person = row[col_i];
                                 }
                                 else if (col_i == 9)
                                 {
-                                    areas[row_segment_name].camps[camp_name].contact_contact = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].contact_contact = row[col_i];
                                 }
                                 else if (col_i == 10)
                                 {
-                                    areas[row_segment_name].camps[camp_name].lnt_person = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].lnt_person = row[col_i];
                                 }
                                 else if (col_i == 11)
                                 {
-                                    areas[row_segment_name].camps[camp_name].lnt_contact = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].lnt_contact = row[col_i];
                                 }
                                 else if (col_i == 12)
                                 {
-                                    areas[row_segment_name].camps[camp_name].consent_person = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].consent_person = row[col_i];
                                 }
                                 else if (col_i == 13)
                                 {
-                                    areas[row_segment_name].camps[camp_name].consent_contact = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].consent_contact = row[col_i];
                                 }
                                 else if (col_i == 14)
                                 {
-                                    areas[row_segment_name].camps[camp_name].comment = row[col_i];
+                                    areas[row_segment_name].camps[extracted_name].comment = row[col_i];
                                 }
                             }
                         }
@@ -185,7 +199,7 @@ export const loadCampClusters = async (map) => {
     const data = await loadGeoJson(CAMP_CLUSTERS_GEOJSON, () => ({
         style: function (feature) {
             let color = '#03d7fc';
-            let fillOpacity = 0.5;
+            let fillOpacity = 0.0;
 
             // Loop through sheetdata and add it to each feature
             for (let i = 0; i < sheetdata.length; i++) {
@@ -234,6 +248,7 @@ export const loadCampClusters = async (map) => {
                             if (sheetdata[i][1] == 'camp') feature.properties.maxzoom = 18;
                             if (sheetdata[i][1] == 'art') feature.properties.maxzoom = 18;
                             if (sheetdata[i][1] == 'sound') feature.properties.maxzoom = 18;
+                            if (sheetdata[i][1] == 'building') feature.properties.maxzoom = 18;
                         }
                     }
 
@@ -297,20 +312,29 @@ export const loadCampClusters = async (map) => {
         {
             if (Object.keys(layer.feature.properties.camps).length > 0)
             {
-                camps = '<h3>Camps in this cluster:</h3><ul class="camps-list-popup">';
+                camps = '<h3>In this cluster:</h3><ul class="camps-list-popup">';
                 for (const [key, camp] of Object.entries(layer.feature.properties.camps))
                 {
                     // console.log(key, camp);
                     let percent = 0;
                     camps += "<li>";
-                    camps += camp.name;
+                    camps += "["+camp.type+"] "+camp.name;
                     camps +=   "<ul>";
-                    camps +=     "<li>";
-                    camps +=       "People: "+camp.number_of_people;
-                    camps +=     "</li>";
-                    camps +=     "<li>";
-                    camps +=       "Vans: "+camp.number_of_vans;
-                    camps +=     "</li>";
+                    if (camp.type != "project")
+                    {
+                        if (camp.projects?.length > 0)
+                        {
+                            camps +=     "<li>";
+                            camps +=       "Projects: "+camp.projects;
+                            camps +=     "</li>";
+                        }
+                        camps +=     "<li>";
+                        camps +=       "People: "+camp.number_of_people;
+                        camps +=     "</li>";
+                        camps +=     "<li>";
+                        camps +=       "Vans: "+camp.number_of_vans;
+                        camps +=     "</li>";
+                    }
                     camps +=     "<li>";
                     camps +=       "Other structure: "+camp.other_structure_m2+"m²";
                     camps +=     "</li>";

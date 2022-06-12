@@ -15,14 +15,18 @@ export const loadCampMarkers = async(map) => {
 					}
 					size_radious = 0.1;
 					let camps = '';
-					camps += '<h3 class="camps-list-tooltip-header">Camp cluster: '+ layer.feature.properties.sheetname + ':</h3>';
+					// layer.feature.properties.size_usage_percent
+					camps += '<h3 class="camps-list-tooltip-header">Area cluster: '
+					camps += layer.feature.properties.sheetname
+					camps += " (" + layer.feature.properties.size_usage_percent + " % used)"
+					camps += ':</h3>';
 					camps += '<ul class="camps-list-tooltip">';
 					for (const [key, camp] of Object.entries(layer.feature.properties.camps))
 					{
-						camps += "<li>" + camp.name + "</li>";
+						camps += "<li>[" + camp.type + "] " + camp.name + "</li>";
 					}
 					camps += "</ul>";
-					camps += '<span class="camps-list-span-tooltip">(Klick for details.)</span>';
+					camps += '<span class="camps-list-span-tooltip">(Click on area for details.)</span>';
 					// Add Borderland tooltip, it should only be visible when zoomed out
 					var areaMarker = L.circle(layer.getBounds().getCenter(), {
 						color: "ddd",
