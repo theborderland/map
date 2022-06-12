@@ -267,19 +267,27 @@ export const loadCampClusters = async (map) => {
 
     data.addTo(map).eachLayer((layer) => {
         let name = '';
-        if (layer.feature.properties.sheetname) {
+        if (layer.feature.properties.sheetname)
+        {
             name = layer.feature.properties.sheetname;
-        } else name = layer.feature.properties.fid;
+        }
+        else
+        {
+            name = layer.feature.properties.fid;
+        }
 
         let area = '';
-        if (layer.feature.properties.reservedarea) {
+        if (layer.feature.properties?.reservedarea == 0 || layer.feature.properties?.reservedarea > 0) {
             area += layer.feature.properties.reservedarea;
             area += ' m² reserved of ';
             area += layer.feature.properties.maxarea;
             area += ' m²';
-            area += ' (';
-            area += layer.feature.properties.size_usage_percent;
-            area += '%).';
+            if (layer.feature.properties.size_usage_percent)
+            {
+                area += ' (';
+                area += layer.feature.properties.size_usage_percent;
+                area += '%).';
+            }
             area += '<BR>';
         }
 

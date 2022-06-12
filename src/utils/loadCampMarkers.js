@@ -21,7 +21,8 @@ export const loadCampMarkers = async(map) => {
 					{
 						camps += "<li>" + camp.name + "</li>";
 					}
-					camps += "</ul>"
+					camps += "</ul>";
+					camps += '<span class="camps-list-span-tooltip">(Klick for details.)</span>';
 					// Add Borderland tooltip, it should only be visible when zoomed out
 					var areaMarker = L.circle(layer.getBounds().getCenter(), {
 						color: "ddd",
