@@ -11,6 +11,7 @@ const loadAreaCamps = async () => {
     let row_segment_type = "";
     let row_segment_counter = 0;
     let row_segment_name = "";
+    const offset = 3;
 
     // Loop through sheetdata and group them by area
     for (let i = 0; i < sheetdata.length; i++)
@@ -79,6 +80,15 @@ const loadAreaCamps = async () => {
                         areas[row_segment_name].power_usage = parseInt(row[1]);
                     }
                 }
+                // Set spreadsheet row
+                if (row_segment_counter == 0)
+                {
+                    areas[row_segment_name].spreadRowStart = i + offset;
+                    areas[row_segment_name].spreadRowEnd = i + offset;
+                } else
+                {
+                    areas[row_segment_name].spreadRowEnd = i + offset;
+                }
                 // Extract camp or project information
                 if (row.length >= 2)
                 {
@@ -117,6 +127,7 @@ const loadAreaCamps = async () => {
                             areas[row_segment_name].camps[extracted_name].consent_person = "";
                             areas[row_segment_name].camps[extracted_name].consent_contact = "";
                             areas[row_segment_name].camps[extracted_name].comment = "";
+                            areas[row_segment_name].camps[extracted_name].spreadRow = i;
 
                             for (let col_i = 0; col_i < row.length; col_i++)
                             {
@@ -234,6 +245,8 @@ export const loadCampClusters = async (map) => {
                         feature.properties.reservedarea = areas_w_camps[feature.properties.sheetname].size_reserved;
                         feature.properties.description = areas_w_camps[feature.properties.sheetname].comment;
                         feature.properties.size_usage_percent = areas_w_camps[feature.properties.sheetname].size_usage_percent;
+                        feature.properties.spreadRowStart = areas_w_camps[feature.properties.sheetname].spreadRowStart;
+                        feature.properties.spreadRowEnd = areas_w_camps[feature.properties.sheetname].spreadRowEnd;
                         // If full, set color of area
                         if (feature.properties.size_usage_percent > 100)
                         {
@@ -393,7 +406,12 @@ export const loadCampClusters = async (map) => {
             description = '<B>Description:</B> ' + layer.feature.properties.description + '<BR>';
 
         let placement = '';
-        placement += '<p><a href="https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864">Placement Spreadsheet</a>';
+        // placement += '<p><a href="https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864">Placement Spreadsheet</a>';
+        placement += '<p><a href="';
+        placement += "https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864&range=";
+        // Add range like "471:476";
+        placement += layer.feature.properties.spreadRowStart + ":" + layer.feature.properties.spreadRowEnd;
+        placement += '">Placement Spreadsheet</a>';
 
         const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + placement;
 

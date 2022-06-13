@@ -10,7 +10,6 @@ export const loadZones = async (map) => {
         style: function (feature) {
             let color = 'yellow';
 
-            //ok, really messy to have this in here. Where should it go?
             for (let i = 0; i < zonedata.length; i++) {
                 const [id, name, abbrevation, notice, sound, description] = zonedata[i];
 
@@ -21,7 +20,11 @@ export const loadZones = async (map) => {
                         name, abbrevation, notice, sound, description,
                     };
                     // Set at which zoom-level the tooltip should dissappear
-                    feature.properties.minzoom = 16
+                    feature.properties.minzoom = 16;
+                    feature.properties.mapUri = zonedata[i][7];
+                    feature.properties.discordChannel = zonedata[i][8];
+                    feature.properties.discussionUri = zonedata[i][9];
+                    feature.properties.spreadsheetUri = zonedata[i][10];
                 }
             }
 
@@ -50,11 +53,31 @@ export const loadZones = async (map) => {
         let sound = '';
         if (layer.feature.properties.sound) sound = '<B>Sound:</B> ' + layer.feature.properties.sound + '<BR><BR>';
 
+        let discussion = '';
+        if (layer.feature.properties.discussionUri)
+        {
+            discussion += '<p><a href="';
+            discussion += layer.feature.properties.discussionUri;
+            discussion += '">';
+            discussion += 'Discussion on Discord ' + layer.feature.properties.discordChannel;
+            discussion += '</a></p>';
+        }
+
+        let spreadsheet = '';
+        if (layer.feature.properties.spreadsheetUri)
+        {
+            spreadsheet += '<p><a href="';
+            spreadsheet += layer.feature.properties.spreadsheetUri;
+            spreadsheet += '">';
+            spreadsheet += 'Zone in the placement spreadsheet';
+            spreadsheet += '</a></p>';
+        }
+
         let description = '';
         if (layer.feature.properties.description)
             description = '<B>Description:</B> ' + layer.feature.properties.description + '<BR>';
 
-        const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description;
+        const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description + discussion + spreadsheet;
         layer.bindPopup(content);
         layer.bringToBack();
     });
