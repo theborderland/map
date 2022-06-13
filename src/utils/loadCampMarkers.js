@@ -16,14 +16,19 @@ export const loadCampMarkers = async(map) => {
 					size_radious = 0.1;
 					let camps = '';
 					// layer.feature.properties.size_usage_percent
-					camps += '<h3 class="camps-list-tooltip-header">'
-					camps += layer.feature.properties.sheetname
-					camps += " (" + layer.feature.properties.size_usage_percent + " % used)"
+					camps += '<h3 class="camps-list-tooltip-header">';
+					camps += layer.feature.properties.sheetname;
+					camps += " (" + layer.feature.properties.size_usage_percent + " % used)";
 					camps += ':</h3>';
 					camps += '<ul class="camps-list-tooltip">';
 					for (const [key, camp] of Object.entries(layer.feature.properties.camps))
 					{
-						camps += "<li>[" + camp.type + "] " + camp.name + "</li>";
+						let name = camp.name;
+						if (name.length > 20)
+						{
+							name = name.substring(0, 20) + "…";
+						}
+						camps += "<li>[" + camp.type + "] " + name + "</li>";
 					}
 					camps += "</ul>";
 					camps += '<span class="camps-list-span-tooltip">(Click on area for details.)</span>';

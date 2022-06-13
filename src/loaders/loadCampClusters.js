@@ -248,7 +248,7 @@ export const loadCampClusters = async (map) => {
                         feature.properties.spreadRowStart = areas_w_camps[feature.properties.sheetname].spreadRowStart;
                         feature.properties.spreadRowEnd = areas_w_camps[feature.properties.sheetname].spreadRowEnd;
                         // If full, set color of area
-                        if (feature.properties.size_usage_percent > 100)
+                        if (feature.properties.size_usage_percent > 110)
                         {
                             color = 'red';
                             fillOpacity = 0.5;
@@ -406,7 +406,6 @@ export const loadCampClusters = async (map) => {
             description = '<B>Description:</B> ' + layer.feature.properties.description + '<BR>';
 
         let placement = '';
-        // placement += '<p><a href="https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864">Placement Spreadsheet</a>';
         placement += '<p><a href="';
         placement += "https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864&range=";
         // Add range like "471:476";
