@@ -223,6 +223,8 @@ export const loadCampClusters = async (map) => {
                     else if (type === 'bridge') color = 'yellow';
                     else if (type === 'building') color = 'brown';
 
+                    feature.properties.type = type;
+
                     // If area ahs clusters loaded in areas_w_camps, check size-usage
                     if (feature.properties.sheetname in areas_w_camps)
                     {
@@ -245,20 +247,20 @@ export const loadCampClusters = async (map) => {
                         // Hide tooltip when zooming in close to area, but only if any camps is there to be shown
                         if (Object.keys(feature.properties.camps).length > 0)
                         {
-                            if (sheetdata[i][1] == 'camp') feature.properties.maxzoom = 18;
-                            if (sheetdata[i][1] == 'art') feature.properties.maxzoom = 18;
-                            if (sheetdata[i][1] == 'sound') feature.properties.maxzoom = 18;
-                            if (sheetdata[i][1] == 'building') feature.properties.maxzoom = 18;
+                            if (feature.properties.type == 'camp') feature.properties.maxzoom = 18;
+                            if (feature.properties.type == 'art') feature.properties.maxzoom = 18;
+                            if (feature.properties.type == 'sound') feature.properties.maxzoom = 18;
+                            if (feature.properties.type == 'building') feature.properties.maxzoom = 18;
                         }
                     }
 
                     // Set at which zoom-level the tooltip should dissappear
-                    if (sheetdata[i][1] == 'camp') feature.properties.minzoom = 17;
-                    if (sheetdata[i][1] == 'art') feature.properties.minzoom = 17;
-                    if (sheetdata[i][1] == 'parking') feature.properties.minzoom = 17;
-                    if (sheetdata[i][1] == 'building') feature.properties.minzoom = 17;
-                    if (sheetdata[i][1] == 'sound') feature.properties.minzoom = 17;
-                    if (sheetdata[i][1] == 'bridge') feature.properties.minzoom = 17;
+                    if (feature.properties.type == 'camp') feature.properties.minzoom = 17;
+                    if (feature.properties.type == 'art') feature.properties.minzoom = 17;
+                    if (feature.properties.type == 'parking') feature.properties.minzoom = 17;
+                    if (feature.properties.type == 'building') feature.properties.minzoom = 17;
+                    if (feature.properties.type == 'sound') feature.properties.minzoom = 17;
+                    if (feature.properties.type == 'bridge') feature.properties.minzoom = 17;
                     break;
                 }
             }
@@ -305,6 +307,41 @@ export const loadCampClusters = async (map) => {
             }
             area += '<BR>';
         }
+
+        let preferredType = '';
+        preferredType += '<p>';
+        preferredType += 'Placement recommendations:<br />';
+        if (layer.feature.properties.type === 'art')
+        {
+            preferredType += '<span style=\'color:purple\'>■</span> ';
+            preferredType += 'Art projects is preferred over camps.';
+        }
+        else if (layer.feature.properties.type === 'camp')
+        {
+            preferredType += '<span style=\'color:#03d7fc\'>■</span> ';
+            preferredType += 'Fitting camp sites.';
+        }
+        else if (layer.feature.properties.type === 'parking')
+        {
+            preferredType += '<span style=\'color:grey\'>■</span> ';
+            preferredType += 'Only parking allowed.';
+        }
+        else if (layer.feature.properties.type === 'sound')
+        {
+            preferredType += '<span style=\'color:blue\'>■</span> ';
+            preferredType += 'For sound camps.';
+        }
+        else if (layer.feature.properties.type === 'bridge')
+        {
+            preferredType += '<span style=\'color:yellow\'>■</span> ';
+            preferredType += 'Jacob builds supreme bridges.';
+        }
+        else if (layer.feature.properties.type === 'building')
+        {
+            preferredType += '<span style=\'color:brown\'>■</span> ';
+            preferredType += 'No recommendations.';
+        }
+        preferredType += '</p>';
 
         let camps = '';
         // console.log(layer.feature.properties.camps);
@@ -358,7 +395,7 @@ export const loadCampClusters = async (map) => {
         let placement = '';
         placement += '<p><a href="https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864">Placement Spreadsheet</a>';
 
-        const content = '<h2>' + name + '</h2>' + area + notice + description + camps + placement;
+        const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + placement;
 
         layer.bindPopup(content);
         layer.bringToFront();
