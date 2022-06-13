@@ -33,9 +33,11 @@ export const loadSoundGuide = async (map) =>
         layer.bindPopup(content + soundlevel);
     });
 
-    var baseLayers = {"Sound": data};
+    // var baseLayers = {"Sound": data};
 
-    L.control.layers(null, baseLayers).addTo(map);
+    // L.control.layers(null, baseLayers).addTo(map);
+
+    return data;
 
 };
 
