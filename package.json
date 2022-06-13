@@ -26,6 +26,7 @@
     "homepage": "https://github.com/theborderland/map#readme",
     "dependencies": {
         "leaflet": "^1.8.0",
+        "leaflet-hash-plus": "^0.1.0",
         "leaflet.locatecontrol": "^0.76.1",
         "leaflet.polylinemeasure": "^3.0.0"
     },

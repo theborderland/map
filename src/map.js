@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
+import 'leaflet-hash-plus';
 import { loadZones } from './loaders/loadZones';
 import { loadNatureReserve } from './loaders/loadNatureReserve';
 import { loadSoundGuide } from './loaders/loadSoundGuide';
@@ -28,6 +29,7 @@ export const createMap = async () => {
     let terrain = await loadImageOverlay(map, './data/terrain.png', [[57.6156422900704257, 14.9150971736724536], [57.6291230394961715,14.9362178462290363]]);
     L.control.scale({metric: true, imperial: false}).addTo(map);
     L.control.polylineMeasure().addTo(map);
+    let hash = new L.Hash(map);  // Makes THE URL follow the map
 
     var baseLayers = {"Sound guide": sound, "Terrain": terrain, "Slope map": slopemap};
     L.control.layers(null, baseLayers).addTo(map);
