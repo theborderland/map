@@ -327,12 +327,12 @@ export const loadCampClusters = async (map) => {
         if (layer.feature.properties.type === 'art')
         {
             preferredType += '<span style=\'color:purple\'>■</span> ';
-            preferredType += 'Art projects is preferred over camps.';
+            preferredType += 'Public/Art projects is preferred over camps.';
         }
         else if (layer.feature.properties.type === 'camp')
         {
             preferredType += '<span style=\'color:#03d7fc\'>■</span> ';
-            preferredType += 'Fitting camp sites.';
+            preferredType += 'Good for camp sites.';
         }
         else if (layer.feature.properties.type === 'parking')
         {
