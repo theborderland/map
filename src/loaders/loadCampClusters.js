@@ -380,9 +380,7 @@ export const loadCampClusters = async (map) => {
                         }
                         camps +=     "<li>";
                         camps +=       "People: "+camp.number_of_people;
-                        camps +=     "</li>";
-                        camps +=     "<li>";
-                        camps +=       "Vans: "+camp.number_of_vans;
+                        camps +=       ", Vans: "+camp.number_of_vans;
                         camps +=     "</li>";
                     }
                     camps +=     "<li>";
@@ -391,6 +389,17 @@ export const loadCampClusters = async (map) => {
                     camps +=     "<li>";
                     camps +=       "Power: "+camp.power_usage+" W";
                     camps +=     "</li>";
+                    if (camp.comment?.length > 0)
+                    {
+						let comment = camp.comment;
+						if (comment.length > 50)
+						{
+							comment = comment.substring(0, 50) + "…";
+						}
+                        camps +=     "<li>";
+                        camps +=       "Comment: " + comment;
+                        camps +=     "</li>";
+                        }
                     camps +=   "</ul>";
                     camps += "</li>";
                 }
