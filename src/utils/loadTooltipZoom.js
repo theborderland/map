@@ -31,11 +31,11 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 						let size = "0.7rem";
 						if (goalZoom == 21)
 						{
-							size = "1.5rem";
+							size = "1.3rem";
 						}
 						else if (goalZoom == 20)
 						{
-							size = "1.0rem";
+							size = "0.9rem";
 						}
 						tooltip._container.style.fontSize = size;
 					}
