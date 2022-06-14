@@ -398,6 +398,12 @@ export const loadCampClusters = async (map) => {
             }
         }
 
+        let camps_notice = '<p>';
+        camps_notice += '<span style="font-style: italic">';
+        camps_notice += "* The amount of people and vans will automatically be calculated to account for a certain square meters of the cluster.";
+        camps_notice += "</span>";
+        camps_notice += "</p>"
+
         let notice = '';
         if (layer.feature.properties.notice) notice = '<h3>' + layer.feature.properties.notice + '</h3>';
 
@@ -410,9 +416,12 @@ export const loadCampClusters = async (map) => {
         placement += "https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864&range=";
         // Add range like "471:476";
         placement += layer.feature.properties.spreadRowStart + ":" + layer.feature.properties.spreadRowEnd;
-        placement += '">Placement Spreadsheet</a>';
+        placement += '">';
+        placement += name + ' on ';
+        placement += 'Placement Spreadsheet';
+        placement += '</a>';
 
-        const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + placement;
+        const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + camps_notice + placement;
 
         layer.bindPopup(content);
         layer.bringToFront();
