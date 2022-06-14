@@ -28,6 +28,16 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 						{
 							tooltip._container.style.display = "none";
 						}
+						let size = "0.7rem";
+						if (goalZoom == 21)
+						{
+							size = "1.5rem";
+						}
+						else if (goalZoom == 20)
+						{
+							size = "1.0rem";
+						}
+						tooltip._container.style.fontSize = size;
 					}
 				}
 			}
@@ -49,6 +59,25 @@ export const loadTooltipZoom = async(map) => {
 		// console.log("current zoom", currentZoom);
 		showHideTooltipsZoom(map, goal);
 	});
+
+	/*
+	map.on('zoomstart', function(){
+		var tooltip = document.querySelectorAll('.camps-list-tooltip');
+		let currentZoom = map.getZoom();
+		console.log(tooltip);
+		console.log(tooltip.style.color);
+		switch (currentZoom) {
+			case 20:
+				tooltip.style.fontSize = 16;
+				break;
+			case 21:
+				tooltip.style.fontSize = 18;
+				break;
+			default:
+				tooltip.style.fontSize = 14;
+		}
+	})
+	*/
 }
 
 export const loadBoarderlandMarker = async(map) => {
