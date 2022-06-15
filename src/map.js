@@ -13,6 +13,7 @@ import { loadCampMarkers } from './utils/loadCampMarkers';
 import { loadPositionControl } from './utils/loadPositionControl';
 import { loadImageOverlay } from './loaders/loadImageOverlay';
 import { loadDrawnMap } from './loaders/loadDrawnMap';
+import { addLegends } from './loaders/addLegends';
 
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([57.621111, 14.927857], 17);
@@ -48,6 +49,8 @@ export const createMap = async () => {
     var baseLayers = {"Satellite map": googleSatellite, "Drawn map": drawnmap};
 
     L.control.layers(baseLayers, extraLayers).addTo(map);
+
+    addLegends(map);
 
     var searchControl = new L.Control.Search({
         layer: map.searchable_features,
