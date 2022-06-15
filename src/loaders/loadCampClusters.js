@@ -240,6 +240,7 @@ export const loadCampClusters = async (map) => {
                     if (feature.properties.sheetname in areas_w_camps)
                     {
                         // console.log(feature.properties.sheetname + " is in areas_w_camps");
+                        feature.properties.name = sheetname;
                         feature.properties.camps = areas_w_camps[feature.properties.sheetname].camps;
                         feature.properties.maxarea = areas_w_camps[feature.properties.sheetname].size;
                         feature.properties.reservedarea = areas_w_camps[feature.properties.sheetname].size_reserved;
@@ -287,13 +288,19 @@ export const loadCampClusters = async (map) => {
             };
         },
         onEachFeature: (feature, layer) => {
-            let span = "<span style='color: white; text-shadow: 2px 2px #000000; font-weight: bold'>" + feature.properties.sheetname + '</span>';
+            let span = "<span style='color: white; text-shadow: 1px 1px #000000; font-weight: bold'>" + feature.properties.sheetname + '</span>';
             layer.bindTooltip(
                 span,
                 { permanent: true, direction: 'center' },
             );
         },
     }));
+
+    // Prepare searchable_features group
+    if (!map.searchable_features)
+    {
+        map.searchable_features = new L.LayerGroup();
+    }
 
     data.addTo(map).eachLayer((layer) => {
         let name = '';
@@ -434,5 +441,8 @@ export const loadCampClusters = async (map) => {
 
         layer.bindPopup(content);
         layer.bringToFront();
+
+        //  Add to searchable_features group
+        map.searchable_features.addLayer(layer);
     });
 };

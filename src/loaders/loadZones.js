@@ -46,6 +46,12 @@ export const loadZones = async (map) => {
         },
     }));
 
+    // Prepare searchable_features group
+    if (!map.searchable_features)
+    {
+        map.searchable_features = new L.LayerGroup();
+    }
+
     data.addTo(map).eachLayer((layer) => {
         let notice = '';
         if (layer.feature.properties.notice) notice = '<h3>' + layer.feature.properties.notice + '</h3>';
@@ -80,5 +86,8 @@ export const loadZones = async (map) => {
         const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description + discussion + spreadsheet;
         layer.bindPopup(content);
         layer.bringToBack();
+
+        //  Add to searchable_features group
+        map.searchable_features.addLayer(layer);
     });
 };

@@ -2,6 +2,7 @@ import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import 'leaflet-hash-plus';
+import 'leaflet-search';
 import { loadZones } from './loaders/loadZones';
 import { loadNatureReserve } from './loaders/loadNatureReserve';
 import { loadSoundGuide } from './loaders/loadSoundGuide';
@@ -47,4 +48,13 @@ export const createMap = async () => {
     var baseLayers = {"Satellite map": googleSatellite, "Drawn map": drawnmap};
 
     L.control.layers(baseLayers, extraLayers).addTo(map);
+
+    var searchControl = new L.Control.Search({
+        layer: map.searchable_features,
+		propertyName: 'name',
+        marker: false,
+        zoom: 19,
+        initial: false
+	});
+    map.addControl( searchControl );
 };

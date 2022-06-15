@@ -1,4 +1,10 @@
 export const loadCampMarkers = async(map) => {
+    // Prepare searchable_features group
+    if (!map.searchable_features)
+    {
+        map.searchable_features = new L.LayerGroup();
+    }
+
 	map.eachLayer(function(layer)
 	{
 		if (layer.feature && layer.feature.properties)
@@ -14,6 +20,7 @@ export const loadCampMarkers = async(map) => {
 						size_radious = Math.sqrt(layer.feature.properties.reservedarea) / 2;
 					}
 					size_radious = 0.1;
+					let combinedNames = '';
 					let camps = '';
 					// layer.feature.properties.size_usage_percent
 					camps += '<h3>';
@@ -28,6 +35,7 @@ export const loadCampMarkers = async(map) => {
 						{
 							name = name.substring(0, 20) + "…";
 						}
+						combinedNames += "[" + camp.type + "] " + camp.name;
 						camps += "<li>[" + camp.type + "] " + name + "</li>";
 					}
 					camps += "</ul>";
@@ -43,11 +51,15 @@ export const loadCampMarkers = async(map) => {
 						camps,
 						{ permanent: true, direction: 'center', className: 'camps-list-tooltip' },
 					);
-					areaMarker.feature = {}
-					areaMarker.feature.properties = {}
-					areaMarker.feature.properties.minzoom = 19
+					areaMarker.feature = {};
+					areaMarker.feature.properties = {};
+					areaMarker.feature.properties.minzoom = 19;
+					areaMarker.feature.properties.name = combinedNames;
 					var tooltip = areaMarker.getTooltip();
 					tooltip._container.style.display = "none";
+
+					//  Add to searchable_features group
+					map.searchable_features.addLayer(areaMarker);
 				}
 			}
 	
