@@ -327,12 +327,12 @@ export const loadCampClusters = async (map) => {
         if (layer.feature.properties.type === 'art')
         {
             preferredType += '<span style=\'color:purple\'>■</span> ';
-            preferredType += 'Art projects is preferred over camps.';
+            preferredType += 'Public/Art projects is preferred over camps.';
         }
         else if (layer.feature.properties.type === 'camp')
         {
             preferredType += '<span style=\'color:#03d7fc\'>■</span> ';
-            preferredType += 'Fitting camp sites.';
+            preferredType += 'Good for camp sites.';
         }
         else if (layer.feature.properties.type === 'parking')
         {
@@ -380,9 +380,7 @@ export const loadCampClusters = async (map) => {
                         }
                         camps +=     "<li>";
                         camps +=       "People: "+camp.number_of_people;
-                        camps +=     "</li>";
-                        camps +=     "<li>";
-                        camps +=       "Vans: "+camp.number_of_vans;
+                        camps +=       ", Vans: "+camp.number_of_vans;
                         camps +=     "</li>";
                     }
                     camps +=     "<li>";
@@ -391,12 +389,29 @@ export const loadCampClusters = async (map) => {
                     camps +=     "<li>";
                     camps +=       "Power: "+camp.power_usage+" W";
                     camps +=     "</li>";
+                    if (camp.comment?.length > 0)
+                    {
+						let comment = camp.comment;
+						if (comment.length > 50)
+						{
+							comment = comment.substring(0, 50) + "…";
+						}
+                        camps +=     "<li>";
+                        camps +=       "Comment: " + comment;
+                        camps +=     "</li>";
+                        }
                     camps +=   "</ul>";
                     camps += "</li>";
                 }
                 camps += "</ul>";
             }
         }
+
+        let camps_notice = '<p>';
+        camps_notice += '<span style="font-style: italic">';
+        camps_notice += "* The amount of people and vans will automatically be calculated to account for a certain square meters of the cluster.";
+        camps_notice += "</span>";
+        camps_notice += "</p>"
 
         let notice = '';
         if (layer.feature.properties.notice) notice = '<h3>' + layer.feature.properties.notice + '</h3>';
@@ -410,9 +425,12 @@ export const loadCampClusters = async (map) => {
         placement += "https://docs.google.com/spreadsheets/d/1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A/edit#gid=1635664864&range=";
         // Add range like "471:476";
         placement += layer.feature.properties.spreadRowStart + ":" + layer.feature.properties.spreadRowEnd;
-        placement += '">Placement Spreadsheet</a>';
+        placement += '">';
+        placement += name + ' on ';
+        placement += 'Placement Spreadsheet';
+        placement += '</a>';
 
-        const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + placement;
+        const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + camps_notice + placement;
 
         layer.bindPopup(content);
         layer.bringToFront();

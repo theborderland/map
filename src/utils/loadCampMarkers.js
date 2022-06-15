@@ -16,11 +16,11 @@ export const loadCampMarkers = async(map) => {
 					size_radious = 0.1;
 					let camps = '';
 					// layer.feature.properties.size_usage_percent
-					camps += '<h3 class="camps-list-tooltip-header">';
+					camps += '<h3>';
 					camps += layer.feature.properties.sheetname;
 					camps += " (" + layer.feature.properties.size_usage_percent + " % used)";
 					camps += ':</h3>';
-					camps += '<ul class="camps-list-tooltip">';
+					camps += '<ul>';
 					for (const [key, camp] of Object.entries(layer.feature.properties.camps))
 					{
 						let name = camp.name;
@@ -31,7 +31,7 @@ export const loadCampMarkers = async(map) => {
 						camps += "<li>[" + camp.type + "] " + name + "</li>";
 					}
 					camps += "</ul>";
-					camps += '<span class="camps-list-span-tooltip">(Click on area for details.)</span>';
+					camps += '<span>(Click on area for details.)</span>';
 					// Add Borderland tooltip, it should only be visible when zoomed out
 					var areaMarker = L.circle(layer.getBounds().getCenter(), {
 						color: "ddd",
@@ -41,7 +41,7 @@ export const loadCampMarkers = async(map) => {
 					}).addTo(map);
 					areaMarker.bindTooltip(
 						camps,
-						{ permanent: true, direction: 'center' },
+						{ permanent: true, direction: 'center', className: 'camps-list-tooltip' },
 					);
 					areaMarker.feature = {}
 					areaMarker.feature.properties = {}
