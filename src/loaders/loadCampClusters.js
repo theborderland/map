@@ -51,7 +51,7 @@ const loadAreaCamps = async () => {
                 else if (row_segment_counter == 1)
                 {
                     // Extract size
-                    if (parseInt(row[1]))
+                    if (parseInt(row[1]) >= 0)
                     {
                         areas[row_segment_name].size = parseInt(row[1]);
                     }
@@ -59,7 +59,7 @@ const loadAreaCamps = async () => {
                 else if (row_segment_counter == 2)
                 {
                     // Extract reserved size
-                    if (parseInt(row[1]))
+                    if (parseInt(row[1]) >= 0)
                     {
                         areas[row_segment_name].size_reserved = parseInt(row[1]);
                     }
@@ -67,7 +67,7 @@ const loadAreaCamps = async () => {
                 else if (row_segment_counter == 3)
                 {
                     // Extract ussage of area in percent
-                    if (parseInt(row[1]))
+                    if (parseInt(row[1]) >= 0)
                     {
                         areas[row_segment_name].size_usage_percent = parseInt(row[1]);
                     }
@@ -75,7 +75,7 @@ const loadAreaCamps = async () => {
                 else if (row_segment_counter == 4)
                 {
                     // Extract power usage
-                    if (parseInt(row[1]))
+                    if (parseInt(row[1]) >= 0)
                     {
                         areas[row_segment_name].power_usage = parseInt(row[1]);
                     }
@@ -124,7 +124,7 @@ const loadAreaCamps = async () => {
                             areas[row_segment_name].camps[extracted_name].number_of_people = 0;
                             areas[row_segment_name].camps[extracted_name].number_of_vans = 0;
                             areas[row_segment_name].camps[extracted_name].other_structure_m2 = 0;
-                            areas[row_segment_name].camps[extracted_name].power_usage = 0;
+                            areas[row_segment_name].camps[extracted_name].power_usage = NaN;
                             areas[row_segment_name].camps[extracted_name].contact_person = "";
                             areas[row_segment_name].camps[extracted_name].contact_contact = "";
                             areas[row_segment_name].camps[extracted_name].lnt_person = "";
@@ -142,28 +142,28 @@ const loadAreaCamps = async () => {
                                 }
                                 else if (col_i == 4)
                                 {
-                                    if (parseInt(row[col_i]))
+                                    if (parseInt(row[col_i]) >= 0)
                                     {
                                         areas[row_segment_name].camps[extracted_name].number_of_people = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 5)
                                 {
-                                    if (parseInt(row[col_i]))
+                                    if (parseInt(row[col_i]) >= 0)
                                     {
                                         areas[row_segment_name].camps[extracted_name].number_of_vans = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 6)
                                 {
-                                    if (parseInt(row[col_i]))
+                                    if (parseInt(row[col_i]) >= 0)
                                     {
                                         areas[row_segment_name].camps[extracted_name].other_structure_m2 = parseInt(row[col_i]);
                                     }
                                 }
                                 else if (col_i == 7)
                                 {
-                                    if (parseInt(row[col_i]))
+                                    if (parseInt(row[col_i]) >= 0)
                                     {
                                         areas[row_segment_name].camps[extracted_name].power_usage = parseInt(row[col_i]);
                                     }
@@ -197,6 +197,12 @@ const loadAreaCamps = async () => {
                                     areas[row_segment_name].camps[extracted_name].comment = row[col_i];
                                 }
                             }
+                            /*
+                            console.log(areas[row_segment_name].name,
+                                areas[row_segment_name].power_usage,
+                                extracted_name,
+                                areas[row_segment_name].camps[extracted_name].power_usage);
+                            */
                         }
                     }
                 }
@@ -447,7 +453,7 @@ export const loadCampClusters = async (map) => {
         layer.bindPopup(content);
         layer.bringToFront(); //To make sure the camp overlay is alway above the zones. Might be better to solve this with panes though.
 
-        //  Add to searchable_features group
+        // Add to searchable_features group
         map.searchable_features.addLayer(layer);
     });
 };
