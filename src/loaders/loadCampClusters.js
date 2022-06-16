@@ -359,7 +359,7 @@ export const loadCampClusters = async (map) => {
         else if (layer.feature.properties.type === 'building')
         {
             preferredType += '<span style=\'color:brown\'>■</span> ';
-            preferredType += 'No recommendations.';
+            preferredType += 'Buildings are not for camping, only projects.';
         }
         preferredType += '</p>';
 
