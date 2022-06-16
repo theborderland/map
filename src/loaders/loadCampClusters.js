@@ -95,7 +95,7 @@ const loadAreaCamps = async () => {
                     // It's considored a camp/project if we have at least a name, column number 2 (camp) 3 (project)
                     if (row.length >= 2)
                     {
-                        if ((row[2]?.length > 0) || (row[3]?.length > 0))
+                        if ((row[2]?.length > 0) || (row[3]?.length > 0) || (row[4]?.length > 0) || (row[5]?.length > 0) || (row[6]?.length > 0))
                         {
                             // Init camp
                             let extracted_name = "";
@@ -111,6 +111,11 @@ const loadAreaCamps = async () => {
                                 // Project name
                                 extracted_name = row[3];
                                 extracted_type = "project";
+                            }
+                            else
+                            {
+                                extracted_name = "unnamed";
+                                extracted_type = "unknown";
                             }
                             areas[row_segment_name].camps[extracted_name] = {};
                             areas[row_segment_name].camps[extracted_name].type = extracted_type;
@@ -440,7 +445,7 @@ export const loadCampClusters = async (map) => {
         const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + camps_notice + placement;
 
         layer.bindPopup(content);
-        layer.bringToFront();
+        layer.bringToFront(); //To make sure the camp overlay is alway above the zones. Might be better to solve this with panes though.
 
         //  Add to searchable_features group
         map.searchable_features.addLayer(layer);
