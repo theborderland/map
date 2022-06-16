@@ -35,7 +35,15 @@ export const createMap = async () => {
     let sound = await loadSoundGuide(map);
     let slopemap = await loadImageOverlay(map, './data/slopemap.png', [[57.6183258637506626, 14.9211877664388641], [57.6225237073944072,14.9346879887464876]]);
     let terrain = await loadImageOverlay(map, './data/terrain.png', [[57.6156422900704257, 14.9150971736724536], [57.6291230394961715,14.9362178462290363]]);
-    var extraLayers = {"Sound guide": sound, "Terrain": terrain, "Slope map": slopemap};
+    let hippo = await loadImageOverlay(map, './img/hippo.png', [[57.62241, 14.92153], [57.61908,14.93346]]);
+    let discoDiffusion = await loadImageOverlay(map, './img/disco_diffusion.png', [[57.63029, 14.9155], [57.61400,14.9362]]);
+    var extraLayers = {"Sound guide": sound,
+                        "Terrain": terrain,
+                        "Slope map": slopemap,
+                        "Camp names": map.camp_names,
+                        "Hippo": hippo,
+                        //"Friday Mode": discoDiffusion
+                      };
     
     
     //Base layers
@@ -47,7 +55,6 @@ export const createMap = async () => {
     let drawnmap = await loadDrawnMap(map);
 
     var baseLayers = {"Satellite map": googleSatellite, "Drawn map": drawnmap};
-
     L.control.layers(baseLayers, extraLayers).addTo(map);
 
     addLegends(map);
@@ -59,5 +66,5 @@ export const createMap = async () => {
         zoom: 19,
         initial: false
 	});
-    map.addControl( searchControl );
+    map.addControl(searchControl);
 };
