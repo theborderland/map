@@ -22,7 +22,7 @@ export const loadPoi = async (map) =>
 
     for (let i = 0; i < spreadsheetdata.length; i++) 
     {
-        if (spreadsheetdata[0])
+        if (spreadsheetdata[i][0]) //Check if 'type' column is not empty
         {
             const [type,name,description,lonlat] = spreadsheetdata[i];
             const [lon, lat] = lonlat.split(",");
@@ -30,7 +30,6 @@ export const loadPoi = async (map) =>
             if (!iconDict[type]) iconDict[type] = new centeredIcon({iconUrl: './img/icons/' + type + '.png'});
             
             const content = '<h3>' + name + '</h3>' + '<p>' + description + '</p>';
-            console.log("lat:" + lat + " lon:" +  lon);
             L.marker([lon, lat], {icon: iconDict[type]}).addTo(poiLayer).bindPopup(content);
         }
     }
