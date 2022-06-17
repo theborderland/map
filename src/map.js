@@ -14,6 +14,7 @@ import { loadPositionControl } from './utils/loadPositionControl';
 import { loadImageOverlay } from './loaders/loadImageOverlay';
 import { loadDrawnMap } from './loaders/loadDrawnMap';
 import { addLegends } from './loaders/addLegends';
+import { loadPoi } from './loaders/loadPoi';
 
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([57.621111, 14.927857], 17);
@@ -26,6 +27,7 @@ export const createMap = async () => {
     await loadPositionControl(map);
     await loadCampClusters(map);
     await loadCampMarkers(map);
+    loadPoi(map);
 
     L.control.scale({metric: true, imperial: false}).addTo(map);
     L.control.polylineMeasure().addTo(map);
