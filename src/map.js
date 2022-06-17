@@ -40,7 +40,6 @@ export const createMap = async () => {
     var extraLayers = {"Sound guide": sound,
                         "Terrain": terrain,
                         "Slope map": slopemap,
-                        "Camp names": map.camp_names,
                         "Hippo": hippo,
                         //"Friday Mode": discoDiffusion
                       };
