@@ -64,7 +64,14 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 			showHideLayer(map, map.groups.clusterNames, false);
 			showHideLayer(map, map.groups.campNames, false);
 		}
-		showHideLayer(map, map.groups.poi, true);
+		if (map.hasLayer(map.groups.poi_menu))
+		{
+			showHideLayer(map, map.groups.poi, true);
+		}
+		else
+		{
+			showHideLayer(map, map.groups.poi, false);
+		}
 	}
 	else if (goal >= 19)
 	{
@@ -80,7 +87,14 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 			showHideLayer(map, map.groups.clusterNames, false);
 			showHideLayer(map, map.groups.campNames, false);
 		}
-		showHideLayer(map, map.groups.poi, true);
+		if (map.hasLayer(map.groups.poi_menu))
+		{
+			showHideLayer(map, map.groups.poi, true);
+		}
+		else
+		{
+			showHideLayer(map, map.groups.poi, false);
+		}
 	}
 }
 
@@ -96,6 +110,16 @@ export const loadTooltipZoom = async(map) => {
 		}
 		// console.log("to zoom", goal);
 		// console.log("current zoom", currentZoom);
+		showHideTooltipsZoom(map, goal);
+	});
+
+	// Trigger showHideTooltipsZoom when selecting layers
+	map.on('overlayadd', function(event) {
+		let goal = map.getZoom();
+		showHideTooltipsZoom(map, goal);
+	});
+	map.on('overlayremove', function(event) {
+		let goal = map.getZoom();
 		showHideTooltipsZoom(map, goal);
 	});
 }
