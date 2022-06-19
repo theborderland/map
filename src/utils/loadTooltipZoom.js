@@ -40,6 +40,7 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 		showHideLayer(map, map.groups.zoneNames, false);
 		showHideLayer(map, map.groups.clusterNames, false);
 		showHideLayer(map, map.groups.campNames, false);
+		showHideLayer(map, map.groups.poi, false);
 	}
 	else if (goal >= 16 && goal < 17)
 	{
@@ -47,6 +48,7 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 		showHideLayer(map, map.groups.zoneNames, true);
 		showHideLayer(map, map.groups.clusterNames, false);
 		showHideLayer(map, map.groups.campNames, false);
+		showHideLayer(map, map.groups.poi, false);
 	}
 	else if (goal >= 17 && goal < 19)
 	{
@@ -62,6 +64,7 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 			showHideLayer(map, map.groups.clusterNames, false);
 			showHideLayer(map, map.groups.campNames, false);
 		}
+		showHideLayer(map, map.groups.poi, true);
 	}
 	else if (goal >= 19)
 	{
@@ -77,6 +80,7 @@ export const showHideTooltipsZoom = async(map, goalZoom) => {
 			showHideLayer(map, map.groups.clusterNames, false);
 			showHideLayer(map, map.groups.campNames, false);
 		}
+		showHideLayer(map, map.groups.poi, true);
 	}
 }
 

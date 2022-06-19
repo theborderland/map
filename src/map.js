@@ -48,12 +48,13 @@ export const createMap = async () => {
     map.groups.terrain = await loadImageOverlay(map, './data/terrain.png', [[57.6156422900704257, 14.9150971736724536], [57.6291230394961715,14.9362178462290363]]);
     map.groups.hippo = await loadImageOverlay(map, './img/hippo.png', [[57.62241, 14.92153], [57.61908,14.93346]]);
     map.groups.discoDiffusion = await loadImageOverlay(map, './img/disco_diffusion.png', [[57.63029, 14.9155], [57.61400,14.9362]]);
-	loadPoi(map);
+	map.groups.poi = (await loadPoi(map)).addTo(map);
     var extraLayers = {
                         "Areas": map.groups.clusters,
                         "Sound guide": map.groups.sound,
                         "Terrain": map.groups.terrain,
                         "Slope map": map.groups.slopemap,
+                        "POI": map.groups.poi,
                         "Hippo": map.groups.hippo,
                         // "Friday Forecast": map.groups.discoDiffusion
                       };
