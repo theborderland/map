@@ -17,6 +17,7 @@ import { loadDrawnMap } from './loaders/loadDrawnMap';
 import { addLegends } from './loaders/addLegends';
 import { addSearch } from './utils/searchControl';
 import { loadPoi } from './loaders/loadPoi';
+import { loadPowerZoneNames, loadPowerClustersNames, loadPowerCampNames, loadPowerBoarderlandMarker } from './utils/power';
 
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([57.621111, 14.927857], 17);
@@ -33,7 +34,12 @@ export const createMap = async () => {
     map.groups.clusters = (await loadCampClusters(map)).addTo(map);
     map.groups.clusterNames = (await loadClusterNames(map)).addTo(map);
     map.groups.campNames = (await loadCampNames(map));
-    
+	map.groups.poi = (await loadPoi(map)).addTo(map);
+	map.groups.powerZoneNames = (await loadPowerZoneNames(map));
+    map.groups.powerClustersNames = (await loadPowerClustersNames(map));
+    map.groups.powerCampNames = (await loadPowerCampNames(map));
+     map.groups.powerBoarderlandMarker = (await loadPowerBoarderlandMarker(map));
+   
     // Base layers
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         maxZoom: 20,
@@ -48,14 +54,15 @@ export const createMap = async () => {
     map.groups.terrain = await loadImageOverlay(map, './data/terrain.png', [[57.6156422900704257, 14.9150971736724536], [57.6291230394961715,14.9362178462290363]]);
     map.groups.hippo = await loadImageOverlay(map, './img/hippo.png', [[57.62241, 14.92153], [57.61908,14.93346]]);
     map.groups.discoDiffusion = await loadImageOverlay(map, './img/disco_diffusion.png', [[57.63029, 14.9155], [57.61400,14.9362]]);
-	map.groups.poi = (await loadPoi(map)).addTo(map);
     map.groups.poi_menu = (new L.LayerGroup()).addTo(map);
+    map.groups.power_menu = (new L.LayerGroup());
     var extraLayers = {
                         "Areas": map.groups.clusters,
                         "Sound guide": map.groups.sound,
                         "Terrain": map.groups.terrain,
                         "Slope map": map.groups.slopemap,
                         "POI": map.groups.poi_menu,
+                        "Power": map.groups.power_menu,
                         "Hippo": map.groups.hippo,
                         // "Friday Forecast": map.groups.discoDiffusion
                       };

@@ -8,6 +8,7 @@ const loadAreaCamps = async () => {
       
     const sheetdata = await loadSpreadSheet(CAMP_CAMPS_SPREADSHEET_JSON);
 
+    let zone_name = "";
     let row_segment_type = "";
     let row_segment_counter = 0;
     let row_segment_name = "";
@@ -28,6 +29,7 @@ const loadAreaCamps = async () => {
             else
             {
                 // It's a new area or zone
+                // console.log(areas[row_segment_name]);
                 row_segment_counter = 0;
                 row_segment_type = row[0];
             }
@@ -45,7 +47,7 @@ const loadAreaCamps = async () => {
                     areas[row_segment_name].size = 0;
                     areas[row_segment_name].size_reserved = 0;
                     areas[row_segment_name].size_usage_percent = "";
-                    areas[row_segment_name].power_usage = 0;
+                    areas[row_segment_name].zone = zone_name;
                     areas[row_segment_name].camps = {};
                 }
                 else if (row_segment_counter == 1)
@@ -120,6 +122,7 @@ const loadAreaCamps = async () => {
                             areas[row_segment_name].camps[extracted_name] = {};
                             areas[row_segment_name].camps[extracted_name].type = extracted_type;
                             areas[row_segment_name].camps[extracted_name].name = extracted_name;
+                            areas[row_segment_name].camps[extracted_name].name_unique = row_segment_name+"_"+extracted_name+"_"+i;
                             areas[row_segment_name].camps[extracted_name].projects = "";
                             areas[row_segment_name].camps[extracted_name].number_of_people = 0;
                             areas[row_segment_name].camps[extracted_name].number_of_vans = 0;
@@ -132,6 +135,8 @@ const loadAreaCamps = async () => {
                             areas[row_segment_name].camps[extracted_name].consent_person = "";
                             areas[row_segment_name].camps[extracted_name].consent_contact = "";
                             areas[row_segment_name].camps[extracted_name].comment = "";
+                            areas[row_segment_name].camps[extracted_name].zone = zone_name;
+                            areas[row_segment_name].camps[extracted_name].cluster = row_segment_name;
                             areas[row_segment_name].camps[extracted_name].spreadRow = i;
 
                             for (let col_i = 0; col_i < row.length; col_i++)
@@ -207,16 +212,210 @@ const loadAreaCamps = async () => {
                     }
                 }
             }
-
+            else if (row_segment_counter == 0 && row_segment_type == 'Zone')
+            {
+                if (row.length >= 2)
+                {
+                    if (row[2]?.length > 0)
+                    {
+                        zone_name = row[2];
+                        // console.log(row_segment_type, zone_name);
+                    }
+                }
+            }
         }    
     }
     // console.log(areas);
     return areas;
 };
 
+const calcSortAvrage = async (statistics) => {
+    // Sumurize
+    for (var i in statistics.values)
+    {
+        statistics.valuesOrdered.push(statistics.values[i]);
+        statistics.total += statistics.values[i].power_usage;
+    }
+    // Sort
+    if (statistics.valuesOrdered.length > 1)
+    {
+        statistics.valuesOrdered.sort((a, b) => (a.power_usage > b.power_usage) ? 1 : -1)
+    }
+    // Get lowest and highest
+    if (statistics.valuesOrdered.length > 0)
+    {
+        statistics.lowest = Math.min.apply(Math, statistics.valuesOrdered.map(function(o) { 
+            return o.power_usage; }));
+        statistics.highest = Math.max.apply(Math, statistics.valuesOrdered.map(function(o) { 
+            return o.power_usage; }));
+    }
+    // Calculate median
+    if (statistics.valuesOrdered.length > 0)
+    {
+        statistics.median = statistics.valuesOrdered[Math.floor(statistics.valuesOrdered.length/2)].power_usage;
+    }
+    // Calculate median
+    if (statistics.valuesOrdered.length > 0)
+    {
+        const findAverageAge = (arr) => {
+            const { length } = arr;
+            return arr.reduce((acc, val) => {
+               return acc + (val.power_usage/length);
+            }, 0);
+        };
+        statistics.avrage = findAverageAge(statistics.valuesOrdered);
+        statistics.avrage = Math.round(statistics.avrage);
+    }
+    statistics.number = statistics.valuesOrdered.length;
+    // console.log(statistics);
+}
+
+const calcPowerUsage = async (map, areas_w_camps) => {
+    // Calculate power usage in dicts powerUsage.zones[].cluster[].camps[]
+
+    // Init
+    let powerUsage = {};
+    powerUsage.zones = {};
+    powerUsage.statistics = {};
+    powerUsage.statistics.values = {};
+    powerUsage.statistics.valuesOrdered = [];
+
+    // Go through clusters and create zones
+    for (var i_cluster in areas_w_camps)
+	{
+        let zone = areas_w_camps[i_cluster].zone;
+        let cluster = areas_w_camps[i_cluster].name;
+        // console.log(zone, i_cluster);
+        // Init zone
+        if (!powerUsage.zones.hasOwnProperty(zone))
+        {
+            powerUsage.zones[zone] = {};
+            powerUsage.zones[zone].statistics = {};
+            powerUsage.zones[zone].statistics.values = {};
+            powerUsage.zones[zone].statistics.valuesOrdered = [];
+            powerUsage.zones[zone].statistics.total = 0;
+            powerUsage.zones[zone].statistics.lowest = 0;
+            powerUsage.zones[zone].statistics.highest = 0;
+            powerUsage.zones[zone].statistics.median = 0;
+            powerUsage.zones[zone].statistics.avrage = 0;
+            powerUsage.zones[zone].statistics.number = 0;
+            powerUsage.zones[zone].flags = {};
+            powerUsage.zones[zone].flags.not_given = false;
+            powerUsage.zones[zone].flags.zero = false;
+            powerUsage.zones[zone].flags.using_power = false;
+            powerUsage.zones[zone].clusters = {};
+            powerUsage.zones[zone].name = zone;
+        }
+        // Init cluster
+        powerUsage.zones[zone].clusters[cluster] = {};
+        powerUsage.zones[zone].clusters[cluster].statistics = {};
+        powerUsage.zones[zone].clusters[cluster].statistics.values = {};
+        powerUsage.zones[zone].clusters[cluster].statistics.valuesOrdered = [];
+        powerUsage.zones[zone].clusters[cluster].statistics.total = 0;
+        powerUsage.zones[zone].clusters[cluster].statistics.lowest = 0;
+        powerUsage.zones[zone].clusters[cluster].statistics.highest = 0;
+        powerUsage.zones[zone].clusters[cluster].statistics.median = 0;
+        powerUsage.zones[zone].clusters[cluster].statistics.avrage = 0;
+        powerUsage.zones[zone].clusters[cluster].statistics.number = 0;
+        powerUsage.zones[zone].clusters[cluster].flags = {};
+        powerUsage.zones[zone].clusters[cluster].flags.not_given = false;
+        powerUsage.zones[zone].clusters[cluster].flags.zero = false;
+        powerUsage.zones[zone].clusters[cluster].flags.using_power = false;
+        powerUsage.zones[zone].clusters[cluster].camps = {};
+        powerUsage.zones[zone].clusters[cluster].cluster_details = areas_w_camps[i_cluster];
+        powerUsage.zones[zone].clusters[cluster].name = zone;
+        // Got through camps in cluster and add values
+        for (var i_camp in areas_w_camps[i_cluster].camps)
+        {
+            let camp = areas_w_camps[i_cluster].camps[i_camp].name_unique;
+            // console.log(camp, areas_w_camps[i_cluster].camps[i_camp])
+            // Init camp
+            powerUsage.zones[zone].clusters[cluster].camps[camp] = {};
+            powerUsage.zones[zone].clusters[cluster].camps[camp].flags = {};
+            powerUsage.zones[zone].clusters[cluster].camps[camp].flags.not_given = false;
+            powerUsage.zones[zone].clusters[cluster].camps[camp].flags.zero = false;
+            powerUsage.zones[zone].clusters[cluster].camps[camp].flags.using_power = false;
+            powerUsage.zones[zone].clusters[cluster].camps[camp].camp_details = areas_w_camps[i_cluster].camps[i_camp];
+            powerUsage.zones[zone].clusters[cluster].camps[camp].name = camp;
+            // Check power level
+            let power = areas_w_camps[i_cluster].camps[i_camp].power_usage;
+            powerUsage.zones[zone].clusters[cluster].camps[camp].total = power;
+            if (isNaN(power))
+            {
+                powerUsage.zones[zone].clusters[cluster].camps[camp].flags.not_given = true;
+            }
+            else if (power == 0)
+            {
+                powerUsage.zones[zone].clusters[cluster].camps[camp].flags.zero = true;
+            }
+            else
+            {
+                powerUsage.zones[zone].clusters[cluster].camps[camp].flags.using_power = true;
+            }
+            // Add power level, maybe not count zero-power here???
+            if (powerUsage.zones[zone].clusters[cluster].camps[camp].flags.using_power || 
+                powerUsage.zones[zone].clusters[cluster].camps[camp].flags.zero)
+            {
+                powerUsage.zones[zone].clusters[cluster].statistics.values[camp] = areas_w_camps[i_cluster].camps[i_camp];
+                powerUsage.zones[zone].statistics.values[camp] = areas_w_camps[i_cluster].camps[i_camp];
+                powerUsage.statistics.values[camp] = areas_w_camps[i_cluster].camps[i_camp];
+            }
+            // Escalate flags
+            if (powerUsage.zones[zone].clusters[cluster].camps[camp].flags.using_power)
+            {
+                powerUsage.zones[zone].clusters[cluster].flags.using_power = true;
+                powerUsage.zones[zone].flags.using_power = true;
+            }
+            if (powerUsage.zones[zone].clusters[cluster].camps[camp].flags.zero)
+            {
+                powerUsage.zones[zone].clusters[cluster].flags.zero = true;
+                powerUsage.zones[zone].flags.zero = true;
+            }
+            if (powerUsage.zones[zone].clusters[cluster].camps[camp].flags.not_given)
+            {
+                powerUsage.zones[zone].clusters[cluster].flags.not_given = true;
+                powerUsage.zones[zone].flags.not_given = true;
+            }
+        }
+    }
+
+    // Calculate statistics
+    for (var zone in powerUsage.zones)
+	{
+        // console.log(powerUsage.zones[zone]);
+        for (var cluster in powerUsage.zones[zone].clusters)
+        {
+            // // console.log(powerUsage.zones[zone].clusters[cluster]);
+            // let itemss = powerUsage.zones[zone].clusters[cluster].statistics.values.keys(dict).map(function(key) {
+            //     return [key, dict[key]];
+            // });
+
+            // let items = list(powerUsage.zones[zone].clusters[cluster].statistics.values.items());
+            //console.log(powerUsage.zones[zone].clusters[cluster].statistics.values);
+            //let items = Object.entries(list(powerUsage.zones[zone].clusters[cluster].statistics.values).sort((a,b) => b[1].power_usage-a[1].power_usage);
+            await calcSortAvrage(powerUsage.zones[zone].clusters[cluster].statistics);
+        }
+        await calcSortAvrage(powerUsage.zones[zone].statistics);
+    }
+    // Calculate the global
+    powerUsage.statistics.total = 0;
+    powerUsage.statistics.lowest = 0;
+    powerUsage.statistics.highest = 0;
+    powerUsage.statistics.median = 0;
+    powerUsage.statistics.avrage = 0;
+    powerUsage.statistics.number = 0;
+    await calcSortAvrage(powerUsage.statistics);
+    // Calculate values, the lower and upper third should do
+    powerUsage.statistics.limit_low = powerUsage.statistics.valuesOrdered[Math.floor(powerUsage.statistics.valuesOrdered.length*0.33)].power_usage;
+    powerUsage.statistics.limit_high = powerUsage.statistics.valuesOrdered[Math.floor(powerUsage.statistics.valuesOrdered.length*0.67)].power_usage;
+
+    return powerUsage;
+}
+
 export const loadCampClusters = async (map) => {
 	let group = new L.LayerGroup();
     const areas_w_camps = await loadAreaCamps();
+    map.powerUsage = await calcPowerUsage(map, areas_w_camps);
     const sheetdata = await loadSpreadSheet(CAMP_CLUSTERS_SPREADSHEET_JSON);
 
     const data = await loadGeoJson(CAMP_CLUSTERS_GEOJSON, () => ({
@@ -260,6 +459,7 @@ export const loadCampClusters = async (map) => {
                         feature.properties.size_usage_percent = areas_w_camps[feature.properties.sheetname].size_usage_percent;
                         feature.properties.spreadRowStart = areas_w_camps[feature.properties.sheetname].spreadRowStart;
                         feature.properties.spreadRowEnd = areas_w_camps[feature.properties.sheetname].spreadRowEnd;
+                        feature.properties.zone = areas_w_camps[feature.properties.sheetname].zone;
                         // If full, set color of area
                         if (feature.properties.size_usage_percent > 110)
                         {
@@ -425,5 +625,6 @@ export const loadCampClusters = async (map) => {
         layer.bindPopup(content);
         layer.bringToFront(); //To make sure the camp overlay is alway above the zones. Might be better to solve this with panes though.
     });
+    // console.log(map);
     return group;
 };

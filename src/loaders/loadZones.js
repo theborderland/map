@@ -19,12 +19,12 @@ export const loadZones = async (map) => {
                         ...feature.properties,
                         name, abbrevation, notice, sound, description,
                     };
-                    // Set at which zoom-level the tooltip should dissappear
                     feature.properties.type = "zone";
                     feature.properties.mapUri = zonedata[i][7];
                     feature.properties.discordChannel = zonedata[i][8];
                     feature.properties.discussionUri = zonedata[i][9];
                     feature.properties.spreadsheetUri = zonedata[i][10];
+                    feature.properties.areas = {};
                 }
             }
 

@@ -14,9 +14,9 @@ export const loadBoarderlandMarker = async(map) => {
 	group.addLayer(boarderlandMarker);
 
 	let markerDiv = '';
-	markerDiv += '<span>';
+	markerDiv += '<h1>';
 	markerDiv += boarderlandMarker.feature.properties.name;
-	markerDiv += '</span>';
+	markerDiv += '</h1>';
 	boarderlandMarker.bindTooltip(
 		markerDiv, {
 			permanent: true,
