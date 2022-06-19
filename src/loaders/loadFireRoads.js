@@ -4,8 +4,10 @@ import { getStyle } from '../layerstyles';
 import { loadGeoJson } from '../utils/loadGeoJson';
 
 export const loadFireRoads = async (map) => {
+    let group = new L.FeatureGroup();
     const data = await loadGeoJson(FIRE_ROADS_GEOJSON, ({ name }) => {
         return { style: getStyle(name) };
     });
-    data.addTo(map);
+    data.addTo(group);
+    return group;
 };

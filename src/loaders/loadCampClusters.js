@@ -215,6 +215,7 @@ const loadAreaCamps = async () => {
 };
 
 export const loadCampClusters = async (map) => {
+	let group = new L.LayerGroup();
     const areas_w_camps = await loadAreaCamps();
     const sheetdata = await loadSpreadSheet(CAMP_CLUSTERS_SPREADSHEET_JSON);
 
@@ -269,23 +270,7 @@ export const loadCampClusters = async (map) => {
                         {
                             fillOpacity = (feature.properties.reservedarea / feature.properties.maxarea) * 0.75;
                         }
-                        // Hide tooltip when zooming in close to area, but only if any camps is there to be shown
-                        if (Object.keys(feature.properties.camps).length > 0)
-                        {
-                            if (feature.properties.type == 'camp') feature.properties.maxzoom = 18;
-                            if (feature.properties.type == 'art') feature.properties.maxzoom = 18;
-                            if (feature.properties.type == 'sound') feature.properties.maxzoom = 18;
-                            if (feature.properties.type == 'building') feature.properties.maxzoom = 18;
-                        }
                     }
-
-                    // Set at which zoom-level the tooltip should dissappear
-                    if (feature.properties.type == 'camp') feature.properties.minzoom = 17;
-                    if (feature.properties.type == 'art') feature.properties.minzoom = 17;
-                    if (feature.properties.type == 'parking') feature.properties.minzoom = 17;
-                    if (feature.properties.type == 'building') feature.properties.minzoom = 17;
-                    if (feature.properties.type == 'sound') feature.properties.minzoom = 17;
-                    if (feature.properties.type == 'bridge') feature.properties.minzoom = 17;
                     break;
                 }
             }
@@ -298,22 +283,9 @@ export const loadCampClusters = async (map) => {
                 fillOpacity: fillOpacity,
             };
         },
-        onEachFeature: (feature, layer) => {
-            let span = "<span style='color: white; text-shadow: 1px 1px #000000; font-weight: bold'>" + feature.properties.sheetname + '</span>';
-            layer.bindTooltip(
-                span,
-                { permanent: true, direction: 'center' },
-            );
-        },
     }));
 
-    // Prepare searchable_features group
-    if (!map.searchable_features)
-    {
-        map.searchable_features = new L.LayerGroup();
-    }
-
-    data.addTo(map).eachLayer((layer) => {
+    data.addTo(group).eachLayer((layer) => {
         let name = '';
         if (layer.feature.properties.sheetname)
         {
@@ -452,8 +424,6 @@ export const loadCampClusters = async (map) => {
 
         layer.bindPopup(content);
         layer.bringToFront(); //To make sure the camp overlay is alway above the zones. Might be better to solve this with panes though.
-
-        // Add to searchable_features group
-        map.searchable_features.addLayer(layer);
     });
+    return group;
 };

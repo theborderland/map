@@ -20,7 +20,7 @@ export const loadZones = async (map) => {
                         name, abbrevation, notice, sound, description,
                     };
                     // Set at which zoom-level the tooltip should dissappear
-                    feature.properties.minzoom = 16;
+                    feature.properties.type = "zone";
                     feature.properties.mapUri = zonedata[i][7];
                     feature.properties.discordChannel = zonedata[i][8];
                     feature.properties.discussionUri = zonedata[i][9];
@@ -36,23 +36,11 @@ export const loadZones = async (map) => {
                 fillOpacity: 0,
                 zIndex: 0,
             };
-        },onEachFeature: (feature, layer) => {
-            layer.bindTooltip(
-                "<span style='color: #ffa; opacity: 0.9; text-shadow: 2px 2px #000000; font-weight: bold; font-size: 0.8rem;'>" +
-                    feature.properties.name +
-                    '</span>',
-                { permanent: true, direction: 'center' },
-            );
         },
     }));
 
-    // Prepare searchable_features group
-    if (!map.searchable_features)
-    {
-        map.searchable_features = new L.LayerGroup();
-    }
-
-    data.addTo(map).eachLayer((layer) => {
+    let group = new L.FeatureGroup();
+    data.addTo(group).eachLayer((layer) => {
         let notice = '';
         if (layer.feature.properties.notice) notice = '<h3>' + layer.feature.properties.notice + '</h3>';
 
@@ -86,8 +74,45 @@ export const loadZones = async (map) => {
         const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description + discussion + spreadsheet;
         layer.bindPopup(content);
         layer.bringToBack();
-
-        //  Add to searchable_features group
-        map.searchable_features.addLayer(layer);
     });
+    return group;
+};
+
+export const loadZoneNames = async (map) => {
+    let group = new L.FeatureGroup();
+	map.eachLayer(function(layer)
+	{
+		if (layer.feature && layer.feature.properties)
+		{
+			if (layer.feature.properties?.type)
+			{
+                if (layer.feature.properties.type == 'zone')
+                {
+                    // console.log('zone', layer.feature.properties.name);
+                    var zoneMarker = L.circle(layer.getBounds().getCenter(), {
+                        color: "ddd",
+                        fillColor: "#fff",
+                        fillOpacity: 0.0,
+                        radius: 0.1
+                    });
+                    zoneMarker.feature = {};
+                    zoneMarker.feature.properties = {};
+                    zoneMarker.feature.properties.name = layer.feature.properties.name;
+                    group.addLayer(zoneMarker);
+                    let zoneDiv = '';
+                    zoneDiv += '<span>';
+                    zoneDiv += zoneMarker.feature.properties.name;
+                    zoneDiv += '</span>';
+                    zoneMarker.bindTooltip(
+                        zoneDiv, {
+                            permanent: true,
+                            direction: 'center',
+                            className: 'zone-tooltip'
+                        },
+                    );
+                }
+            }
+        }
+    });
+    return group;
 };
