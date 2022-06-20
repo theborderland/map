@@ -549,6 +549,10 @@ export const loadCampClusters = async (map) => {
             powerContent += 'Total: ';
             powerContent += clusterPower.statistics.total;
             powerContent += ' W ';
+            if (clusterPower.statistics.total > 5000)
+            {
+                powerContent += ' ⚡';
+            }
             if (clusterPower.flags.zero && clusterPower.statistics.total == 0)
             {
                 powerContent += "🌱";
@@ -637,7 +641,19 @@ export const loadCampClusters = async (map) => {
                     if (camp?.power_usage >= 0)
                     {
                         camps += camp.power_usage+" W";
-                    }
+                        if (camp.power_usage > map.powerUsage.statistics.limit_high)
+                        {
+                            camps += '🔺';
+                        }
+                        else if (camp.power_usage < map.powerUsage.statistics.limit_low)
+                        {
+                            camps += '▼';
+                        }
+                        else
+                        {
+                            camps += '🔸';
+                        }
+                }
                     else
                     {
                         camps += " ❓ not given in spreadsheet";
