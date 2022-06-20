@@ -417,6 +417,18 @@ const calcPowerUsage = async (map, areas_w_camps) => {
         {
             powerUsage.statistics.total_only_sound += powerUsage.statistics.values[kValue].power_usage;
         }
+        else if (kValue.toLowerCase().includes("sound"))
+        {
+            powerUsage.statistics.total_only_sound += powerUsage.statistics.values[kValue].power_usage;
+        }
+        else if (kValue.toLowerCase().includes("fox"))
+        {
+            powerUsage.statistics.total_only_sound += powerUsage.statistics.values[kValue].power_usage;
+        }
+        else if (kValue.toLowerCase().includes("church"))
+        {
+            powerUsage.statistics.total_only_sound += powerUsage.statistics.values[kValue].power_usage;
+        }
         else
         {
             powerUsage.statistics.total_excl_sound += powerUsage.statistics.values[kValue].power_usage;

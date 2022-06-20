@@ -265,7 +265,7 @@ export const loadPowerBoarderlandMarker = async(map) => {
 	markerDiv += map.powerUsage.statistics.total_excl_sound;
 	markerDiv += ' W';
 	markerDiv += ' (Only sound: ';
-	markerDiv += map.powerUsage.statistics.total_excl_sound;
+	markerDiv += map.powerUsage.statistics.total_only_sound;
 	markerDiv += ' W)';
 	markerDiv += '</h2>';
 
@@ -308,7 +308,7 @@ export const loadPowerBoarderlandMarker = async(map) => {
 
 	markerDiv += '<h2>Power Consumers: ';
 	markerDiv += consumers.length;
-	markerDiv += ' camps';
+	markerDiv += ' camps/projects';
 	markerDiv += '</h2>';
 
 	boarderlandMarker.bindTooltip(
