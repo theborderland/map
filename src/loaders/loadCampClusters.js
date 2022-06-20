@@ -537,7 +537,7 @@ export const loadCampClusters = async (map) => {
             powerContent += 'Total: ';
             powerContent += clusterPower.statistics.total;
             powerContent += ' W ';
-            if (clusterPower.statistics.total == 0)
+            if (clusterPower.flags.zero && clusterPower.statistics.total == 0)
             {
                 powerContent += "🌱";
             }
