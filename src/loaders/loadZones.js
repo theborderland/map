@@ -100,9 +100,9 @@ export const loadZoneNames = async (map) => {
                     zoneMarker.feature.properties.name = layer.feature.properties.name;
                     group.addLayer(zoneMarker);
                     let zoneDiv = '';
-                    zoneDiv += '<span>';
+                    zoneDiv += '<h3>';
                     zoneDiv += zoneMarker.feature.properties.name;
-                    zoneDiv += '</span>';
+                    zoneDiv += '</h3>';
                     zoneMarker.bindTooltip(
                         zoneDiv, {
                             permanent: true,

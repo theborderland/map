@@ -1,27 +1,12 @@
 /*
-Ebbe spec:
-while overlay_power = 1:
-total wattage for each cluster... displayed under space_used %,
-appear at zoom level where camps become listeda marker for the biggest
-consumer cluster in an area.
-
-total wattage for each areas clusters combined..
-displayed under area nametotal for all areas...
-displayed in the middle of the green field that parking is also a part of.
-this would be very usefull to me
-  
-if no power is reported in a cluster, a ⚡ with a ❌ appears next to the cluster letter,
-i want this perfect nudge.
-
 States:
 * ❓ Not given
 * 🌱 Zero Power
-* 🔌 Using power
 
 Statistics:
 * 🔺 High consumer
 * 🔸 Median consumer
-* 🔻 Low consumer
+* ▼ Low consumer
 loadPowerZoneNames, loadPowerClustersNames, loadPowerCampNames
 */
 
@@ -48,26 +33,26 @@ export const loadPowerZoneNames = async(map) => {
                     zoneMarker.feature.properties.name = layer.feature.properties.name;
                     groupPowerZone.addLayer(zoneMarker);
                     let zoneDiv = '';
-                    zoneDiv += '<span>';
+                    zoneDiv += '<h3>';
                     zoneDiv += zoneMarker.feature.properties.name;
+                    zoneDiv += '</h3>';
 					if (layer.feature.properties?.name && map.powerUsage.zones.hasOwnProperty(zoneMarker.feature.properties.name))
 					{
+						zoneDiv += '<h3>';
 						// console.log(layer.feature.properties);
 						let zonePower = map.powerUsage.zones[layer.feature.properties.name];
 						// console.log(zonePower);
+						if (zonePower.flags.using_power)
+						{
+							zoneDiv += zonePower.statistics.total;
+							zoneDiv += ' W';
+						}
 						if (zonePower.flags.not_given)
 						{
 							zoneDiv += ' ❓';
 						}
-						if (zonePower.flags.using_power)
-						{
-							zoneDiv += ' 🔌';
-							zoneDiv += ' ';
-							zoneDiv += zonePower.statistics.total;
-							zoneDiv += ' W';
-						}
+						zoneDiv += '</h3>';
 					}	
-                    zoneDiv += '</span>';
                     zoneMarker.bindTooltip(
                         zoneDiv, {
                             permanent: true,
@@ -96,21 +81,25 @@ export const loadPowerClustersNames = async(map) => {
 				let clusterName = '';
 				clusterName += '<h3>';
 				clusterName += layer.feature.properties.sheetname;
+				clusterName += '</h3>';
 				if (layer.feature.properties?.zone && layer.feature.properties?.name)
 				{
+					clusterName += '<h3>';
 					// console.log(layer.feature.properties);
 					let clusterPower = map.powerUsage.zones[layer.feature.properties.zone].clusters[layer.feature.properties.name];
 					// console.log(clusterPower);
+					if (clusterPower.flags.using_power)
+					{
+						clusterName += clusterPower.statistics.total;
+						clusterName += ' W';
+						if (clusterPower.statistics.total > 5000)
+						{
+							clusterName += ' ⚡';
+						}
+					}
 					if (clusterPower.flags.not_given)
 					{
 						clusterName += ' ❓';
-					}
-					if (clusterPower.flags.using_power)
-					{
-						clusterName += ' 🔌';
-						clusterName += ' ';
-						clusterName += clusterPower.statistics.total;
-						clusterName += ' W';
 					}
 					clusterName += '</h3>';
 				}
@@ -161,16 +150,20 @@ export const loadPowerCampNames = async(map) => {
 					camps += '<h3>';
 					camps += layer.feature.properties.sheetname;
 					camps += " (" + layer.feature.properties.size_usage_percent + " % used)";
+					camps += '</h3>';
+					camps += '<h3>';
+					if (clusterPower.flags.using_power)
+					{
+						camps += clusterPower.statistics.total;
+						camps += ' W ';
+						if (clusterPower.statistics.total > 5000)
+						{
+							camps += '⚡';
+						}
+					}
 					if (clusterPower.flags.not_given)
 					{
 						camps += ' ❓';
-					}
-					if (clusterPower.flags.using_power)
-					{
-						camps += ' 🔌';
-						camps += ' ';
-						camps += clusterPower.statistics.total;
-						camps += ' W';
 					}
 					camps += '</h3>';
 					camps += '<ul>';
@@ -179,21 +172,18 @@ export const loadPowerCampNames = async(map) => {
 						let name = camp.name;
 						let campPower = map.powerUsage.zones[camp.zone].clusters[camp.cluster].camps[camp.name_unique];
 						let powerString = '';
-						powerString += '(';
 						if (campPower.flags.zero)
 						{
-							powerString += '🌱';
-							powerString += ' 0 W';
+							powerString += '0 W';
+							powerString += ' 🌱';
 						}
 						if (campPower.flags.not_given)
 						{
 							powerString += '❓';
-							powerString += ' _ W';
+							powerString += ' W';
 						}
 						if (campPower.flags.using_power)
 						{
-							powerString += '🔌';
-							powerString += ' ';
 							powerString += campPower.total;
 							powerString += ' W';
 						}
@@ -205,21 +195,20 @@ export const loadPowerCampNames = async(map) => {
 							}
 							else if (campPower.total < map.powerUsage.statistics.limit_low)
 							{
-								powerString += '🔻';
+								powerString += '▼';
 							}
 							else
 							{
 								powerString += '🔸';
 							}
 						}
-						powerString += ') ';
 						//console.log(campPower);
 						if (name.length > 20)
 						{
 							name = name.substring(0, 20) + "…";
 						}
 						combinedNames += "[" + camp.type + "] " + camp.name;
-						camps += "<li>"+powerString+"[" + camp.type + "] " + name + "</li>";
+						camps += "<li>"+powerString+" [" + camp.type + "] " + name + "</li>";
 					}
 					camps += "</ul>";
 					var areaCampNames = L.circle(layer.getBounds().getCenter(), {
@@ -271,6 +260,15 @@ export const loadPowerBoarderlandMarker = async(map) => {
 	markerDiv += ' W';
 	markerDiv += '</h2>';
 
+	markerDiv += '<h2>';
+	markerDiv += 'Total exluding sound: ';
+	markerDiv += map.powerUsage.statistics.total_excl_sound;
+	markerDiv += ' W';
+	markerDiv += ' (Only sound: ';
+	markerDiv += map.powerUsage.statistics.total_excl_sound;
+	markerDiv += ' W)';
+	markerDiv += '</h2>';
+
 	markerDiv += '<h2>Median: ';
 	markerDiv += map.powerUsage.statistics.median;
 	markerDiv += ' W';
@@ -308,11 +306,9 @@ export const loadPowerBoarderlandMarker = async(map) => {
 	}
 	markerDiv += '</ul>';
 
-	markerDiv += '<h2>Camp Consumers: ';
+	markerDiv += '<h2>Power Consumers: ';
 	markerDiv += consumers.length;
-	markerDiv += ' camps (';
-	markerDiv += map.powerUsage.statistics.number;
-	markerDiv += ' including 0W)';
+	markerDiv += ' camps';
 	markerDiv += '</h2>';
 
 	boarderlandMarker.bindTooltip(

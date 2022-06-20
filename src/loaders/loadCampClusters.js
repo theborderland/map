@@ -399,6 +399,8 @@ const calcPowerUsage = async (map, areas_w_camps) => {
     }
     // Calculate the global
     powerUsage.statistics.total = 0;
+    powerUsage.statistics.total_excl_sound = 0;
+    powerUsage.statistics.total_only_sound = 0;
     powerUsage.statistics.lowest = 0;
     powerUsage.statistics.highest = 0;
     powerUsage.statistics.median = 0;
@@ -408,6 +410,20 @@ const calcPowerUsage = async (map, areas_w_camps) => {
     // Calculate values, the lower and upper third should do
     powerUsage.statistics.limit_low = powerUsage.statistics.valuesOrdered[Math.floor(powerUsage.statistics.valuesOrdered.length*0.33)].power_usage;
     powerUsage.statistics.limit_high = powerUsage.statistics.valuesOrdered[Math.floor(powerUsage.statistics.valuesOrdered.length*0.67)].power_usage;
+    // Calculate sound stuff
+    for (var kValue in powerUsage.statistics.values)
+    {
+        if (kValue.startsWith("SC"))
+        {
+            powerUsage.statistics.total_only_sound += powerUsage.statistics.values[kValue].power_usage;
+        }
+        else
+        {
+            powerUsage.statistics.total_excl_sound += powerUsage.statistics.values[kValue].power_usage;
+        }
+    }
+    // console.log("excl", powerUsage.statistics.total_excl_sound);
+    // console.log("only", powerUsage.statistics.total_only_sound);
 
     return powerUsage;
 }
@@ -511,6 +527,34 @@ export const loadCampClusters = async (map) => {
             area += '<BR>';
         }
 
+        let powerContent = "";
+        if (layer.feature.properties?.zone && layer.feature.properties?.name)
+        {
+            let clusterPower = map.powerUsage.zones[layer.feature.properties.zone].clusters[layer.feature.properties.name];
+            // console.log(clusterPower);
+            powerContent += '<p>';
+            powerContent += 'Power: ';
+            powerContent += 'Total: ';
+            powerContent += clusterPower.statistics.total;
+            powerContent += ' W ';
+            if (clusterPower.statistics.total == 0)
+            {
+                powerContent += "🌱";
+            }
+            if (clusterPower.flags.not_given)
+            {
+                powerContent += " ❓ some camps have not reported it's power usage ";
+            }
+            if (clusterPower.statistics.number > 1)
+            {
+                powerContent += '<br />';
+                powerContent += 'Avrage power: ';
+                powerContent += clusterPower.statistics.avrage;
+                powerContent += ' W per camp';
+            }
+            powerContent += '</p>';
+        }
+
         let preferredType = '';
         preferredType += '<p>';
         preferredType += 'Placement recommendations:<br />';
@@ -577,8 +621,20 @@ export const loadCampClusters = async (map) => {
                     camps +=       "Other structure: "+camp.other_structure_m2+"m²";
                     camps +=     "</li>";
                     camps +=     "<li>";
-                    camps +=       "Power: "+camp.power_usage+" W";
-                    camps +=     "</li>";
+                    camps +=       "Power: ";
+                    if (camp?.power_usage >= 0)
+                    {
+                        camps += camp.power_usage+" W";
+                    }
+                    else
+                    {
+                        camps += " ❓ not given in spreadsheet";
+                    }
+                    if (camp?.power_usage == 0)
+                    {
+                        camps += " 🌱";
+                    }
+                camps +=     "</li>";
                     if (camp.comment?.length > 0)
                     {
 						let comment = camp.comment;
@@ -620,7 +676,7 @@ export const loadCampClusters = async (map) => {
         placement += 'Placement Spreadsheet';
         placement += '</a>';
 
-        const content = '<h2>' + name + '</h2>' + area + notice + preferredType + description + camps + camps_notice + placement;
+        const content = '<h2>' + name + '</h2>' + area + powerContent + notice + preferredType + description + camps + camps_notice + placement;
 
         layer.bindPopup(content);
         layer.bringToFront(); //To make sure the camp overlay is alway above the zones. Might be better to solve this with panes though.

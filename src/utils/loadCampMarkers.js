@@ -26,13 +26,21 @@ export const loadCampNames = async(map) => {
 					camps += '<ul>';
 					for (const [key, camp] of Object.entries(layer.feature.properties.camps))
 					{
+						let camprow = "";
+						// console.log(camp);
 						let name = camp.name;
 						if (name.length > 20)
 						{
 							name = name.substring(0, 20) + "…";
 						}
+						camps += "<li>";
 						combinedNames += "[" + camp.type + "] " + camp.name;
-						camps += "<li>[" + camp.type + "] " + name + "</li>";
+						camps += "[" + camp.type + "] " + name;
+						if (!(camp?.power_usage >= 0))
+						{
+							camps += " ❓";
+						}
+						camps += "</li>";
 					}
 					camps += "</ul>";
 					var areaCampNames = L.circle(layer.getBounds().getCenter(), {
