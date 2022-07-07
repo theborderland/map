@@ -9,15 +9,8 @@ var centeredIcon = L.Icon.extend({
     }
 });
 
-var sleep = duration => new Promise(resolve => setTimeout(resolve, duration))
-var poll = (promiseFn, duration) => promiseFn().then(
-             sleep(duration).then(() => poll(promiseFn, duration)))
-
-// var trackers = {};
-
 export const startTracking = async (map) => 
 {
-    // poll(() => new Promise(() => pollServer(map)), 10000)
     try 
     {
         const response = await fetch('https://soffan.freaks.se/trackers/');
@@ -49,31 +42,3 @@ export const startTracking = async (map) =>
         console.log(error);
     }
 }
-
-// async function pollServer(map)
-// {
-//     try 
-//     {
-//         const response = await fetch('https://localhost:7103/trackers/');
-//         const data = await response.json();
-
-//         for (var key in data) 
-//         {
-//             if (key in trackers)
-//             {
-//                 trackers[key].setLatLng(new L.LatLng(data[key].lat, data[key].long));
-//             }
-//             else
-//             {
-//                 const content = '<h3>' + data[key].trackerid + '</h3>' + '<p>' + data[key].timestamp + '</p>';
-//                 trackers[key] = L.marker([data[key].lat, data[key].long], {icon: new centeredIcon({iconUrl: './img/icons/' + "water" + '.png'})})
-//                 .addTo(map)
-//                 .bindPopup(content);
-//             }
-//         }
-//     } 
-//     catch (error) 
-//     {
-//         console.log(error);
-//     }
-// }
