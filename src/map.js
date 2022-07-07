@@ -17,6 +17,7 @@ import { loadDrawnMap } from './loaders/loadDrawnMap';
 import { addLegends } from './loaders/addLegends';
 import { addSearch } from './utils/searchControl';
 import { loadPoi } from './loaders/loadPoi';
+import { startTracking } from './loaders/loadTrackers';
 import { loadPowerZoneNames, loadPowerClustersNames, loadPowerCampNames, loadPowerBoarderlandMarker } from './utils/power';
 
 export const createMap = async () => {
@@ -79,4 +80,6 @@ export const createMap = async () => {
     L.control.polylineMeasure().addTo(map);
     await addSearch(map);
     let hash = new L.Hash(map);  // Makes the URL follow the map
+
+    startTracking(map);
 };
