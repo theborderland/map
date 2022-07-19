@@ -6,7 +6,7 @@ export function getStyle(name) {
                 weight: 5,
                 opacity: 1,
                 color: '#ff7800',
-                dashArray: '5',
+                dashArray: '9',
                 fillOpacity: 0,
             };
         case 'zones':
