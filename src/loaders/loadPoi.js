@@ -30,16 +30,18 @@ export const loadPoi = async (map) =>
             if (!iconDict[type]) iconDict[type] = new centeredIcon({iconUrl: './img/icons/' + type + '.png'});
             
             let navigatehere = ' ';
-            navigatehere += '<button';
-            navigatehere += ' onclick="navigatehere(';
+            navigatehere += '<a';
+            navigatehere += ' href="';
+            navigatehere += 'https://tim.gremalm.se/gps/updategps.php?lat='
             navigatehere += lon;
-            navigatehere += ', ';
+            navigatehere += '&lng=';
             navigatehere += lat;
-            navigatehere += ')"';
+            navigatehere += '"';
+            navigatehere += ' target="_blank"';
             navigatehere += '>';
             navigatehere += '☩';
-            navigatehere += '</button>';
-
+            navigatehere += '</a>';
+    
             const content = '<h3>' + name + '</h3>' + '<p>' + description + navigatehere + '</p>';
             L.marker([lon, lat],
                 {icon: iconDict[type]

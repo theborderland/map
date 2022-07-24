@@ -707,15 +707,17 @@ export const loadCampClusters = async (map) => {
         // console.log(layer.getBounds().getCenter());
         let center = layer.getBounds().getCenter();
         let navigatehere = ' ';
-        navigatehere += '<button';
-        navigatehere += ' onclick="navigatehere(';
+        navigatehere += '<a';
+        navigatehere += ' href="';
+        navigatehere += 'https://tim.gremalm.se/gps/updategps.php?lat='
         navigatehere += center['lat'];
-        navigatehere += ', ';
+        navigatehere += '&lng=';
         navigatehere += center['lng'];
-        navigatehere += ')"';
+        navigatehere += '"';
+        navigatehere += ' target="_blank"';
         navigatehere += '>';
         navigatehere += '☩';
-        navigatehere += '</button>';
+        navigatehere += '</a>';
 
         const content = '<h2>' + name + '</h2>' + area + powerContent + notice + preferredType + description + camps + camps_notice + placement + navigatehere;
 
