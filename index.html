@@ -95,6 +95,19 @@
     </head>
     <body>
         <div id="map"></div>
+        <script>
+            function navigatehere(lat, lng) {
+                console.log("navigatehere", lat, lng);
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        console.log(this.responseText);
+                    }
+                };
+                xhttp.open("GET", "https://tim.gremalm.se/gps/updategps.php?lat="+lat+"&lng="+lng, true);
+                xhttp.send();
+            }
+        </script>
         <script src="bundle.js"></script>
     </body>
 </html>
