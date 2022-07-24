@@ -82,7 +82,7 @@ export const createMap = async () => {
     await loadPositionControl(map);
     L.control.polylineMeasure().addTo(map);
     await addSearch(map);
-    // let hash = new L.Hash(map);  // Makes the URL follow the map
+    let hash = new L.Hash(map);  // Makes the URL follow the map
 
     startTraking(map);
 };

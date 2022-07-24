@@ -704,7 +704,20 @@ export const loadCampClusters = async (map) => {
         placement += 'Placement Spreadsheet';
         placement += '</a>';
 
-        const content = '<h2>' + name + '</h2>' + area + powerContent + notice + preferredType + description + camps + camps_notice + placement;
+        // console.log(layer.getBounds().getCenter());
+        let center = layer.getBounds().getCenter();
+        let navigatehere = ' ';
+        navigatehere += '<button';
+        navigatehere += ' onclick="navigatehere(';
+        navigatehere += center['lat'];
+        navigatehere += ', ';
+        navigatehere += center['lng'];
+        navigatehere += ')"';
+        navigatehere += '>';
+        navigatehere += '☩';
+        navigatehere += '</button>';
+
+        const content = '<h2>' + name + '</h2>' + area + powerContent + notice + preferredType + description + camps + camps_notice + placement + navigatehere;
 
         layer.bindPopup(content);
         layer.bringToFront(); //To make sure the camp overlay is alway above the zones. Might be better to solve this with panes though.

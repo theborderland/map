@@ -71,7 +71,20 @@ export const loadZones = async (map) => {
         if (layer.feature.properties.description)
             description = '<B>Description:</B> ' + layer.feature.properties.description + '<BR>';
 
-        const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description + discussion + spreadsheet;
+        // console.log(layer.getBounds().getCenter());
+        let center = layer.getBounds().getCenter();
+        let navigatehere = ' ';
+        navigatehere += '<button';
+        navigatehere += ' onclick="navigatehere(';
+        navigatehere += center['lat'];
+        navigatehere += ', ';
+        navigatehere += center['lng'];
+        navigatehere += ')"';
+        navigatehere += '>';
+        navigatehere += '☩';
+        navigatehere += '</button>';
+
+        const content = '<h2>' + layer.feature.properties.name + '</h2>' + sound + notice + description + discussion + spreadsheet + navigatehere;
         layer.bindPopup(content);
         layer.bringToBack();
     });

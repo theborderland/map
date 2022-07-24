@@ -29,7 +29,18 @@ export const loadPoi = async (map) =>
 
             if (!iconDict[type]) iconDict[type] = new centeredIcon({iconUrl: './img/icons/' + type + '.png'});
             
-            const content = '<h3>' + name + '</h3>' + '<p>' + description + '</p>';
+            let navigatehere = ' ';
+            navigatehere += '<button';
+            navigatehere += ' onclick="navigatehere(';
+            navigatehere += lon;
+            navigatehere += ', ';
+            navigatehere += lat;
+            navigatehere += ')"';
+            navigatehere += '>';
+            navigatehere += '☩';
+            navigatehere += '</button>';
+
+            const content = '<h3>' + name + '</h3>' + '<p>' + description + navigatehere + '</p>';
             L.marker([lon, lat],
                 {icon: iconDict[type]
                 }).addTo(poiLayer).bindPopup(content);
