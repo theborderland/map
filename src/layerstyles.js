@@ -3,15 +3,15 @@ export function getStyle(name) {
         case 'naturereserve':
             return {
                 fillColor: '#E31A1C',
-                weight: 1,
+                weight: 5,
                 opacity: 1,
                 color: '#ff7800',
-                dashArray: '5',
+                dashArray: '9',
                 fillOpacity: 0,
             };
         case 'zones':
             return {
-                weight: 2,
+                weight: 1,
                 opacity: 0.75,
                 color: 'yellow',
                 dashArray: '5',
@@ -20,7 +20,7 @@ export function getStyle(name) {
             };
         case 'fire':
             return {
-                weight: 3,
+                weight: 5,
                 opacity: 0.75,
                 color: '#ff3322',
                 fillOpacity: 0,
