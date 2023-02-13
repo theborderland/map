@@ -1,0 +1,1 @@
+export { EntityDataAPI } from './entityData';
