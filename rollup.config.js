@@ -1,5 +1,6 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
 import serve from 'rollup-plugin-serve';
 import { terser } from 'rollup-plugin-terser';
 
@@ -18,10 +19,12 @@ export default {
     },
     plugins: [
         resolve(), // tells Rollup how to find includes in node_modules
+        typescript({ compilerOptions: { target: 'ESNEXT' } }), // convert from typescript to javascript
         commonjs(), // converts to ES modules
         production && terser(), // minify, but only in production
-        !production && serve({
-            port: 3001
-        })
+        !production &&
+            serve({
+                port: 3001,
+            }),
     ],
 };
