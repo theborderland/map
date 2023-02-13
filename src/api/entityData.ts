@@ -30,6 +30,9 @@ class EntityDataAPISingleton {
         latest: number;
     } = null;
 
+    /** Indicates that the API has loaded data successfully */
+    public loaded: Promise<boolean>;
+
     /** Loads the latest entity data revisions from the server given the set constraints, if any */
     private async _update(): Promise<void> {
         // TOOD: include _entityConstraints
@@ -42,7 +45,7 @@ class EntityDataAPISingleton {
 
     constructor() {
         /* Update on page load */
-        this._update();
+        this.loaded = new Promise((resolve) => this._update().then(() => resolve(true)));
     }
 
     /** Set the entity constraints, will trigger a reload of the api */
