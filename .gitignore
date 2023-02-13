@@ -358,3 +358,5 @@ MigrationBackup/
 public/bundle.js
 public/bundle.js.map
 
+# Mac OS
+.DS_Store
