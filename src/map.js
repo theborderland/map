@@ -23,8 +23,10 @@ import { startTracking } from './loaders/loadTrackers';
 import { loadPowerZoneNames, loadPowerClustersNames, loadPowerCampNames, loadPowerBoarderlandMarker } from './utils/power';
 
 export const createMap = async () => {
+    L.PM.setOptIn(false);
     const map = L.map('map', { zoomControl: false, maxZoom: 21 }).setView([57.621111, 14.927857], 17);
-
+    
+    
     // Map feature layers
     map.groups = {};
     map.groups.zones = (await loadZones(map)).addTo(map);
@@ -75,6 +77,9 @@ export const createMap = async () => {
 
     // Add layer control and legends
     L.control.layers(baseLayers, extraLayers).addTo(map);
+    
+    
+
 
     addLegends(map);
 
@@ -85,6 +90,12 @@ export const createMap = async () => {
     L.control.polylineMeasure().addTo(map);
     await addSearch(map);
     let hash = new L.Hash(map);  // Makes the URL follow the map
+    
+    // add Leaflet-Geoman controls with some options to the map  
+    map.pm.addControls({  
+      position: 'topleft',  
+      drawCircle: false,  
+    });
 
     startTraking(map);
 };
