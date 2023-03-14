@@ -3,6 +3,8 @@ import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import 'leaflet-hash-plus';
 import 'leaflet-search';
+import '@geoman-io/leaflet-geoman-free';
+
 import { loadZones, loadZoneNames } from './loaders/loadZones';
 import { loadNatureReserve } from './loaders/loadNatureReserve';
 import { loadSoundGuide } from './loaders/loadSoundGuide';
