@@ -113,6 +113,9 @@ export const createMap = async () => {
         fillOpacity: 0.4,
     });
 
+    var layerBeingEdited = null;
+    var justClicked  = null;
+
     // Event fired when a layer is created first time. Automatically save this layer to the API? Maybe some info needs to be filled out first?
     map.on('pm:create', (geomanCreateEvent) => {
         console.log({geomanCreateEvent});
@@ -121,12 +124,17 @@ export const createMap = async () => {
         L.PM.reInitLayer(geomanCreateEvent.layer); 
 
         //Add a click event to the layer that was just created
-        geomanCreateEvent.layer.on('click', (e) => 
+        geomanCreateEvent.layer.on('click', (clickOnAShape) => 
         {
-            console.log({e});
-            map.pm.disableGlobalEditMode();
-            e.target.pm.enable({ editMode : true });
-            isEditing = true;
+            justClicked = true;
+            console.log({clickOnAShape});
+            if (layerBeingEdited != null)
+            {
+                map.pm.disableGlobalEditMode();
+            }
+
+            clickOnAShape.target.pm.enable({ editMode : true });
+            layerBeingEdited = clickOnAShape.target;
         });
     });
 
@@ -145,12 +153,20 @@ export const createMap = async () => {
     map.on('click', (onMapClick) => 
     {
         console.log({onMapClick});
-        //Disable edit mode on all layers if edit mode is on
-        // if (isEditing == true) 
-        // {
-        //     map.pm.disableGlobalEditMode();
-        //     isEditing = false;
-        // }
+        console.log( "drawmode: " + map.pm.globalDrawModeEnabled() );
+        console.log( "editmode: " + map.pm.globalEditModeEnabled() );
+        console.log( "isEditing: " + isEditing );
+        console.log( "justClicked: " + justClicked );
+        console.log( "layerBeingEdited: " + layerBeingEdited );
+
+        if (layerBeingEdited != null && !justClicked)
+        {
+            layerBeingEdited = null;
+            // layerBeingEdited.pm.disable();
+            map.pm.disableGlobalEditMode();
+        }
+
+        justClicked = false;
     });
 
     // startTraking(map);
