@@ -1,1 +1,1 @@
-export { EntityDataAPI } from './entityData';
+export { EntityDataAPI, EntityData } from './entityData';

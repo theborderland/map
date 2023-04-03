@@ -2,6 +2,8 @@ export const APIKEY = 'AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0';
 export const PLACEMENT_MAP_SHEET = '1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag';
 export const OFFICIAL_PLACEMENT_SHEET = '1GUOHOdrUGk9SsBeE83Z1wadbmqqG-_OKN2VT2jKVB7A';
 
+export const ENTITY_API_ADDRESS = 'https://placement.freaks.se/api/v1/mapentities';
+
 export const ZONES_SPREADSHEET_JSON =
     'https://sheets.googleapis.com/v4/spreadsheets/1HBERVykwMRDlTGQpOJHmoeDSLVcGriB9V4-FU_F8iag/values/zones!A2:K30?alt=json&key=AIzaSyAwMjpopKPH4_7Kn8qNhrOGz4c-JBv3QG0';
 
