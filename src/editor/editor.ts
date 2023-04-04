@@ -1,275 +1,281 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
-import { EntityDataAPI, EntityData } from '../api';
-import * as turf from '@turf/turf';
+import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 
 /**
- * The Editor class keeps track of user-editable layers
+ * The Editor class keeps track of the user status regarding editing and
+ * renders the map entities in the repository as editable layers on the map
  */
 export class Editor {
+    /** The Map Entities repository being used */
+    private _repository: MapEntityRepository;
     /** The Leaflet Map being used */
     private _map: L.Map;
     /** A Leaflet popup used to display information and choices for individual editable layers */
     private _popup: L.Popup;
 
-    /** The current Leaflet layer being edited, if any */
-    private _layerBeingEdited: (L.Layer & { pm: any }) | null = null;
-    /** The current Map Entity being edited, if any */
-    private _entityBeingEdited: EntityData | null = null;
+    /** The current status of the editor */
+    private _mode: 'none' | 'selected' | 'editing-shape' | 'editing-info' = 'none';
 
-    /** Returns the style to use for editable layers */
-    private get _layerStyle(): L.PathOptions {
-        return {
-            color: 'cyan',
-            fillColor: 'green',
-            fillOpacity: 0.4,
-        };
-    }
+    /** The currently selected map entity, if any */
+    private _selected: MapEntity | null = null;
 
-    /** Event handler for when an editable layer is clicked */
-    private async handleClick(entity: EntityData, layer: L.Layer & { pm: any }, latlng: L.LatLng) {
-        console.log('[Editor]', 'Click event fired', { layer, entity, latlng });
+    private setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
+        // Update current status
 
-        // Ignore presses on the layer being edited
-        if (this._layerBeingEdited && this._layerBeingEdited == layer) {
+        // Don't change mode
+        if (nextMode == this._mode) {
             return;
         }
 
-        // Show information popup
-        const content = this.createInformationPopUp(entity, layer);
-        this._popup.setContent(content).setLatLng(latlng).openOn(this._map);
+        // When blur is sent the next mode is dynamic
+        if (nextMode == 'blur') {
+            if (this._mode == 'selected') {
+                nextMode = 'none';
+            }
+            if (this._selected && (this._mode == 'editing-shape' || this._mode == 'editing-info')) {
+                nextMode = 'selected';
+                nextEntity = this._selected;
 
-        // Stop save current layer being edited
-        this.handleStopAndSave();
+                // When returning to the selection view from editing the done-editing-event is called
+                this.onLayerDoneEditing(nextEntity);
+            }
+        }
+
+        console.log({ mode: this._mode, nextMode, nextEntity });
+
+        // Update the pop-up
+        this.setPopup(nextMode, nextEntity);
+
+        // Set the correct mode
+        this._mode = nextMode as Editor['_mode'];
+
+        // Deselect and stop editing
+        if (nextMode == 'none') {
+            console.log('[Editor]', 'Mode', 'None');
+            this._selected = null;
+            return;
+        }
+
+        // Select an entity for editing
+        if (nextMode == 'selected' && nextEntity) {
+            // Ignore re-selecting the same entity
+            if (this._selected && this._selected == nextEntity) {
+                return;
+            }
+
+            console.log('[Editor]', 'Mode', 'Selected', { nextEntity });
+            this._selected = nextEntity;
+            return;
+        }
+        if (nextMode == 'editing-shape' && nextEntity) {
+            console.log('[Editor]', 'Mode', 'Editing shape', { nextEntity });
+            nextEntity.layer.pm.enable({ editMode: true });
+            return;
+        }
+        if (nextMode == 'editing-info' && nextEntity) {
+            console.log('[Editor]', 'Mode', 'Editing information', { nextEntity });
+            //nextEntity.layer.pm.enable({ editMode: true });
+            return;
+        }
     }
 
-    /** Event handler for when an editable layer is done being edited */
-    private async handleStopAndSave() {
-        console.log('[Editor]', 'Save event fired', { layer: this._layerBeingEdited, entity: this._entityBeingEdited });
+    private setPopup(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
+        if (nextMode == 'none' || nextMode == 'editing-shape') {
+            this._popup.close();
+            return;
+        }
+        if (nextMode == 'selected' && nextEntity) {
+            const content = document.createElement('div');
+            const geojson = JSON.parse(nextEntity.geoJson);
 
-        // Update the entity using the API
-        if (this._layerBeingEdited && this._entityBeingEdited) {
-            // Stop editing
-            this._layerBeingEdited.pm.disable();
-            // Get GeoJson
-            const geoJson = this.getJsonFromLayer(this._layerBeingEdited);
+            content.innerHTML = `<h2>${geojson.properties.name}</h2>
+                                 <p>${geojson.properties.description}</p>
+                                 <p><b>People:</b> ${geojson.properties.people}</p>
+                                 <p><b>Vehicles:</b> ${geojson.properties.vehicles}</p>
+                                 <p><b>Other sqm:</b> ${geojson.properties.othersqm}</p>
+                                 <p><b>Power:</b> ${geojson.properties.power}</p>
+                                 <p><b>Area:</b> ${geojson.properties.area}</p>
+                                 <p><b>Calculated Area Need:</b> ${geojson.properties.calculatedareaneed}</p>
+                                 <p>id: ${nextEntity.id}, rev: ${nextEntity.revision}</p>`;
 
-            // Update the entity with the response from the API
-            // and re-open the information pop up on the new layer
-            const entityInResponse = await EntityDataAPI.updateEntity(this._entityBeingEdited.id, geoJson);
-            this._map.removeLayer(this._layerBeingEdited);
-            const layer = this.createEditableLayer(entityInResponse);
-            const bounds = layer.getBounds();
+            const editShapeButton = document.createElement('button');
+            editShapeButton.innerHTML = 'Edit shape';
+            editShapeButton.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.setMode('editing-shape', nextEntity);
+            };
+
+            content.appendChild(editShapeButton);
+
+            const editInfoButton = document.createElement('button');
+            editInfoButton.innerHTML = 'Edit info';
+            editInfoButton.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.setMode('editing-info', nextEntity);
+            };
+            content.appendChild(editInfoButton);
+
+            this._popup.setContent(content).openOn(this._map);
+            return;
+        }
+        if (nextMode == 'editing-info') {
+            const entity = this._selected!;
+            const content = document.createElement('div');
+            const geojson = JSON.parse(entity.geoJson);
+
+            content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p> `;
+
+            content.appendChild(document.createElement('label')).innerHTML = 'Name:';
+
+            const nameField = document.createElement('input');
+            nameField.value = geojson.properties.name;
+            content.appendChild(nameField);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('label')).innerHTML = 'Description:';
+
+            const descriptionField = document.createElement('input');
+            descriptionField.value = geojson.properties.description;
+            content.appendChild(descriptionField);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('label')).innerHTML = 'People:';
+
+            const peopleField = document.createElement('input');
+            peopleField.type = 'number';
+            peopleField.value = geojson.properties.people;
+            content.appendChild(peopleField);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('label')).innerHTML = 'Vehicles:';
+
+            const vehiclesField = document.createElement('input');
+            vehiclesField.value = geojson.properties.vehicles;
+            vehiclesField.type = 'number';
+            content.appendChild(vehiclesField);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('label')).innerHTML = 'Other sqm:';
+
+            const otherSqm = document.createElement('input');
+            otherSqm.value = geojson.properties.otherSqm;
+            otherSqm.type = 'number';
+            content.appendChild(otherSqm);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('label')).innerHTML = 'Power need:';
+
+            const powerField = document.createElement('input');
+            powerField.value = geojson.properties.power;
+            powerField.type = 'number';
+            content.appendChild(powerField);
+
+            content.appendChild(document.createElement('p'));
+
+            const saveInfoButton = document.createElement('button');
+            saveInfoButton.innerHTML = 'Save';
+            saveInfoButton.onclick = async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.setMode('blur');
+
+                //FIXME: Den här är farlig då den skriver över allt i geojson.properties, så läggs något nytt till måste denna uppdateras!
+                geojson.properties = {
+                    name: nameField.value,
+                    description: descriptionField.value,
+                    people: peopleField.value,
+                    vehicles: vehiclesField.value,
+                    othersqm: otherSqm.value,
+                    power: powerField.value,
+                    calculatedareaneed: geojson.properties.calculatedareaneed,
+                    area: geojson.properties.area,
+                };
+                //await EntityDataAPI.updateEntity(entity.id, geojson);
+
+                //FIXME: this is a hack to get the popup to update (comment written by Copilot, but true)
+                //entity.geoJson = JSON.stringify(geojson);
+
+                //const content = this.createInformationPopUp(entity, layer);
+                //this._popup.setContent(content);
+            };
+
+            content.appendChild(saveInfoButton);
+
+            this._popup.setContent(content).openOn(this._map);
+            return;
+        }
+    }
+
+    /** Event handler for when an editable map entity is clicked */
+    private async onLayerClicked(entity: MapEntity) {
+        console.log('[Editor]', 'Click event fired', { entity });
+
+        this.setMode('selected', entity);
+    }
+
+    /** Event handler for when an editable map entity has been edited */
+    private async onLayerDoneEditing(entity: MapEntity) {
+        console.log('[Editor]', 'Save event fired', { selected: this._selected });
+        // Stop editing
+        entity.layer.pm.disable();
+
+        // Update the entity with the response from the API
+        // and re-center the pop up on the new layer
+        const entityInResponse = await this._repository.updateEntity(entity);
+        this._map.removeLayer(entity.layer);
+
+        if (entityInResponse) {
+            this.addEntityToMap(entityInResponse);
+            //@ts-ignore
+            const bounds = entityInResponse.layer.getBounds();
             const latlng = bounds.getCenter();
-
-            this._entityBeingEdited = null;
-            this._layerBeingEdited = null;
-
-            this.handleClick(entityInResponse, layer, latlng);
+            this._popup.setLatLng(latlng);
         }
     }
 
     /** Event handler for when an new layer is created */
-    private async handleCreation(createEvent: { layer: L.Layer }) {
+    private async onNewLayerCreated(createEvent: { layer: L.Layer }) {
         console.log('[Editor]', 'Create event fired', { createEvent });
 
         // Get the newly created layer as GeoJson
         const { layer } = createEvent;
-        const geoJson = this.getJsonFromLayer(layer);
+        //@ts-ignore
+        const geoJson = layer.toGeoJSON();
 
         // Save it to the entity API
-        const entity = await EntityDataAPI.createEntity(geoJson);
+        const entity = await this._repository.createEntity(geoJson);
 
         // Remove the drawn layer and replace it with one bound to the entity
         if (entity) {
-            this.createEditableLayer(entity);
+            this.addEntityToMap(entity);
             this._map.removeLayer(layer);
         }
     }
 
-    /** Creates a editable layer from a map entity and adds it to the map */
-    private createEditableLayer(entity: EntityData) {
-        // Create the geometry layer with correct styling
-        const layer = new L.GeoJSON(JSON.parse(entity.geoJson), {
-            pmIgnore: false,
-            interactive: true,
-            bubblingMouseEvents: false,
-            style: (/*feature*/) => {
-                return this._layerStyle;
-            },
+    /** Adds the given map entity as an a editable layer to the map */
+    private addEntityToMap(entity: MapEntity) {
+        // Bind the click-event of the editor to the layer
+        entity.layer.on('click', ({ latlng }) => {
+            // Update the popup-position
+            this._popup.setLatLng(latlng);
+            // Call the click event
+            this.onLayerClicked(entity);
         });
-
-        // Create popups associated with this layer
-        //const popup = this.createInformationPopUp(entity);
-
-        // Bind the popup and add the layer to the map
-        layer.on('click', ({ latlng }) => this.handleClick(entity, layer, latlng)).addTo(this._map);
-
-        // Return the layer if needed
-        return layer;
+        // Add the layer to the map
+        entity.layer.addTo(this._map);
     }
 
-    /** TODO: document */
-    private createInformationPopUp(entity: EntityData, layer: L.Layer & { pm: any }) {
-        const content = document.createElement('div');
-        const geojson = JSON.parse(entity.geoJson);
-
-        content.innerHTML = `<h2>${geojson.properties.name}</h2>
-                             <p>${geojson.properties.description}</p>
-                             <p><b>People:</b> ${geojson.properties.people}</p>
-                             <p><b>Vehicles:</b> ${geojson.properties.vehicles}</p>
-                             <p><b>Other sqm:</b> ${geojson.properties.othersqm}</p>
-                             <p><b>Power:</b> ${geojson.properties.power}</p>
-                             <p><b>Area:</b> ${geojson.properties.area}</p>
-                             <p><b>Calculated Area Need:</b> ${geojson.properties.calculatedareaneed}</p>
-                             <p>id: ${entity.id}, rev: ${entity.revision}</p>`;
-
-        const editShapeButton = document.createElement('button');
-        editShapeButton.innerHTML = 'Edit shape';
-        editShapeButton.onclick = () => {
-            if (!this._layerBeingEdited) {
-                layer.pm.enable({ editMode: true });
-                this._layerBeingEdited = layer;
-                this._entityBeingEdited = entity;
-                this._popup.close();
-            }
-        };
-
-        content.appendChild(editShapeButton);
-
-        const editInfoButton = document.createElement('button');
-        editInfoButton.innerHTML = 'Edit info';
-        editInfoButton.onclick = (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                const content = this.createEditInformationPopUp(entity, layer);
-                this._popup.setContent(content).openOn(this._map);
-        };
-        content.appendChild(editInfoButton);
-
-        return content;
-    }
-
-/** TODO: document */
-    private createEditInformationPopUp(entity: EntityData, layer: L.Layer & { pm: any }) {
-        const content = document.createElement('div');
-        const geojson = JSON.parse(entity.geoJson);
-
-        content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p> `;
-
-        content.appendChild(document.createElement('label')).innerHTML = 'Name:';
-
-        const nameField = document.createElement('input');
-        nameField.value = geojson.properties.name;
-        content.appendChild(nameField);
-
-        content.appendChild(document.createElement('br'));
-        content.appendChild(document.createElement('label')).innerHTML = 'Description:';
-
-        const descriptionField = document.createElement('input');
-        descriptionField.value = geojson.properties.description;
-        content.appendChild(descriptionField);
-
-        content.appendChild(document.createElement('br'));
-        content.appendChild(document.createElement('label')).innerHTML = 'People:';
-
-        const peopleField = document.createElement('input');
-        peopleField.type = 'number';
-        peopleField.value = geojson.properties.people;
-        content.appendChild(peopleField);
-
-        content.appendChild(document.createElement('br'));
-        content.appendChild(document.createElement('label')).innerHTML = 'Vehicles:';
-
-        const vehiclesField = document.createElement('input');
-        vehiclesField.value = geojson.properties.vehicles;
-        vehiclesField.type = 'number';
-        content.appendChild(vehiclesField);
-
-        content.appendChild(document.createElement('br'));
-        content.appendChild(document.createElement('label')).innerHTML = 'Other sqm:';
-
-        const otherSqm = document.createElement('input');
-        otherSqm.value = geojson.properties.otherSqm;
-        otherSqm.type = 'number';
-        content.appendChild(otherSqm);
-
-        content.appendChild(document.createElement('br'));
-        content.appendChild(document.createElement('label')).innerHTML = 'Power need:';
-
-        const powerField = document.createElement('input');
-        powerField.value = geojson.properties.power;
-        powerField.type = 'number';
-        content.appendChild(powerField);
-
-        content.appendChild(document.createElement('p'));
-
-        const saveInfoButton = document.createElement('button');
-        saveInfoButton.innerHTML = 'Save';
-        saveInfoButton.onclick = async (e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            
-            //FIXME: Den här är farlig då den skriver över allt i geojson.properties, så läggs något nytt till måste denna uppdateras!
-            geojson.properties = {  name : nameField.value, 
-                                    description: descriptionField.value, 
-                                    people: peopleField.value, 
-                                    vehicles: vehiclesField.value, 
-                                    othersqm: otherSqm.value, 
-                                    power: powerField.value, 
-                                    calculatedareaneed: geojson.properties.calculatedareaneed, 
-                                    area: geojson.properties.area };
-            await EntityDataAPI.updateEntity(entity.id, geojson);
-
-            //FIXME: this is a hack to get the popup to update (comment written by Copilot, but true)
-            entity.geoJson = JSON.stringify(geojson);
-
-            const content = this.createInformationPopUp(entity, layer);
-            this._popup.setContent(content);
-        };
-
-        content.appendChild(saveInfoButton);
-
-        return content;
-    }
-
-    /** Converts a layer to geo json and make sure its a single feature and not a collection */
-    private getJsonFromLayer(layer: L.Layer & { pm?: any }) {
-        //@ts-ignore
-        let geoJson = layer.toGeoJSON();
-
-        if (geoJson.features && geoJson.features[0]) {
-            geoJson = geoJson.features[0];
-        }
-
-        //HACK: add area and calculated need to geojson properties. This should be calculated somewhere else.
-        // It is also just calculated when the layer is converted to geojson, so when just info is edited the values are not updated.
-        const area = turf.area(geoJson);
-        geoJson.properties.area = Math.round(area);
-
-        let calculatedareaneed = 0;
-
-        if (geoJson.properties.people) {
-            calculatedareaneed += geoJson.properties.people * 5;
-        }
-        if (geoJson.properties.vehicles) {
-            calculatedareaneed += geoJson.properties.vehicles * 20;
-        }
-        if (geoJson.properties.othersqm) {
-            calculatedareaneed += geoJson.properties.othersqm;
-        }
-
-        //BUG: The calculated value is not correct!
-        geoJson.properties.calculatedareaneed = calculatedareaneed;
-
-        return geoJson;
-    }
-
-    constructor(map: L.Map) {
+    constructor(map: L.Map, repository: MapEntityRepository) {
         // Keep track of the map
         this._map = map;
 
-        // Create a popup
+        // Keep track of the repository
+        this._repository = repository;
+
+        // Create a common popup for editable layers
         this._popup = L.popup({
             autoClose: true,
             closeButton: false,
@@ -295,41 +301,25 @@ export class Editor {
         });
 
         // Set path style options for newly created layers
-        this._map.pm.setPathOptions(this._layerStyle);
+        this._map.pm.setPathOptions(DefaultLayerStyle);
 
         // Add the event handler for newly created layers
-        this._map.on('pm:create', this.handleCreation.bind(this));
+        this._map.on('pm:create', this.onNewLayerCreated.bind(this));
 
-        // Add a click event to the map to disable editing on any currently edited layer, if any.
-        // Also closes any open popups
-        // Its a mouse up event to make sure it always fires, which click does not
+        // Add a click event to the map to reset the editor status.
         this._map.on('click', (mouseEvent) => {
-            console.log('[Editor]', 'Editor blur event fired (map click)', mouseEvent);
+            console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
 
-            // Hide the editors popup
-            this._popup.close();
-
-            // Stop save current layer being edited
-            this.handleStopAndSave();
+            this.setMode('blur');
         });
-
-        // TODO: re-add?
-        // Event fired when a layer is done drawing. Calculate stuff for the layer here? Sqm, if its overlapping another layer etc.
-        // map.on('pm:drawend', (drawendEvent) => {
-        //     console.log({ geomanDrawendEvent: drawendEvent });
-        // });
-        // TODO: re-add?
-        // map.on('pm:drawstart', (drawstartEvent) => {
-        //     console.log({ geomanDrawstartEvent: drawstartEvent });
-        // });
     }
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        const entities = await EntityDataAPI.entities();
+        const entities = await this._repository.entities();
 
         for (const entity of entities) {
-            this.createEditableLayer(entity);
+            this.addEntityToMap(entity);
         }
     }
 }

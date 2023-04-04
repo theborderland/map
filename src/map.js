@@ -21,8 +21,8 @@ import { loadDrawnMap } from './loaders/loadDrawnMap';
 // import { loadPoi } from './loaders/loadPoi';
 // import { startTracking } from './loaders/loadTrackers';
 // import { loadPowerZoneNames, loadPowerClustersNames, loadPowerCampNames, loadPowerBoarderlandMarker } from './utils/power';
+import { MapEntityRepository } from './entities';
 import { Editor } from './editor';
-import { EntityDataAPI } from './api';
 
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true }).setView(
@@ -30,7 +30,8 @@ export const createMap = async () => {
         17,
     );
 
-    const editor = new Editor(map);
+    const repository = new MapEntityRepository();
+    const editor = new Editor(map, repository);
 
     // Map feature layers
     map.groups = {};
