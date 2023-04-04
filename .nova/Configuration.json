@@ -1,4 +1,7 @@
 {
+  "todo.workspace-ignore-paths" : [
+    "\/Users\/lyret\/Kodarkiv\/map\/public"
+  ],
   "workspace.art_style" : 0,
   "workspace.color" : 14,
   "workspace.name" : "Map",
