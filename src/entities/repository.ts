@@ -73,7 +73,9 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Saved initial entity', data);
-            return new MapEntity(data);
+            const entity = new MapEntity(data);
+            this._latestRevisions[entity.id] = entity;
+            return entity;
         } else {
             const err = await response.json();
             console.warn('[API]', 'Failed to save entity', err);
@@ -92,7 +94,9 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Updated existing entity', data);
-            return new MapEntity(data);
+            const entity = new MapEntity(data);
+            this._latestRevisions[entity.id] = entity;
+            return entity;
         } else {
             const err = await response.json();
             console.warn('[API]', 'Failed to update entity with id:', entity.id, err);

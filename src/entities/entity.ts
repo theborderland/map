@@ -29,13 +29,49 @@ export class MapEntity implements EntityDTO {
     public readonly timestamp: number;
     public readonly layer: L.Layer & { pm?: any };
 
+    // Information fields
+
+    public name: string;
+    public description: string;
+    public nrOfPeople: string;
+    public nrOfVehicles: string;
+    public additionalSqm: string;
+    public powerNeed: string;
+
+    /** Calculated area needed for this map entity from the given information */
+    public get calculatedAreaNeeded(): number {
+        try {
+            let calculatedareaneed = 0;
+
+            if (this.nrOfPeople) {
+                calculatedareaneed += Number(this.nrOfPeople) * 5;
+            }
+            if (this.nrOfVehicles) {
+                calculatedareaneed += Number(this.nrOfVehicles) * 20;
+            }
+            if (this.additionalSqm) {
+                calculatedareaneed += Number(this.additionalSqm);
+            }
+
+            //BUG: The calculated value is not correct!
+            return calculatedareaneed;
+        } catch {
+            return NaN;
+        }
+    }
+
+    /** Calculated area from the leaflet layer */
+    public get area(): number {
+        return Math.round(Turf.area(this.calculateGeoJson()));
+    }
+
+    /** The GeoJSON representation of this entity as a string */
     public get geoJson(): string {
         return JSON.stringify(this.toGeoJSON());
     }
 
-    /** Converts a the current map entity data to GeoJSON */
-    public toGeoJSON() {
-        // Extract the GeoJson from the Leaflet layer to make sure its up-to-date
+    /** Extracts the GeoJson from the internal Leaflet layer to make sure its up-to-date */
+    private calculateGeoJson() {
         //@ts-ignore
         let geoJson = this.layer.toGeoJSON();
 
@@ -45,29 +81,6 @@ export class MapEntity implements EntityDTO {
             geoJson = geoJson.features[0];
         }
 
-        // Make sure that properties exist
-        geoJson.properties = geoJson.properties || {};
-
-        // Calculate and add current area
-        geoJson.properties.area = Math.round(Turf.area(geoJson));
-
-        //HACK:
-        // It is also just calculated when the layer is converted to geojson, so when just info is edited the values are not updated.
-        let calculatedareaneed = 0;
-
-        if (geoJson.properties.people) {
-            calculatedareaneed += geoJson.properties.people * 5;
-        }
-        if (geoJson.properties.vehicles) {
-            calculatedareaneed += geoJson.properties.vehicles * 20;
-        }
-        if (geoJson.properties.othersqm) {
-            calculatedareaneed += geoJson.properties.othersqm;
-        }
-
-        //BUG: The calculated value is not correct!
-        geoJson.properties.calculatedareaneed = calculatedareaneed;
-
         return geoJson;
     }
 
@@ -76,14 +89,42 @@ export class MapEntity implements EntityDTO {
         this.revision = data.revision;
         this.timestamp = data.timestamp;
 
-        // Create a leaflet layer from the geojson data in the DTO
-        this.layer = new L.GeoJSON(JSON.parse(data.geoJson), {
+        // Extract the geoJson data from the DTO
+        const geoJson = JSON.parse(data.geoJson);
+
+        // Create a leaflet layer
+        this.layer = new L.GeoJSON(geoJson, {
             pmIgnore: false,
             interactive: true,
             bubblingMouseEvents: false,
             style: (/*feature*/) => DefaultLayerStyle,
         });
 
-        // TODO: Get area, etc here also from the stringified geoJson
+        // Extract information fields from the geoJson
+        this.name = geoJson.properties.name;
+        this.description = geoJson.properties.description;
+        this.nrOfPeople = geoJson.properties.nrOfPeople;
+        this.nrOfVehicles = geoJson.properties.nrOfVechiles;
+        this.additionalSqm = geoJson.properties.additionalSqm;
+        this.powerNeed = geoJson.properties.powerNeed;
+    }
+
+    /** Converts a the current map entity data represented as GeoJSON */
+    public toGeoJSON() {
+        // Get the up-to-date geo json data from the layer
+        const geoJson = this.calculateGeoJson();
+
+        // Make sure that properties exist
+        geoJson.properties = geoJson.properties || {};
+
+        // Add all information fields as properties
+        geoJson.properties.name = this.name;
+        geoJson.properties.description = this.description;
+        geoJson.properties.nrOfPeople = this.nrOfPeople;
+        geoJson.properties.nrOfVechiles = this.nrOfVehicles;
+        geoJson.properties.additionalSqm = this.additionalSqm;
+        geoJson.properties.powerNeed = this.powerNeed;
+
+        return geoJson;
     }
 }
