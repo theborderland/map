@@ -51,8 +51,8 @@ export class Editor {
             // Stop editing
             this._layerBeingEdited.pm.disable();
             // Get GeoJson
-            //@ts-ignore
-            const geoJson = this._layerBeingEdited.toGeoJSON();
+            const geoJson = this.getJsonFromLayer(this._layerBeingEdited);
+
             // Update the entity with the response from the API
             // and re-open the information pop up on the new layer
             const entityInResponse = await EntityDataAPI.updateEntity(this._entityBeingEdited.id, geoJson);
@@ -74,8 +74,7 @@ export class Editor {
 
         // Get the newly created layer as GeoJson
         const { layer } = createEvent;
-        // @ts-ignore
-        const geoJson = layer.toGeoJSON();
+        const geoJson = this.getJsonFromLayer(layer);
 
         // Save it to the entity API
         const entity = await EntityDataAPI.createEntity(geoJson);
@@ -128,6 +127,17 @@ export class Editor {
         content.appendChild(button);
 
         return content;
+    }
+
+    /** Converts a layer to geo json and make sure its a single feature and not a collection */
+    private getJsonFromLayer(layer: L.Layer & { pm?: any }) {
+        //@ts-ignore
+        const geoJson = layer.toGeoJSON();
+
+        if (geoJson.features && geoJson.features[0]) {
+            return geoJson.features[0];
+        }
+        return geoJson;
     }
 
     constructor(map: L.Map) {
