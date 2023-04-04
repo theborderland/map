@@ -1,6 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { EntityDataAPI, EntityData } from '../api';
+import * as turf from '@turf/turf';
 
 /**
  * The Editor class keeps track of user-editable layers
@@ -117,8 +118,10 @@ export class Editor {
                              <p>${geojson.properties.description}</p>
                              <p><b>People:</b> ${geojson.properties.people}</p>
                              <p><b>Vehicles:</b> ${geojson.properties.vehicles}</p>
+                             <p><b>Other sqm:</b> ${geojson.properties.othersqm}</p>
                              <p><b>Power:</b> ${geojson.properties.power}</p>
                              <p><b>Area:</b> ${geojson.properties.area}</p>
+                             <p><b>Calculated Area Need:</b> ${geojson.properties.calculatedareaneed}</p>
                              <p>id: ${entity.id}, rev: ${entity.revision}</p>`;
 
         const editShapeButton = document.createElement('button');
@@ -154,15 +157,13 @@ export class Editor {
 
         content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p> `;
 
-        const nameDiv = document.createElement('div');
-        content.appendChild(nameDiv);
-
-        nameDiv.appendChild(document.createElement('label')).innerHTML = 'Name:';
+        content.appendChild(document.createElement('label')).innerHTML = 'Name:';
 
         const nameField = document.createElement('input');
         nameField.value = geojson.properties.name;
-        nameDiv.appendChild(nameField);
+        content.appendChild(nameField);
 
+        content.appendChild(document.createElement('br'));
         content.appendChild(document.createElement('label')).innerHTML = 'Description:';
 
         const descriptionField = document.createElement('input');
@@ -182,29 +183,47 @@ export class Editor {
 
         const vehiclesField = document.createElement('input');
         vehiclesField.value = geojson.properties.vehicles;
+        vehiclesField.type = 'number';
         content.appendChild(vehiclesField);
 
         content.appendChild(document.createElement('br'));
-        content.appendChild(document.createElement('label')).innerHTML = 'Power:';
+        content.appendChild(document.createElement('label')).innerHTML = 'Other sqm:';
+
+        const otherSqm = document.createElement('input');
+        otherSqm.value = geojson.properties.otherSqm;
+        otherSqm.type = 'number';
+        content.appendChild(otherSqm);
+
+        content.appendChild(document.createElement('br'));
+        content.appendChild(document.createElement('label')).innerHTML = 'Power need:';
 
         const powerField = document.createElement('input');
         powerField.value = geojson.properties.power;
+        powerField.type = 'number';
         content.appendChild(powerField);
 
         content.appendChild(document.createElement('p'));
 
         const saveInfoButton = document.createElement('button');
         saveInfoButton.innerHTML = 'Save';
-        saveInfoButton.onclick = (e) => {
+        saveInfoButton.onclick = async (e) => {
             e.stopPropagation();
             e.preventDefault();
             
-            geojson.properties = { name : nameField.value, description: descriptionField.value, people: peopleField.value, vehicles: vehiclesField.value, power: powerField.value };
-            EntityDataAPI.updateEntity(entity.id, geojson);
+            //FIXME: Den här är farlig då den skriver över allt i geojson.properties, så läggs något nytt till måste denna uppdateras!
+            geojson.properties = {  name : nameField.value, 
+                                    description: descriptionField.value, 
+                                    people: peopleField.value, 
+                                    vehicles: vehiclesField.value, 
+                                    othersqm: otherSqm.value, 
+                                    power: powerField.value, 
+                                    calculatedareaneed: geojson.properties.calculatedareaneed, 
+                                    area: geojson.properties.area };
+            await EntityDataAPI.updateEntity(entity.id, geojson);
 
-            //FIXME: this is a hack to get the popup to update (comment written by Copilot, but so true)
+            //FIXME: this is a hack to get the popup to update (comment written by Copilot, but true)
             entity.geoJson = JSON.stringify(geojson);
-            
+
             const content = this.createInformationPopUp(entity, layer);
             this._popup.setContent(content);
         };
@@ -217,11 +236,32 @@ export class Editor {
     /** Converts a layer to geo json and make sure its a single feature and not a collection */
     private getJsonFromLayer(layer: L.Layer & { pm?: any }) {
         //@ts-ignore
-        const geoJson = layer.toGeoJSON();
+        let geoJson = layer.toGeoJSON();
 
         if (geoJson.features && geoJson.features[0]) {
-            return geoJson.features[0];
+            geoJson = geoJson.features[0];
         }
+
+        //HACK: add area and calculated need to geojson properties. This should be calculated somewhere else.
+        // It is also just calculated when the layer is converted to geojson, so when just info is edited the values are not updated.
+        const area = turf.area(geoJson);
+        geoJson.properties.area = Math.round(area);
+
+        let calculatedareaneed = 0;
+
+        if (geoJson.properties.people) {
+            calculatedareaneed += geoJson.properties.people * 5;
+        }
+        if (geoJson.properties.vehicles) {
+            calculatedareaneed += geoJson.properties.vehicles * 20;
+        }
+        if (geoJson.properties.othersqm) {
+            calculatedareaneed += geoJson.properties.othersqm;
+        }
+
+        //BUG: The calculated value is not correct!
+        geoJson.properties.calculatedareaneed = calculatedareaneed;
+
         return geoJson;
     }
 

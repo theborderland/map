@@ -26,6 +26,7 @@
     "homepage": "https://github.com/theborderland/map#readme",
     "dependencies": {
         "@geoman-io/leaflet-geoman-free": "^2.14.2",
+        "@turf/turf": "^6.5.0",
         "leaflet": "^1.9.0",
         "leaflet-hash-plus": "^0.1.0",
         "leaflet-search": "^3.0.2",
