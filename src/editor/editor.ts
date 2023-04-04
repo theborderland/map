@@ -111,11 +111,19 @@ export class Editor {
     /** TODO: document */
     private createInformationPopUp(entity: EntityData, layer: L.Layer & { pm: any }) {
         const content = document.createElement('div');
-        content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
+        const geojson = JSON.parse(entity.geoJson);
 
-        const button = document.createElement('button');
-        button.innerHTML = 'Edit';
-        button.onclick = () => {
+        content.innerHTML = `<h2>${geojson.properties.name}</h2>
+                             <p>${geojson.properties.description}</p>
+                             <p><b>People:</b> ${geojson.properties.people}</p>
+                             <p><b>Vehicles:</b> ${geojson.properties.vehicles}</p>
+                             <p><b>Power:</b> ${geojson.properties.power}</p>
+                             <p><b>Area:</b> ${geojson.properties.area}</p>
+                             <p>id: ${entity.id}, rev: ${entity.revision}</p>`;
+
+        const editShapeButton = document.createElement('button');
+        editShapeButton.innerHTML = 'Edit shape';
+        editShapeButton.onclick = () => {
             if (!this._layerBeingEdited) {
                 layer.pm.enable({ editMode: true });
                 this._layerBeingEdited = layer;
@@ -124,7 +132,84 @@ export class Editor {
             }
         };
 
-        content.appendChild(button);
+        content.appendChild(editShapeButton);
+
+        const editInfoButton = document.createElement('button');
+        editInfoButton.innerHTML = 'Edit info';
+        editInfoButton.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const content = this.createEditInformationPopUp(entity, layer);
+                this._popup.setContent(content).openOn(this._map);
+        };
+        content.appendChild(editInfoButton);
+
+        return content;
+    }
+
+/** TODO: document */
+    private createEditInformationPopUp(entity: EntityData, layer: L.Layer & { pm: any }) {
+        const content = document.createElement('div');
+        const geojson = JSON.parse(entity.geoJson);
+
+        content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p> `;
+
+        const nameDiv = document.createElement('div');
+        content.appendChild(nameDiv);
+
+        nameDiv.appendChild(document.createElement('label')).innerHTML = 'Name:';
+
+        const nameField = document.createElement('input');
+        nameField.value = geojson.properties.name;
+        nameDiv.appendChild(nameField);
+
+        content.appendChild(document.createElement('label')).innerHTML = 'Description:';
+
+        const descriptionField = document.createElement('input');
+        descriptionField.value = geojson.properties.description;
+        content.appendChild(descriptionField);
+
+        content.appendChild(document.createElement('br'));
+        content.appendChild(document.createElement('label')).innerHTML = 'People:';
+
+        const peopleField = document.createElement('input');
+        peopleField.type = 'number';
+        peopleField.value = geojson.properties.people;
+        content.appendChild(peopleField);
+
+        content.appendChild(document.createElement('br'));
+        content.appendChild(document.createElement('label')).innerHTML = 'Vehicles:';
+
+        const vehiclesField = document.createElement('input');
+        vehiclesField.value = geojson.properties.vehicles;
+        content.appendChild(vehiclesField);
+
+        content.appendChild(document.createElement('br'));
+        content.appendChild(document.createElement('label')).innerHTML = 'Power:';
+
+        const powerField = document.createElement('input');
+        powerField.value = geojson.properties.power;
+        content.appendChild(powerField);
+
+        content.appendChild(document.createElement('p'));
+
+        const saveInfoButton = document.createElement('button');
+        saveInfoButton.innerHTML = 'Save';
+        saveInfoButton.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            geojson.properties = { name : nameField.value, description: descriptionField.value, people: peopleField.value, vehicles: vehiclesField.value, power: powerField.value };
+            EntityDataAPI.updateEntity(entity.id, geojson);
+
+            //FIXME: this is a hack to get the popup to update (comment written by Copilot, but so true)
+            entity.geoJson = JSON.stringify(geojson);
+            
+            const content = this.createInformationPopUp(entity, layer);
+            this._popup.setContent(content);
+        };
+
+        content.appendChild(saveInfoButton);
 
         return content;
     }
