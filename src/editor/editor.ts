@@ -21,25 +21,33 @@ export class Editor {
     private _selected: MapEntity | null = null;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
-    private setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
+    private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
+        const prevMode = this._mode;
+        const prevEntity = this._selected;
+        const isSameMode = nextMode == prevMode;
+        const isSameEntity = nextEntity == prevEntity;
+
         // Skip mode change
-        if (nextMode == this._mode || (nextMode == 'selected' && nextEntity == this._selected)) {
+        if (isSameMode && isSameEntity) {
             return;
         }
 
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
             // When a entity is selected, blur to "none" selected
-            if (this._mode == 'selected') {
+            if (prevMode == 'selected') {
                 nextMode = 'none';
+                nextEntity = undefined;
             }
             // When an entity is edited, blur back to the selection mode
-            if (this._selected && (this._mode == 'editing-shape' || this._mode == 'editing-info')) {
+            else if ((prevMode == 'editing-shape' || prevMode == 'editing-info') && prevEntity) {
                 nextMode = 'selected';
-                nextEntity = this._selected;
-
-                // When returning to the selection view from editing the done-editing-event is called
-                this.onLayerDoneEditing(nextEntity);
+                nextEntity = nextEntity || prevEntity;
+            }
+            // Fall back to the "none" mode
+            else {
+                nextMode = 'none';
+                nextEntity = undefined;
             }
         }
 
@@ -51,28 +59,46 @@ export class Editor {
 
         // Deselect and stop editing
         if (nextMode == 'none') {
-            this._selected = null;
             this.setPopup('none');
+            this.setSelected(null, prevEntity);
             return;
         }
 
         // Select an entity for editing
         if (nextMode == 'selected' && nextEntity) {
             this.setPopup('info', nextEntity);
-            this._selected = nextEntity;
+            this.setSelected(nextEntity, prevEntity);
+
+            // Stop any ongoing editing of the previously selected layer
+            if (prevEntity) {
+                prevEntity?.layer.pm.disable();
+            }
             return;
         }
         // Edit the shape of the entity
         if (nextMode == 'editing-shape' && nextEntity) {
             nextEntity.layer.pm.enable({ editMode: true });
             this.setPopup('none');
+            this.setSelected(nextEntity, prevEntity);
             return;
         }
         // Edit the information of the entity
         if (nextMode == 'editing-info' && nextEntity) {
             this.setPopup('edit-info', nextEntity);
+            this.setSelected(nextEntity, prevEntity);
             return;
         }
+    }
+
+    /** Updates the currently selected map entity  */
+    private async setSelected(nextEntity: MapEntity | null, prevEntity: MapEntity | null) {
+        // When a map entity is unselected, save it to the database if it has changes
+        if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
+            await this.onLayerDoneEditing(prevEntity);
+        }
+
+        // Select the next entity
+        this._selected = nextEntity;
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
@@ -208,14 +234,14 @@ export class Editor {
         // Update the entity with the response from the API
         // and re-center the pop up on the new layer
         const entityInResponse = await this._repository.updateEntity(entity);
-        this._map.removeLayer(entity.layer);
 
         if (entityInResponse) {
             this.addEntityToMap(entityInResponse);
+            this._map.removeLayer(entity.layer);
             //@ts-ignore
-            const bounds = entityInResponse.layer.getBounds();
-            const latlng = bounds.getCenter();
-            this._popup.setLatLng(latlng);
+            //const bounds = entityInResponse.layer.getBounds();
+            //const latlng = bounds.getCenter();
+            //this._popup.setLatLng(latlng);
         }
     }
 

@@ -24,6 +24,8 @@ export const DefaultLayerStyle: L.PathOptions = {
  * methods both for persisting and updating it, and representing it on a map
  */
 export class MapEntity implements EntityDTO {
+    private _originalGeoJson: string;
+
     public readonly id: number;
     public readonly revision: number;
     public readonly timestamp: number;
@@ -89,6 +91,10 @@ export class MapEntity implements EntityDTO {
         this.revision = data.revision;
         this.timestamp = data.timestamp;
 
+        // Keep the original geoJson in memory for
+        // checking if changes has been made
+        this._originalGeoJson = data.geoJson;
+
         // Extract the geoJson data from the DTO
         const geoJson = JSON.parse(data.geoJson);
 
@@ -126,5 +132,10 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.powerNeed = this.powerNeed;
 
         return geoJson;
+    }
+
+    /** Returns true if the geo-json of this map entity has been modified since last saved */
+    public hasChanges(): boolean {
+        return this._originalGeoJson != this.geoJson;
     }
 }
