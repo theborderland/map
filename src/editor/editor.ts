@@ -28,21 +28,21 @@ export class Editor {
         const isSameEntity = nextEntity == prevEntity;
 
         // Skip mode change
-        if (isSameMode && isSameEntity) {
+        if (isSameMode && isSameEntity) {   
             return;
         }
 
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
-            // When a entity is selected, blur to "none" selected
-            if (prevMode == 'selected') {
-                nextMode = 'none';
-                nextEntity = undefined;
-            }
-            // When an entity is edited, blur back to the selection mode
-            else if ((prevMode == 'editing-shape' || prevMode == 'editing-info') && prevEntity) {
+            if ((prevMode == 'editing-shape' || prevMode == 'editing-info') && prevEntity) {
                 nextMode = 'selected';
                 nextEntity = nextEntity || prevEntity;
+                //re-center the pop up on the new layer, in case the layer has moved 
+                // far away during edit, as clicking the map wont set the popups position to the new layer
+                //@ts-ignore
+                const bounds = nextEntity.layer.getBounds();
+                const latlng = bounds.getCenter();
+                this._popup.setLatLng(latlng);
             }
             // Fall back to the "none" mode
             else {
@@ -52,20 +52,20 @@ export class Editor {
         }
 
         // Set the correct mode
-        console.log('[Editor]', 'mode change!', { mode: this._mode, nextMode, nextEntity });
+        console.log('[Editor]', 'mode changed!', { mode: this._mode, nextMode, nextEntity });
         this._mode = nextMode as Editor['_mode'];
 
         // Handle effects of setting the correct mode
 
         // Deselect and stop editing
-        if (nextMode == 'none') {
+        if (this._mode == 'none') {
             this.setPopup('none');
             this.setSelected(null, prevEntity);
             return;
         }
 
         // Select an entity for editing
-        if (nextMode == 'selected' && nextEntity) {
+        if (this._mode == 'selected' && nextEntity) {
             this.setPopup('info', nextEntity);
             this.setSelected(nextEntity, prevEntity);
 
@@ -73,17 +73,18 @@ export class Editor {
             if (prevEntity) {
                 prevEntity?.layer.pm.disable();
             }
+
             return;
         }
         // Edit the shape of the entity
-        if (nextMode == 'editing-shape' && nextEntity) {
+        if (this._mode == 'editing-shape' && nextEntity) {
             nextEntity.layer.pm.enable({ editMode: true });
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
             return;
         }
         // Edit the information of the entity
-        if (nextMode == 'editing-info' && nextEntity) {
+        if (this._mode == 'editing-info' && nextEntity) {
             this.setPopup('edit-info', nextEntity);
             this.setSelected(nextEntity, prevEntity);
             return;
@@ -103,14 +104,14 @@ export class Editor {
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
     private setPopup(display: 'info' | 'edit-info' | 'none', entity?: MapEntity) {
-        // Don't show any pop-up
-        if (display == 'none') {
+        // Don't show any pop-up if set to none or if there is no entity
+        if (display == 'none' || !entity) {
             this._popup.close();
             return;
         }
 
-        // Show information for the entity
-        if (display == 'info' && entity) {
+        // Show information popup for the entity
+        if (display == 'info') {
             const content = document.createElement('div');
             content.innerHTML = `<h2>${entity.name}</h2>
                                  <p>${entity.description}</p>
@@ -146,7 +147,7 @@ export class Editor {
         }
 
         // Show fields to edit the entity information
-        if (display == 'edit-info' && entity) {
+        if (display == 'edit-info') {
             const content = document.createElement('div');
             content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p> `;
 
@@ -232,16 +233,11 @@ export class Editor {
         entity.layer.pm.disable();
 
         // Update the entity with the response from the API
-        // and re-center the pop up on the new layer
         const entityInResponse = await this._repository.updateEntity(entity);
-
+        
         if (entityInResponse) {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
-            //@ts-ignore
-            //const bounds = entityInResponse.layer.getBounds();
-            //const latlng = bounds.getCenter();
-            //this._popup.setLatLng(latlng);
         }
     }
 
