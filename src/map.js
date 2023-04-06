@@ -30,12 +30,13 @@ export const createMap = async () => {
         17,
     );
 
-    const repository = new MapEntityRepository();
-    const editor = new Editor(map, repository);
-
+    
     // Map feature layers
     map.groups = {};
     map.groups.zones = (await loadZones(map)).addTo(map);
+    
+    const repository = new MapEntityRepository();
+    const editor = new Editor(map, repository, map.groups.zones);
 
     // map.groups.zoneNames = (await loadZoneNames(map)).addTo(map);
     // map.groups.natureReserve = (await loadNatureReserve(map)).addTo(map);

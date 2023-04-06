@@ -39,12 +39,26 @@ export class MapEntity implements EntityDTO {
     public nrOfVehicles: string;
     public additionalSqm: string;
     public powerNeed: string;
+    bufferLayer: any;
+
+    public get isWayTooBig(): boolean {
+        return this.area > 750;
+    }
+
+    public get isBiggerThanNeeded(): boolean {
+        return this.area > this.calculatedAreaNeeded * 1.5;
+    }
+
+    public get isSmallerThanNeeded(): boolean {
+        return this.area < this.calculatedAreaNeeded;
+    }
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
         try {
             let calculatedareaneed = 0;
 
+            //TODO: Set the correct values for the calculations
             if (this.nrOfPeople) {
                 calculatedareaneed += Number(this.nrOfPeople) * 5;
             }
@@ -55,12 +69,47 @@ export class MapEntity implements EntityDTO {
                 calculatedareaneed += Number(this.additionalSqm);
             }
 
-            //BUG: The calculated value is not correct!
             return calculatedareaneed;
         } catch {
             return NaN;
         }
     }
+
+    //A method that check if this entitys layer is overlapping any of the layers in the given layergroup
+    public isOverlappingLayerGroup(layerGroup: L.FeatureGroup): boolean {
+        let hasOverlap = false;
+        
+        //TODO: Probably has to also check booleanInside and booleanContains as well
+
+        layerGroup.eachLayer((layer) => {
+            if (layer != this.layer) {
+                //@ts-ignore
+                let otherGeoJson = layer.toGeoJSON();
+                const geoJson = this.toGeoJSON();
+                
+                //Loop through all features if it is a feature collection
+                if (otherGeoJson.features ) 
+                {
+                    for (let i = 0; i < otherGeoJson.features.length; i++) {
+                        console.log(otherGeoJson.features[i]);
+                        if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
+                            hasOverlap = true;
+                            return; // Break out of the inner loop
+                        }
+                    }
+                }
+                else if (Turf.booleanOverlap(geoJson, otherGeoJson)) {
+                    hasOverlap = true;
+                }
+            }
+            if (hasOverlap) {
+                return; // Break out of the loop once an overlap is found
+            }
+        });
+
+        return hasOverlap;
+    }   
+
 
     /** Calculated area from the leaflet layer */
     public get area(): number {
@@ -86,6 +135,21 @@ export class MapEntity implements EntityDTO {
         return geoJson;
     }
 
+    private createBufferedLayer() {
+        //@ts-ignore
+        const geoJson = this.layer.toGeoJSON();
+        const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
+        return L.geoJSON(buffered, {
+        style: {
+            color: 'black',
+            fillOpacity: 0.0,
+            weight: 1, // Set the outline width
+            dashArray: '5, 5', // Set the outline to be dashed,
+        },
+        interactive: false
+        });
+    }
+
     constructor(data: EntityDTO) {
         this.id = data.id;
         this.revision = data.revision;
@@ -105,6 +169,8 @@ export class MapEntity implements EntityDTO {
             bubblingMouseEvents: false,
             style: (/*feature*/) => DefaultLayerStyle,
         });
+
+        this.bufferLayer = this.createBufferedLayer();
 
         // Extract information fields from the geoJson
         this.name = geoJson.properties.name;

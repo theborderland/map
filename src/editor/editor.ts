@@ -1,6 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
+import { concave } from '@turf/turf';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -19,6 +20,8 @@ export class Editor {
 
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
+
+    private _zones: L.FeatureGroup<any>;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -114,14 +117,39 @@ export class Editor {
         if (display == 'info') {
             const content = document.createElement('div');
             content.innerHTML = `<h2>${entity.name}</h2>
-                                 <p>${entity.description}</p>
-                                 <p><b>People:</b> ${entity.nrOfPeople}</p>
-                                 <p><b>Vehicles:</b> ${entity.nrOfVehicles}</p>
-                                 <p><b>Additional sqm:</b> ${entity.additionalSqm}</p>
-                                 <p><b>Power:</b> ${entity.powerNeed}</p>
-                                 <p><b>Area:</b> ${entity.area}</p>
-                                 <p><b>Calculated Area Need:</b> ${entity.calculatedAreaNeeded}</p>
-                                 <p>id: ${entity.id}, rev: ${entity.revision}</p>`;
+                                 <h3>${entity.description}</h3>
+                                 <p>
+                                 <b>People:</b> ${entity.nrOfPeople}<br>
+                                 <b>Vehicles:</b> ${entity.nrOfVehicles}<br>
+                                 <b>Additional sqm:</b> ${entity.additionalSqm}<br>
+                                 <b>Power:</b> ${entity.powerNeed}<br>
+                                 </p>
+                                 <p>
+                                 <b>Calculated Area Need:</b> ${entity.calculatedAreaNeeded} sqm<br>
+                                 <b>Actual Area:</b> ${entity.area} sqm<br>
+                                 </p>`;
+
+            if (entity.isBiggerThanNeeded) {
+                content.innerHTML += `<p><b>HEY!</b> Are you aware that the area is much bigger than the calculated need?</p>`;
+            }
+
+            if (entity.isSmallerThanNeeded) {
+                content.innerHTML += `<p><b>HEY!</b> Are you aware that the area is smaller than the calculated need?</p>`;
+            }
+
+            if (entity.isWayTooBig) {
+                content.innerHTML += `<p><b>HEY!</b> Are you aware that the area is very very large?</p>`;
+            }
+
+            //FIXME: This is just a test with overlapping, we are testing against zones here, not fire roads
+            if (entity.isOverlappingLayerGroup(this._zones) == true) {
+                content.innerHTML += `<p><b>DANGER!</b> This area is overlapping a fire road, please fix that <3 </p>`;
+            }
+
+            //TODO: Add "Area is overlapping or too close to someone elses area!""
+
+
+            //TODO: Add "Area is missing crucial information!""
 
             const editShapeButton = document.createElement('button');
             editShapeButton.innerHTML = 'Edit shape';
@@ -141,6 +169,10 @@ export class Editor {
                 this.setMode('editing-info', entity);
             };
             content.appendChild(editInfoButton);
+
+            const info = document.createElement('div');
+            info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
+            content.appendChild(info);
 
             this._popup.setContent(content).openOn(this._map);
             return;
@@ -238,6 +270,7 @@ export class Editor {
         if (entityInResponse) {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
+            this._map.removeLayer(entity.bufferLayer);
         }
     }
 
@@ -259,7 +292,7 @@ export class Editor {
             this._map.removeLayer(layer);
         }
     }
-
+    
     /** Adds the given map entity as an a editable layer to the map */
     private addEntityToMap(entity: MapEntity) {
         // Bind the click-event of the editor to the layer
@@ -271,11 +304,14 @@ export class Editor {
         });
         // Add the layer to the map
         entity.layer.addTo(this._map);
+        entity.bufferLayer.addTo(this._map);
     }
 
-    constructor(map: L.Map, repository: MapEntityRepository) {
+    constructor(map: L.Map, repository: MapEntityRepository, zones: L.FeatureGroup) {
         // Keep track of the map
         this._map = map;
+
+        this._zones = zones;
 
         // Keep track of the repository
         this._repository = repository;
