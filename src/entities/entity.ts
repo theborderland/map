@@ -91,7 +91,7 @@ export class MapEntity implements EntityDTO {
                 if (otherGeoJson.features ) 
                 {
                     for (let i = 0; i < otherGeoJson.features.length; i++) {
-                        console.log(otherGeoJson.features[i]);
+                        // console.log(otherGeoJson.features[i]);
                         if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
                             hasOverlap = true;
                             return; // Break out of the inner loop
@@ -135,7 +135,8 @@ export class MapEntity implements EntityDTO {
         return geoJson;
     }
 
-    private createBufferedLayer() {
+    //TODO: Get rid of this method! Too tired right now to read code.
+    public createBufferedLayer() {
         //@ts-ignore
         const geoJson = this.layer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
@@ -148,6 +149,23 @@ export class MapEntity implements EntityDTO {
         },
         interactive: false
         });
+    }
+
+    public updateBufferedLayer() {
+        //Update the bufferlayer so that its geometry is the same as this.layers geometry
+        //@ts-ignore
+        const geoJson = this.layer.toGeoJSON();
+        const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
+        if (!this.bufferLayer) this.bufferLayer = L.geoJSON();
+        this.bufferLayer.clearLayers();
+        this.bufferLayer.addData(buffered);
+        this.bufferLayer.setStyle({
+            color: 'black',
+            fillOpacity: 0.0,
+            weight: 1, // Set the outline width
+            dashArray: '5, 5', // Set the outline to be dashed
+        });
+        this.bufferLayer.options.interactive = false;
     }
 
     constructor(data: EntityDTO) {

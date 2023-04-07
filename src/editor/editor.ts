@@ -270,7 +270,6 @@ export class Editor {
         if (entityInResponse) {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
-            this._map.removeLayer(entity.bufferLayer);
         }
     }
 
@@ -278,11 +277,12 @@ export class Editor {
     private async onNewLayerCreated(createEvent: { layer: L.Layer }) {
         console.log('[Editor]', 'Create event fired', { createEvent });
 
+        
         // Get the newly created layer as GeoJson
         const { layer } = createEvent;
         //@ts-ignore
         const geoJson = layer.toGeoJSON();
-
+        
         // Save it to the entity API
         const entity = await this._repository.createEntity(geoJson);
 
@@ -302,6 +302,12 @@ export class Editor {
             // Call the click event
             this.onLayerClicked(entity);
         });
+
+        // Update the buffered layer when the layer is being edited
+        entity.layer.on('pm:markerdrag', (e) => {
+            entity.updateBufferedLayer();
+        });
+
         // Add the layer to the map
         entity.layer.addTo(this._map);
         entity.bufferLayer.addTo(this._map);
