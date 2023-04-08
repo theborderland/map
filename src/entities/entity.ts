@@ -14,9 +14,21 @@ export interface EntityDTO {
 // TODO: Is this the correct location for this ?
 /** Returns the default style to use for map entities on the map */
 export const DefaultLayerStyle: L.PathOptions = {
-    color: 'cyan',
-    fillColor: 'green',
-    fillOpacity: 0.4,
+    color: '#66a6ff',
+    fillColor: '#3388ff',
+    fillOpacity: 0.25,
+};
+
+export const WarningLayerStyle: L.PathOptions = {
+    color: '#ffbf66',
+    fillColor: '#ffbf66',
+    fillOpacity: 0.5,
+};
+
+export const DangerLayerStyle: L.PathOptions = {
+    color: '#ff7366',
+    fillColor: '#ff7366',
+    fillOpacity: 0.75,
 };
 
 /**
@@ -106,6 +118,14 @@ export class MapEntity implements EntityDTO {
                 return; // Break out of the loop once an overlap is found
             }
         });
+
+        if (hasOverlap) {
+            //@ts-ignore
+            this.layer.setStyle(DangerLayerStyle);
+        } else {
+            //@ts-ignore
+            this.layer.setStyle(DefaultLayerStyle);
+        }
 
         return hasOverlap;
     }   
