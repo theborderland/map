@@ -322,6 +322,11 @@ export class Editor {
             entity.updateBufferedLayer();
         });
 
+        // Update the buffered layer when the layer has a vertex removed
+        entity.layer.on('pm:vertexremoved', (e) => {
+            entity.updateBufferedLayer();
+        });
+
         // Add the layer to the map
         entity.layer.addTo(this._map);
         entity.bufferLayer.addTo(this._map);
