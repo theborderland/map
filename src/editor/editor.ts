@@ -21,7 +21,7 @@ export class Editor {
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
 
-    private _zones: L.FeatureGroup<any>;
+    private _groups: L.FeatureGroup<any>;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -142,7 +142,8 @@ export class Editor {
             }
 
             //FIXME: This is just a test with overlapping, we are testing against zones here, not fire roads
-            if (entity.isOverlappingLayerGroup(this._zones) == true) {
+            //@ts-ignore
+            if (entity.isOverlappingLayerGroup(this._groups.fireroad) == true) {
                 content.innerHTML += `<p><b>DANGER!</b> This area is overlapping a fire road, please fix that <3 </p>`;
             }
 
@@ -344,11 +345,11 @@ export class Editor {
         this._repository.deleteEntity(entity);
     }
 
-    constructor(map: L.Map, repository: MapEntityRepository, zones: L.FeatureGroup) {
+    constructor(map: L.Map, repository: MapEntityRepository, groups: L.FeatureGroup) {
         // Keep track of the map
         this._map = map;
 
-        this._zones = zones;
+        this._groups = groups;
 
         // Keep track of the repository
         this._repository = repository;

@@ -11,7 +11,7 @@ export interface EntityDTO {
     timestamp: number;
 }
 
-// TODO: Is this the correct location for this ?
+// TODO: Is this the correct location for this?
 /** Returns the default style to use for map entities on the map */
 export const DefaultLayerStyle: L.PathOptions = {
     color: '#66a6ff',
@@ -23,6 +23,7 @@ export const WarningLayerStyle: L.PathOptions = {
     color: '#ffbf66',
     fillColor: '#ffbf66',
     fillOpacity: 0.5,
+
 };
 
 export const DangerLayerStyle: L.PathOptions = {
@@ -51,7 +52,17 @@ export class MapEntity implements EntityDTO {
     public nrOfVehicles: string;
     public additionalSqm: string;
     public powerNeed: string;
-    bufferLayer: any;
+    public bufferLayer: any;
+
+    public updateLayerStyle()
+    {
+        //@ts-ignore
+        if (this.isWayTooBig) this.layer.setStyle(DangerLayerStyle);
+        //@ts-ignore
+        else if (this.isSmallerThanNeeded || this.isBiggerThanNeeded) this.layer.setStyle(WarningLayerStyle);
+        //@ts-ignore
+        else this.layer.setStyle(DefaultLayerStyle);
+    }
 
     public get isWayTooBig(): boolean {
         return this.area > 750;
@@ -88,9 +99,9 @@ export class MapEntity implements EntityDTO {
     }
 
     //A method that check if this entitys layer is overlapping any of the layers in the given layergroup
-    public isOverlappingLayerGroup(layerGroup: L.FeatureGroup): boolean {
+    public isOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
         let hasOverlap = false;
-        
+
         //TODO: Probably has to also check booleanInside and booleanContains as well
 
         layerGroup.eachLayer((layer) => {
@@ -103,7 +114,7 @@ export class MapEntity implements EntityDTO {
                 if (otherGeoJson.features ) 
                 {
                     for (let i = 0; i < otherGeoJson.features.length; i++) {
-                        // console.log(otherGeoJson.features[i]);
+                        console.log(otherGeoJson.features[i]);
                         if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
                             hasOverlap = true;
                             return; // Break out of the inner loop

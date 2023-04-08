@@ -6,3 +6,4 @@ export const loadGeoJson = async(url, options) => {
 
     return L.geoJson(jsonData, options(jsonData))
 }
+
