@@ -103,4 +103,17 @@ export class MapEntityRepository {
             return null;
         }
     }
+    /** Deletes the entity in the database  */
+    public async deleteEntity(entity: MapEntity) {
+        const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`, {
+            method: 'DELETE',
+        });
+        if (response.ok) {
+            console.log('[API]', 'Deleted entity with id:', entity.id);
+            delete this._latestRevisions[entity.id];
+        } else {
+            const err = await response.json();
+            console.warn('[API]', 'Failed to delete entity with id:', entity.id, err);
+        }
+    }
 }

@@ -246,6 +246,16 @@ export class Editor {
             };
             content.appendChild(saveInfoButton);
 
+            //Add a delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.innerHTML = 'Delete';
+            deleteButton.onclick = async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.deleteAndRemoveEntity(entity);
+            };
+            content.appendChild(deleteButton);
+
             this._popup.setContent(content).openOn(this._map);
             return;
         }
@@ -311,6 +321,13 @@ export class Editor {
         // Add the layer to the map
         entity.layer.addTo(this._map);
         entity.bufferLayer.addTo(this._map);
+    }
+
+    private deleteAndRemoveEntity(entity: MapEntity) {
+        this.setMode('none');
+        this._map.removeLayer(entity.layer);
+        this._map.removeLayer(entity.bufferLayer);
+        this._repository.deleteEntity(entity);
     }
 
     constructor(map: L.Map, repository: MapEntityRepository, zones: L.FeatureGroup) {
