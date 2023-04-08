@@ -291,7 +291,6 @@ export class Editor {
     /** Event handler for when an new layer is created */
     private async onNewLayerCreated(createEvent: { layer: L.Layer }) {
         console.log('[Editor]', 'Create event fired', { createEvent });
-
         
         // Get the newly created layer as GeoJson
         const { layer } = createEvent;
@@ -305,6 +304,11 @@ export class Editor {
         if (entity) {
             this.addEntityToMap(entity);
             this._map.removeLayer(layer);
+            //@ts-ignore
+            const bounds = entity.layer.getBounds();
+            const latlng = bounds.getCenter();
+            this._popup.setLatLng(latlng);
+            this.setMode('editing-info', entity);
         }
     }
     
@@ -440,5 +444,4 @@ export class Editor {
             this.addEntityToMap(entity);
         }
     }
-
 }
