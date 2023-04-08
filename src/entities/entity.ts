@@ -135,39 +135,6 @@ export class MapEntity implements EntityDTO {
         return geoJson;
     }
 
-    //TODO: Get rid of this method! Too tired right now to read code.
-    public createBufferedLayer() {
-        //@ts-ignore
-        const geoJson = this.layer.toGeoJSON();
-        const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
-        return L.geoJSON(buffered, {
-        style: {
-            color: 'black',
-            fillOpacity: 0.0,
-            weight: 1, // Set the outline width
-            dashArray: '5, 5', // Set the outline to be dashed,
-        },
-        interactive: false
-        });
-    }
-
-    public updateBufferedLayer() {
-        //Update the bufferlayer so that its geometry is the same as this.layers geometry
-        //@ts-ignore
-        const geoJson = this.layer.toGeoJSON();
-        const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
-        if (!this.bufferLayer) this.bufferLayer = L.geoJSON();
-        this.bufferLayer.clearLayers();
-        this.bufferLayer.addData(buffered);
-        this.bufferLayer.setStyle({
-            color: 'black',
-            fillOpacity: 0.0,
-            weight: 1, // Set the outline width
-            dashArray: '5, 5', // Set the outline to be dashed
-        });
-        this.bufferLayer.options.interactive = false;
-    }
-
     constructor(data: EntityDTO) {
         this.id = data.id;
         this.revision = data.revision;
@@ -188,7 +155,8 @@ export class MapEntity implements EntityDTO {
             style: (/*feature*/) => DefaultLayerStyle,
         });
 
-        this.bufferLayer = this.createBufferedLayer();
+        // this.bufferLayer = this.createBufferedLayer();
+        this.updateBufferedLayer();
 
         // Extract information fields from the geoJson
         this.name = geoJson.properties.name;
@@ -197,6 +165,28 @@ export class MapEntity implements EntityDTO {
         this.nrOfVehicles = geoJson.properties.nrOfVechiles;
         this.additionalSqm = geoJson.properties.additionalSqm;
         this.powerNeed = geoJson.properties.powerNeed;
+    }
+
+    public updateBufferedLayer() {
+        // Update the buffer layer so that its geometry is the same as this.layers geometry
+        //@ts-ignore
+        const geoJson = this.layer.toGeoJSON();
+        const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
+
+        if (!this.bufferLayer) {
+            this.bufferLayer = L.geoJSON(buffered, {
+            style: {
+                color: 'black',
+                fillOpacity: 0.0,
+                weight: 0.5, // Set the outline width
+                dashArray: '5, 5', // Set the outline to be dashed,
+            },
+            interactive: false
+        });
+        } else {
+            this.bufferLayer.clearLayers();
+            this.bufferLayer.addData(buffered);
+        }
     }
 
     /** Converts a the current map entity data represented as GeoJSON */

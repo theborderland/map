@@ -151,28 +151,30 @@ export class Editor {
 
             //TODO: Add "Area is missing crucial information!""
 
-            const editShapeButton = document.createElement('button');
-            editShapeButton.innerHTML = 'Edit shape';
-            editShapeButton.onclick = (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('editing-shape', entity);
-            };
+            if (this._isEditMode) {
+                const editShapeButton = document.createElement('button');
+                editShapeButton.innerHTML = 'Edit shape';
+                editShapeButton.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setMode('editing-shape', entity);
+                };
 
-            content.appendChild(editShapeButton);
+                content.appendChild(editShapeButton);
 
-            const editInfoButton = document.createElement('button');
-            editInfoButton.innerHTML = 'Edit info';
-            editInfoButton.onclick = (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('editing-info', entity);
-            };
-            content.appendChild(editInfoButton);
+                const editInfoButton = document.createElement('button');
+                editInfoButton.innerHTML = 'Edit info';
+                editInfoButton.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setMode('editing-info', entity);
+                };
+                content.appendChild(editInfoButton);
 
-            const info = document.createElement('div');
-            info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
-            content.appendChild(info);
+                const info = document.createElement('div');
+                info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
+                content.appendChild(info);
+            }
 
             this._popup.setContent(content).openOn(this._map);
             return;
@@ -237,24 +239,25 @@ export class Editor {
 
             content.appendChild(document.createElement('p'));
 
-            const saveInfoButton = document.createElement('button');
-            saveInfoButton.innerHTML = 'Save';
-            saveInfoButton.onclick = async (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('blur');
-            };
-            content.appendChild(saveInfoButton);
+            if (this._isEditMode) {
+                const saveInfoButton = document.createElement('button');
+                saveInfoButton.innerHTML = 'Save';
+                saveInfoButton.onclick = async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setMode('blur');
+                };
+                content.appendChild(saveInfoButton);
 
-            //Add a delete button
-            const deleteButton = document.createElement('button');
-            deleteButton.innerHTML = 'Delete';
-            deleteButton.onclick = async (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.deleteAndRemoveEntity(entity);
-            };
-            content.appendChild(deleteButton);
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = 'Delete';
+                deleteButton.onclick = async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.deleteAndRemoveEntity(entity);
+                };
+                content.appendChild(deleteButton);
+            }   
 
             this._popup.setContent(content).openOn(this._map);
             return;
@@ -350,10 +353,12 @@ export class Editor {
         // Disable edit mode on all layers by default
         L.PM.setOptIn(true);
 
+        this.AddToggleEditButton();
+
         // add controls for creating and editing shapes to the map
         this._map.pm.addControls({
             position: 'bottomleft',
-            drawPolygon: true,
+            drawPolygon: false,
             drawCircle: false,
             drawMarker: false,
             drawPolyline: false,
@@ -376,8 +381,48 @@ export class Editor {
 
             this.setMode('blur');
         });
+
     }
 
+    private AddToggleEditButton() {
+        const customButton = L.Control.extend(
+        {
+            // button position
+            options: { position: "bottomleft", },
+
+            onAdd: () => 
+            {
+                // create button
+                let btn = L.DomUtil.create("button", "add-todo-btn");
+                btn.title = "Start Placement";
+                btn.textContent = "Start Placement";
+                L.DomEvent.disableClickPropagation(btn);
+
+                btn.onclick = () => {
+                    this.toggleEditMode();
+                };
+
+                return btn;
+            }
+        });
+
+        this._map.addControl(new customButton());
+    }
+
+    private _isEditMode : boolean = false;
+
+    public toggleEditMode() {
+        this._isEditMode = !this._isEditMode;
+
+        if (this._isEditMode == false) {
+            this.setMode('none');
+        }
+
+        this._map.pm.addControls({
+            drawPolygon: this._isEditMode,
+        });
+    }
+    
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
         const entities = await this._repository.entities();
@@ -386,4 +431,5 @@ export class Editor {
             this.addEntityToMap(entity);
         }
     }
+
 }
