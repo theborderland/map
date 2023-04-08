@@ -96,7 +96,7 @@ export const createMap = async () => {
 
     // Add map features
     // await loadTooltipZoom(map);
-    L.control.scale({ metric: true, imperial: false }).addTo(map);
+    L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
     await loadPositionControl(map);
     L.control.polylineMeasure().addTo(map);
     // await addSearch(map);
