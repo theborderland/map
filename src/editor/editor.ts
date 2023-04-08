@@ -183,7 +183,7 @@ export class Editor {
         // Show fields to edit the entity information
         if (display == 'edit-info') {
             const content = document.createElement('div');
-            content.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p> `;
+            content.innerHTML = ``;
 
             content.appendChild(document.createElement('label')).innerHTML = 'Name:';
             const nameField = document.createElement('input');
@@ -250,6 +250,7 @@ export class Editor {
                 content.appendChild(saveInfoButton);
 
                 const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-button');
                 deleteButton.innerHTML = 'Delete';
                 deleteButton.onclick = async (e) => {
                     e.stopPropagation();
@@ -400,13 +401,14 @@ export class Editor {
             onAdd: () => 
             {
                 // create button
-                let btn = L.DomUtil.create("button", "add-todo-btn");
-                btn.title = "Start Placement";
-                btn.textContent = "Start Placement";
+                let btn = L.DomUtil.create("button", "placement-btn");
+                btn.title = "Start Placement!";
+                btn.textContent = "Start Placement!";
                 L.DomEvent.disableClickPropagation(btn);
 
                 btn.onclick = () => {
                     this.toggleEditMode();
+                    btn.textContent = this._isEditMode ? "Exit edit mode" : "Start Placement!";
                 };
 
                 return btn;
