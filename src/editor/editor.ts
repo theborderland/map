@@ -283,6 +283,7 @@ export class Editor {
         if (entityInResponse) {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
+            this._map.removeLayer(entity.bufferLayer);
         }
     }
 
@@ -371,6 +372,7 @@ export class Editor {
 
         // Set path style options for newly created layers
         this._map.pm.setPathOptions(DefaultLayerStyle);
+        this._map.pm.setGlobalOptions({ tooltips: false, allowSelfIntersection: false }); // Disable snapping
 
         // Add the event handler for newly created layers
         this._map.on('pm:create', this.onNewLayerCreated.bind(this));
