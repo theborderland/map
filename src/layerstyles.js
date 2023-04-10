@@ -17,40 +17,51 @@ export function getStyleFunction(name) {
         case 'propertyborder':
             return {
             ...baseStyle,
-            color: '#e7e309',
+            color: '#e77409',
             };
         case 'friends':
             return {
             ...baseStyle,
             color: 'turquoise',
             };
+        case 'forbidden':
+            return {
+            ...baseStyle,
+            color: 'red',
+            fillOpacity: 0.5
+            };
         case 'fireroad': 
             return {
             ...baseStyle,
             dashArray: '0',
-            weight: 1,
-            color: 'red',
+            weight: 0.5,
+            dashArray: '3',
+            color: '#f05039',
+            fillOpacity: 0.25,
             };
         case 'lowprio':
             return {
             ...baseStyle,
-            dashArray: '0',
-            color: 'grey',
-            fillOpacity: 0.25,
+            dashArray: '3',
+            color: '#a8b6cc',
+            fillOpacity: 0.15,
+            weight: 2,
             };
         case 'mediumprio':
             return {
             ...baseStyle,
             dashArray: '0',
-            color: 'darkgrey',
-            fillOpacity: 0.25,
+            color: '#e7e309',
+            fillOpacity: 0,
+            weight: 2,
             };
         case 'highprio':
             return {
             ...baseStyle,
             dashArray: '0',
-            color: 'turquoise',
-            fillOpacity: 0.25,
+            color: '#e7e309',
+            fillOpacity: 0,
+            weight: 2,
             };
         default:
             return {
