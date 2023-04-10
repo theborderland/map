@@ -106,7 +106,7 @@ export class Editor {
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
-    private setPopup(display: 'info' | 'edit-info' | 'none', entity?: MapEntity) {
+    private setPopup(display: 'info' | 'edit-info' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
             this._popup.close();
@@ -141,9 +141,7 @@ export class Editor {
                 content.innerHTML += `<p><b>HEY!</b> Are you aware that the area is very very large?</p>`;
             }
 
-            //FIXME: This is just a test with overlapping, we are testing against zones here, not fire roads
-            //@ts-ignore
-            if (entity.isOverlappingLayerGroup(this._groups.fireroad) == true) {
+            if (entity.isOverlapping == true) {
                 content.innerHTML += `<p><b>DANGER!</b> This area is overlapping a fire road, please fix that <3 </p>`;
             }
 
@@ -275,7 +273,7 @@ export class Editor {
 
     /** Event handler for when an editable map entity has been edited */
     private async onLayerDoneEditing(entity: MapEntity) {
-        console.log('[Editor]', 'Save event fired', { selected: this._selected });
+        console.log('[Editor]', 'onLayerDoneEditing!', { selected: this._selected });
         // Stop editing
         entity.layer.pm.disable();
 
@@ -326,6 +324,10 @@ export class Editor {
         // Update the buffered layer when the layer is being edited
         entity.layer.on('pm:markerdrag', (e) => {
             entity.updateBufferedLayer();
+            //@ts-ignore
+            entity.isOverlappingLayerGroup(this._groups.fireroad)
+            //@ts-ignore
+            entity.isBufferOverlappingLayerGroup(this._groups.fireroad);
         });
 
         // Update the buffered layer when the layer has a vertex removed
@@ -336,6 +338,10 @@ export class Editor {
         // Add the layer to the map
         entity.layer.addTo(this._map);
         entity.bufferLayer.addTo(this._map);
+
+        //Check to see if the layer is overlapping with the fire road layer
+        //@ts-ignore
+        entity.isOverlappingLayerGroup(this._groups.fireroad)
     }
 
     private deleteAndRemoveEntity(entity: MapEntity) {
@@ -415,23 +421,27 @@ export class Editor {
                     this.toggleEditMode();
                     btn.textContent = this._isEditMode ? "Exit edit mode" : "Start Placement!";
                 };
-
+                
                 return btn;
             }
         });
-
+        
         this._map.addControl(new customButton());
     }
-
+    
     private _isEditMode : boolean = false;
-
+    
     public toggleEditMode() {
         this._isEditMode = !this._isEditMode;
+        
+        //Make sure to update the contents of the popup when changing edit mode
+        //so that the correct buttons are shown
+        this.setPopup("info", this._selected);
 
-        if (this._isEditMode == false) {
+        if (this._isEditMode == false && this._mode != "selected") {
             this.setMode('none');
         }
-
+        
         this._map.pm.addControls({
             drawPolygon: this._isEditMode,
         });

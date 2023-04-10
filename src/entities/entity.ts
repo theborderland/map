@@ -38,30 +38,25 @@ export const DangerLayerStyle: L.PathOptions = {
  */
 export class MapEntity implements EntityDTO {
     private _originalGeoJson: string;
-
+    
     public readonly id: number;
     public readonly revision: number;
     public readonly timestamp: number;
     public readonly layer: L.Layer & { pm?: any };
-
+    public bufferLayer: L.Layer;
+    
     // Information fields
-
+    
     public name: string;
     public description: string;
     public nrOfPeople: string;
     public nrOfVehicles: string;
     public additionalSqm: string;
     public powerNeed: string;
-    public bufferLayer: any;
+    public isOverlapping: boolean;
 
-    public updateLayerStyle()
-    {
-        //@ts-ignore
-        if (this.isWayTooBig) this.layer.setStyle(DangerLayerStyle);
-        //@ts-ignore
-        else if (this.isSmallerThanNeeded || this.isBiggerThanNeeded) this.layer.setStyle(WarningLayerStyle);
-        //@ts-ignore
-        else this.layer.setStyle(DefaultLayerStyle);
+    public get hasMissingFields(): boolean {
+        return !this.name || !this.description;
     }
 
     public get isWayTooBig(): boolean {
@@ -98,17 +93,46 @@ export class MapEntity implements EntityDTO {
         }
     }
 
+    public get calculatedFireExtinguisherNeeded(): number {
+        try {
+            let calculatedFireExtinguisherNeeded = 1; //TODO: Set the correct values for the calculations
+            return calculatedFireExtinguisherNeeded;
+        }
+        catch {
+            return NaN;
+        }
+    }
+
+    public updateLayerStyle()
+    {
+        //@ts-ignore
+        if (this.isOverlapping) this.layer.setStyle(DangerLayerStyle);
+        //@ts-ignore
+        else if (this.isWayTooBig || this.isSmallerThanNeeded || this.isBiggerThanNeeded) this.layer.setStyle(WarningLayerStyle);
+        //@ts-ignore
+        else this.layer.setStyle(DefaultLayerStyle);
+    }
     //A method that check if this entitys layer is overlapping any of the layers in the given layergroup
     public isOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
-        let hasOverlap = false;
+        this.isOverlapping = this.isGeoJsonOverlappingLayergroup(this.toGeoJSON(), layerGroup);
 
-        //TODO: Probably has to also check booleanInside and booleanContains as well
+        this.updateLayerStyle();
+        return this.isOverlapping;
+    }   
 
+    public isBufferOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
+        //@ts-ignore
+        //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
+        this.isOverlapping = this.isGeoJsonOverlappingLayergroup(this.bufferLayer.toGeoJSON().features[0], layerGroup);
+        this.updateLayerStyle();
+        return this.isOverlapping;
+    }   
+
+    private isGeoJsonOverlappingLayergroup(geoJson: Turf.helpers.Feature<any, Turf.helpers.Properties> | Turf.helpers.Geometry, layerGroup: L.GeoJSON): boolean {
+        let overlap = false;
         layerGroup.eachLayer((layer) => {
-            if (layer != this.layer) {
                 //@ts-ignore
                 let otherGeoJson = layer.toGeoJSON();
-                const geoJson = this.toGeoJSON();
                 
                 //Loop through all features if it is a feature collection
                 if (otherGeoJson.features ) 
@@ -116,31 +140,22 @@ export class MapEntity implements EntityDTO {
                     for (let i = 0; i < otherGeoJson.features.length; i++) {
                         console.log(otherGeoJson.features[i]);
                         if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
-                            hasOverlap = true;
+                            overlap = true;
                             return; // Break out of the inner loop
                         }
                     }
                 }
                 else if (Turf.booleanOverlap(geoJson, otherGeoJson)) {
-                    hasOverlap = true;
+                    overlap = true;
                 }
-            }
-            if (hasOverlap) {
+            
+            if (overlap) {
                 return; // Break out of the loop once an overlap is found
             }
         });
 
-        if (hasOverlap) {
-            //@ts-ignore
-            this.layer.setStyle(DangerLayerStyle);
-        } else {
-            //@ts-ignore
-            this.layer.setStyle(DefaultLayerStyle);
-        }
-
-        return hasOverlap;
-    }   
-
+        return overlap;
+    }
 
     /** Calculated area from the leaflet layer */
     public get area(): number {
@@ -186,16 +201,16 @@ export class MapEntity implements EntityDTO {
             style: (/*feature*/) => DefaultLayerStyle,
         });
 
-        // this.bufferLayer = this.createBufferedLayer();
+        this.updateLayerStyle();
         this.updateBufferedLayer();
 
         // Extract information fields from the geoJson
-        this.name = geoJson.properties.name;
-        this.description = geoJson.properties.description;
-        this.nrOfPeople = geoJson.properties.nrOfPeople;
-        this.nrOfVehicles = geoJson.properties.nrOfVechiles;
-        this.additionalSqm = geoJson.properties.additionalSqm;
-        this.powerNeed = geoJson.properties.powerNeed;
+        this.name = geoJson.properties.name ?? 'No name yet';
+        this.description = geoJson.properties.description ?? 'No description yet';
+        this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
+        this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
+        this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
+        this.powerNeed = geoJson.properties.powerNeed ?? '0';
     }
 
     public updateBufferedLayer() {
@@ -215,7 +230,9 @@ export class MapEntity implements EntityDTO {
             interactive: false
         });
         } else {
+            //@ts-ignore
             this.bufferLayer.clearLayers();
+            //@ts-ignore
             this.bufferLayer.addData(buffered);
         }
     }
