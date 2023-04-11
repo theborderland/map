@@ -2,6 +2,7 @@ import * as L from 'leaflet';
 import type { GeoJsonObject } from 'geojson';
 import '@geoman-io/leaflet-geoman-free';
 import * as Turf from '@turf/turf';
+import { Rule } from './rule';
 
 /** The representation of a Map Entity in the API */
 export interface EntityDTO {
@@ -39,9 +40,9 @@ export const DangerLayerStyle: L.PathOptions = {
 export class MapEntity implements EntityDTO {
     private _originalGeoJson: string;
     private readonly _bufferWidth: number = 4;
-    private readonly _maxSqm: number = 1000;
-    private readonly _sqmPerPerson: number = 2;
-    private readonly _sqmPerVehicle: number = 10;
+    private readonly _maxSqm: number = 2000;
+    private readonly _sqmPerPerson: number = 10;
+    private readonly _sqmPerVehicle: number = 50;
     
     public readonly id: number;
     public readonly revision: number;
@@ -53,18 +54,23 @@ export class MapEntity implements EntityDTO {
     
     public name: string;
     public description: string;
+    public contactName: string;
+    public contactEmail: string;
     public nrOfPeople: string;
     public nrOfVehicles: string;
     public additionalSqm: string;
     public powerNeed: string;
     public isOverlapping: boolean;
     public isBufferOverlapping: boolean;
+    public isInsideBoundaries: boolean;
+    private _rules: any;
 
     public get hasMissingFields(): boolean {
         return !this.name || !this.description;
     }
 
     public get isWayTooBig(): boolean {
+
         return this.area > this._maxSqm;
     }
 
@@ -110,10 +116,15 @@ export class MapEntity implements EntityDTO {
 
     public updateLayerStyle()
     {
-        //@ts-ignore
-        if (this.isOverlapping || this.isBufferOverlapping || this.isWayTooBig) this.layer.setStyle(DangerLayerStyle);
-        //@ts-ignore
-        else if (this.isSmallerThanNeeded || this.isBiggerThanNeeded || this.hasMissingFields) this.layer.setStyle(WarningLayerStyle);
+        if (this.isOverlapping || this.isBufferOverlapping || this.isWayTooBig || !this.isInsideBoundaries) {
+            //@ts-ignore
+            this.layer.setStyle(DangerLayerStyle);
+        }
+        else if (this.isSmallerThanNeeded || this.isBiggerThanNeeded || this.hasMissingFields)
+        {
+            //@ts-ignore
+            this.layer.setStyle(WarningLayerStyle);
+        }
         //@ts-ignore
         else this.layer.setStyle(DefaultLayerStyle);
     }
@@ -160,6 +171,35 @@ export class MapEntity implements EntityDTO {
         });
 
         return overlap;
+    }
+
+    public isLayerInsideLayerGroup(layerGroup: L.GeoJSON): boolean {
+        this.isInsideBoundaries = false;
+
+        layerGroup.eachLayer((layer) => {
+            //@ts-ignore
+            let otherGeoJson = layer.toGeoJSON();
+            
+            //Loop through all features if it is a feature collection
+            if (otherGeoJson.features )
+            {
+                for (let i = 0; i < otherGeoJson.features.length; i++) {
+                    if (Turf.booleanContains(otherGeoJson.features[i], this.toGeoJSON())) {
+                        this.isInsideBoundaries = true;
+                        return; // Break out of the inner loop
+                    }
+                }
+            }
+            else if (Turf.booleanContains(otherGeoJson, this.toGeoJSON())) {
+                this.isInsideBoundaries = true;
+            }
+
+            if (this.isInsideBoundaries) {
+                return; // Break out of the loop once an overlap is found
+            }
+        });
+
+        return this.isInsideBoundaries;
     }
 
     /** Calculated area from the leaflet layer */
@@ -216,6 +256,12 @@ export class MapEntity implements EntityDTO {
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
         this.powerNeed = geoJson.properties.powerNeed ?? '0';
+    }
+
+    public addRule(rule: Rule) 
+    {
+        this._rules.push(rule);
+        
     }
 
     public updateBufferedLayer() {

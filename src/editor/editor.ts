@@ -25,8 +25,8 @@ export class Editor {
     private _selected: MapEntity | null = null;
 
     private _groups: L.FeatureGroup<any>;
-    placementLayers: L.LayerGroup<any>;
-    placementBufferLayers: L.LayerGroup<any>;
+    private _placementLayers: L.LayerGroup<any>;
+    private _placementBufferLayers: L.LayerGroup<any>;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -148,6 +148,14 @@ export class Editor {
 
             if (entity.isOverlapping == true) {
                 content.innerHTML += `<p><b>DANGER!</b> This area is overlapping a fire road, please fix that <3 </p>`;
+            }
+
+            if (entity.isBufferOverlapping == true) {
+                content.innerHTML += `<p><b>VIOLATING FIRE REGULATIONS!</b> Too close to another area, please fix that <3 </p>`;
+            }
+
+            if (entity.isInsideBoundaries == false) {
+                content.innerHTML += `<p><b>NOT ALLOWED!</b> You have placed yourself outside our land, please fix that <3 </p>`;
             }
 
             //TODO: Add "Area is overlapping or too close to someone elses area!""
@@ -340,9 +348,9 @@ export class Editor {
 
         //Instead of adding directly to the map, add the layer and its buffer to the layergroups
         //@ts-ignore
-        this.placementLayers.addLayer(entity.layer);
+        this._placementLayers.addLayer(entity.layer);
         //@ts-ignore
-        this.placementBufferLayers.addLayer(entity.bufferLayer);
+        this._placementBufferLayers.addLayer(entity.bufferLayer);
 
         this.checkEntityOverlap(entity);
     }
@@ -352,11 +360,19 @@ export class Editor {
         //@ts-ignore
         entity.isOverlappingLayerGroup(this._groups.fireroad)
         //@ts-ignore
-        entity.isBufferOverlappingLayerGroup(this.placementLayers);
+        entity.isBufferOverlappingLayerGroup(this._placementLayers);
+        //Check if the layer is inside the property borders
+        //@ts-ignore
+        entity.isLayerInsideLayerGroup(this._groups.propertyborder);
+        //Check if the layer is inside the placement areas
+        //@ts-ignore
+        // entity.isLayerInsideLayerGroup(this._groups.placementareas);
+
         entity.updateLayerStyle();
     }
 
     private deleteAndRemoveEntity(entity: MapEntity) {
+        this._selected = null;
         this.setMode('none');
         this._map.removeLayer(entity.layer);
         this._map.removeLayer(entity.bufferLayer);
@@ -370,16 +386,16 @@ export class Editor {
         this._groups = groups;
         
         //Create two separate layersgroups, so that we can use them to check overlaps separately
-        this.placementLayers = (new L.LayerGroup()).addTo(map);
-        this.placementBufferLayers = (new L.LayerGroup()).addTo(map);
+        this._placementLayers = (new L.LayerGroup()).addTo(map);
+        this._placementBufferLayers = (new L.LayerGroup()).addTo(map);
         
         //Place both in the same group so that we can toggle them on and off together on the map
         //@ts-ignore
         groups.placement = (new L.LayerGroup()).addTo(map);
         //@ts-ignore
-        this.placementLayers.addTo(groups.placement);
+        this._placementLayers.addTo(groups.placement);
         //@ts-ignore
-        this.placementBufferLayers.addTo(groups.placement);
+        this._placementBufferLayers.addTo(groups.placement);
 
         // Keep track of the repository
         this._repository = repository;
@@ -477,3 +493,13 @@ export class Editor {
         }
     }
 }
+
+//TODO: Check if shapes are overlapping completely other shapes
+//TODO: Dont allow shapes to be placed outside the placement borders
+//TODO: How can different placement rules apply to different areas? Say, a much longer buffer for the meadows
+//TODO: Email verification. Simple or with PIN-code verification?
+//TODO: Lock-down the API so that only the admin can add and remove shapes
+//TODO: Instructions first time you use the editor
+//TODO: Styling for all error messages
+//TODO: Update Sqm while editing
+//TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
