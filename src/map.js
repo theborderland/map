@@ -55,6 +55,7 @@ export const createMap = async () => {
     // map.groups.power_menu = (new L.LayerGroup());
 
     var extraLayers = {
+        'Placement': map.groups.placement,
         'Terrain': map.groups.terrain,
         'Slope map': map.groups.slopemap,
         // "Power": map.groups.power_menu,

@@ -15,6 +15,9 @@ export class Editor {
     /** A Leaflet popup used to display information and choices for individual editable layers */
     private _popup: L.Popup;
 
+    /** If the editor should be active or not */
+    private _isEditMode : boolean = false;
+
     /** The current status of the editor */
     private _mode: 'none' | 'selected' | 'editing-shape' | 'editing-info' = 'none';
 
@@ -22,6 +25,8 @@ export class Editor {
     private _selected: MapEntity | null = null;
 
     private _groups: L.FeatureGroup<any>;
+    placementLayers: L.LayerGroup<any>;
+    placementBufferLayers: L.LayerGroup<any>;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -188,7 +193,7 @@ export class Editor {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
-            nameField.onchange = () => (entity.name = nameField.value);
+            nameField.oninput = () => {entity.name = nameField.value; entity.updateLayerStyle();};
             content.appendChild(nameField);
 
             content.appendChild(document.createElement('br'));
@@ -196,8 +201,9 @@ export class Editor {
 
             const descriptionField = document.createElement('input');
             descriptionField.type = 'text';
+            descriptionField.height = 100;
             descriptionField.value = entity.description;
-            descriptionField.onchange = () => (entity.description = descriptionField.value);
+            descriptionField.oninput = () => {entity.description = descriptionField.value; entity.updateLayerStyle();};
             content.appendChild(descriptionField);
 
             content.appendChild(document.createElement('br'));
@@ -206,7 +212,7 @@ export class Editor {
             const peopleField = document.createElement('input');
             peopleField.type = 'number';
             peopleField.value = String(entity.nrOfPeople);
-            peopleField.onchange = () => (entity.nrOfPeople = peopleField.value);
+            peopleField.oninput = () => {entity.nrOfPeople = peopleField.value; entity.updateLayerStyle();};
             content.appendChild(peopleField);
 
             content.appendChild(document.createElement('br'));
@@ -215,7 +221,7 @@ export class Editor {
             const vehiclesField = document.createElement('input');
             vehiclesField.type = 'number';
             vehiclesField.value = String(entity.nrOfVehicles);
-            vehiclesField.onchange = () => (entity.nrOfVehicles = vehiclesField.value);
+            vehiclesField.oninput = () => {entity.nrOfVehicles = vehiclesField.value; entity.updateLayerStyle();};
             content.appendChild(vehiclesField);
 
             content.appendChild(document.createElement('br'));
@@ -224,7 +230,7 @@ export class Editor {
             const otherSqm = document.createElement('input');
             otherSqm.type = 'number';
             otherSqm.value = String(entity.additionalSqm);
-            otherSqm.onchange = () => (entity.additionalSqm = otherSqm.value);
+            otherSqm.oninput = () => {entity.additionalSqm = otherSqm.value; entity.updateLayerStyle();};
             content.appendChild(otherSqm);
 
             content.appendChild(document.createElement('br'));
@@ -233,7 +239,7 @@ export class Editor {
             const powerField = document.createElement('input');
             powerField.type = 'number';
             powerField.value = String(entity.powerNeed);
-            powerField.onchange = () => (entity.powerNeed = powerField.value);
+            powerField.oninput = () => {entity.powerNeed = powerField.value; entity.updateLayerStyle();};
             content.appendChild(powerField);
 
             content.appendChild(document.createElement('p'));
@@ -324,10 +330,7 @@ export class Editor {
         // Update the buffered layer when the layer is being edited
         entity.layer.on('pm:markerdrag', (e) => {
             entity.updateBufferedLayer();
-            //@ts-ignore
-            entity.isOverlappingLayerGroup(this._groups.fireroad)
-            //@ts-ignore
-            entity.isBufferOverlappingLayerGroup(this._groups.fireroad);
+            this.checkEntityOverlap(entity);
         });
 
         // Update the buffered layer when the layer has a vertex removed
@@ -335,13 +338,22 @@ export class Editor {
             entity.updateBufferedLayer();
         });
 
-        // Add the layer to the map
-        entity.layer.addTo(this._map);
-        entity.bufferLayer.addTo(this._map);
+        //Instead of adding directly to the map, add the layer and its buffer to the layergroups
+        //@ts-ignore
+        this.placementLayers.addLayer(entity.layer);
+        //@ts-ignore
+        this.placementBufferLayers.addLayer(entity.bufferLayer);
 
-        //Check to see if the layer is overlapping with the fire road layer
+        this.checkEntityOverlap(entity);
+    }
+
+    checkEntityOverlap(entity: MapEntity) 
+    {
         //@ts-ignore
         entity.isOverlappingLayerGroup(this._groups.fireroad)
+        //@ts-ignore
+        entity.isBufferOverlappingLayerGroup(this.placementLayers);
+        entity.updateLayerStyle();
     }
 
     private deleteAndRemoveEntity(entity: MapEntity) {
@@ -356,6 +368,18 @@ export class Editor {
         this._map = map;
 
         this._groups = groups;
+        
+        //Create two separate layersgroups, so that we can use them to check overlaps separately
+        this.placementLayers = (new L.LayerGroup()).addTo(map);
+        this.placementBufferLayers = (new L.LayerGroup()).addTo(map);
+        
+        //Place both in the same group so that we can toggle them on and off together on the map
+        //@ts-ignore
+        groups.placement = (new L.LayerGroup()).addTo(map);
+        //@ts-ignore
+        this.placementLayers.addTo(groups.placement);
+        //@ts-ignore
+        this.placementBufferLayers.addTo(groups.placement);
 
         // Keep track of the repository
         this._repository = repository;
@@ -397,7 +421,6 @@ export class Editor {
         // Add a click event to the map to reset the editor status.
         this._map.on('click', (mouseEvent) => {
             console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
-
             this.setMode('blur');
         });
 
@@ -428,8 +451,6 @@ export class Editor {
         
         this._map.addControl(new customButton());
     }
-    
-    private _isEditMode : boolean = false;
     
     public toggleEditMode() {
         this._isEditMode = !this._isEditMode;

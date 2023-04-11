@@ -38,6 +38,10 @@ export const DangerLayerStyle: L.PathOptions = {
  */
 export class MapEntity implements EntityDTO {
     private _originalGeoJson: string;
+    private readonly _bufferWidth: number = 4;
+    private readonly _maxSqm: number = 1000;
+    private readonly _sqmPerPerson: number = 2;
+    private readonly _sqmPerVehicle: number = 10;
     
     public readonly id: number;
     public readonly revision: number;
@@ -54,13 +58,14 @@ export class MapEntity implements EntityDTO {
     public additionalSqm: string;
     public powerNeed: string;
     public isOverlapping: boolean;
+    public isBufferOverlapping: boolean;
 
     public get hasMissingFields(): boolean {
         return !this.name || !this.description;
     }
 
     public get isWayTooBig(): boolean {
-        return this.area > 750;
+        return this.area > this._maxSqm;
     }
 
     public get isBiggerThanNeeded(): boolean {
@@ -78,10 +83,10 @@ export class MapEntity implements EntityDTO {
 
             //TODO: Set the correct values for the calculations
             if (this.nrOfPeople) {
-                calculatedareaneed += Number(this.nrOfPeople) * 5;
+                calculatedareaneed += Number(this.nrOfPeople) * this._sqmPerPerson;
             }
             if (this.nrOfVehicles) {
-                calculatedareaneed += Number(this.nrOfVehicles) * 20;
+                calculatedareaneed += Number(this.nrOfVehicles) * this._sqmPerVehicle;
             }
             if (this.additionalSqm) {
                 calculatedareaneed += Number(this.additionalSqm);
@@ -106,29 +111,30 @@ export class MapEntity implements EntityDTO {
     public updateLayerStyle()
     {
         //@ts-ignore
-        if (this.isOverlapping) this.layer.setStyle(DangerLayerStyle);
+        if (this.isOverlapping || this.isBufferOverlapping || this.isWayTooBig) this.layer.setStyle(DangerLayerStyle);
         //@ts-ignore
-        else if (this.isWayTooBig || this.isSmallerThanNeeded || this.isBiggerThanNeeded) this.layer.setStyle(WarningLayerStyle);
+        else if (this.isSmallerThanNeeded || this.isBiggerThanNeeded || this.hasMissingFields) this.layer.setStyle(WarningLayerStyle);
         //@ts-ignore
         else this.layer.setStyle(DefaultLayerStyle);
     }
+
     //A method that check if this entitys layer is overlapping any of the layers in the given layergroup
     public isOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
         this.isOverlapping = this.isGeoJsonOverlappingLayergroup(this.toGeoJSON(), layerGroup);
-
-        this.updateLayerStyle();
         return this.isOverlapping;
     }   
 
     public isBufferOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
         //@ts-ignore
         //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
-        this.isOverlapping = this.isGeoJsonOverlappingLayergroup(this.bufferLayer.toGeoJSON().features[0], layerGroup);
-        this.updateLayerStyle();
-        return this.isOverlapping;
+        this.isBufferOverlapping = this.isGeoJsonOverlappingLayergroup(this.bufferLayer.toGeoJSON().features[0], layerGroup);
+        return this.isBufferOverlapping;
     }   
 
     private isGeoJsonOverlappingLayergroup(geoJson: Turf.helpers.Feature<any, Turf.helpers.Properties> | Turf.helpers.Geometry, layerGroup: L.GeoJSON): boolean {
+        
+        //NOTE: Only checks overlaps, not if its inside or covers completely
+        
         let overlap = false;
         layerGroup.eachLayer((layer) => {
                 //@ts-ignore
@@ -138,7 +144,6 @@ export class MapEntity implements EntityDTO {
                 if (otherGeoJson.features ) 
                 {
                     for (let i = 0; i < otherGeoJson.features.length; i++) {
-                        console.log(otherGeoJson.features[i]);
                         if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
                             overlap = true;
                             return; // Break out of the inner loop
@@ -217,7 +222,7 @@ export class MapEntity implements EntityDTO {
         // Update the buffer layer so that its geometry is the same as this.layers geometry
         //@ts-ignore
         const geoJson = this.layer.toGeoJSON();
-        const buffered = Turf.buffer(geoJson, 5, { units: 'meters' });
+        const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
 
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
