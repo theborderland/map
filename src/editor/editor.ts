@@ -122,24 +122,6 @@ export class Editor {
         if (display == 'info') {
             const content = document.createElement('div');
             content.innerHTML = `<h2>${entity.name}</h2>
-            const editShapeButton = document.createElement('button');
-            editShapeButton.innerHTML = 'Edit shape';
-            editShapeButton.onclick = (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('editing-shape', entity);
-            };
-
-            content.appendChild(editShapeButton);
-
-            const editInfoButton = document.createElement('button');
-            editInfoButton.innerHTML = 'Edit info';
-            editInfoButton.onclick = (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('editing-info', entity);
-            };
-            content.appendChild(editInfoButton);
                                  <h3>${entity.description}</h3>
                                  <p>
                                  <b>People:</b> ${entity.nrOfPeople}<br>
@@ -161,9 +143,6 @@ export class Editor {
                     content.innerHTML += `<p><b>HEY!</b> ${rule.message}</p>`;
                 }
             }
-            //TODO: Add "Area is overlapping or too close to someone elses area!""
-
-            //TODO: Add "Area is missing crucial information!""
 
             if (this._isEditMode) {
                 const editShapeButton = document.createElement('button');
