@@ -94,19 +94,6 @@ export class MapEntity implements EntityDTO {
         return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
     }
 
-    public updateLayerStyle() {
-        const severity = this.severityOfRulesBroken;
-        if (severity >= 2) {
-            //@ts-ignore
-            this.layer.setStyle(DangerLayerStyle);
-        } else if (severity >= 1) {
-            //@ts-ignore
-            this.layer.setStyle(WarningLayerStyle);
-        }
-        //@ts-ignore
-        else this.layer.setStyle(DefaultLayerStyle);
-    }
-
     /** Calculated area from the leaflet layer */
     public get area(): number {
         return Math.round(Turf.area(this.calculateGeoJson()));
@@ -152,7 +139,7 @@ export class MapEntity implements EntityDTO {
             style: (/*feature*/) => DefaultLayerStyle,
         });
 
-        this.updateLayerStyle();
+        this.checkAllRules();
         this.updateBufferedLayer();
 
         // Extract information fields from the geoJson
@@ -165,9 +152,26 @@ export class MapEntity implements EntityDTO {
     }
 
     public checkAllRules() {
+        // Check which rules are currently broken
         for (const rule of this._rules) {
             rule.checkRule(this);
         }
+
+        // Update layer style
+        const severity = this.severityOfRulesBroken;
+        if (severity >= 2) {
+            //@ts-ignore
+            this.layer.setStyle(DangerLayerStyle);
+        } else if (severity >= 1) {
+            //@ts-ignore
+            this.layer.setStyle(WarningLayerStyle);
+        }
+        //@ts-ignore
+        else this.layer.setStyle(DefaultLayerStyle);
+    }
+
+    public getAllTriggeredRules(): Array<Rule> {
+        return this._rules.filter((r) => r.triggered);
     }
 
     public updateBufferedLayer() {

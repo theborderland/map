@@ -14,8 +14,12 @@ export class Rule {
         return this._triggered ? this._severity : 0;
     }
 
+    public get triggered(): boolean {
+        return this._triggered;
+    }
+
     public checkRule(entity: MapEntity) {
-        this._triggered = this._callback(entity);
+        this._triggered = !this._callback(entity);
     }
 
     constructor(severity: Rule['_severity'], message: string, callback: Rule['_callback']) {
@@ -31,67 +35,75 @@ const hasMissingFields = new Rule(1, '', (entity) => {
     return !entity.name || !entity.description;
 });
 
-const isWayTooBig = new Rule(2, '', (entity) => {
+const isWayTooBig = new Rule(2, 'Are you aware that the area is very very large?', (entity) => {
     return entity.area > MAX_SQM_FOR_ENTITY;
 });
 
-const isBiggerThanNeeded = new Rule(1, '', (entity) => {
+const isBiggerThanNeeded = new Rule(1, 'Are you aware that the area is smaller than the calculated need?', (entity) => {
     return entity.area > entity.calculatedAreaNeeded * 1.5;
 });
 
-const isSmallerThanNeeded = new Rule(1, '', (entity) => {
-    return entity.area < entity.calculatedAreaNeeded;
-});
+const isSmallerThanNeeded = new Rule(
+    1,
+    'Are you aware that the area is much bigger than the calculated need?',
+    (entity) => {
+        return entity.area < entity.calculatedAreaNeeded;
+    },
+);
 
-// FIXME: layerGroup ska vara definerat i detta scope, byt namn
+const isOverlapping = (layerGroup: any) =>
+    new Rule(2, 'This area is overlapping a fire road, please fix that <3', (entity) => {
+        return _isGeoJsonOverlappingLayergroup(entity.toGeoJSON(), layerGroup);
+    });
 
-const isOverlapping = new Rule(2, '', (entity) => {
-    return _isGeoJsonOverlappingLayergroup(entity.toGeoJSON(), layerGroup);
-});
-
-// FIXME: layerGroup ska vara definerat i detta scope, byt namn
-
-const isBufferOverlapping = new Rule(2, '', (entity) => {
-    //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
-    return _isGeoJsonOverlappingLayergroup(
-        //@ts-ignore
-        this.bufferLayer.toGeoJSON().features[0],
-        layerGroup,
-    );
-});
-
-// FIXME: layerGroup ska vara definerat i detta scope, byt namn
-
-const isInsideBoundaries = new Rule(2, '', (entity) => {
-    const layers = layerGroup.getLayers();
-
-    for (const layer of layers) {
-        let otherGeoJson = layer.toGeoJSON();
-
-        // Loop through all features if it is a feature collection
-        if (otherGeoJson.features) {
-            for (let i = 0; i < otherGeoJson.features.length; i++) {
-                if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
-                    return true;
-                }
-            }
-        } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
+const isBufferOverlapping = (layerGroup: any) =>
+    new Rule(2, 'Too close to another area, please fix that <3', (entity) => {
+        //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
+        if (!entity.bufferLayer) {
             return true;
         }
-    }
+        return _isGeoJsonOverlappingLayergroup(
+            //@ts-ignore
+            entity.bufferLayer.toGeoJSON().features[0],
+            layerGroup as any,
+        );
+    });
 
-    return false;
-});
+const isInsideBoundaries = (layerGroup: any) =>
+    new Rule(3, 'You have placed yourself outside our land, please fix that <3', (entity) => {
+        const layers = layerGroup.getLayers();
 
-/** All rules */
-export const allRules = [
-    hasMissingFields,
-    isWayTooBig,
-    isBiggerThanNeeded,
-    isSmallerThanNeeded,
-    isOverlapping,
-    isBufferOverlapping,
-];
+        for (const layer of layers) {
+            let otherGeoJson = layer.toGeoJSON();
+
+            // Loop through all features if it is a feature collection
+            if (otherGeoJson.features) {
+                for (let i = 0; i < otherGeoJson.features.length; i++) {
+                    if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
+                        return true;
+                    }
+                }
+            } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
+                return true;
+            }
+        }
+
+        return false;
+    });
+
+/** Utility function to generate rules to be used with the editor   */
+export function generateRulesForEditor(groups: any, placementLayers: any): Array<Rule> {
+    return [
+        hasMissingFields,
+        isWayTooBig,
+        isBiggerThanNeeded,
+        isSmallerThanNeeded,
+        isOverlapping(groups.fireroad),
+        isBufferOverlapping(placementLayers),
+        isInsideBoundaries(groups.propertyborder),
+        //isInsideBoundaries(groups.placementareas),
+    ];
+}
 
 /** Utility function to calculate the ovelap between a geojson and layergroup */
 function _isGeoJsonOverlappingLayergroup(

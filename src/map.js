@@ -15,7 +15,6 @@ import { loadDrawnMap } from './loaders/loadDrawnMap';
 import { addLegends } from './loaders/addLegends';
 // import { addSearch } from './utils/searchControl';
 
-import { MapEntityRepository } from './entities';
 import { Editor } from './editor';
 
 export const createMap = async () => {
@@ -29,9 +28,8 @@ export const createMap = async () => {
 
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
-    
-    const repository = new MapEntityRepository();
-    const editor = new Editor(map, repository, map.groups);
+
+    const editor = new Editor(map, map.groups);
 
     // Base layers
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -50,13 +48,13 @@ export const createMap = async () => {
         [57.6156422900704257, 14.9150971736724536],
         [57.6291230394961715, 14.9362178462290363],
     ]);
-    
+
     // map.groups.poi_menu = (new L.LayerGroup()).addTo(map);
     // map.groups.power_menu = (new L.LayerGroup());
 
     var extraLayers = {
-        'Placement': map.groups.placement,
-        'Terrain': map.groups.terrain,
+        Placement: map.groups.placement,
+        Terrain: map.groups.terrain,
         'Slope map': map.groups.slopemap,
         // "Power": map.groups.power_menu,
     };

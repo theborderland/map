@@ -1,6 +1,6 @@
 import { ENTITY_API_ADDRESS } from '../constants';
 import { MapEntity, EntityDTO } from './entity';
-import { allRules } from './rule';
+import type { Rule } from './rule';
 
 /**
  * Singleton class that manages entity data from the API
@@ -9,6 +9,7 @@ import { allRules } from './rule';
  * The constraints allows limiting what entities are fetched to a given date range.
  */
 export class MapEntityRepository {
+    private _rules: Array<Rule>;
     /** Keeps the latest revisions of each unique entity */
     private _latestRevisions: Record<MapEntity['id'], MapEntity> = {};
 
@@ -34,11 +35,12 @@ export class MapEntityRepository {
                     continue;
                 }
             }
-            this._latestRevisions[data.id] = new MapEntity(data, allRules);
+            this._latestRevisions[data.id] = new MapEntity(data, this._rules);
         }
     }
 
-    constructor() {
+    constructor(rules: Array<Rule>) {
+        this._rules = rules;
         // Update on page load
         this.loaded = new Promise((resolve) => this._update().then(() => resolve(true)));
     }
@@ -74,7 +76,7 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Saved initial entity', data);
-            const entity = new MapEntity(data);
+            const entity = new MapEntity(data, this._rules);
             this._latestRevisions[entity.id] = entity;
             return entity;
         } else {
@@ -95,7 +97,7 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Updated existing entity', data);
-            const entity = new MapEntity(data, allRules);
+            const entity = new MapEntity(data, this._rules);
             this._latestRevisions[entity.id] = entity;
             return entity;
         } else {
