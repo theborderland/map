@@ -1,5 +1,6 @@
 import { ENTITY_API_ADDRESS } from '../constants';
 import { MapEntity, EntityDTO } from './entity';
+import { allRules } from './rule';
 
 /**
  * Singleton class that manages entity data from the API
@@ -33,7 +34,7 @@ export class MapEntityRepository {
                     continue;
                 }
             }
-            this._latestRevisions[data.id] = new MapEntity(data);
+            this._latestRevisions[data.id] = new MapEntity(data, allRules);
         }
     }
 
@@ -94,7 +95,7 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Updated existing entity', data);
-            const entity = new MapEntity(data);
+            const entity = new MapEntity(data, allRules);
             this._latestRevisions[entity.id] = entity;
             return entity;
         } else {

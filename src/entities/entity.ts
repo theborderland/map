@@ -1,5 +1,4 @@
 import * as L from 'leaflet';
-import type { GeoJsonObject } from 'geojson';
 import '@geoman-io/leaflet-geoman-free';
 import * as Turf from '@turf/turf';
 import { Rule } from './rule';
@@ -24,7 +23,6 @@ export const WarningLayerStyle: L.PathOptions = {
     color: '#ffbf66',
     fillColor: '#ffbf66',
     fillOpacity: 0.5,
-
 };
 
 export const DangerLayerStyle: L.PathOptions = {
@@ -38,20 +36,20 @@ export const DangerLayerStyle: L.PathOptions = {
  * methods both for persisting and updating it, and representing it on a map
  */
 export class MapEntity implements EntityDTO {
+    private _rules: Array<Rule>;
     private _originalGeoJson: string;
     private readonly _bufferWidth: number = 4;
-    private readonly _maxSqm: number = 2000;
     private readonly _sqmPerPerson: number = 10;
     private readonly _sqmPerVehicle: number = 50;
-    
+
     public readonly id: number;
     public readonly revision: number;
     public readonly timestamp: number;
     public readonly layer: L.Layer & { pm?: any };
     public bufferLayer: L.Layer;
-    
+
     // Information fields
-    
+
     public name: string;
     public description: string;
     public contactName: string;
@@ -60,27 +58,6 @@ export class MapEntity implements EntityDTO {
     public nrOfVehicles: string;
     public additionalSqm: string;
     public powerNeed: string;
-    public isOverlapping: boolean;
-    public isBufferOverlapping: boolean;
-    public isInsideBoundaries: boolean;
-    private _rules: any;
-
-    public get hasMissingFields(): boolean {
-        return !this.name || !this.description;
-    }
-
-    public get isWayTooBig(): boolean {
-
-        return this.area > this._maxSqm;
-    }
-
-    public get isBiggerThanNeeded(): boolean {
-        return this.area > this.calculatedAreaNeeded * 1.5;
-    }
-
-    public get isSmallerThanNeeded(): boolean {
-        return this.area < this.calculatedAreaNeeded;
-    }
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -108,98 +85,26 @@ export class MapEntity implements EntityDTO {
         try {
             let calculatedFireExtinguisherNeeded = 1; //TODO: Set the correct values for the calculations
             return calculatedFireExtinguisherNeeded;
-        }
-        catch {
+        } catch {
             return NaN;
         }
     }
 
-    public updateLayerStyle()
-    {
-        if (this.isOverlapping || this.isBufferOverlapping || this.isWayTooBig || !this.isInsideBoundaries) {
+    public get severityOfRulesBroken(): number {
+        return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
+    }
+
+    public updateLayerStyle() {
+        const severity = this.severityOfRulesBroken;
+        if (severity >= 2) {
             //@ts-ignore
             this.layer.setStyle(DangerLayerStyle);
-        }
-        else if (this.isSmallerThanNeeded || this.isBiggerThanNeeded || this.hasMissingFields)
-        {
+        } else if (severity >= 1) {
             //@ts-ignore
             this.layer.setStyle(WarningLayerStyle);
         }
         //@ts-ignore
         else this.layer.setStyle(DefaultLayerStyle);
-    }
-
-    //A method that check if this entitys layer is overlapping any of the layers in the given layergroup
-    public isOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
-        this.isOverlapping = this.isGeoJsonOverlappingLayergroup(this.toGeoJSON(), layerGroup);
-        return this.isOverlapping;
-    }   
-
-    public isBufferOverlappingLayerGroup(layerGroup: L.GeoJSON): boolean {
-        //@ts-ignore
-        //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
-        this.isBufferOverlapping = this.isGeoJsonOverlappingLayergroup(this.bufferLayer.toGeoJSON().features[0], layerGroup);
-        return this.isBufferOverlapping;
-    }   
-
-    private isGeoJsonOverlappingLayergroup(geoJson: Turf.helpers.Feature<any, Turf.helpers.Properties> | Turf.helpers.Geometry, layerGroup: L.GeoJSON): boolean {
-        
-        //NOTE: Only checks overlaps, not if its inside or covers completely
-        
-        let overlap = false;
-        layerGroup.eachLayer((layer) => {
-                //@ts-ignore
-                let otherGeoJson = layer.toGeoJSON();
-                
-                //Loop through all features if it is a feature collection
-                if (otherGeoJson.features ) 
-                {
-                    for (let i = 0; i < otherGeoJson.features.length; i++) {
-                        if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
-                            overlap = true;
-                            return; // Break out of the inner loop
-                        }
-                    }
-                }
-                else if (Turf.booleanOverlap(geoJson, otherGeoJson)) {
-                    overlap = true;
-                }
-            
-            if (overlap) {
-                return; // Break out of the loop once an overlap is found
-            }
-        });
-
-        return overlap;
-    }
-
-    public isLayerInsideLayerGroup(layerGroup: L.GeoJSON): boolean {
-        this.isInsideBoundaries = false;
-
-        layerGroup.eachLayer((layer) => {
-            //@ts-ignore
-            let otherGeoJson = layer.toGeoJSON();
-            
-            //Loop through all features if it is a feature collection
-            if (otherGeoJson.features )
-            {
-                for (let i = 0; i < otherGeoJson.features.length; i++) {
-                    if (Turf.booleanContains(otherGeoJson.features[i], this.toGeoJSON())) {
-                        this.isInsideBoundaries = true;
-                        return; // Break out of the inner loop
-                    }
-                }
-            }
-            else if (Turf.booleanContains(otherGeoJson, this.toGeoJSON())) {
-                this.isInsideBoundaries = true;
-            }
-
-            if (this.isInsideBoundaries) {
-                return; // Break out of the loop once an overlap is found
-            }
-        });
-
-        return this.isInsideBoundaries;
     }
 
     /** Calculated area from the leaflet layer */
@@ -226,8 +131,9 @@ export class MapEntity implements EntityDTO {
         return geoJson;
     }
 
-    constructor(data: EntityDTO) {
+    constructor(data: EntityDTO, rules: Array<Rule>) {
         this.id = data.id;
+        this._rules = rules;
         this.revision = data.revision;
         this.timestamp = data.timestamp;
 
@@ -258,10 +164,10 @@ export class MapEntity implements EntityDTO {
         this.powerNeed = geoJson.properties.powerNeed ?? '0';
     }
 
-    public addRule(rule: Rule) 
-    {
-        this._rules.push(rule);
-        
+    public checkAllRules() {
+        for (const rule of this._rules) {
+            rule.checkRule(this);
+        }
     }
 
     public updateBufferedLayer() {
@@ -272,14 +178,14 @@ export class MapEntity implements EntityDTO {
 
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
-            style: {
-                color: 'black',
-                fillOpacity: 0.0,
-                weight: 0.5, // Set the outline width
-                dashArray: '5, 5', // Set the outline to be dashed,
-            },
-            interactive: false
-        });
+                style: {
+                    color: 'black',
+                    fillOpacity: 0.0,
+                    weight: 0.5, // Set the outline width
+                    dashArray: '5, 5', // Set the outline to be dashed,
+                },
+                interactive: false,
+            });
         } else {
             //@ts-ignore
             this.bufferLayer.clearLayers();
