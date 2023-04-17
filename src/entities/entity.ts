@@ -64,7 +64,6 @@ export class MapEntity implements EntityDTO {
         try {
             let calculatedareaneed = 0;
 
-            //TODO: Set the correct values for the calculations
             if (this.nrOfPeople) {
                 calculatedareaneed += Number(this.nrOfPeople) * this._sqmPerPerson;
             }
@@ -91,6 +90,7 @@ export class MapEntity implements EntityDTO {
     }
 
     public get severityOfRulesBroken(): number {
+        console.log("SEVERITY: " + this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0)); 
         return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
     }
 
@@ -139,9 +139,7 @@ export class MapEntity implements EntityDTO {
             style: (/*feature*/) => DefaultLayerStyle,
         });
 
-        this.checkAllRules();
-        this.updateBufferedLayer();
-
+        
         // Extract information fields from the geoJson
         this.name = geoJson.properties.name ?? 'No name yet';
         this.description = geoJson.properties.description ?? 'No description yet';
@@ -149,6 +147,9 @@ export class MapEntity implements EntityDTO {
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
         this.powerNeed = geoJson.properties.powerNeed ?? '0';
+        
+        this.checkAllRules();
+        this.updateBufferedLayer();
     }
 
     public checkAllRules() {

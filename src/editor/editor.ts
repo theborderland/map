@@ -134,13 +134,15 @@ export class Editor {
                                  <b>Actual Area:</b> ${entity.area} sqm<br>
                                  </p>`;
 
-            for (const rule of entity.getAllTriggeredRules().filter((e) => e.message)) {
+            for (const rule of entity.getAllTriggeredRules()) {
+                //BUG: this is not working!! Remove this logmessage when fixed
+                console.log('[TRIGGERED]', 'rule', rule, 'entity', entity);
                 if (rule.severity >= 3) {
                     content.innerHTML += `<p><b>NOT ALLOWED!</b> ${rule.message}</p>`;
                 } else if (rule.severity >= 2) {
                     content.innerHTML += `<p><b>DANGER!</b> ${rule.message}</p>`;
                 } else {
-                    content.innerHTML += `<p><b>HEY!</b> ${rule.message}</p>`;
+                    content.innerHTML += `<p><b>PSST!</b> ${rule.message}</p>`;
                 }
             }
 

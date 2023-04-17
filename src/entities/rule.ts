@@ -1,7 +1,7 @@
 import * as Turf from '@turf/turf';
 import type { MapEntity } from './entity';
 
-const MAX_SQM_FOR_ENTITY: number = 2000;
+const MAX_SQM_FOR_ENTITY: number = 1000;
 
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
@@ -19,7 +19,7 @@ export class Rule {
     }
 
     public checkRule(entity: MapEntity) {
-        this._triggered = !this._callback(entity);
+        this._triggered = this._callback(entity);
     }
 
     constructor(severity: Rule['_severity'], message: string, callback: Rule['_callback']) {
@@ -31,21 +31,21 @@ export class Rule {
     }
 }
 
-const hasMissingFields = new Rule(1, '', (entity) => {
+const hasMissingFields = () => new Rule(1, 'Fill in name and description please.', (entity) => {
     return !entity.name || !entity.description;
 });
 
-const isWayTooBig = new Rule(2, 'Are you aware that the area is very very large?', (entity) => {
+const isWayTooBig = () => new Rule(2, 'Your area is waaay to big!', (entity) => {
     return entity.area > MAX_SQM_FOR_ENTITY;
 });
 
-const isBiggerThanNeeded = new Rule(1, 'Are you aware that the area is smaller than the calculated need?', (entity) => {
+const isBiggerThanNeeded = () => new Rule(1, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
     return entity.area > entity.calculatedAreaNeeded * 1.5;
 });
 
-const isSmallerThanNeeded = new Rule(
+const isSmallerThanNeeded = () => new Rule(
     1,
-    'Are you aware that the area is much bigger than the calculated need?',
+    'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
     (entity) => {
         return entity.area < entity.calculatedAreaNeeded;
     },
@@ -94,14 +94,14 @@ const isInsideBoundaries = (layerGroup: any) =>
 /** Utility function to generate rules to be used with the editor   */
 export function generateRulesForEditor(groups: any, placementLayers: any): Array<Rule> {
     return [
-        hasMissingFields,
-        isWayTooBig,
-        isBiggerThanNeeded,
-        isSmallerThanNeeded,
-        isOverlapping(groups.fireroad),
-        isBufferOverlapping(placementLayers),
-        isInsideBoundaries(groups.propertyborder),
-        //isInsideBoundaries(groups.placementareas),
+        isWayTooBig(),
+        // hasMissingFields(),
+        // isBiggerThanNeeded(),
+        // isSmallerThanNeeded(),        
+        // isOverlapping(groups.fireroad),
+        // isBufferOverlapping(placementLayers),
+        // isInsideBoundaries(groups.propertyborder),
+        // isInsideBoundaries(groups.placementareas),
     ];
 }
 
