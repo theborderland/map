@@ -9,7 +9,7 @@ import type { Rule } from './rule';
  * The constraints allows limiting what entities are fetched to a given date range.
  */
 export class MapEntityRepository {
-    private _rules: Array<Rule>;
+    private _rulesGenerator: () => Array<Rule>;
     /** Keeps the latest revisions of each unique entity */
     private _latestRevisions: Record<MapEntity['id'], MapEntity> = {};
 
@@ -35,12 +35,12 @@ export class MapEntityRepository {
                     continue;
                 }
             }
-            this._latestRevisions[data.id] = new MapEntity(data, this._rules);
+            this._latestRevisions[data.id] = new MapEntity(data, this._rulesGenerator());
         }
     }
 
-    constructor(rules: Array<Rule>) {
-        this._rules = rules;
+    constructor(rulesGenerator: () => Array<Rule>) {
+        this._rulesGenerator = rulesGenerator;
         // Update on page load
         this.loaded = new Promise((resolve) => this._update().then(() => resolve(true)));
     }
@@ -76,7 +76,7 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Saved initial entity', data);
-            const entity = new MapEntity(data, this._rules);
+            const entity = new MapEntity(data, this._rulesGenerator());
             this._latestRevisions[entity.id] = entity;
             return entity;
         } else {
@@ -97,7 +97,7 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Updated existing entity', data);
-            const entity = new MapEntity(data, this._rules);
+            const entity = new MapEntity(data, this._rulesGenerator());
             this._latestRevisions[entity.id] = entity;
             return entity;
         } else {

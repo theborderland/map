@@ -19,7 +19,12 @@ export class Rule {
     }
 
     public checkRule(entity: MapEntity) {
+        const b = this._triggered;
         this._triggered = this._callback(entity);
+        const a = this._triggered;
+        if (a != b) {
+            console.log('changed to', a, this.message);
+        }
     }
 
     constructor(severity: Rule['_severity'], message: string, callback: Rule['_callback']) {
@@ -31,24 +36,29 @@ export class Rule {
     }
 }
 
-const hasMissingFields = () => new Rule(1, 'Fill in name and description please.', (entity) => {
-    return !entity.name || !entity.description;
-});
-
-const isWayTooBig = () => new Rule(2, 'Your area is waaay to big!', (entity) => {
-    return entity.area > MAX_SQM_FOR_ENTITY;
-});
-
-const isBiggerThanNeeded = () => new Rule(1, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
-    return entity.area > entity.calculatedAreaNeeded * 1.5;
-});
-
-const isSmallerThanNeeded = () => new Rule(
-    1,
-    'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
-    (entity) => {
-        return entity.area < entity.calculatedAreaNeeded;
+const hasMissingFields = () =>
+    new Rule(1, 'Fill in name and description please.', (entity) => {
+        return !entity.name || !entity.description;
     });
+
+const isWayTooBig = () =>
+    new Rule(2, 'Your area is waaay to big!', (entity) => {
+        return entity.area > MAX_SQM_FOR_ENTITY;
+    });
+
+const isBiggerThanNeeded = () =>
+    new Rule(1, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
+        return entity.area > entity.calculatedAreaNeeded * 1.5;
+    });
+
+const isSmallerThanNeeded = () =>
+    new Rule(
+        1,
+        'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
+        (entity) => {
+            return entity.area < entity.calculatedAreaNeeded;
+        },
+    );
 
 const isOverlapping = (layerGroup: any) =>
     new Rule(2, 'This area is overlapping a fire road, please fix that <3', (entity) => {
@@ -90,13 +100,13 @@ const isInsideBoundaries = (layerGroup: any) =>
         return false;
     });
 
-/** Utility function to generate rules to be used with the editor   */
-export function generateRulesForEditor(groups: any, placementLayers: any): Array<Rule> {
-    return [
+/** Utility function to generate a rule generator function to be used with the editor */
+export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
+    return () => [
         isWayTooBig(),
         // hasMissingFields(),
         // isBiggerThanNeeded(),
-        // isSmallerThanNeeded(),        
+        // isSmallerThanNeeded(),
         // isOverlapping(groups.fireroad),
         // isBufferOverlapping(placementLayers),
         // isInsideBoundaries(groups.propertyborder),
