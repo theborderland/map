@@ -31,25 +31,25 @@ export class Rule {
     }
 }
 
-const hasMissingFields = new Rule(1, '', (entity) => {
-    return !entity.name || !entity.description;
-});
+const hasMissingFields = () =>
+    new Rule(1, '', (entity) => {
+        return !entity.name || !entity.description;
+    });
 
-const isWayTooBig = new Rule(2, 'Are you aware that the area is very very large?', (entity) => {
-    return entity.area > MAX_SQM_FOR_ENTITY;
-});
+const isWayTooBig = () =>
+    new Rule(2, 'Are you aware that the area is very very large?', (entity) => {
+        return entity.area > MAX_SQM_FOR_ENTITY;
+    });
 
-const isBiggerThanNeeded = new Rule(1, 'Are you aware that the area is smaller than the calculated need?', (entity) => {
-    return entity.area > entity.calculatedAreaNeeded * 1.5;
-});
+const isBiggerThanNeeded = () =>
+    new Rule(1, 'Are you aware that the area is smaller than the calculated need?', (entity) => {
+        return entity.area > entity.calculatedAreaNeeded * 1.5;
+    });
 
-const isSmallerThanNeeded = new Rule(
-    1,
-    'Are you aware that the area is much bigger than the calculated need?',
-    (entity) => {
+const isSmallerThanNeeded = () =>
+    new Rule(1, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
         return entity.area < entity.calculatedAreaNeeded;
-    },
-);
+    });
 
 const isOverlapping = (layerGroup: any) =>
     new Rule(2, 'This area is overlapping a fire road, please fix that <3', (entity) => {
@@ -94,10 +94,10 @@ const isInsideBoundaries = (layerGroup: any) =>
 /** Utility function to generate rules to be used with the editor   */
 export function generateRulesForEditor(groups: any, placementLayers: any): Array<Rule> {
     return [
-        hasMissingFields,
-        isWayTooBig,
-        isBiggerThanNeeded,
-        isSmallerThanNeeded,
+        hasMissingFields(),
+        isWayTooBig(),
+        isBiggerThanNeeded(),
+        isSmallerThanNeeded(),
         isOverlapping(groups.fireroad),
         isBufferOverlapping(placementLayers),
         isInsideBoundaries(groups.propertyborder),
