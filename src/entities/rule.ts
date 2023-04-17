@@ -48,8 +48,7 @@ const isSmallerThanNeeded = () => new Rule(
     'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
     (entity) => {
         return entity.area < entity.calculatedAreaNeeded;
-    },
-);
+    });
 
 const isOverlapping = (layerGroup: any) =>
     new Rule(2, 'This area is overlapping a fire road, please fix that <3', (entity) => {
