@@ -321,6 +321,18 @@
                 padding: 0;
                 margin: 0;
             }
+
+            .entity-onscreen-info {
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                z-index: 999;
+                color: #f9f9f9;
+                padding: 10px;
+                font-weight: bold;
+                font-size: 2rem;
+                font-family: Arial, Helvetica, sans-serif;
+            }
         </style>
 
         <style>
@@ -335,20 +347,8 @@
         </style>
     </head>
     <body>
+        <div class="entity-onscreen-info"></div>
         <div id="map"></div>
-        <script>
-            function navigatehere(lat, lng) {
-                console.log("navigatehere", lat, lng);
-                var xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function() {
-                    if (this.readyState == 4 && this.status == 200) {
-                        console.log(this.responseText);
-                    }
-                };
-                xhttp.open("GET", "https://tim.gremalm.se/gps/updategps.php?lat="+lat+"&lng="+lng, true);
-                xhttp.send();
-            }
-        </script>
         <script src="bundle.js"></script>
     </body>
 </html>

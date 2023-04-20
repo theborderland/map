@@ -27,6 +27,8 @@ export class Editor {
     private _groups: L.FeatureGroup<any>;
     private _placementLayers: L.LayerGroup<any>;
     private _placementBufferLayers: L.LayerGroup<any>;
+    
+    private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -135,8 +137,6 @@ export class Editor {
                                  </p>`;
 
             for (const rule of entity.getAllTriggeredRules()) {
-                //BUG: this is not working!! Remove this logmessage when fixed
-                console.log('[TRIGGERED]', 'rule', rule, 'entity', entity);
                 if (rule.severity >= 3) {
                     content.innerHTML += `<p><b>NOT ALLOWED!</b> ${rule.message}</p>`;
                 } else if (rule.severity >= 2) {
@@ -292,6 +292,8 @@ export class Editor {
         // Stop editing
         entity.layer.pm.disable();
 
+        this.onScreenInfo.textContent = "";
+
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
@@ -340,6 +342,8 @@ export class Editor {
         entity.layer.on('pm:markerdrag', () => {
             entity.updateBufferedLayer();
             entity.checkAllRules();
+            
+            this.onScreenInfo.textContent = entity.area + "m²";
         });
 
         // Update the buffered layer when the layer has a vertex removed
@@ -359,6 +363,7 @@ export class Editor {
     private deleteAndRemoveEntity(entity: MapEntity) {
         this._selected = null;
         this.setMode('none');
+        this._placementLayers.removeLayer(entity.layer);
         this._map.removeLayer(entity.layer);
         this._map.removeLayer(entity.bufferLayer);
         this._repository.deleteEntity(entity);
@@ -427,6 +432,8 @@ export class Editor {
             console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
             this.setMode('blur');
         });
+
+        this.onScreenInfo = document.querySelector(".entity-onscreen-info");
     }
 
     private AddToggleEditButton() {

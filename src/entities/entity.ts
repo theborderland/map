@@ -141,8 +141,8 @@ export class MapEntity implements EntityDTO {
 
         
         // Extract information fields from the geoJson
-        this.name = geoJson.properties.name ?? 'No name yet';
-        this.description = geoJson.properties.description ?? 'No description yet';
+        this.name = geoJson.properties.name ?? '';
+        this.description = geoJson.properties.description ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
