@@ -33,10 +33,13 @@ export const createMap = async () => {
 
     // Base layers
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
+        maxZoom: 21,
+        maxNativeZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
+
     map.groups.drawnmap = await loadDrawnMap(map);
+    
     var baseLayers = { 'Satellite map': map.groups.googleSatellite, 'Drawn map': map.groups.drawnmap };
 
     // Extra layers
