@@ -1,7 +1,7 @@
 import * as Turf from '@turf/turf';
 import type { MapEntity } from './entity';
 
-const MAX_SQM_FOR_ENTITY: number = 1000;
+const MAX_SQM_FOR_ENTITY: number = 500;
 
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
@@ -69,7 +69,7 @@ const isBufferOverlapping = (layerGroup: any) =>
     new Rule(2, 'Too close to another area, please fix that <3', (entity) => {
         //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
         if (!entity.bufferLayer) {
-            return true;
+            return false;
         }
         return _isGeoJsonOverlappingLayergroup(
             //@ts-ignore
@@ -104,11 +104,12 @@ const isInsideBoundaries = (layerGroup: any) =>
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
         isWayTooBig(),
-        // hasMissingFields(),
-        // isBiggerThanNeeded(),
-        // isSmallerThanNeeded(),
-        // isOverlapping(groups.fireroad),
-        // isBufferOverlapping(placementLayers),
+        hasMissingFields(),
+        isBiggerThanNeeded(),
+        isSmallerThanNeeded(),
+        isOverlapping(groups.fireroad),
+        //BUG: Verkar som att placementlayers inte uppdateras när entities tas bort?
+        isBufferOverlapping(placementLayers),
         // isInsideBoundaries(groups.propertyborder),
         // isInsideBoundaries(groups.placementareas),
     ];
