@@ -78,8 +78,8 @@ const isBufferOverlapping = (layerGroup: any) =>
         );
     });
 
-const isInsideBoundaries = (layerGroup: any) =>
-    new Rule(3, 'You have placed yourself outside our land, please fix that <3', (entity) => {
+const isInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], message: string) =>
+    new Rule(severity, message, (entity) => {
         const layers = layerGroup.getLayers();
 
         for (const layer of layers) {
@@ -89,15 +89,15 @@ const isInsideBoundaries = (layerGroup: any) =>
             if (otherGeoJson.features) {
                 for (let i = 0; i < otherGeoJson.features.length; i++) {
                     if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
-                        return true;
+                        return false;
                     }
                 }
             } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
-                return true;
+                return false;
             }
         }
 
-        return false;
+        return true;
     });
 
 /** Utility function to generate a rule generator function to be used with the editor */
@@ -108,10 +108,9 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         isBiggerThanNeeded(),
         isSmallerThanNeeded(),
         isOverlapping(groups.fireroad),
-        //BUG: Verkar som att placementlayers inte uppdateras när entities tas bort?
         isBufferOverlapping(placementLayers),
-        // isInsideBoundaries(groups.propertyborder),
-        // isInsideBoundaries(groups.placementareas),
+        isInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
+        // isInsideBoundaries(groups.placementareas, 2, 'Please note that you are outside the placement area!'),
     ];
 }
 
