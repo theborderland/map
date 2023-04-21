@@ -18,6 +18,7 @@ export function getStyleFunction(name) {
             return {
             ...baseStyle,
             color: '#e77409',
+            weight: 2,
             };
         case 'friends':
             return {
@@ -33,19 +34,24 @@ export function getStyleFunction(name) {
         case 'fireroad': 
             return {
             ...baseStyle,
-            dashArray: '0',
-            weight: 0.5,
-            dashArray: '3',
+            weight: 1.5,
+            dashArray: '2',
             color: '#f05039',
-            fillOpacity: 0.25,
+            fillOpacity: 0.15,
             };
         case 'lowprio':
             return {
-            ...baseStyle,
-            dashArray: '3',
-            color: '#a8b6cc',
-            fillOpacity: 0.15,
-            weight: 2,
+            // dashArray: '3',
+            // color: '#a8b6cc',
+            fillOpacity: 0,
+            weight: 0,
+            };
+        case 'hiddenforbidden':
+            return {
+            // dashArray: '3',
+            // color: '#a8b6cc',
+            fillOpacity: 0,
+            weight: 0,
             };
         case 'mediumprio':
             return {
