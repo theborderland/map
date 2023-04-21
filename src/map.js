@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
-import 'leaflet-hash-plus';
+// import 'leaflet-hash-plus';
 import '@geoman-io/leaflet-geoman-free';
 // import 'leaflet-search';
 
@@ -15,12 +15,13 @@ import { loadDrawnMap } from './loaders/loadDrawnMap';
 import { addLegends } from './loaders/addLegends';
 // import { addSearch } from './utils/searchControl';
 
+
 import { Editor } from './editor';
 
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true }).setView(
-        [57.621111, 14.927857],
-        17,
+        [57.6226, 14.9293],
+        18,
     );
 
     // Map feature layers, the below functions add
@@ -87,7 +88,8 @@ export const createMap = async () => {
     L.control.polylineMeasure().addTo(map);
 
     // await addSearch(map);
-    // let hash = new L.Hash(map);  // Makes the URL follow the map
+
+    // let hash = new L.Hash(map);  // Makes the URL follow the map. BUGGY
 
     // Add editable layers
     await editor.addAPIEntities();
