@@ -2,6 +2,7 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
+import { buffer } from '@turf/turf';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -357,6 +358,12 @@ export class Editor {
         //@ts-ignore
         this._placementBufferLayers.addLayer(entity.bufferLayer);
 
+        //Set initial opacity of the bufferlayer depending on the zoomlevel (REFACTOR this and how its done in the onZoomEnd event)
+        if (this._map.getZoom() < 19) {
+            //@ts-ignore
+            entity.bufferLayer.setStyle({ opacity: 0 });
+        }
+
         entity.checkAllRules();
     }
 
@@ -386,6 +393,24 @@ export class Editor {
         this._placementLayers.addTo(groups.placement);
         //@ts-ignore
         this._placementBufferLayers.addTo(groups.placement);
+
+        
+        //Hide buffers when zoomed out
+        var bufferLayers = this._placementBufferLayers;
+        map.on('zoomend', function () {
+            if (map.getZoom() >= 19) {
+                bufferLayers.getLayers().forEach(function (layer) {
+                    //@ts-ignore
+                    layer.setStyle({ opacity: 1 });
+                });
+            } 
+            else {
+                bufferLayers.getLayers().forEach(function (layer) {
+                    //@ts-ignore
+                    layer.setStyle({ opacity: 0 });
+                });
+            }
+        });
 
         // Generate rules that the entities must follow
         const rules = generateRulesForEditor(this._groups, this._placementLayers);
