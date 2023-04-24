@@ -333,9 +333,11 @@
                 font-weight: bold;
                 font-size: 2rem;
                 font-family: Arial, Helvetica, sans-serif;
-                text-align: center;            }
+                text-align: center;
+                pointer-events: none;    
+            }
 
-            .severity-3::before
+            .error::before
             {
                 background-color: rgb(255, 0, 0);
                 color: #f9f9f9;
@@ -343,13 +345,13 @@
                 content: "NOT ALLOWED:"; /* Add a custom text or icon */
             }
 
-            .severity-3
+            .error
             {
-                font-size: 14px;
+                font-size: 16px;
                 font-family: Arial, Helvetica, sans-serif;
             }
 
-            .severity-2::before
+            .warning::before
             {
                 background-color: rgb(255, 132, 0);
                 color: #f9f9f9;
@@ -357,24 +359,10 @@
                 content: "OOPS!:"; /* Add a custom text or icon */
             }
             
-            .severity-2
+            .warning
             {
                 font-family: Arial, Helvetica, sans-serif;
-                font-size: 12px;
-            }
-
-            .severity-1::before
-            {
-                background-color: rgb(32, 32, 32);
-                color: #f9f9f9;
-                font-weight: bold;
-                content: "PPST!:"; /* Add a custom text or icon */
-            }
-            
-            .severity-1
-            {
-                font-family: Arial, Helvetica, sans-serif;
-                font-size: 12px;
+                font-size: 16px;
             }
         </style>
 
