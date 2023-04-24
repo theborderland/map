@@ -133,16 +133,16 @@ export class Editor {
             const vehicleText = entity.nrOfVehicles === "1" ? 'vehicle' : 'vehicles';
 
             content.innerHTML = `<h2>${entity.name}</h2>
-                                <p>${entity.description}</p>
+                                <p class="scrollable">${entity.description}</p>
                                
                                 <p style="font-size:14px;"><b>${entity.nrOfPeople}</b> ${personText} and <b>${entity.nrOfVehicles}</b> ${vehicleText} together 
                                 with <b>${entity.additionalSqm}</b>m² of additional structures are here. They will need roughly <b>${entity.calculatedAreaNeeded}</b>m² </p>
                                  
                                 <p style="font-size:14px;">
-                                    <b>Contact:</b> ${entity.contactInfo}
+                                    <b>Contact:</b> ${entity.contactInfo}   
                                     </br>
                                     <b>Actual Area:</b> ${entity.area} m²
-                                    <b style="text-align:right;">Power need:</b> ${entity.powerNeed}
+                                    <b style="text-align:right;">Power need:</b> ${entity.powerNeed} Watts
                                 </p> 
                                 `;
 
@@ -150,11 +150,11 @@ export class Editor {
 
             for (const rule of sortedRules) {
                 if (rule.severity >= 3) {
-                    content.innerHTML += `<p class="severity-3">${rule.message}</p>`;
+                    content.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
                 } else if (rule.severity >= 2) {
-                    content.innerHTML += `<p class="severity-2">${rule.message}</p>`;
+                    content.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
                 } else {
-                    content.innerHTML += `<p class="severity-1">${rule.message}</p>`;
+                    content.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
                 }
             }
 
@@ -214,6 +214,7 @@ export class Editor {
             };
             content.appendChild(descriptionField);
 
+            content.appendChild(document.createElement('label')).innerHTML = 'Contact info:';
             const contactField = document.createElement('input');
             contactField.type = 'text';
             contactField.value = entity.contactInfo;
@@ -549,8 +550,12 @@ export class Editor {
     }
 }
 
+//TODO: Make Start Placement more visible
 //TODO: Popup styling including all error messages
 //TODO: Add error msg to OnScreenInfo
+
+//TODO: Rule for high wattage use (INFO)
+//TODO: Rule for many points in area (INFO)
 //TODO: Dont allow shapes to be placed outside the placement borders
 //TODO: Instructions first time you use the editor
 //TODO: Inactivate clicking other shapes when in edit mode

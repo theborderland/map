@@ -76,14 +76,6 @@
                 background-color: rgb(150, 151, 151);
             }
 
-            .placement-btn
-            {
-                border-style: none;
-                background-color: rgb(32, 132, 158); 
-                color: #f9f9f9;
-                width: 170px;
-            }
-
             .delete-button
             {
                 background-color: rgb(255, 0, 0); 
@@ -112,16 +104,22 @@
 
             .leaflet-pm-toolbar .leaflet-pm-icon-polygon 
             {
+                border-radius: 10px;
                 background-image: none;
                 background-color: rgb(139, 64, 161); 
                 color: #f9f9f9;
                 border-style: double;
-                width: 160px;
+                width: 170px;
                 /* border-radius: 10%; */
-                margin: -5px;
+                margin-top: -11px;
+                margin-left: -6px;
                 padding: 10%;
-                height: unset;
+                height: unset;  
                 text-anchor: middle;
+                font-size: large;
+
+                text-shadow: 2px 2px 3px rgb(0 0 0 / 50%);
+                box-shadow: 3px 5px 5px rgb(0 0 0 / 20%);
 
                 animation-name: borderColorFade;
                 animation-duration: 1s; 
@@ -137,7 +135,7 @@
             {
                 width: 100px;
                 content: "+ Add shape"; /* Add a custom text or icon */
-                font-size: 20px; /* Adjust the font size */
+                font-size: 18px; /* Adjust the font size */
                 font-weight: bold; /* Adjust the font weight */
                 color: white; /* Change the icon color */
             }
@@ -149,6 +147,48 @@
                 max-width: 100%;
                 max-height: 100%;
                 background-color: #deefd6;
+            }
+
+            .placement-btn
+            {
+                /* border-style: solid;
+                border-color: #ffffff; */
+                /* background-color: #e7e309;  */
+                /* background-color: #000000;  */
+                background-color: #07cf25; 
+                border-width: 0px;
+                color: #ffffff;
+                text-shadow: 2px 2px 3px rgb(0 0 0 / 50%);
+                box-shadow: 3px 5px 5px rgb(0 0 0 / 20%);
+                width: 170px;
+                margin-bottom: 15px !important; 
+
+                animation-name: shake;
+                animation-duration: 1s; 
+                animation-timing-function: ease-out; 
+                animation-delay: 5s;
+                animation-direction: alternate;
+                animation-iteration-count: 2;
+                animation-fill-mode: none;
+                animation-play-state: running;   
+            }
+
+            @keyframes shake {
+            10%, 90% {
+                transform: translate3d(0, -1px, 0);
+            }
+            
+            20%, 80% {
+                transform: translate3d(0, 2px, 0);
+            }
+
+            30%, 50%, 70% {
+                transform: translate3d(0, -4px, 0);
+            }
+
+            40%, 60% {
+                transform: translate3d(0, 4px, 0);
+            }
             }
 
             .description 
@@ -235,7 +275,13 @@
                 background-repeat: repeat;
             }
 
-            p { font-size: 18px; }
+            p { font-size: 16px; }
+
+            .scrollable
+            {
+                overflow-y: auto;
+                height: 200px;
+            }
 
             .task-header
             {
@@ -360,6 +406,20 @@
             }
             
             .warning
+            {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
+            }
+
+            .info::before
+            {
+                background-color: rgb(20, 20, 20);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "INFO:"; /* Add a custom text or icon */
+            }
+            
+            .info
             {
                 font-family: Arial, Helvetica, sans-serif;
                 font-size: 16px;
