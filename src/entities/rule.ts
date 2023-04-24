@@ -36,13 +36,27 @@ export class Rule {
     }
 }
 
+/** Utility function to generate a rule generator function to be used with the editor */
+export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
+    return () => [
+        isWayTooBig(),
+        hasMissingFields(),
+        isBiggerThanNeeded(),
+        isSmallerThanNeeded(),
+        isOverlapping(groups.fireroad, 3, 'This area is overlapping a fire road, please fix that <3'),
+        isBufferOverlapping(placementLayers, 3, 'Fire distance to another area! The dotted line can not touch another area.'),
+        // isNotInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
+        // isNotInsideBoundaries(groups.placementareas, 2, 'Please note that you are outside the placement area!'),
+    ];
+}
+
 const hasMissingFields = () =>
     new Rule(1, 'Fill in name and description please.', (entity) => {
         return !entity.name || !entity.description;
     });
 
 const isWayTooBig = () =>
-    new Rule(2, 'Your area is waaay to big!', (entity) => {
+    new Rule(2, 'Your area is way to big! Max size for one area is 500 m²', (entity) => {
         return entity.area > MAX_SQM_FOR_ENTITY;
     });
 
@@ -60,13 +74,13 @@ const isSmallerThanNeeded = () =>
         },
     );
 
-const isOverlapping = (layerGroup: any) =>
-    new Rule(2, 'This area is overlapping a fire road, please fix that <3', (entity) => {
+const isOverlapping = (layerGroup: any, severity: Rule["_severity"], message: string) =>
+    new Rule(severity, message, (entity) => {
         return _isGeoJsonOverlappingLayergroup(entity.toGeoJSON(), layerGroup);
     });
 
-const isBufferOverlapping = (layerGroup: any) =>
-    new Rule(2, 'Too close to another area, please fix that <3', (entity) => {
+const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], message: string) =>
+    new Rule(severity, message, (entity) => {
         //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
         if (!entity.bufferLayer) {
             return false;
@@ -78,7 +92,7 @@ const isBufferOverlapping = (layerGroup: any) =>
         );
     });
 
-const isInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], message: string) =>
+const isNotInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], message: string) =>
     new Rule(severity, message, (entity) => {
         const layers = layerGroup.getLayers();
 
@@ -99,20 +113,6 @@ const isInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], messag
 
         return true;
     });
-
-/** Utility function to generate a rule generator function to be used with the editor */
-export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
-    return () => [
-        isWayTooBig(),
-        hasMissingFields(),
-        isBiggerThanNeeded(),
-        isSmallerThanNeeded(),
-        isOverlapping(groups.fireroad),
-        isBufferOverlapping(placementLayers),
-        isInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
-        // isInsideBoundaries(groups.placementareas, 2, 'Please note that you are outside the placement area!'),
-    ];
-}
 
 /** Utility function to calculate the ovelap between a geojson and layergroup */
 function _isGeoJsonOverlappingLayergroup(
