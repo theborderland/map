@@ -325,13 +325,56 @@
             .entity-onscreen-info {
                 position: absolute;
                 bottom: 0;
-                left: 50%;
+                left: 190px;
+                right: 100px;
                 z-index: 999;
                 color: #f9f9f9;
                 padding: 10px;
                 font-weight: bold;
                 font-size: 2rem;
                 font-family: Arial, Helvetica, sans-serif;
+                text-align: center;            }
+
+            .severity-3::before
+            {
+                background-color: rgb(255, 0, 0);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "NOT ALLOWED:"; /* Add a custom text or icon */
+            }
+
+            .severity-3
+            {
+                font-size: 14px;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            .severity-2::before
+            {
+                background-color: rgb(255, 132, 0);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "OOPS!:"; /* Add a custom text or icon */
+            }
+            
+            .severity-2
+            {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
+            }
+
+            .severity-1::before
+            {
+                background-color: rgb(32, 32, 32);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "PPST!:"; /* Add a custom text or icon */
+            }
+            
+            .severity-1
+            {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 12px;
             }
         </style>
 

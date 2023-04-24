@@ -109,6 +109,10 @@ export class Editor {
             await this.onLayerDoneEditing(prevEntity);
         }
 
+        if (this._isEditMode) {
+            this.UpdateOnScreenDisplay(nextEntity);
+        }
+
         // Select the next entity
         this._selected = nextEntity;
     }
@@ -124,26 +128,33 @@ export class Editor {
         // Show information popup for the entity
         if (display == 'info') {
             const content = document.createElement('div');
-            content.innerHTML = `<h2>${entity.name}</h2>
-                                 <h3>${entity.description}</h3>
-                                 <p>
-                                 <b>People:</b> ${entity.nrOfPeople}<br>
-                                 <b>Vehicles:</b> ${entity.nrOfVehicles}<br>
-                                 <b>Additional sqm:</b> ${entity.additionalSqm}<br>
-                                 <b>Power:</b> ${entity.powerNeed}<br>
-                                 </p>
-                                 <p>
-                                 <b>Calculated Area Need:</b> ${entity.calculatedAreaNeeded} sqm<br>
-                                 <b>Actual Area:</b> ${entity.area} sqm<br>
-                                 </p>`;
 
-            for (const rule of entity.getAllTriggeredRules()) {
+            const personText = entity.nrOfPeople === "1" ? 'person' : 'people';
+            const vehicleText = entity.nrOfVehicles === "1" ? 'vehicle' : 'vehicles';
+
+            content.innerHTML = `<h2>${entity.name}</h2>
+                                <p>${entity.description}</p>
+                               
+                                <p style="font-size:14px;"><b>${entity.nrOfPeople}</b> ${personText} and <b>${entity.nrOfVehicles}</b> ${vehicleText} together 
+                                with <b>${entity.additionalSqm}</b>m² of additional structures are here. They will need roughly <b>${entity.calculatedAreaNeeded}</b>m² </p>
+                                 
+                                <p style="font-size:14px;">
+                                    <b>Contact:</b> ${entity.contactInfo}
+                                    </br>
+                                    <b>Actual Area:</b> ${entity.area} m²
+                                    <b style="text-align:right;">Power need:</b> ${entity.powerNeed}
+                                </p> 
+                                `;
+
+            const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
+
+            for (const rule of sortedRules) {
                 if (rule.severity >= 3) {
-                    content.innerHTML += `<p><b>NOT ALLOWED!</b> ${rule.message}</p>`;
+                    content.innerHTML += `<p class="severity-3">${rule.message}</p>`;
                 } else if (rule.severity >= 2) {
-                    content.innerHTML += `<p><b>DANGER!</b> ${rule.message}</p>`;
+                    content.innerHTML += `<p class="severity-2">${rule.message}</p>`;
                 } else {
-                    content.innerHTML += `<p><b>PSST!</b> ${rule.message}</p>`;
+                    content.innerHTML += `<p class="severity-1">${rule.message}</p>`;
                 }
             }
 
@@ -167,9 +178,9 @@ export class Editor {
                 };
                 content.appendChild(editInfoButton);
 
-                const info = document.createElement('div');
-                info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
-                content.appendChild(info);
+                // const info = document.createElement('div');
+                // info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
+                // content.appendChild(info);
             }
 
             this._popup.setContent(content).openOn(this._map);
@@ -182,6 +193,7 @@ export class Editor {
             content.innerHTML = ``;
 
             content.appendChild(document.createElement('label')).innerHTML = 'Name:';
+            
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
@@ -194,9 +206,7 @@ export class Editor {
             content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('label')).innerHTML = 'Description:';
 
-            const descriptionField = document.createElement('input');
-            descriptionField.type = 'text';
-            descriptionField.height = 100;
+            const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
@@ -204,10 +214,20 @@ export class Editor {
             };
             content.appendChild(descriptionField);
 
+            const contactField = document.createElement('input');
+            contactField.type = 'text';
+            contactField.value = entity.contactInfo;
+            contactField.oninput = () => {
+                entity.contactInfo = contactField.value;
+                entity.checkAllRules();
+            };
+            content.appendChild(contactField);
+
             content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('label')).innerHTML = 'People:';
 
             const peopleField = document.createElement('input');
+            peopleField.width = 50;
             peopleField.type = 'number';
             peopleField.value = String(entity.nrOfPeople);
             peopleField.oninput = () => {
@@ -268,6 +288,9 @@ export class Editor {
                 deleteButton.classList.add('delete-button');
                 deleteButton.innerHTML = 'Delete';
                 deleteButton.onclick = async (e) => {
+                    if (!confirm('Are you sure you want to delete this entity?')) {
+                        return;
+                    }
                     e.stopPropagation();
                     e.preventDefault();
                     this.deleteAndRemoveEntity(entity);
@@ -293,7 +316,7 @@ export class Editor {
         // Stop editing
         entity.layer.pm.disable();
 
-        this.onScreenInfo.textContent = "";
+        this.UpdateOnScreenDisplay(null);
 
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
@@ -302,6 +325,21 @@ export class Editor {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
             this._map.removeLayer(entity.bufferLayer);
+        }
+    }
+
+    private UpdateOnScreenDisplay(entity: MapEntity | null) {
+        if (entity) {
+            this.onScreenInfo.textContent = entity.area + "m²";
+
+            for (const rule of entity.getAllTriggeredRules()) {
+                if (rule.severity >= 3) {
+                    this.onScreenInfo.textContent = rule.message;
+                }
+            }
+        }
+        else {
+            this.onScreenInfo.textContent = "";
         }
     }
 
@@ -344,7 +382,7 @@ export class Editor {
             entity.updateBufferedLayer();
             entity.checkAllRules();
             
-            this.onScreenInfo.textContent = entity.area + "m²";
+            this.UpdateOnScreenDisplay(entity);
         });
 
         // Update the buffered layer when the layer has a vertex removed
@@ -511,12 +549,15 @@ export class Editor {
     }
 }
 
-//TODO: Check if shapes are overlapping completely other shapes
+//TODO: Popup styling including all error messages
+//TODO: Add error msg to OnScreenInfo
 //TODO: Dont allow shapes to be placed outside the placement borders
-//TODO: How can different placement rules apply to different areas? Say, a much longer buffer for the meadows
-//TODO: Email verification. Simple or with PIN-code verification?
-//TODO: Lock-down the API so that only the admin can add and remove shapes
 //TODO: Instructions first time you use the editor
-//TODO: Styling for all error messages
-//TODO: Update Sqm while editing
+//TODO: Inactivate clicking other shapes when in edit mode
+
+//TODO: Update entites on a regular interval
+
 //TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+//TODO: Check if shapes are overlapping completely other shapes
+//TODO: How can different placement rules apply to different areas? Say, a much longer buffer for the meadows
+//TODO: Lock-down the API so that only the admin can add and remove shapes
