@@ -89,7 +89,7 @@ export class MapEntity implements EntityDTO {
     }
 
     public get severityOfRulesBroken(): number {
-        console.log("SEVERITY: " + this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0)); 
+        // console.log("SEVERITY: " + this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0)); 
         return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
     }
 
@@ -160,10 +160,10 @@ export class MapEntity implements EntityDTO {
 
         // Update layer style
         const severity = this.severityOfRulesBroken;
-        if (severity >= 2) {
+        if (severity >= 3) {
             //@ts-ignore
             this.layer.setStyle(DangerLayerStyle);
-        } else if (severity >= 1) {
+        } else if (severity == 2) {
             //@ts-ignore
             this.layer.setStyle(WarningLayerStyle);
         }
