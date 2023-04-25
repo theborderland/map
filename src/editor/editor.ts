@@ -2,7 +2,7 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
-import { buffer } from '@turf/turf';
+import * as Turf from '@turf/turf';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -360,6 +360,16 @@ export class Editor {
         //@ts-ignore
         const geoJson = layer.toGeoJSON();
 
+        //Use turf to check the area of the polygon
+        //@ts-ignore
+        const area = Turf.area(geoJson);
+        
+        if (area > 1000) {
+            alert("The area of the polygon is waaay to big. Draw something smaller.");
+            this._map.removeLayer(layer);
+            return;
+        }
+
         // Save it to the entity API
         const entity = await this._repository.createEntity(geoJson);
 
@@ -556,20 +566,3 @@ export class Editor {
         }
     }
 }
-
-//TODO: Make Start Placement more visible
-//TODO: Popup styling including all error messages
-//TODO: Add error msg to OnScreenInfo
-
-//TODO: Rule for high wattage use (INFO)
-//TODO: Rule for many points in area (INFO)
-//TODO: Dont allow shapes to be placed outside the placement borders
-//TODO: Instructions first time you use the editor
-//TODO: Inactivate clicking other shapes when in edit mode
-
-//TODO: Update entites on a regular interval
-
-//TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
-//TODO: Check if shapes are overlapping completely other shapes
-//TODO: How can different placement rules apply to different areas? Say, a much longer buffer for the meadows
-//TODO: Lock-down the API so that only the admin can add and remove shapes
