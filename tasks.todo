@@ -1,0 +1,19 @@
+EASY:
+    TODO: Block completely areas bigger than 1000m2
+    TODO: Remove snapping
+    TODO: Rule for high wattage use (INFO)
+    TODO: Rule for many points in area (INFO)
+    TODO: Instructions first time you use the editor
+    TODO: Inactivate clicking other shapes when in edit mode
+
+MEDIUM:
+    TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+
+HARD:
+    TODO: Update entites on a regular interval
+
+RESEEARCH:
+    TODO: How can different placement rules apply to different areas? 
+          Say, a much longer buffer for the meadows.
+    TODO: Lock-down the API so that only the admin can add and remove shapes
+    TODO: Simple HTTP Basic Auth with email + birthdate
