@@ -148,13 +148,18 @@ export class Editor {
 
             const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
 
-            for (const rule of sortedRules) {
-                if (rule.severity >= 3) {
-                    content.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
-                } else if (rule.severity >= 2) {
-                    content.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
-                } else {
-                    content.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
+            if (sortedRules.length > 0)
+            {
+                content.innerHTML += `<p><b>${sortedRules.length}</b> issues found:</p> `;
+
+                for (const rule of sortedRules) {
+                    if (rule.severity >= 3) {
+                        content.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
+                    } else if (rule.severity >= 2) {
+                        content.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
+                    } else {
+                        content.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
+                    }
                 }
             }
 
@@ -337,7 +342,7 @@ export class Editor {
 
             for (const rule of entity.getAllTriggeredRules()) {
                 if (rule.severity >= 3) {
-                    this.onScreenInfo.textContent = rule.message;
+                    this.onScreenInfo.textContent = rule.shortMessage;
                 }
             }
         }

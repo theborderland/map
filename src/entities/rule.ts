@@ -9,6 +9,7 @@ export class Rule {
     private _callback: (entity: MapEntity) => boolean;
 
     public readonly message: string;
+    public readonly shortMessage: string;
 
     public get severity(): number {
         return this._triggered ? this._severity : 0;
@@ -23,15 +24,16 @@ export class Rule {
         this._triggered = this._callback(entity);
         const a = this._triggered;
         if (a != b) {
-            console.log('changed to', a, this.message);
+            console.log('changed to', a, this.shortMessage);
         }
     }
 
-    constructor(severity: Rule['_severity'], message: string, callback: Rule['_callback']) {
+    constructor(severity: Rule['_severity'], shortMessage: string, message: string, callback: Rule['_callback']) {
         this._severity = severity;
         this._triggered = false;
         this._callback = callback;
 
+        this.shortMessage = shortMessage;
         this.message = message;
     }
 }
@@ -44,30 +46,30 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         isBiggerThanNeeded(),
         isSmallerThanNeeded(),
         isCalculatedAreaTooBig(),
-        isOverlapping(groups.fireroad, 3, 'This area is overlapping a fire road, adjust the placement plz <3'),
-        isBufferOverlapping(placementLayers, 3, 'Fire safety distance warning! The dotted line can not touch another area.'),
-        isNotInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
-        isNotInsideBoundaries(groups.highprio, 2, 'You are outside the placement area (yellow border)!'),
+        isOverlapping(groups.fireroad, 3, 'Watch the fireroad!','This area is overlapping a fire road, adjust the placement plz <3'),
+        isBufferOverlapping(placementLayers, 3, 'Too close!','Fire safety distance warning! The dotted line can not touch another area.'),
+        isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border.','You have placed yourself outside our land, please fix that <3'),
+        isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
     ];
 }
 
 const hasMissingFields = () =>
-    new Rule(2, 'Fill in name and description please.', (entity) => {
+    new Rule(2, 'Missing info', 'Fill in name and description please.', (entity) => {
         return !entity.name || !entity.description || !entity.contactInfo;
     });
 
 const isTooBig = () =>
-    new Rule(3, 'Area is too big! Max size for one area is 500 m². Add another so that a fire safety buffer is created in between.', (entity) => {
+    new Rule(3, 'Too big!', 'Area is too big! Max size for one area is 500 m². Add another so that a fire safety buffer is created in between.', (entity) => {
         return entity.area > MAX_SQM_FOR_ENTITY;
     });
 
 const isCalculatedAreaTooBig = () =>
-    new Rule(3, 'Calculated area need is bigger than the maximum allowed area size! Make another area to fix this.', (entity) => {
+    new Rule(3, 'Too many ppl/vehicles!', 'Calculated area need is bigger than the maximum allowed area size! Make another area to fix this.', (entity) => {
         return entity.calculatedAreaNeeded > MAX_SQM_FOR_ENTITY;
     });
 
 const isBiggerThanNeeded = () =>
-    new Rule(2, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
+    new Rule(2, 'Bigger than needed.', 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
         // return entity.area > entity.calculatedAreaNeeded * 1.5;
         const allowedArea = calculateAllowedArea(entity.calculatedAreaNeeded);
         console.log('calculatedAreaNeeded', entity.calculatedAreaNeeded, 'actual area', entity.area,'allowedArea', allowedArea)
@@ -94,19 +96,20 @@ function calculateAllowedArea(calculatedNeed: number): number {
 const isSmallerThanNeeded = () =>
     new Rule(
         2,
+        'Too small.',
         'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
         (entity) => {
             return entity.area < entity.calculatedAreaNeeded;
         },
     );
 
-const isOverlapping = (layerGroup: any, severity: Rule["_severity"], message: string) =>
-    new Rule(severity, message, (entity) => {
+const isOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+    new Rule(severity, shortMsg,message, (entity) => {
         return _isGeoJsonOverlappingLayergroup(entity.toGeoJSON(), layerGroup);
     });
 
-const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], message: string) =>
-    new Rule(severity, message, (entity) => {
+const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+    new Rule(severity, shortMsg, message, (entity) => {
         //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
         if (!entity.bufferLayer) {
             return false;
@@ -118,8 +121,8 @@ const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], messa
         );
     });
 
-const isNotInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], message: string) =>
-    new Rule(severity, message, (entity) => {
+const isNotInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+    new Rule(severity, shortMsg, message, (entity) => {
         const layers = layerGroup.getLayers();
 
         for (const layer of layers) {
