@@ -39,31 +39,57 @@ export class Rule {
 /** Utility function to generate a rule generator function to be used with the editor */
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
-        isWayTooBig(),
-        hasMissingFields(),
+        // isTooBig(),
+        // hasMissingFields(),
         isBiggerThanNeeded(),
-        isSmallerThanNeeded(),
-        isOverlapping(groups.fireroad, 3, 'This area is overlapping a fire road, please fix that <3'),
-        isBufferOverlapping(placementLayers, 3, 'Fire distance to another area! The dotted line can not touch another area.'),
+        // isSmallerThanNeeded(),
+        // isCalculatedAreaTooBig(),
+        // isOverlapping(groups.fireroad, 3, 'This area is overlapping a fire road, please fix that <3'),
+        // isBufferOverlapping(placementLayers, 3, 'Fire safety distance warning! The dotted line can not touch another area.'),
         // isNotInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
         // isNotInsideBoundaries(groups.placementareas, 2, 'Please note that you are outside the placement area!'),
     ];
 }
 
 const hasMissingFields = () =>
-    new Rule(1, 'Fill in name and description please.', (entity) => {
-        return !entity.name || !entity.description;
+    new Rule(2, 'Fill in name and description please.', (entity) => {
+        return !entity.name || !entity.description || !entity.contactInfo;
     });
 
-const isWayTooBig = () =>
-    new Rule(2, 'Your area is way to big! Max size for one area is 500 m²', (entity) => {
+const isTooBig = () =>
+    new Rule(3, 'Area is too big! Max size for one area is 500 m². Add another so that a fire safety buffer is created in between.', (entity) => {
         return entity.area > MAX_SQM_FOR_ENTITY;
     });
 
-const isBiggerThanNeeded = () =>
-    new Rule(1, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
-        return entity.area > entity.calculatedAreaNeeded * 1.5;
+const isCalculatedAreaTooBig = () =>
+    new Rule(3, 'Calculated area need is bigger than the maximum allowed area size! Make another area to fix this.', (entity) => {
+        return entity.calculatedAreaNeeded > MAX_SQM_FOR_ENTITY;
     });
+
+const isBiggerThanNeeded = () =>
+    new Rule(2, 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
+        // return entity.area > entity.calculatedAreaNeeded * 1.5;
+        const allowedArea = calculateAllowedArea(entity.calculatedAreaNeeded);
+        console.log('calculatedAreaNeeded', entity.calculatedAreaNeeded, 'actual area', entity.area,'allowedArea', allowedArea)
+        return entity.area > allowedArea;
+    });
+
+function calculateAllowedArea(calculatedNeed: number): number {
+  // Define constants for the power function
+  const a = 0.5; // Controls the initial additional area
+  const b = -0.2; // Controls the rate of decrease of the additional area
+
+  // Calculate the additional area percentage using a power function
+  const additionalArea = a * Math.pow(calculatedNeed, b);
+
+  // Clamp the additional area between 0 and a
+  const clampedAdditionalArea = Math.max(0, Math.min(additionalArea, a));
+
+  // Calculate the allowed area
+  const allowedArea = Math.min(calculatedNeed * (1 + clampedAdditionalArea), MAX_SQM_FOR_ENTITY);
+  
+  return allowedArea;
+}
 
 const isSmallerThanNeeded = () =>
     new Rule(
