@@ -39,8 +39,8 @@ export class MapEntity implements EntityDTO {
     private _rules: Array<Rule>;
     private _originalGeoJson: string;
     private readonly _bufferWidth: number = 4;
-    private readonly _sqmPerPerson: number = 10;
-    private readonly _sqmPerVehicle: number = 50;
+    private readonly _sqmPerPerson: number = 12;
+    private readonly _sqmPerVehicle: number = 75;
 
     public readonly id: number;
     public readonly revision: number;
