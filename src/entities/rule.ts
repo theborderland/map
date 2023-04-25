@@ -42,6 +42,7 @@ export class Rule {
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
         isTooBig(),
+        hasManyCoordinates(),
         hasMissingFields(),
         isBiggerThanNeeded(),
         isSmallerThanNeeded(),
@@ -53,14 +54,21 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
     ];
 }
 
-const hasMissingFields = () =>
-    new Rule(2, 'Missing info', 'Fill in name and description please.', (entity) => {
-        return !entity.name || !entity.description || !entity.contactInfo;
-    });
-
 const isTooBig = () =>
     new Rule(3, 'Too big!', 'Area is too big! Max size for one area is 500 m². Add another so that a fire safety buffer is created in between.', (entity) => {
         return entity.area > MAX_SQM_FOR_ENTITY;
+    });
+
+const hasManyCoordinates = () =>
+    new Rule(1, 'Many points.', 'You have added many points to this shape. Bear in mind that you will have to set this shape up in reality as well :)', (entity) => {
+        const geoJson = entity.toGeoJSON();
+        //Dont know why I have to use [0] here, but it works
+        return geoJson.geometry.coordinates[0].length > 6;
+    });
+
+const hasMissingFields = () =>
+    new Rule(2, 'Missing info', 'Fill in name and description please.', (entity) => {
+        return !entity.name || !entity.description || !entity.contactInfo;
     });
 
 const isCalculatedAreaTooBig = () =>
@@ -70,9 +78,7 @@ const isCalculatedAreaTooBig = () =>
 
 const isBiggerThanNeeded = () =>
     new Rule(2, 'Bigger than needed.', 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
-        // return entity.area > entity.calculatedAreaNeeded * 1.5;
         const allowedArea = calculateAllowedArea(entity.calculatedAreaNeeded);
-        console.log('calculatedAreaNeeded', entity.calculatedAreaNeeded, 'actual area', entity.area,'allowedArea', allowedArea)
         return entity.area > allowedArea;
     });
 

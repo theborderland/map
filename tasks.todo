@@ -1,9 +1,11 @@
+FIRST BETA TEST:
+    TODO: Instructions first time you use the editor
+
 EASY:
-    TODO: Block completely areas bigger than 1000m2
+    DONE: Block completely areas bigger than 1000m2
     TODO: Remove snapping
     TODO: Rule for high wattage use (INFO)
-    TODO: Rule for many points in area (INFO)
-    TODO: Instructions first time you use the editor
+    DONE: Rule for many points in area (INFO)
     TODO: Inactivate clicking other shapes when in edit mode
 
 MEDIUM:
