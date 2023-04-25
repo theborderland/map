@@ -326,6 +326,8 @@ export class Editor {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
             this._map.removeLayer(entity.bufferLayer);
+            this._placementLayers.removeLayer(entity.layer);
+            this._placementBufferLayers.removeLayer(entity.bufferLayer);
         }
     }
 
