@@ -39,15 +39,15 @@ export class Rule {
 /** Utility function to generate a rule generator function to be used with the editor */
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
-        // isTooBig(),
-        // hasMissingFields(),
+        isTooBig(),
+        hasMissingFields(),
         isBiggerThanNeeded(),
-        // isSmallerThanNeeded(),
-        // isCalculatedAreaTooBig(),
-        // isOverlapping(groups.fireroad, 3, 'This area is overlapping a fire road, please fix that <3'),
-        // isBufferOverlapping(placementLayers, 3, 'Fire safety distance warning! The dotted line can not touch another area.'),
-        // isNotInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
-        // isNotInsideBoundaries(groups.placementareas, 2, 'Please note that you are outside the placement area!'),
+        isSmallerThanNeeded(),
+        isCalculatedAreaTooBig(),
+        isOverlapping(groups.fireroad, 3, 'This area is overlapping a fire road, adjust the placement plz <3'),
+        isBufferOverlapping(placementLayers, 3, 'Fire safety distance warning! The dotted line can not touch another area.'),
+        isNotInsideBoundaries(groups.propertyborder, 3, 'You have placed yourself outside our land, please fix that <3'),
+        isNotInsideBoundaries(groups.highprio, 2, 'You are outside the placement area (yellow border)!'),
     ];
 }
 
@@ -93,7 +93,7 @@ function calculateAllowedArea(calculatedNeed: number): number {
 
 const isSmallerThanNeeded = () =>
     new Rule(
-        1,
+        2,
         'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
         (entity) => {
             return entity.area < entity.calculatedAreaNeeded;
