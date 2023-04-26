@@ -298,20 +298,6 @@
                 width: auto; 
                 font-size: 1.3em;
             }
-
-            .instructions {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 80%;
-                height: 50%;
-                max-width: 500px;
-                max-height: 400px;
-                background-color: #f1f1f1; /* Change the background color as desired */
-                border-radius: 10px;
-                z-index: 999;
-            }
         </style>
 
         <style>
@@ -449,10 +435,50 @@
                 height: 100%;
                 width: 100vw;
             }
+
+            .instructions {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 80%;
+                /* height: 70%;  */
+                max-width: 500px;
+                max-height: 500px;
+                background-color: #f1f1f1; /* Change the background color as desired */
+                border-radius: 10px;
+                z-index: 999;
+                padding: 20px;
+                font-family: Arial, Helvetica, sans-serif;
+            }
         </style>
     </head>
     <body>
-        <div hidden class="instructions">Det här är instruktioner</div>
+        <div hidden class="instructions">
+            <div id="pageOne">
+                <h2 style="margin-top: 0;">Welcome!</h2>
+                <p>
+                    You have now entered the edit mode for the placement process of The Borderland 2023.
+                    You have a lot of power here, but with great power comes great responsibility! This is a co-created effort,
+                    so please be respectful of other people's work and ideas. Do not delete or change anything that is not yours, 
+                    without asking first (Discord is the best way to do this). <br><br>
+                    If you questions or need support, please ask in 🚩Placement -> 🏴general.
+                </p>
+            </div>
+            <div hidden id="pageTwo">
+                <h2 style="margin-top: 0;">Instructions</h2>
+                <p>
+                    The main area for The Borderland 2023 is within the yellow border. Try to stay within that.<br><br>
+                    <b>1. </b>Clicking <i>"+ Add Shape"</i> will let you draw a shape on the map.<br>
+                    <b>2. </b>After adding it, please fill in all text fields, and extra info.<br>
+                    <b>3. </b>Clicking on a shape will let you edit the shape or the info.<br><br>
+
+                    The system will warn you if you are on a fireroad, too close to another camp/area and so on. Please try 
+                    to fix as many issues as possible.<br><br>
+                    <i>At the moment the page is not auto-reloading, so please refresh the page to see other peoples changes.</i>
+                </p>
+            </div>
+        </div>
         <div class="entity-onscreen-info"></div>
         <div id="map"></div>
         <script src="bundle.js"></script>

@@ -197,7 +197,7 @@ export class Editor {
             const content = document.createElement('div');
             content.innerHTML = ``;
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Name';
+            content.appendChild(document.createElement('label')).innerHTML = 'Name of camp/project';
             
             const nameField = document.createElement('input');
             nameField.type = 'text';
@@ -219,7 +219,7 @@ export class Editor {
             };
             content.appendChild(descriptionField);
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Contact info';
+            content.appendChild(document.createElement('label')).innerHTML = 'Contact info (Name/email/discord)';
             const contactField = document.createElement('input');
             contactField.type = 'text';
             contactField.value = entity.contactInfo;
@@ -544,6 +544,7 @@ export class Editor {
                 btn.onclick = () => {
                     this.toggleEditMode();
                     btn.textContent = this._isEditMode ? 'Exit edit mode' : 'Start Placement!';
+                    btn.title = this._isEditMode ? 'Exit edit mode' : 'Start Placement!';
                 };
 
                 return btn;
@@ -553,10 +554,19 @@ export class Editor {
         this._map.addControl(new customButton());
     }
 
-    public toggleEditMode() {
+    public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
-        this.ShowInstructions();
+        // if (localStorage.getItem("hasSeenInstructions") == null)
+        // {
+        //     localStorage.setItem("hasSeenInstructions", "true");
+
+            // Show instructions when entering edit mode, and wait for the user 
+            // to press a button on that screen before continuing
+            if (this._isEditMode){
+                await this.ShowInstructionsScreenAndWait();
+            }
+        // }
 
         //Make sure to update the contents of the popup when changing edit mode
         //so that the correct buttons are shown
@@ -571,13 +581,49 @@ export class Editor {
         });
     }
 
-    ShowInstructions() {
-        //Show instructions on how to use the editor. Use the .instruction class
-        //to style the instructions
-        const instructions = document.querySelector(".instructions");
+    ShowInstructionsScreenAndWait() {
+        return new Promise((resolve) => {
+            const instructions = document.querySelector(".instructions");
+            const pageOne = document.getElementById("pageOne");
+            const pageTwo = document.getElementById("pageTwo");
 
-        //Remove the hidden attribute from the instructions
-        if (instructions) instructions.removeAttribute("hidden");
+            if (instructions != null && pageOne != null && pageTwo != null)
+            {
+                //Inactivate the customButton
+                const customButton = document.querySelector(".placement-btn");
+                customButton?.setAttribute("disabled", "");
+
+                //Show the instructions screen
+                instructions.removeAttribute("hidden");   
+                
+                //Create the content for pageOne
+                const nextButton = document.createElement('button');
+                //Center this button in its div
+                nextButton.style.margin = "auto";
+                nextButton.style.display = "block";
+                nextButton.innerHTML = 'NEXT >';
+                nextButton.onclick = (e) => {
+                    pageOne.setAttribute("hidden", "");
+                    pageTwo.removeAttribute("hidden");
+                };
+                pageOne.appendChild(nextButton);
+
+                //Create the content for pageTwo
+                const okButton = document.createElement('button');
+                //Center this button in its div
+                okButton.style.margin = "auto";
+                okButton.style.display = "block";
+                okButton.innerHTML = 'Let\'s go!';
+                okButton.onclick = (e) => {
+                    instructions.setAttribute("hidden", "");
+                    resolve(true);
+                }
+                pageTwo.appendChild(okButton);
+            }
+            else {
+                resolve(true);
+            }
+        });
         
     }
 
