@@ -1,22 +1,27 @@
 FIRST BETA TEST:
-    TODO: Instructions first time you use the editor
+    DONE: Placemarks for toilets and water
+    DONE: Instructions first time you use the editor
+
+SECOND ITERATION:
 
 EASY:
-    DONE: Block completely areas bigger than 1000m2
     TODO: Remove snapping
-    DONE: Rule for high wattage use (INFO)
-    DONE: Rule for many points in area (INFO)
     TODO: Inactivate clicking other shapes when in edit mode
     TODO: Notify users if they are placing on 'hiddenforbidden'
+    TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+    DONE: Block areas to be edited beyong 1000m2
+    DONE: Block completely areas bigger than 1000m2
+    DONE: Rule for high wattage use (INFO)
+    DONE: Rule for many points in area (INFO)
 
 MEDIUM:
-    TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+    TODO: Implement PostHog analytics
+    TODO: Simple HTTP Basic Auth with email + birthdate
 
 HARD:
     TODO: Update entites on a regular interval
 
 RESEEARCH:
+    TODO: Lock-down the API so that only the admin can add and remove shapes
     TODO: How can different placement rules apply to different areas? 
           Say, a much longer buffer for the meadows.
-    TODO: Lock-down the API so that only the admin can add and remove shapes
-    TODO: Simple HTTP Basic Auth with email + birthdate

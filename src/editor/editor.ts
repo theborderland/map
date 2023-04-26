@@ -133,17 +133,16 @@ export class Editor {
             const personText = entity.nrOfPeople === "1" ? 'person' : 'people';
             const vehicleText = entity.nrOfVehicles === "1" ? 'vehicle' : 'vehicles';
 
-            content.innerHTML = `<h2>${DOMPurify.sanitize(entity.name)}</h2>
+            content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entity.name)}</h2>
+                                <div style="font-size: 12px; color:#5c5c5c;">${entity.area} m² - <b>${entity.nrOfPeople}</b> ${personText}, <b>${entity.nrOfVehicles}</b> ${vehicleText} and <b>${entity.additionalSqm}</b>m² other</div>
                                 <p class="scrollable">${DOMPurify.sanitize(entity.description)}</p>
-                               
-                                <p style="font-size:14px;"><b>${entity.nrOfPeople}</b> ${personText} and <b>${entity.nrOfVehicles}</b> ${vehicleText} together 
-                                with <b>${entity.additionalSqm}</b>m² of additional structures are here. They will need roughly <b>${entity.calculatedAreaNeeded}</b>m² </p>
                                  
                                 <p style="font-size:14px;">
-                                    <b>Contact:</b> ${DOMPurify.sanitize(entity.contactInfo)}   
+                                    <b>Contact info:</b> ${DOMPurify.sanitize(entity.contactInfo)}   
                                     </br>
-                                    <b>Actual Area:</b> ${entity.area} m²
                                     <b style="text-align:right;">Power need:</b> ${entity.powerNeed} Watts
+                                    </br>
+                                    <b style="text-align:right;">Area need:</b> At least ${entity.calculatedAreaNeeded}m²
                                 </p> 
                                 `;
 
@@ -177,6 +176,8 @@ export class Editor {
 
                 const editInfoButton = document.createElement('button');
                 editInfoButton.innerHTML = 'Edit info';
+                editInfoButton.style.position = 'absolute';
+                editInfoButton.style.right = '20px';
                 editInfoButton.onclick = (e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -234,8 +235,7 @@ export class Editor {
             content.appendChild(document.createElement('label')).innerHTML = 'People in tents';
 
             const peopleField = document.createElement('input');
-            peopleField.size = 4;
-            peopleField.maxLength = 3;
+            peopleField.style.width = '5em';
             peopleField.type = 'number';
             peopleField.value = String(entity.nrOfPeople);
             peopleField.min = '0';
@@ -249,8 +249,7 @@ export class Editor {
             content.appendChild(document.createElement('label')).innerHTML = 'Vehicles';
 
             const vehiclesField = document.createElement('input');
-            vehiclesField.size = 4;
-            vehiclesField.maxLength = 2;
+            vehiclesField.style.width = '5em';
             vehiclesField.type = 'number';
             vehiclesField.value = String(entity.nrOfVehicles);
             vehiclesField.min = '0';
@@ -264,8 +263,7 @@ export class Editor {
             content.appendChild(document.createElement('label')).innerHTML = 'Other m²';
 
             const otherSqm = document.createElement('input');
-            otherSqm.size = 4;
-            otherSqm.maxLength = 3;
+            otherSqm.style.width = '5em';
             otherSqm.type = 'number';
             otherSqm.value = String(entity.additionalSqm);
             otherSqm.min = '0';
@@ -279,8 +277,7 @@ export class Editor {
             content.appendChild(document.createElement('label')).innerHTML = 'Power need (Watts)';
 
             const powerField = document.createElement('input');
-            powerField.size = 6;
-            powerField.maxLength = 5;
+            powerField.style.width = '5em';
             powerField.type = 'number';
             powerField.value = String(entity.powerNeed);
             powerField.min = '0';
@@ -296,6 +293,7 @@ export class Editor {
             if (this._isEditMode) {
                 const saveInfoButton = document.createElement('button');
                 saveInfoButton.innerHTML = 'Save';
+                saveInfoButton.style.width = '200px';
                 saveInfoButton.onclick = async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
@@ -306,8 +304,9 @@ export class Editor {
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('delete-button');
                 deleteButton.innerHTML = 'Delete';
+                deleteButton.style.marginRight = '0';
                 deleteButton.onclick = async (e) => {
-                    if (!confirm('Are you sure you want to delete this entity?')) {
+                    if (!confirm('Are you really sure you should delete this area?')) {
                         return;
                     }
                     e.stopPropagation();
@@ -336,6 +335,11 @@ export class Editor {
         entity.layer.pm.disable();
 
         this.UpdateOnScreenDisplay(null);
+
+        if (this.IsAreaTooBig(entity.toGeoJSON())) {
+            alert("The area of the polygon is waaay to big. It will not be saved, please change it.");
+            return;
+        }
 
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
@@ -373,11 +377,7 @@ export class Editor {
         //@ts-ignore
         const geoJson = layer.toGeoJSON();
 
-        //Use turf to check the area of the polygon
-        //@ts-ignore
-        const area = Turf.area(geoJson);
-        
-        if (area > 1000) {
+        if (this.IsAreaTooBig(geoJson)) {
             alert("The area of the polygon is waaay to big. Draw something smaller.");
             this._map.removeLayer(layer);
             return;
@@ -412,13 +412,20 @@ export class Editor {
         entity.layer.on('pm:markerdrag', () => {
             entity.updateBufferedLayer();
             entity.checkAllRules();
-            
             this.UpdateOnScreenDisplay(entity);
+        });
+
+        entity.layer.on('pm:markerdragend', () => {
+            if (this.IsAreaTooBig(entity.toGeoJSON())) {
+                alert("The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.");
+            }
         });
 
         // Update the buffered layer when the layer has a vertex removed
         entity.layer.on('pm:vertexremoved', () => {
             entity.updateBufferedLayer();
+            entity.checkAllRules(); //important that the buffer get updated before the rules are checked
+            this.UpdateOnScreenDisplay(entity);
         });
 
         //Instead of adding directly to the map, add the layer and its buffer to the layergroups
@@ -434,6 +441,12 @@ export class Editor {
         }
 
         entity.checkAllRules();
+    }
+    private IsAreaTooBig(geoJson: any) {
+        const area = Turf.area(geoJson);
+        
+        if (area > 1000) return true;
+        return false;
     }
 
     private deleteAndRemoveEntity(entity: MapEntity) {
