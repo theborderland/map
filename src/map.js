@@ -1,7 +1,6 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
-import 'leaflet-hash-plus';
 import '@geoman-io/leaflet-geoman-free';
 
 import { showBetaMsg } from './betaMsg';
