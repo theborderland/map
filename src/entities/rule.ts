@@ -43,6 +43,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
     return () => [
         isTooBig(),
         hasManyCoordinates(),
+        hasLargeEnergyNeed(),
         hasMissingFields(),
         isBiggerThanNeeded(),
         isSmallerThanNeeded(),
@@ -64,6 +65,11 @@ const hasManyCoordinates = () =>
         const geoJson = entity.toGeoJSON();
         //Dont know why I have to use [0] here, but it works
         return geoJson.geometry.coordinates[0].length > 6;
+    });
+
+const hasLargeEnergyNeed = () =>
+    new Rule(1, 'Powerful.', 'You need a lot of power, make sure its not a typo.', (entity) => {
+        return entity.powerNeed > 6000;
     });
 
 const hasMissingFields = () =>
