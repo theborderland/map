@@ -56,8 +56,9 @@
             {
                 display: inline-block;
                 font-size: large;
-                width: 40%;
+                width: 68%;
                 text-align: left;
+                font-weight: bold;
             }
 
             button
@@ -298,6 +299,19 @@
                 font-size: 1.3em;
             }
 
+            .instructions {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 80%;
+                height: 50%;
+                max-width: 500px;
+                max-height: 400px;
+                background-color: #f1f1f1; /* Change the background color as desired */
+                border-radius: 10px;
+                z-index: 999;
+            }
         </style>
 
         <style>
@@ -438,6 +452,7 @@
         </style>
     </head>
     <body>
+        <div hidden class="instructions">Det här är instruktioner</div>
         <div class="entity-onscreen-info"></div>
         <div id="map"></div>
         <script src="bundle.js"></script>

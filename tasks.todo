@@ -4,9 +4,10 @@ FIRST BETA TEST:
 EASY:
     DONE: Block completely areas bigger than 1000m2
     TODO: Remove snapping
-    TODO: Rule for high wattage use (INFO)
+    DONE: Rule for high wattage use (INFO)
     DONE: Rule for many points in area (INFO)
     TODO: Inactivate clicking other shapes when in edit mode
+    TODO: Notify users if they are placing on 'hiddenforbidden'
 
 MEDIUM:
     TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)

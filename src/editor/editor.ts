@@ -197,7 +197,7 @@ export class Editor {
             const content = document.createElement('div');
             content.innerHTML = ``;
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Name:';
+            content.appendChild(document.createElement('label')).innerHTML = 'Name';
             
             const nameField = document.createElement('input');
             nameField.type = 'text';
@@ -209,7 +209,7 @@ export class Editor {
             content.appendChild(nameField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Description:';
+            content.appendChild(document.createElement('label')).innerHTML = 'Description';
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
@@ -219,7 +219,7 @@ export class Editor {
             };
             content.appendChild(descriptionField);
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Contact info:';
+            content.appendChild(document.createElement('label')).innerHTML = 'Contact info';
             const contactField = document.createElement('input');
             contactField.type = 'text';
             contactField.value = entity.contactInfo;
@@ -230,12 +230,14 @@ export class Editor {
             content.appendChild(contactField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'People:';
+            content.appendChild(document.createElement('label')).innerHTML = 'People in tents';
 
             const peopleField = document.createElement('input');
-            peopleField.width = 50;
+            peopleField.size = 4;
+            peopleField.maxLength = 3;
             peopleField.type = 'number';
             peopleField.value = String(entity.nrOfPeople);
+            peopleField.min = '0';
             peopleField.oninput = () => {
                 entity.nrOfPeople = peopleField.value;
                 entity.checkAllRules();
@@ -243,11 +245,14 @@ export class Editor {
             content.appendChild(peopleField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Vehicles:';
+            content.appendChild(document.createElement('label')).innerHTML = 'Vehicles';
 
             const vehiclesField = document.createElement('input');
+            vehiclesField.size = 4;
+            vehiclesField.maxLength = 2;
             vehiclesField.type = 'number';
             vehiclesField.value = String(entity.nrOfVehicles);
+            vehiclesField.min = '0';
             vehiclesField.oninput = () => {
                 entity.nrOfVehicles = vehiclesField.value;
                 entity.checkAllRules();
@@ -255,11 +260,14 @@ export class Editor {
             content.appendChild(vehiclesField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Additional sqm:';
+            content.appendChild(document.createElement('label')).innerHTML = 'Other m²';
 
             const otherSqm = document.createElement('input');
+            otherSqm.size = 4;
+            otherSqm.maxLength = 3;
             otherSqm.type = 'number';
             otherSqm.value = String(entity.additionalSqm);
+            otherSqm.min = '0';
             otherSqm.oninput = () => {
                 entity.additionalSqm = otherSqm.value;
                 entity.checkAllRules();
@@ -267,12 +275,16 @@ export class Editor {
             content.appendChild(otherSqm);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Power need:';
+            content.appendChild(document.createElement('label')).innerHTML = 'Power need (Watts)';
 
             const powerField = document.createElement('input');
+            powerField.size = 6;
+            powerField.maxLength = 5;
             powerField.type = 'number';
             powerField.value = String(entity.powerNeed);
+            powerField.min = '0';
             powerField.oninput = () => {
+                //@ts-ignore
                 entity.powerNeed = powerField.value;
                 entity.checkAllRules();
             };
@@ -544,6 +556,8 @@ export class Editor {
     public toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
+        this.ShowInstructions();
+
         //Make sure to update the contents of the popup when changing edit mode
         //so that the correct buttons are shown
         this.setPopup('info', this._selected);
@@ -555,6 +569,16 @@ export class Editor {
         this._map.pm.addControls({
             drawPolygon: this._isEditMode,
         });
+    }
+
+    ShowInstructions() {
+        //Show instructions on how to use the editor. Use the .instruction class
+        //to style the instructions
+        const instructions = document.querySelector(".instructions");
+
+        //Remove the hidden attribute from the instructions
+        if (instructions) instructions.removeAttribute("hidden");
+        
     }
 
     /** Add each existing map entity from the API as an editable layer */
