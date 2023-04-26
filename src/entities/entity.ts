@@ -56,7 +56,7 @@ export class MapEntity implements EntityDTO {
     public nrOfPeople: string;
     public nrOfVehicles: string;
     public additionalSqm: string;
-    public powerNeed: string;
+    public powerNeed: number;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -146,7 +146,7 @@ export class MapEntity implements EntityDTO {
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
-        this.powerNeed = geoJson.properties.powerNeed ?? '0';
+        this.powerNeed = geoJson.properties.powerNeed ?? 0;
         
         this.checkAllRules();
         this.updateBufferedLayer();
