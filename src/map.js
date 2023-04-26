@@ -37,6 +37,7 @@ export const createMap = async () => {
     }).addTo(map);
 
     map.groups.poi = await loadPoiFromGoogleCsv();
+    map.groups.poi.addTo(map);
 
     await showBetaMsg();
     
