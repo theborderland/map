@@ -20,12 +20,12 @@ export class Rule {
     }
 
     public checkRule(entity: MapEntity) {
-        const b = this._triggered;
+        // const b = this._triggered;
         this._triggered = this._callback(entity);
-        const a = this._triggered;
-        if (a != b) {
-            console.log('changed to', a, this.shortMessage);
-        }
+        // const a = this._triggered;
+        // if (a != b) {
+        //     console.log('changed to', a, this.shortMessage);
+        // }
     }
 
     constructor(severity: Rule['_severity'], shortMessage: string, message: string, callback: Rule['_callback']) {

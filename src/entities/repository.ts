@@ -26,7 +26,7 @@ export class MapEntityRepository {
     private async _update(): Promise<void> {
         const res = await fetch(ENTITY_API_ADDRESS);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
-        console.log('[API]', 'Fetched entities from server', entityDTOs);
+        // console.log('[API]', 'Fetched entities from server', entityDTOs);
         this._latestRevisions = {};
         for (const data of entityDTOs) {
             if (this._entityConstraints) {

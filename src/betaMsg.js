@@ -1,7 +1,6 @@
 export const showBetaMsg = async () => {
     return new Promise((resolve) => {
             const instructions = document.getElementById("betaMsg");
-            console.log(instructions);
             if (instructions != null)
             {
                 //Show the instructions screen
