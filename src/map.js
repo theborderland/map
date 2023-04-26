@@ -36,6 +36,8 @@ export const createMap = async () => {
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
 
+    map.groups.poi = await loadPoiFromGoogleCsv();
+
     await showBetaMsg();
     
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
@@ -70,8 +72,6 @@ export const createMap = async () => {
         maxNativeZoom: 17,
         tms: false
       });
-      
-    map.groups.poi = await loadPoiFromGoogleCsv();
 
     // map.groups.power_menu = (new L.LayerGroup());
 
