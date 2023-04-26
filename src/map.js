@@ -7,6 +7,7 @@ import '@geoman-io/leaflet-geoman-free';
 
 import { showBetaMsg } from './betaMsg';
 
+import { loadPoiFromGoogleCsv } from './loaders/loadPoiFromGoogleCSV';
 import { loadGeoJsonFeatureCollections } from './loaders/loadGeoJsonFeatureCollections';
 import { getStyleFunction } from './layerstyles';
 
@@ -70,7 +71,8 @@ export const createMap = async () => {
         tms: false
       });
       
-    // map.groups.poi_menu = (new L.LayerGroup()).addTo(map);
+    map.groups.poi = await loadPoiFromGoogleCsv();
+
     // map.groups.power_menu = (new L.LayerGroup());
 
     var extraLayers = {
@@ -78,6 +80,7 @@ export const createMap = async () => {
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
+        POI: map.groups.poi,
         // "Power": map.groups.power_menu,
     };
 
