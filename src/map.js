@@ -5,7 +5,7 @@ import '@geoman-io/leaflet-geoman-free';
 
 import { showBetaMsg } from './betaMsg';
 
-import { loadPoiFromGoogleCsv } from './loaders/loadPoiFromGoogleCSV';
+import { loadPoiFromGoogleCsv } from './loaders/loadPoiFromGoogleCsv';
 import { loadGeoJsonFeatureCollections } from './loaders/loadGeoJsonFeatureCollections';
 import { getStyleFunction } from './layerstyles';
 
