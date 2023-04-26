@@ -3,7 +3,6 @@ import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import 'leaflet-hash-plus';
 import '@geoman-io/leaflet-geoman-free';
-// import 'leaflet-search';
 
 import { showBetaMsg } from './betaMsg';
 
@@ -16,6 +15,7 @@ import { loadImageOverlay } from './loaders/loadImageOverlay';
 import { loadDrawnMap } from './loaders/loadDrawnMap';
 
 import { addLegends } from './loaders/addLegends';
+// import 'leaflet-search';
 // import { addSearch } from './utils/searchControl';
 
 
