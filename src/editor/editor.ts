@@ -558,16 +558,16 @@ export class Editor {
     public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
-        // if (localStorage.getItem("hasSeenInstructions") == null)
-        // {
-        //     localStorage.setItem("hasSeenInstructions", "true");
+        if (localStorage.getItem("hasSeenInstructions") == null)
+        {
+            localStorage.setItem("hasSeenInstructions", "true");
 
             // Show instructions when entering edit mode, and wait for the user 
             // to press a button on that screen before continuing
             if (this._isEditMode){
                 await this.ShowInstructionsScreenAndWait();
             }
-        // }
+        }
 
         //Make sure to update the contents of the popup when changing edit mode
         //so that the correct buttons are shown
