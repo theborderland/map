@@ -1,9 +1,11 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
-// import 'leaflet-hash-plus';
+import 'leaflet-hash-plus';
 import '@geoman-io/leaflet-geoman-free';
 // import 'leaflet-search';
+
+import { showBetaMsg } from './betaMsg';
 
 import { loadGeoJsonFeatureCollections } from './loaders/loadGeoJsonFeatureCollections';
 import { getStyleFunction } from './layerstyles';
@@ -20,17 +22,11 @@ import { Editor } from './editor';
 
 export const createMap = async () => {
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true }).setView(
-        [57.6226, 14.9293],
-        18,
+        [57.6226, 14.9276],
+        16,
     );
-
-    // Map feature layers, the below functions add
+    
     map.groups = {};
-
-    await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
-
-    const editor = new Editor(map, map.groups);
 
     // Base layers
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -38,6 +34,14 @@ export const createMap = async () => {
         maxNativeZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
+
+    await showBetaMsg();
+    
+    await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
+    await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
+    
+    //Initialize the editor (it loads it data at the end)
+    const editor = new Editor(map, map.groups);
 
     map.groups.drawnmap = await loadDrawnMap(map);
     
@@ -89,10 +93,8 @@ export const createMap = async () => {
 
     // await addSearch(map);
 
-    // let hash = new L.Hash(map);  // Makes the URL follow the map. BUGGY
+    let hash = new L.Hash(map);  // Makes the URL follow the map. BUGGY
 
-    // Add editable layers
+    //Load all entities from the API
     await editor.addAPIEntities();
-
-    // startTraking(map);
 };

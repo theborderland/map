@@ -497,8 +497,6 @@ export class Editor {
         // Disable edit mode on all layers by default
         L.PM.setOptIn(true);
 
-        this.AddToggleEditButton();
-
         // add controls for creating and editing shapes to the map
         this._map.pm.addControls({
             position: 'bottomleft',
@@ -527,6 +525,8 @@ export class Editor {
         });
 
         this.onScreenInfo = document.querySelector(".entity-onscreen-info");
+
+        this.AddToggleEditButton();
     }
 
     private AddToggleEditButton() {
@@ -583,7 +583,7 @@ export class Editor {
 
     ShowInstructionsScreenAndWait() {
         return new Promise((resolve) => {
-            const instructions = document.querySelector(".instructions");
+            const instructions = document.getElementById("editMsg");
             const pageOne = document.getElementById("pageOne");
             const pageTwo = document.getElementById("pageTwo");
 
@@ -616,6 +616,7 @@ export class Editor {
                 okButton.innerHTML = 'Let\'s go!';
                 okButton.onclick = (e) => {
                     instructions.setAttribute("hidden", "");
+                    customButton?.removeAttribute("disabled");
                     resolve(true);
                 }
                 pageTwo.appendChild(okButton);
