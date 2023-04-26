@@ -2,6 +2,7 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import * as Turf from '@turf/turf';
 import { Rule } from './rule';
+import DOMPurify from 'dompurify';
 
 /** The representation of a Map Entity in the API */
 export interface EntityDTO {
@@ -140,9 +141,9 @@ export class MapEntity implements EntityDTO {
 
         
         // Extract information fields from the geoJson
-        this.name = geoJson.properties.name ?? '';
-        this.contactInfo = geoJson.properties.contactInfo ?? '';
-        this.description = geoJson.properties.description ?? '';
+        this.name = DOMPurify.sanitize(geoJson.properties.name) ?? '';
+        this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
+        this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
@@ -208,9 +209,9 @@ export class MapEntity implements EntityDTO {
         geoJson.properties = geoJson.properties || {};
 
         // Add all information fields as properties
-        geoJson.properties.name = this.name;
-        geoJson.properties.description = this.description;
-        geoJson.properties.contactInfo = this.contactInfo;
+        geoJson.properties.name = DOMPurify.sanitize(this.name);
+        geoJson.properties.description = DOMPurify.sanitize(this.description);
+        geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
         geoJson.properties.nrOfPeople = this.nrOfPeople;
         geoJson.properties.nrOfVechiles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;

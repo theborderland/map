@@ -3,6 +3,7 @@ import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
 import * as Turf from '@turf/turf';
+import DOMPurify from 'dompurify';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -132,14 +133,14 @@ export class Editor {
             const personText = entity.nrOfPeople === "1" ? 'person' : 'people';
             const vehicleText = entity.nrOfVehicles === "1" ? 'vehicle' : 'vehicles';
 
-            content.innerHTML = `<h2>${entity.name}</h2>
-                                <p class="scrollable">${entity.description}</p>
+            content.innerHTML = `<h2>${DOMPurify.sanitize(entity.name)}</h2>
+                                <p class="scrollable">${DOMPurify.sanitize(entity.description)}</p>
                                
                                 <p style="font-size:14px;"><b>${entity.nrOfPeople}</b> ${personText} and <b>${entity.nrOfVehicles}</b> ${vehicleText} together 
                                 with <b>${entity.additionalSqm}</b>m² of additional structures are here. They will need roughly <b>${entity.calculatedAreaNeeded}</b>m² </p>
                                  
                                 <p style="font-size:14px;">
-                                    <b>Contact:</b> ${entity.contactInfo}   
+                                    <b>Contact:</b> ${DOMPurify.sanitize(entity.contactInfo)}   
                                     </br>
                                     <b>Actual Area:</b> ${entity.area} m²
                                     <b style="text-align:right;">Power need:</b> ${entity.powerNeed} Watts
