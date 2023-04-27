@@ -1,27 +1,30 @@
 FIRST BETA TEST:
-    DONE: Placemarks for toilets and water
-    DONE: Instructions first time you use the editor
+    [x] Placemarks for toilets and water
+    [x] Instructions first time you use the editor
 
-SECOND ITERATION:
+PUBLIC BETA TEST:
+    []  Add info about how many sqm tents and vans are in the info box
+    []  Add a toggle to show custom colors or basic coloring for shapes
 
 EASY:
-    TODO: Remove snapping
-    TODO: Inactivate clicking other shapes when in edit mode
-    TODO: Notify users if they are placing on 'hiddenforbidden'
-    TODO: Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
-    DONE: Block areas to be edited beyong 1000m2
-    DONE: Block completely areas bigger than 1000m2
-    DONE: Rule for high wattage use (INFO)
-    DONE: Rule for many points in area (INFO)
+    [] Remove snappint when adding new shape
+    [] Inactivate clicking other shapes when in edit mode
+    [] Notify users if they are placing on 'hiddenforbidden'
+    [] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+    [x] Add pickable colors
+    [x] Block areas to be edited beyong 1000m2
+    [x] Block completely areas bigger than 1000m2
+    [x] Rule for high wattage use (INFO)
+    [x] Rule for many points in area (INFO)
 
 MEDIUM:
-    TODO: Implement PostHog analytics
-    TODO: Simple HTTP Basic Auth with email + birthdate
+    [] Add "Add Dream" feature
+    [] Implement PostHog analytics
+    [] Simple HTTP Basic Auth with email + birthdate
 
 HARD:
-    TODO: Update entites on a regular interval
+    [] Update entites on a regular interval
 
 RESEEARCH:
-    TODO: Lock-down the API so that only the admin can add and remove shapes
-    TODO: How can different placement rules apply to different areas? 
-          Say, a much longer buffer for the meadows.
+    [] Lock-down the API so that only the admin can add and remove shapes
+    [] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.

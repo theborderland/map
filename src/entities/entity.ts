@@ -12,24 +12,27 @@ export interface EntityDTO {
     timestamp: number;
 }
 
-// TODO: Is this the correct location for this?
+export const DefaultColor = '#7ae9ff';
 /** Returns the default style to use for map entities on the map */
 export const DefaultLayerStyle: L.PathOptions = {
-    color: '#66a6ff',
-    fillColor: '#3388ff',
-    fillOpacity: 0.25,
+    color: DefaultColor,
+    fillColor: DefaultColor,
+    fillOpacity: 0.3,
+    weight: 1,
 };
 
 export const WarningLayerStyle: L.PathOptions = {
-    color: '#ffbf66',
-    fillColor: '#ffbf66',
-    fillOpacity: 0.5,
+    color: '#ffbb00',
+    fillColor: '#ffbb00',
+    fillOpacity: 0.75,
+    weight: 3,
 };
 
 export const DangerLayerStyle: L.PathOptions = {
-    color: '#ff7366',
-    fillColor: '#ff7366',
-    fillOpacity: 0.75,
+    color: '#ff0000',
+    fillColor: '#ff0000',
+    fillOpacity: 0.95,
+    weight: 5,
 };
 
 /**
@@ -58,6 +61,8 @@ export class MapEntity implements EntityDTO {
     public nrOfVehicles: string;
     public additionalSqm: string;
     public powerNeed: number;
+    public amplifiedSound: number;
+    public color: string;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -136,7 +141,7 @@ export class MapEntity implements EntityDTO {
             pmIgnore: false,
             interactive: true,
             bubblingMouseEvents: false,
-            style: (/*feature*/) => DefaultLayerStyle,
+            style: (/*feature*/) => this.GetDefaultLayerStyle(),
         });
 
         
@@ -148,9 +153,14 @@ export class MapEntity implements EntityDTO {
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
         this.powerNeed = geoJson.properties.powerNeed ?? 0;
+        this.amplifiedSound = geoJson.properties.amplifiedSound ?? 0;
+        this.color = geoJson.properties.color ?? DefaultColor;
         
         this.checkAllRules();
         this.updateBufferedLayer();
+    }
+    private GetDefaultLayerStyle(): L.PathOptions {
+        return { color: this.color, fillColor: this.color, fillOpacity: 0.3, weight: 1 };
     }
 
     public checkAllRules() {
@@ -169,7 +179,7 @@ export class MapEntity implements EntityDTO {
             this.layer.setStyle(WarningLayerStyle);
         }
         //@ts-ignore
-        else this.layer.setStyle(DefaultLayerStyle);
+        else this.layer.setStyle(this.GetDefaultLayerStyle());
     }
 
     public getAllTriggeredRules(): Array<Rule> {
@@ -216,6 +226,8 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.nrOfVechiles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;
         geoJson.properties.powerNeed = this.powerNeed;
+        geoJson.properties.amplifiedSound = this.amplifiedSound;
+        geoJson.properties.color = this.color;
 
         return geoJson;
     }

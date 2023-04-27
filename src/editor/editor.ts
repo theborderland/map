@@ -232,10 +232,13 @@ export class Editor {
             content.appendChild(contactField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'People in tents';
+            content.appendChild(document.createElement('b')).innerHTML = 'People in tents ';
 
             const peopleField = document.createElement('input');
-            peopleField.style.width = '5em';
+            peopleField.title = '12m² per person';
+            peopleField.style.width = '3em';
+            peopleField.style.marginRight = '65px';
+            peopleField.style.marginBottom = '7px';
             peopleField.type = 'number';
             peopleField.value = String(entity.nrOfPeople);
             peopleField.min = '0';
@@ -245,11 +248,10 @@ export class Editor {
             };
             content.appendChild(peopleField);
 
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Vehicles';
-
+            content.appendChild(document.createElement('b')).innerHTML = ' Vehicles ';
             const vehiclesField = document.createElement('input');
-            vehiclesField.style.width = '5em';
+            vehiclesField.title = '75m² per vehicle';
+            vehiclesField.style.width = '3em';
             vehiclesField.type = 'number';
             vehiclesField.value = String(entity.nrOfVehicles);
             vehiclesField.min = '0';
@@ -260,10 +262,11 @@ export class Editor {
             content.appendChild(vehiclesField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Other m²';
-
+            content.appendChild(document.createElement('b')).innerHTML = 'Additional area in m² ';
             const otherSqm = document.createElement('input');
+            otherSqm.title = 'Area needed for kitchen, storage, workshop tents etc.';
             otherSqm.style.width = '5em';
+            otherSqm.style.marginLeft = '101px';
             otherSqm.type = 'number';
             otherSqm.value = String(entity.additionalSqm);
             otherSqm.min = '0';
@@ -274,10 +277,14 @@ export class Editor {
             content.appendChild(otherSqm);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Power need (Watts)';
+            content.appendChild(document.createElement('b')).innerHTML = 'Power need (Watts) ';
 
             const powerField = document.createElement('input');
+            powerField.title = 'A water boiler is about 2000W, a fridge is about 100W,\na laptop is about 50W, a phone charger is about 10W.';
             powerField.style.width = '5em';
+            powerField.style.marginTop = '7px';
+            powerField.style.marginBottom = '7px';
+            powerField.style.marginLeft = '110px';
             powerField.type = 'number';
             powerField.value = String(entity.powerNeed);
             powerField.min = '0';
@@ -287,6 +294,37 @@ export class Editor {
                 entity.checkAllRules();
             };
             content.appendChild(powerField);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('b')).innerHTML = 'Sound amplification (Watts) ';
+
+            const soundField = document.createElement('input');
+            soundField.style.width = '5em';
+            soundField.title = 'If over 100W then you are considered a sound camp.\nPlease get in contact with the sound lead.';
+            soundField.style.marginBottom = '7px';
+            soundField.style.marginLeft = '58px';
+            soundField.type = 'number';
+            soundField.value = String(entity.amplifiedSound);
+            soundField.min = '0';
+            soundField.oninput = () => {
+                //@ts-ignore
+                entity.amplifiedSound = soundField.value;
+                entity.checkAllRules();
+            };
+            content.appendChild(soundField);
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('b')).innerHTML = 'Custom color ';
+            const colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.style.width = '66px';
+            colorPicker.style.marginLeft = '146px';
+            colorPicker.value = entity.color;
+            colorPicker.onchange = () => {
+                entity.color = colorPicker.value;
+                entity.checkAllRules();
+            };
+            content.appendChild(colorPicker);
 
             content.appendChild(document.createElement('p'));
 
