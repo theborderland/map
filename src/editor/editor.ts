@@ -31,6 +31,7 @@ export class Editor {
     private _placementBufferLayers: L.LayerGroup<any>;
     
     private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
+    private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -393,16 +394,23 @@ export class Editor {
 
     private UpdateOnScreenDisplay(entity: MapEntity | null) {
         if (entity) {
+            
             this.onScreenInfo.textContent = entity.area + "m²";
-
+            let tooltipText = entity.area + "m²";
+            
             for (const rule of entity.getAllTriggeredRules()) {
                 if (rule.severity >= 3) {
                     this.onScreenInfo.textContent = rule.shortMessage;
+                    tooltipText += "<br>" + rule.shortMessage;
                 }
             }
+            this.sqmTooltip.openOn(this._map);
+            this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
+            this.sqmTooltip.setContent(tooltipText);
         }
         else {
             this.onScreenInfo.textContent = "";
+            this.sqmTooltip.close();
         }
     }
 
@@ -577,6 +585,10 @@ export class Editor {
         });
 
         this.onScreenInfo = document.querySelector(".entity-onscreen-info");
+        this.sqmTooltip = new L.Tooltip({ permanent: true, interactive: false, direction: 'center', className: 'shape-tooltip' });
+        this.sqmTooltip.setLatLng([0, 0]);
+        this.sqmTooltip.addTo(this._map);
+        this.sqmTooltip.closeTooltip();
 
         this.AddToggleEditButton();
     }
@@ -589,14 +601,14 @@ export class Editor {
             onAdd: () => {
                 // create button
                 let btn = L.DomUtil.create('button', 'placement-btn');
-                btn.title = 'Start Placement!';
-                btn.textContent = 'Start Placement!';
+                btn.title = 'Edit!';
+                btn.textContent = 'Edit!';
                 L.DomEvent.disableClickPropagation(btn);
 
                 btn.onclick = () => {
                     this.toggleEditMode();
-                    btn.textContent = this._isEditMode ? 'Exit edit mode' : 'Start Placement!';
-                    btn.title = this._isEditMode ? 'Exit edit mode' : 'Start Placement!';
+                    btn.textContent = this._isEditMode ? 'Done' : 'Edit!';
+                    btn.title = this._isEditMode ? 'Done' : 'Edit!';
                 };
 
                 return btn;

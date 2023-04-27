@@ -3,14 +3,15 @@ FIRST BETA TEST:
     [x] Instructions first time you use the editor
 
 PUBLIC BETA TEST:
-    []  Add info about how many sqm tents and vans are in the info box
-    []  Add a toggle to show custom colors or basic coloring for shapes
+    [] Add info about how many sqm tents and vans are in the info box
+    [] Add a toggle to show custom colors or basic coloring for shapes
+    [] Fix position of buttons under Add button
 
 EASY:
-    [] Remove snappint when adding new shape
-    [] Inactivate clicking other shapes when in edit mode
     [] Notify users if they are placing on 'hiddenforbidden'
     [] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+    [] Remove snappint when adding new shape
+    [] Inactivate clicking other shapes when in edit mode
     [x] Add pickable colors
     [x] Block areas to be edited beyong 1000m2
     [x] Block completely areas bigger than 1000m2
