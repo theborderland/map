@@ -133,27 +133,61 @@ const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], short
         );
     });
 
+const isInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+    checkEntityBoundaries(layerGroup, severity, shortMsg, message, true);
+
 const isNotInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
-    new Rule(severity, shortMsg, message, (entity) => {
-        const layers = layerGroup.getLayers();
+    checkEntityBoundaries(layerGroup, severity, shortMsg, message, false);
 
-        for (const layer of layers) {
-            let otherGeoJson = layer.toGeoJSON();
+const checkEntityBoundaries = (
+    layerGroup: any,
+    severity: Rule["_severity"],
+    shortMsg: string,
+    message: string,
+    shouldBeInside: boolean
+    ) =>
+        new Rule(severity, shortMsg, message, (entity) => {
+            const layers = layerGroup.getLayers();
 
-            // Loop through all features if it is a feature collection
-            if (otherGeoJson.features) {
-                for (let i = 0; i < otherGeoJson.features.length; i++) {
-                    if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
-                        return false;
+            for (const layer of layers) {
+                let otherGeoJson = layer.toGeoJSON();
+
+                // Loop through all features if it is a feature collection
+                if (otherGeoJson.features) {
+                    for (let i = 0; i < otherGeoJson.features.length; i++) {
+                        if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
+                            return shouldBeInside;
+                        }
                     }
+                } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
+                    return shouldBeInside;
                 }
-            } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
-                return false;
             }
-        }
 
-        return true;
-    });
+            return !shouldBeInside;
+        });
+
+// const isNotInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+//     new Rule(severity, shortMsg, message, (entity) => {
+//         const layers = layerGroup.getLayers();
+
+//         for (const layer of layers) {
+//             let otherGeoJson = layer.toGeoJSON();
+
+//             // Loop through all features if it is a feature collection
+//             if (otherGeoJson.features) {
+//                 for (let i = 0; i < otherGeoJson.features.length; i++) {
+//                     if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
+//                         return false;
+//                     }
+//                 }
+//             } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
+//                 return false;
+//             }
+//         }
+
+//         return true;
+//     });
 
 /** Utility function to calculate the ovelap between a geojson and layergroup */
 function _isGeoJsonOverlappingLayergroup(
