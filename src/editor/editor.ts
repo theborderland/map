@@ -643,6 +643,9 @@ export class Editor {
         this._map.pm.addControls({
             drawPolygon: this._isEditMode,
         });
+
+        //Use changeActionsOfControl to only show the cancel button on the draw polygon toolbar
+        this._map.pm.Toolbar.changeActionsOfControl('Polygon', ['cancel']);
     }
 
     ShowInstructionsScreenAndWait() {
