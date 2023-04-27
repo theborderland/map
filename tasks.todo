@@ -5,7 +5,7 @@ FIRST BETA TEST:
 PUBLIC BETA TEST:
     [] Add info about how many sqm tents and vans are in the info box
     [] Add a toggle to show custom colors or basic coloring for shapes
-    [] Fix position of buttons under Add button
+    [X] Fix position of buttons under Add button
 
 EASY:
     [] Notify users if they are placing on 'hiddenforbidden'
