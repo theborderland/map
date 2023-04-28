@@ -1,7 +1,9 @@
 import * as Turf from '@turf/turf';
 import type { MapEntity } from './entity';
 
-const MAX_SQM_FOR_ENTITY: number = 500;
+const MAX_SQM_FOR_ENTITY: number = 650;
+const MAX_POWER_NEED: number = 7000;
+const MAX_POINTS_BEFORE_WARNING: number = 6;
 
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
@@ -52,6 +54,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         isBufferOverlapping(placementLayers, 3, 'Too close!','Fire safety distance warning! The dotted line can not touch another area.'),
         isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border.','You have placed yourself outside our land, please fix that <3'),
         isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
+        isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
     ];
 }
 
@@ -64,12 +67,12 @@ const hasManyCoordinates = () =>
     new Rule(1, 'Many points.', 'You have added many points to this shape. Bear in mind that you will have to set this shape up in reality as well :)', (entity) => {
         const geoJson = entity.toGeoJSON();
         //Dont know why I have to use [0] here, but it works
-        return geoJson.geometry.coordinates[0].length > 6;
+        return geoJson.geometry.coordinates[0].length > MAX_POINTS_BEFORE_WARNING;
     });
 
 const hasLargeEnergyNeed = () =>
     new Rule(1, 'Powerful.', 'You need a lot of power, make sure its not a typo.', (entity) => {
-        return entity.powerNeed > 6000;
+        return entity.powerNeed > MAX_POWER_NEED;
     });
 
 const hasMissingFields = () =>
@@ -166,28 +169,6 @@ const checkEntityBoundaries = (
 
             return !shouldBeInside;
         });
-
-// const isNotInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
-//     new Rule(severity, shortMsg, message, (entity) => {
-//         const layers = layerGroup.getLayers();
-
-//         for (const layer of layers) {
-//             let otherGeoJson = layer.toGeoJSON();
-
-//             // Loop through all features if it is a feature collection
-//             if (otherGeoJson.features) {
-//                 for (let i = 0; i < otherGeoJson.features.length; i++) {
-//                     if (Turf.booleanContains(otherGeoJson.features[i], entity.toGeoJSON())) {
-//                         return false;
-//                     }
-//                 }
-//             } else if (Turf.booleanContains(otherGeoJson, entity.toGeoJSON())) {
-//                 return false;
-//             }
-//         }
-
-//         return true;
-//     });
 
 /** Utility function to calculate the ovelap between a geojson and layergroup */
 function _isGeoJsonOverlappingLayergroup(
