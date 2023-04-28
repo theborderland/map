@@ -100,4 +100,11 @@ export const createMap = async () => {
 
     //Load all entities from the API
     await editor.addAPIEntities();
+
+    //Access the query string and zoom to entity if id is present
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (id) {
+        editor.gotoEntity(id);
+    }
 };

@@ -713,4 +713,16 @@ export class Editor {
             this.addEntityToMap(entity);
         }
     }
+
+    public gotoEntity(id: string) {
+        const entity = this._repository.getEntityById(id);
+        if (entity) { 
+            const latlong = entity.layer.getBounds().getCenter();
+            this._map.setView(latlong, 19);
+            // Update the popup-position
+            this._popup.setLatLng(latlong);
+            // Call the click event
+            this.onLayerClicked(entity);
+        }
+    }
 }

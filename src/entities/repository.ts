@@ -59,6 +59,11 @@ export class MapEntityRepository {
         return Object.values(this._latestRevisions);
     }
 
+    public getEntityById(id: string)
+    {
+        return this._latestRevisions[id];
+    }
+
     /** Returns true if this is the latest known revision of the given entity */
     public isLatest(entityData: EntityDTO): boolean {
         return entityData.revision == this._latestRevisions[entityData.id].revision;

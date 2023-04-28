@@ -12,6 +12,7 @@ PUBLIC BETA TEST:
 EASY:
     [] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
     [] Inactivate clicking other shapes when in edit mode
+    [x] Add support for direct links to areas via query string
     [x] Notify users if they are placing on 'hiddenforbidden'
     [x] Remove snappint when adding new shape
     [x] Add pickable colors
