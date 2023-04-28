@@ -91,7 +91,8 @@ export class Editor {
         }
         // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
-            nextEntity.layer.pm.enable({ editMode: true, snappable: false});
+            nextEntity.layer.pm.enable({ editMode: true, snappable: false, draggable: true});
+            // nextEntity.layer.pm.enableLayerDrag();
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
             return;
@@ -219,16 +220,18 @@ export class Editor {
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(descriptionField);
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Contact info (Name/email/discord)';
+            content.appendChild(document.createElement('label')).innerHTML = 'Contact info (Name, email or discord)';
             const contactField = document.createElement('input');
             contactField.type = 'text';
             contactField.value = entity.contactInfo;
             contactField.oninput = () => {
                 entity.contactInfo = contactField.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(contactField);
 
@@ -246,6 +249,7 @@ export class Editor {
             peopleField.oninput = () => {
                 entity.nrOfPeople = peopleField.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(peopleField);
 
@@ -259,11 +263,12 @@ export class Editor {
             vehiclesField.oninput = () => {
                 entity.nrOfVehicles = vehiclesField.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(vehiclesField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Additional area in m² ';
+            content.appendChild(document.createElement('b')).innerHTML = 'Other stuff in m² ';
             const otherSqm = document.createElement('input');
             otherSqm.title = 'Area needed for kitchen, storage, workshop tents etc.';
             otherSqm.style.width = '5em';
@@ -274,6 +279,7 @@ export class Editor {
             otherSqm.oninput = () => {
                 entity.additionalSqm = otherSqm.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(otherSqm);
 
@@ -293,6 +299,7 @@ export class Editor {
                 //@ts-ignore
                 entity.powerNeed = powerField.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(powerField);
 
@@ -311,6 +318,7 @@ export class Editor {
                 //@ts-ignore
                 entity.amplifiedSound = soundField.value;
                 entity.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(soundField);
 
@@ -395,12 +403,12 @@ export class Editor {
     private UpdateOnScreenDisplay(entity: MapEntity | null) {
         if (entity) {
             
-            this.onScreenInfo.textContent = entity.area + "m²";
+            // this.onScreenInfo.textContent = entity.area + "m²";
             let tooltipText = entity.area + "m²";
             
             for (const rule of entity.getAllTriggeredRules()) {
-                if (rule.severity >= 3) {
-                    this.onScreenInfo.textContent = rule.shortMessage;
+                if (rule.severity >= 2) {
+                    // this.onScreenInfo.textContent = rule.shortMessage;
                     tooltipText += "<br>" + rule.shortMessage;
                 }
             }
@@ -409,7 +417,7 @@ export class Editor {
             this.sqmTooltip.setContent(tooltipText);
         }
         else {
-            this.onScreenInfo.textContent = "";
+            // this.onScreenInfo.textContent = "";
             this.sqmTooltip.close();
         }
     }
@@ -569,11 +577,12 @@ export class Editor {
             drawText: false,
             removalMode: false,
             editControls: false,
+            snappable: false,
         });
 
         // Set path style options for newly created layers
         this._map.pm.setPathOptions(DefaultLayerStyle);
-        this._map.pm.setGlobalOptions({ tooltips: false, allowSelfIntersection: false }); // Disable snapping
+        this._map.pm.setGlobalOptions({ tooltips: false, allowSelfIntersection: false, snappable: false }); 
 
         // Add the event handler for newly created layers
         this._map.on('pm:create', this.onNewLayerCreated.bind(this));
@@ -600,15 +609,16 @@ export class Editor {
 
             onAdd: () => {
                 // create button
-                let btn = L.DomUtil.create('button', 'placement-btn');
-                btn.title = 'Edit!';
-                btn.textContent = 'Edit!';
+                // let btn = L.DomUtil.create('button', 'placement-btn');
+                let btn = L.DomUtil.create('button', 'btn btn-gradient1');
+                btn.title = 'Edit';
+                btn.textContent = 'Edit';
                 L.DomEvent.disableClickPropagation(btn);
 
                 btn.onclick = () => {
                     this.toggleEditMode();
-                    btn.textContent = this._isEditMode ? 'Done' : 'Edit!';
-                    btn.title = this._isEditMode ? 'Done' : 'Edit!';
+                    btn.textContent = this._isEditMode ? 'Done' : 'Edit';
+                    btn.title = this._isEditMode ? 'Done' : 'Edit';
                 };
 
                 return btn;
