@@ -11,11 +11,12 @@ var centeredIcon = L.Icon.extend({
     },
 });
 
-export const loadPoiFromGoogleCsv = async () => {
+export const loadPoiFromGoogleCsv = async (map) => {
     let poiLayer = L.layerGroup(); //Add all the POI to this layer to later return it to the map
     
     let csvData = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS2Vdw0DcFPJZssxsOebCDkrHHvZ8SL-21svhrYjZpBJubsl76kRsO3CAVZq43Up3ZSV8jovj76tHNE/pub?gid=0&single=true&output=csv');
     csvData = await csvData.text();
+    console.log(csvData);
     csvData = csvData.replace(/"/g, '');
     csvData = csvData.split('\n');
     csvData = csvData.map((row) => row.split(','));
@@ -28,23 +29,10 @@ export const loadPoiFromGoogleCsv = async () => {
 
         if (!iconDict[category]) iconDict[category] = new centeredIcon({ iconUrl: './img/icons/' + category + '.png' });
 
-        // let navigatehere = ' ';
-        // navigatehere += '<a';
-        // navigatehere += ' href="';
-        // navigatehere += 'https://tim.gremalm.se/gps/updategps.php?lat=';
-        // navigatehere += lon;
-        // navigatehere += '&lng=';
-        // navigatehere += lat;
-        // navigatehere += '"';
-        // navigatehere += ' target="_blank"';
-        // navigatehere += '>';
-        // navigatehere += '☩';
-        // navigatehere += '</a>';
-        // const content = '<h3>' + name + '</h3>' + '<p>' + description + navigatehere + '</p>';
-
         const content = `<h3>${name}</h3> <p>${description}</p>`;
         L.marker([lat, lon], { icon: iconDict[category] }).addTo(poiLayer).bindPopup(content);
     }
 
-    return poiLayer;
+    map.groups.poi = poiLayer;
+    map.groups.poi.addTo(map);
 };

@@ -75,7 +75,9 @@ export const addSearch = async(map) => {
         zoom: 19,
         initial: false
 	});
+
     map.addControl(searchControl);
+	
 	// Search control makes all layers visible, start by removing them
     map.searchable_features.remove()
 }

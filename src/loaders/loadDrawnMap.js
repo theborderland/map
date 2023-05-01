@@ -1,6 +1,4 @@
-import { SOUNDGUIDE_GEOJSON } from '../constants';
 import L from 'leaflet';
-import { loadGeoJson } from '../utils/loadGeoJson';
 
 export const loadDrawnMap = async (map) => 
 {
@@ -85,6 +83,6 @@ export const loadDrawnMap = async (map) =>
     group.addLayer(buildings);
     group.addLayer(lakes);
 
-    return group;
+    map.groups.drawnmap = group;
 };
 

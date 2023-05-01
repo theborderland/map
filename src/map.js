@@ -9,34 +9,30 @@ import { loadPoiFromGoogleCsv } from './loaders/loadPoiFromGoogleCsv';
 import { loadGeoJsonFeatureCollections } from './loaders/loadGeoJsonFeatureCollections';
 import { getStyleFunction } from './layerstyles';
 
-import { loadPositionControl } from './utils/loadPositionControl';
 import { loadImageOverlay } from './loaders/loadImageOverlay';
 import { loadDrawnMap } from './loaders/loadDrawnMap';
 
 import { addLegends } from './loaders/addLegends';
+
 // import 'leaflet-search';
 // import { addSearch } from './utils/searchControl';
-
 
 import { Editor } from './editor';
 
 export const createMap = async () => {
-    const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true }).setView(
-        [57.6226, 14.9276],
-        16,
-    );
+    const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true })
+    .setView([57.6226, 14.9276], 16);
     
     map.groups = {};
 
-    // Base layers
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
         maxZoom: 21,
         maxNativeZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
-
-    map.groups.poi = await loadPoiFromGoogleCsv();
-    map.groups.poi.addTo(map);
+    
+    loadDrawnMap(map);
+    loadPoiFromGoogleCsv(map);
 
     await showBetaMsg();
     
@@ -46,8 +42,6 @@ export const createMap = async () => {
     //Initialize the editor (it loads it data at the end)
     const editor = new Editor(map, map.groups);
 
-    map.groups.drawnmap = await loadDrawnMap(map);
-    
     var baseLayers = { 'Satellite map': map.groups.googleSatellite, 'Drawn map': map.groups.drawnmap };
 
     // Extra layers
@@ -86,25 +80,26 @@ export const createMap = async () => {
 
     // Add layer control and legends
     L.control.layers(baseLayers, extraLayers).addTo(map);
+
     addLegends(map);
 
     // Add map features
     // await loadTooltipZoom(map);
     L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
-    await loadPositionControl(map);
+    L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
     L.control.polylineMeasure().addTo(map);
 
-    // await addSearch(map);
-
-    let hash = new L.Hash(map);  // Makes the URL follow the map. BUGGY
-
+    new L.Hash(map);  // Makes the URL follow the map.
+    
     //Load all entities from the API
     await editor.addAPIEntities();
-
+    
     //Access the query string and zoom to entity if id is present
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
     if (id) {
         editor.gotoEntity(id);
     }
+
+    // await addSearch(map);
 };
