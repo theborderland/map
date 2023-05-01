@@ -16,7 +16,6 @@ export const loadPoiFromGoogleCsv = async (map) => {
     
     let csvData = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vS2Vdw0DcFPJZssxsOebCDkrHHvZ8SL-21svhrYjZpBJubsl76kRsO3CAVZq43Up3ZSV8jovj76tHNE/pub?gid=0&single=true&output=csv');
     csvData = await csvData.text();
-    console.log(csvData);
     csvData = csvData.replace(/"/g, '');
     csvData = csvData.split('\n');
     csvData = csvData.map((row) => row.split(','));
