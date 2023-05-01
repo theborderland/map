@@ -1,34 +1,39 @@
 FIRST BETA TEST:
-    [x] Placemarks for toilets and water
-    [x] Instructions first time you use the editor
+[x] Placemarks for toilets and water
+[x] Instructions first time you use the editor
 
 PUBLIC BETA TEST:
-    [] Add info about how many sqm tents and vans are in the info box
-    [] Add a settings toggle to show custom colors or basic coloring for shapes
-    [] Show the calculated need clearer in the "Edit Info" view
-    [] Make all windows small-mobile-compatible
-    [X] Fix position of buttons under Add button
+[] Show the calculated need clearer in the "Edit Info" view
+[] Add info about how many sqm tents and vans are in the info box
+[] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+[] Add a settings toggle to show custom colors or basic coloring for shapes
+[] Make all windows "small-mobile-compatible"
+[] Show sound icons on shapes that have more than 100w amp
+[] Put measure tool in better location
+[] Add info icons
+[] Add correct toilet icon
+[] Add areas for toilets 
+[X] Fix position of buttons under Add button
 
 EASY:
-    [] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
-    [] Inactivate clicking other shapes when in edit mode
-    [x] Add support for direct links to areas via query string
-    [x] Notify users if they are placing on 'hiddenforbidden'
-    [x] Remove snappint when adding new shape
-    [x] Add pickable colors
-    [x] Block areas to be edited beyong 1000m2
-    [x] Block completely areas bigger than 1000m2
-    [x] Rule for high wattage use (INFO)
-    [x] Rule for many points in area (INFO)
+[] Inactivate clicking other shapes when in edit mode
+[x] Add support for direct links to areas via query string
+[x] Notify users if they are placing on 'hiddenforbidden'
+[x] Remove snappint when adding new shape
+[x] Add pickable colors
+[x] Block areas to be edited beyong 1000m2
+[x] Block completely areas bigger than 1000m2
+[x] Rule for high wattage use (INFO)
+[x] Rule for many points in area (INFO)
 
 MEDIUM:
-    [] Add "Add Dream" feature
-    [] Implement PostHog analytics
-    [] Simple HTTP Basic Auth with email + birthdate
-
+[] Add "Add Dream" feature
+[] Implement PostHog analytics
+[] Simple HTTP Basic Auth with email + birthdate
+    
 HARD:
-    [] Update entites on a regular interval
-
+[] Update entites on a regular interval
+        
 RESEEARCH:
-    [] Lock-down the API so that only the admin can add and remove shapes
-    [] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
+[] Lock-down the API so that only the admin can add and remove shapes
+[] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
