@@ -28,6 +28,9 @@ EASY:
 [x] Block completely areas bigger than 1000m2
 [x] Rule for high wattage use (INFO)
 [x] Rule for many points in area (INFO)
+[] Give motivation when remove a shape
+[] Show history for a shape
+[] Distinguish power usage between 0 power and not given
 
 MEDIUM:
 [] Add "Add Dream" feature
