@@ -477,6 +477,15 @@
                 width: 100px;
                 border: solid;
                 border-color: #fbc2eb;
+
+                animation-name: shake;
+                animation-duration: 1s; 
+                animation-timing-function: ease-out; 
+                animation-delay: 10s;
+                animation-direction: alternate;
+                animation-iteration-count: 3;
+                animation-fill-mode: none;
+                animation-play-state: running;   
                 }
 
                 .btn:hover {
@@ -486,6 +495,8 @@
                 .btn-gradient1 {
                 background-image: linear-gradient(to right, #fbc2eb 0%, #a6c1ee 51%, #fbc2eb 100%);
                 }
+
+
         </style>
     </head>
     <body>
@@ -494,8 +505,7 @@
                 <b>WARNING:</b> This is a beta version of the placement map. It is not finished and will be updated during the coming weeks. 
                 The layout is just a placeholder to play with, and will change. <b>Please do not use this for any serious planning yet</b>.
                 <br><br>
-                Feedback is welcome in the Placement Process Status-thread on Discord. This could include anything about user experience, functionality,
-                missing or unnecessary info in popup windows, etc. Have fun!
+                If this is your first time here, please <a href="/instructions">read the instructions</a> first.
             </p>
         </div>
         <div hidden class="instructions" id="editMsg">
