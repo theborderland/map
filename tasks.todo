@@ -31,6 +31,10 @@ EASY:
 [] Give motivation when remove a shape
 [] Show history for a shape
 [] Distinguish power usage between 0 power and not given
+[] Move shape isntead of move points
+[] When error validation sugests that area is too big, give option to calculate people
+[] Only allow for hue selection of color instead of RGB
+[] Use OnChange-event instead of TextInput
 
 MEDIUM:
 [] Add "Add Dream" feature
