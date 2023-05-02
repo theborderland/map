@@ -35,6 +35,10 @@ EASY:
 [] When error validation sugests that area is too big, give option to calculate people
 [] Only allow for hue selection of color instead of RGB
 [] Use OnChange-event instead of TextInput
+[] Escape key close popup
+[] Ctrl+Enter saves and closes
+[] Layer that removes set color to easier spot invalid shapes
+[] Area names
 
 MEDIUM:
 [] Add "Add Dream" feature
