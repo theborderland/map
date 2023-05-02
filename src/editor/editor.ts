@@ -304,7 +304,7 @@ export class Editor {
             powerField.style.marginLeft = '110px';
             powerField.type = 'number';
             powerField.value = String(entity.powerNeed);
-            powerField.min = '0';
+            powerField.min = '-1';
             powerField.oninput = () => {
                 //@ts-ignore
                 entity.powerNeed = powerField.value;
@@ -323,7 +323,7 @@ export class Editor {
             soundField.style.marginLeft = '58px';
             soundField.type = 'number';
             soundField.value = String(entity.amplifiedSound);
-            soundField.min = '0';
+            soundField.min = '-1';
             soundField.oninput = () => {
                 //@ts-ignore
                 entity.amplifiedSound = soundField.value;
