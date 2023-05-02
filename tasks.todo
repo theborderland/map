@@ -3,19 +3,22 @@ FIRST BETA TEST:
 [x] Instructions first time you use the editor
 
 PUBLIC BETA TEST:
-[] Show the calculated need clearer in the "Edit Info" view
+[] Make the editbutton jump again
+[x] Show the calculated need clearer in the "Edit Info" view
 [] Add info about how many sqm tents and vans are in the info box
 [] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
-[] Add a settings toggle to show custom colors or basic coloring for shapes
 [] Make all windows "small-mobile-compatible"
 [] Show sound icons on shapes that have more than 100w amp
 [] Put measure tool in better location
-[] Add info icons
+[] Add info icons for ex. Nook, nature reserve and so on
 [] Add correct toilet icon
 [] Add areas for toilets 
+[] Show village bridge on map
 [X] Fix position of buttons under Add button
 
 EASY:
+[] Gray out forbidden areas
+[] Add a settings toggle to show custom colors or basic coloring for shapes
 [] Inactivate clicking other shapes when in edit mode
 [x] Add support for direct links to areas via query string
 [x] Notify users if they are placing on 'hiddenforbidden'

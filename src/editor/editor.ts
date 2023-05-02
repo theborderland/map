@@ -217,6 +217,7 @@ export class Editor {
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
+            descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
                 entity.checkAllRules();
@@ -234,7 +235,7 @@ export class Editor {
                 this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(contactField);
-
+            
             content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('b')).innerHTML = 'People in tents ';
 
@@ -250,6 +251,7 @@ export class Editor {
                 entity.nrOfPeople = peopleField.value;
                 entity.checkAllRules();
                 this.UpdateOnScreenDisplay(entity);
+                this.setPopup('edit-info', entity);
             };
             content.appendChild(peopleField);
 
@@ -264,11 +266,12 @@ export class Editor {
                 entity.nrOfVehicles = vehiclesField.value;
                 entity.checkAllRules();
                 this.UpdateOnScreenDisplay(entity);
+                this.setPopup('edit-info', entity);
             };
             content.appendChild(vehiclesField);
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Other stuff in m² ';
+            content.appendChild(document.createElement('b')).innerHTML = 'Other stuff in m²';
             const otherSqm = document.createElement('input');
             otherSqm.title = 'Area needed for kitchen, storage, workshop tents etc.';
             otherSqm.style.width = '5em';
@@ -280,10 +283,17 @@ export class Editor {
                 entity.additionalSqm = otherSqm.value;
                 entity.checkAllRules();
                 this.UpdateOnScreenDisplay(entity);
+                this.setPopup('edit-info', entity);
             };
             content.appendChild(otherSqm);
 
-            content.appendChild(document.createElement('br'));
+            let areaInfo = content.appendChild(document.createElement('div'));
+            areaInfo.innerHTML = 'Other stuff could be structures, art, kitchen tents, anything else than vehicles and tents for living. ' + 
+            'At least <b>' + entity.calculatedAreaNeeded + 'm²</b> needed. Current size is <b>' + entity.area + 'm².</b>';
+            areaInfo.style.marginTop = '10px';
+            areaInfo.style.marginBottom = '5px';
+
+            // content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('b')).innerHTML = 'Power need (Watts) ';
 
             const powerField = document.createElement('input');
