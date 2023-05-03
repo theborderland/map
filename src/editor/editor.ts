@@ -21,7 +21,7 @@ export class Editor {
     private _isEditMode: boolean = false;
 
     /** The current status of the editor */
-    private _mode: 'none' | 'selected' | 'editing-shape' | 'editing-info' = 'none';
+    private _mode: 'none' | 'selected' | 'editing-shape' | 'editing-info' | 'moving-shape' = 'none';
 
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
@@ -47,7 +47,7 @@ export class Editor {
 
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
-            if ((prevMode == 'editing-shape' || prevMode == 'editing-info') && prevEntity) {
+            if ((prevMode == 'editing-shape' || prevMode == 'moving-shape' || prevMode == 'editing-info') && prevEntity) {
                 nextMode = 'selected';
                 nextEntity = nextEntity || prevEntity;
                 //re-center the pop up on the new layer, in case the layer has moved
@@ -91,8 +91,14 @@ export class Editor {
         }
         // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
-            nextEntity.layer.pm.enable({ editMode: true, snappable: false, draggable: true});
-            // nextEntity.layer.pm.enableLayerDrag();
+            nextEntity.layer.pm.enable({ editMode: true, snappable: false});
+            this.setPopup('none');
+            this.setSelected(nextEntity, prevEntity);
+            return;
+        }
+        // Move the shape of the entity
+        if (this._mode == 'moving-shape' && nextEntity) {
+            // TODO: Implement this!
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
             return;
@@ -134,15 +140,19 @@ export class Editor {
 
             const personText = entity.nrOfPeople === "1" ? 'person' : 'people';
             const vehicleText = entity.nrOfVehicles === "1" ? 'vehicle' : 'vehicles';
+            const entityName = entity.name ? entity.name : 'No name yet';
+            const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
+            const entityContactInfo = entity.contactInfo ? entity.contactInfo : 'Please add contact info!';
+            const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please set power need! Set to 0 if it is not needed.';
 
-            content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entity.name)}</h2>
+            content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
                                 <div style="font-size: 12px; color:#5c5c5c;">${entity.area} m² - <b>${entity.nrOfPeople}</b> ${personText}, <b>${entity.nrOfVehicles}</b> ${vehicleText} and <b>${entity.additionalSqm}</b>m² other</div>
-                                <p class="scrollable">${DOMPurify.sanitize(entity.description)}</p>
+                                <p class="scrollable">${DOMPurify.sanitize(entityDescription)}</p>
                                  
                                 <p style="font-size:14px;">
-                                    <b>Contact info:</b> ${DOMPurify.sanitize(entity.contactInfo)}   
+                                    <b>Contact info:</b> ${DOMPurify.sanitize(entityContactInfo)}   
                                     </br>
-                                    <b style="text-align:right;">Power need:</b> ${entity.powerNeed} Watts
+                                    <b style="text-align:right;">Power need:</b> ${entityPowerNeed}
                                     </br>
                                     <b style="text-align:right;">Area need:</b> At least ${entity.calculatedAreaNeeded}m²
                                 </p> 
@@ -175,6 +185,16 @@ export class Editor {
                 };
 
                 content.appendChild(editShapeButton);
+
+                // const moveShapeButton = document.createElement('button');
+                // moveShapeButton.innerHTML = 'Move';
+                // moveShapeButton.onclick = (e) => {
+                //     e.stopPropagation();
+                //     e.preventDefault();
+                //     this.setMode('moving-shape', entity);
+                // };
+
+                // content.appendChild(moveShapeButton);
 
                 const editInfoButton = document.createElement('button');
                 editInfoButton.innerHTML = 'Edit info';
@@ -592,7 +612,7 @@ export class Editor {
 
         // Set path style options for newly created layers
         this._map.pm.setPathOptions(DefaultLayerStyle);
-        this._map.pm.setGlobalOptions({ tooltips: false, allowSelfIntersection: false, snappable: false }); 
+        this._map.pm.setGlobalOptions({ tooltips: false, allowSelfIntersection: false, snappable: true, draggable: true }); 
 
         // Add the event handler for newly created layers
         this._map.on('pm:create', this.onNewLayerCreated.bind(this));

@@ -141,6 +141,7 @@ export class MapEntity implements EntityDTO {
             pmIgnore: false,
             interactive: true,
             bubblingMouseEvents: false,
+            snapIgnore: true,
             style: (/*feature*/) => this.GetDefaultLayerStyle(),
         });
 
