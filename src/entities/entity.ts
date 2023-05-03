@@ -152,8 +152,8 @@ export class MapEntity implements EntityDTO {
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
-        this.powerNeed = geoJson.properties.powerNeed ?? 0;
-        this.amplifiedSound = geoJson.properties.amplifiedSound ?? 0;
+        this.powerNeed = geoJson.properties.powerNeed ?? -1;
+        this.amplifiedSound = geoJson.properties.amplifiedSound ?? -1;
         this.color = geoJson.properties.color ?? DefaultColor;
         
         this.checkAllRules();
