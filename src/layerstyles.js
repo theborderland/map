@@ -31,6 +31,30 @@ export function getStyleFunction(name) {
             color: 'red',
             fillOpacity: 0.5
             };
+        case 'toilet':
+            return {
+            ...baseStyle,
+            color: 'blue',
+            fillOpacity: 1
+            };
+        case 'bridge':
+            return {
+            ...baseStyle,
+            color: 'brown',
+            fillOpacity: 1
+            };
+        case 'parking':
+            return {
+            ...baseStyle,
+            color: 'lightblue',
+            fillOpacity: 0,
+            };
+        case 'slope':
+            return {
+            ...baseStyle,
+            fillOpacity: 0,
+            opacity: 0.
+            };
         case 'fireroad': 
             return {
             ...baseStyle,
