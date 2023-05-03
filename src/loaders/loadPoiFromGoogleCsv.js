@@ -30,7 +30,6 @@ export const loadPoiFromGoogleCsv = async (map) => {
         if (!iconDict[category]) iconDict[category] = new centeredIcon({ iconUrl: './img/icons/' + category + '.png' });
 
         const content = `<h3>${name}</h3> <p>${description}</p>`;
-        console.log(csvData[i]);
         L.marker([lat, lon], { icon: iconDict[category] }).addTo(poiLayer).bindPopup(content);
     }
 
