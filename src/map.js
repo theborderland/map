@@ -34,7 +34,7 @@ export const createMap = async () => {
     await loadDrawnMap(map);
     await loadPoiFromGoogleCsv(map);
 
-    // await showBetaMsg();
+    showBetaMsg();
     
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
