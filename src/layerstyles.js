@@ -41,16 +41,15 @@ export function getStyleFunction(name) {
             };
         case 'lowprio':
             return {
-            // dashArray: '3',
-            // color: '#a8b6cc',
+            dashArray: '3',
+            color: '#e7e309',
             fillOpacity: 0,
-            weight: 0,
+            weight: 2,
             };
         case 'hiddenforbidden':
             return {
-            // dashArray: '3',
-            // color: '#a8b6cc',
-            fillOpacity: 0,
+            color: '#a8b6cc',
+            fillOpacity: 0.5,
             weight: 0,
             };
         case 'mediumprio':
