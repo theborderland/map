@@ -55,6 +55,8 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border.','You have placed yourself outside our land, please fix that <3'),
         isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
         isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
+        isOverlapping(groups.slope, 1, 'Slopey!','Your area are in slopey and uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
+        isInsideBoundaries(groups.slope, 1, 'Slopey!','Your area are in slopey and uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
     ];
 }
 
