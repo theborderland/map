@@ -35,10 +35,25 @@ export const createMap = async () => {
     await loadPoiFromGoogleCsv(map);
 
     showBetaMsg();
+
+    //Load placenames
+    fetch('./data/bl23/placenames.geojson').then(response => response.json()).then(response => {
+      L.geoJSON(response.features, {style: {"color": "#ffff00", "weight": 2}}).addTo(map);
+    });
     
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
     
+    //Set up the soundguide layers added from placement.geojson
+    map.groups.soundguide = new L.LayerGroup();
+    map.groups.soundhigh.addTo(map.groups.soundguide);
+    map.groups.soundmedium.addTo(map.groups.soundguide);
+    map.groups.soundlow.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.soundhigh);
+    map.removeLayer(map.groups.soundmedium);
+    map.removeLayer(map.groups.soundlow);
+
+
     //Initialize the editor (it loads it data at the end)
     const editor = new Editor(map, map.groups);
 
@@ -71,6 +86,7 @@ export const createMap = async () => {
 
     var extraLayers = {
         Placement: map.groups.placement,
+        Soundguide: map.groups.soundguide,
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
