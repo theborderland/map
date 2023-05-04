@@ -1,14 +1,15 @@
 
 PUBLIC BETA TEST:
-    [] Area names
     [] "Get link" link
+    [] Add info about how many sqm tents and vans are in the info box
     [] "RuleOverride" bool that can be set in "more"-window
     [] Move Delete to "more"-window
     [] Move Custom Color to "more"-window
     [] Show revisions in "more"
-    [] Add sound map
-    [] Add info about how many sqm tents and vans are in the info box
+    [] Optimize popup position to be at the top of shapes to make info text more visible
     [] Make all windows "small-mobile-compatible"
+    [x] Area names
+    [x] Add sound map
     [x] Make the editbutton jump again
     [x] Show the calculated need clearer in the "Edit Info" view
     [x] Add parking
