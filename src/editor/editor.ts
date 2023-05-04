@@ -529,8 +529,8 @@ export class Editor {
     private IsAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
         
-        if (area > 1000) return true;
-        return false;
+        if (area > 5000) return true;
+        return false;   
     }
 
     private deleteAndRemoveEntity(entity: MapEntity) {
