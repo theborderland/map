@@ -92,6 +92,28 @@ export function getStyleFunction(name) {
             fillOpacity: 0,
             weight: 2,
             };
+            case 'soundhigh':
+            return {
+            ...baseStyle,
+            color: '#ff4400',
+            fillOpacity: 0.75,
+            weight: 0,
+            };
+            case 'soundmedium':
+            return {
+            ...baseStyle,
+            color: '#e7e309',
+            fillOpacity: 0.75,
+            weight: 0,
+            };
+            case 'soundlow':
+            return {
+            ...baseStyle,
+            color: '#00e300',
+            fillOpacity: 0.75,
+            weight: 0,
+            };
+
         default:
             return {
             ...baseStyle,
