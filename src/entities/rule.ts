@@ -1,9 +1,9 @@
 import * as Turf from '@turf/turf';
 import type { MapEntity } from './entity';
 
-const MAX_SQM_FOR_ENTITY: number = 650;
+const MAX_SQM_FOR_ENTITY: number = 1500;
 const MAX_POWER_NEED: number = 7000;
-const MAX_POINTS_BEFORE_WARNING: number = 6;
+const MAX_POINTS_BEFORE_WARNING: number = 8;
 
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
