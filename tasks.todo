@@ -1,58 +1,59 @@
-FIRST BETA TEST:
-[x] Placemarks for toilets and water
-[x] Instructions first time you use the editor
 
 PUBLIC BETA TEST:
-[] Add "Move shape" functionality
-[] Add info about how many sqm tents and vans are in the info box
-[] Make all windows "small-mobile-compatible"
-[] Put measure tool in better location
-[] Make layers more visible
-[] Area names
-[] "Get link" link
-[] "RuleOverride" bool that can be set in "more"-window
-[] Move Delete to "more"-window
-[] Move Custom Color to "more"-window
-[x] Make the editbutton jump again
-[x] Show the calculated need clearer in the "Edit Info" view
-[x] Add parking
-[x] Add areas for toilets 
-[x] Show village bridge on map
-[x] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
-[x] Add info icons for ex. Nook, nature reserve and so on
-[x] Add correct toilet icon
-[X] Fix position of buttons under Add button
-
-EASY:
-[] Show sound icons on shapes that have more than 100w amp
-[] Add a settings toggle to show custom colors or basic coloring for shapes
-[] Inactivate clicking other shapes when in edit mode
-[x] Gray out forbidden areas
-[x] Add support for direct links to areas via query string
-[x] Notify users if they are placing on 'hiddenforbidden'
-[x] Remove snappint when adding new shape
-[x] Add pickable colors
-[x] Block areas to be edited beyong 1000m2
-[x] Block completely areas bigger than 1000m2
-[x] Rule for high wattage use (INFO)
-[x] Rule for many points in area (INFO)
-[] Give motivation when remove a shape
-[] Distinguish power usage between 0 power and not given
-[] When error validation sugests that area is too big, give option to calculate people
-[] Only allow for hue selection of color instead of RGB
-[] Use OnChange-event instead of TextInput
-[] Escape key close popup
-[] Ctrl+Enter saves and closes
-
-MEDIUM:
-[] Show history for a shape
-[] Add "Add Dream" feature
-[] Implement PostHog analytics
-[] Simple HTTP Basic Auth with email + birthdate
+    [] Area names
+    [] "Get link" link
+    [] "RuleOverride" bool that can be set in "more"-window
+    [] Move Delete to "more"-window
+    [] Move Custom Color to "more"-window
+    [] Show revisions in "more"
+    [] Add sound map
+    [] Add info about how many sqm tents and vans are in the info box
+    [] Make all windows "small-mobile-compatible"
+    [x] Make the editbutton jump again
+    [x] Show the calculated need clearer in the "Edit Info" view
+    [x] Add parking
+    [x] Add areas for toilets 
+    [x] Show village bridge on map
+    [x] Notify users to check slope map if they are placing on slopy areas (intersect with hidden layer)
+    [x] Add info icons for ex. Nook, nature reserve and so on
+    [x] Add correct toilet icon
+    [X] Fix position of buttons under Add button
     
-HARD:
-[] Update entites on a regular interval
+EASY:
+    [] Show sound icons on shapes that have more than 100w amp
+    [] Add a settings toggle to show custom colors or basic coloring for shapes
+    [] Inactivate clicking other shapes when in edit mode
+    [] Only allow for hue selection of color instead of RGB
+    [] Use OnChange-event instead of TextInput
+    [] Escape key close popup
+    [] Ctrl+Enter saves and closes
+    [] Give motivation when remove a shape
+    [] When error validation sugests that area is too big, give option to calculate people
+    [x] Distinguish power usage between 0 power and not given
+    [x] Gray out forbidden areas
+    [x] Add support for direct links to areas via query string
+    [x] Notify users if they are placing on 'hiddenforbidden'
+    [x] Remove snappint when adding new shape
+    [x] Add pickable colors
+    [x] Block areas to be edited beyong 1000m2
+    [x] Block completely areas bigger than 1000m2
+    [x] Rule for high wattage use (INFO)
+    [x] Rule for many points in area (INFO)
+    
+MEDIUM:
+    [] Add "Move shape" functionality
+    [] Show history for a shape
+    [] Add "Add Dream" feature
+    [] Implement PostHog analytics
+    [] Simple HTTP Basic Auth with email + birthdate
         
+HARD:
+    [] Update entites on a regular interval
+            
 RESEEARCH:
-[] Lock-down the API so that only the admin can add and remove shapes
-[] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
+    [] Lock-down the API so that only the admin can add and remove shapes
+    [] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
+                
+FIRST BETA TEST:
+    [x] Placemarks for toilets and water
+    [x] Instructions first time you use the editor
