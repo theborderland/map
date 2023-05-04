@@ -69,6 +69,12 @@ export class MapEntityRepository {
         return entityData.revision == this._latestRevisions[entityData.id].revision;
     }
 
+    public async checkAllRules() {
+        for (const entity of Object.values(this._latestRevisions)) {
+            entity.checkAllRules();
+        }
+    }
+
     /** Creates a new map entity from the given geoJSON  */
     public async createEntity(geoJson: object): Promise<MapEntity | null> {
         const response = await fetch(ENTITY_API_ADDRESS, {

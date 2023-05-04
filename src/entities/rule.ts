@@ -1,9 +1,13 @@
 import * as Turf from '@turf/turf';
 import type { MapEntity } from './entity';
+import { Geometry } from 'geojson';
+import { GeoJSON } from 'leaflet';
+import * as L from 'leaflet';
 
-const MAX_SQM_FOR_ENTITY: number = 1500;
+const MAX_CLUSTER_SIZE: number = 1500;
 const MAX_POWER_NEED: number = 7000;
 const MAX_POINTS_BEFORE_WARNING: number = 8;
+const FIRE_BUFFER_IN_METER: number = 4;
 
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
@@ -43,26 +47,27 @@ export class Rule {
 /** Utility function to generate a rule generator function to be used with the editor */
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
-        isTooBig(),
-        hasManyCoordinates(),
+        // isBiggerThanNeeded(),
+        // isSmallerThanNeeded(),
+        // isCalculatedAreaTooBig(),
         hasLargeEnergyNeed(),
         hasMissingFields(),
-        isBiggerThanNeeded(),
-        isSmallerThanNeeded(),
-        isCalculatedAreaTooBig(),
         isOverlapping(groups.fireroad, 3, 'Watch the fireroad!','This area is overlapping a fire road, adjust the placement plz <3'),
-        isBufferOverlapping(placementLayers, 3, 'Too close!','Fire safety distance warning! The dotted line can not touch another area.'),
         isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border.','You have placed yourself outside our land, please fix that <3'),
-        isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
         isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
         isOverlapping(groups.slope, 1, 'Slopey!','Your area are in slopey and uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
         isInsideBoundaries(groups.slope, 1, 'Slopey!','Your area are in slopey and uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
+        isBufferOverlappingRecursive(placementLayers, 3, 'Too close to cluster!','Move away!'),
+        // isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
+        // hasManyCoordinates(),
+        // DEPRACATED isBufferOverlapping(placementLayers, 3, 'Too close!','Fire safety distance warning! The dotted line can not touch another area.'),
+        // DEPRACATED isTooBig(),
     ];
 }
 
 const isTooBig = () =>
     new Rule(3, 'Too big!', 'Area is too big! Max size for one area is 500 m². Add another so that a fire safety buffer is created in between.', (entity) => {
-        return entity.area > MAX_SQM_FOR_ENTITY;
+        return entity.area > MAX_CLUSTER_SIZE;
     });
 
 const hasManyCoordinates = () =>
@@ -84,7 +89,7 @@ const hasMissingFields = () =>
 
 const isCalculatedAreaTooBig = () =>
     new Rule(3, 'Too many ppl/vehicles!', 'Calculated area need is bigger than the maximum allowed area size! Make another area to fix this.', (entity) => {
-        return entity.calculatedAreaNeeded > MAX_SQM_FOR_ENTITY;
+        return entity.calculatedAreaNeeded > MAX_CLUSTER_SIZE;
     });
 
 const isBiggerThanNeeded = () =>
@@ -105,7 +110,7 @@ function calculateAllowedArea(calculatedNeed: number): number {
   const clampedAdditionalArea = Math.max(0, Math.min(additionalArea, a));
 
   // Calculate the allowed area
-  const allowedArea = Math.min(calculatedNeed * (1 + clampedAdditionalArea), MAX_SQM_FOR_ENTITY);
+  const allowedArea = Math.min(calculatedNeed * (1 + clampedAdditionalArea), MAX_CLUSTER_SIZE);
   
   return allowedArea;
 }
@@ -181,6 +186,7 @@ function _isGeoJsonOverlappingLayergroup(
 
     let overlap = false;
     layerGroup.eachLayer((layer) => {
+        console.log({layer});
         //@ts-ignore
         let otherGeoJson = layer.toGeoJSON();
 
@@ -202,4 +208,66 @@ function _isGeoJsonOverlappingLayergroup(
     });
 
     return overlap;
+}
+
+const isBufferOverlappingRecursive = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+    new Rule(severity, shortMsg, message, (entity) => {
+        const checkedOverlappingLayers = new Set<string>();
+        
+        let totalArea = _getTotalAreaOfOverlappingEntities(entity.layer, layerGroup, checkedOverlappingLayers);
+
+        if (totalArea > MAX_CLUSTER_SIZE) {
+            return true;
+        }
+        return false;
+    });
+
+function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerGroup, checkedOverlappingLayers: Set<string>): number {
+    //@ts-ignore
+    if (checkedOverlappingLayers.has(layer._leaflet_id))
+    {
+        return 0;
+    }
+    else
+    {
+        //@ts-ignore
+        checkedOverlappingLayers.add(layer._leaflet_id);
+    }
+    
+    //@ts-ignore
+    let totalArea = Turf.area(layer.toGeoJSON());
+    
+    //@ts-ignore
+    let buffer = Turf.buffer(layer.toGeoJSON(), FIRE_BUFFER_IN_METER, { units: 'meters' }) as Turf.helpers.FeatureCollection<Turf.helpers.Polygon>;
+
+    layerGroup.eachLayer((otherLayer) => {
+        if (!_compareLayers(layer, otherLayer))
+        {
+            //@ts-ignore
+            const otherLayerGeoJSON = otherLayer.toGeoJSON();
+            let otherLayerPolygon;
+            if (otherLayerGeoJSON.type === 'Feature') {
+                otherLayerPolygon = otherLayerGeoJSON.geometry;
+            } else if (otherLayerGeoJSON.type === 'FeatureCollection') {
+                otherLayerPolygon = otherLayerGeoJSON.features[0];
+            } else {
+                // Unsupported geometry type
+                return;
+            }
+
+            //@ts-ignore
+            if (Turf.booleanOverlap(buffer.features[0], otherLayerPolygon)) { //&& !checkedOverlappingLayers.has(otherLayer._leaflet_id)
+                //@ts-ignore
+                totalArea += _getTotalAreaOfOverlappingEntities(otherLayer, layerGroup, checkedOverlappingLayers);
+                return;
+            }
+        }
+    });
+
+    return totalArea;
+}
+
+function _compareLayers(layer1: L.Layer, layer2: L.Layer): boolean {
+    //@ts-ignore
+    return layer1._leaflet_id === layer2._leaflet_id;
 }

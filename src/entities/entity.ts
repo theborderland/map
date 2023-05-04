@@ -157,8 +157,8 @@ export class MapEntity implements EntityDTO {
         this.amplifiedSound = geoJson.properties.amplifiedSound ?? -1;
         this.color = geoJson.properties.color ?? DefaultColor;
         
-        this.checkAllRules();
         this.updateBufferedLayer();
+        // this.checkAllRules();
     }
     private GetDefaultLayerStyle(): L.PathOptions {
         return { color: this.color, fillColor: this.color, fillOpacity: 0.3, weight: 1 };

@@ -124,6 +124,7 @@ export class Editor {
 
         // Select the next entity
         this._selected = nextEntity;
+        this._selected.checkAllRules();
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
@@ -422,11 +423,11 @@ export class Editor {
         const entityInResponse = await this._repository.updateEntity(entity);
 
         if (entityInResponse) {
-            this.addEntityToMap(entityInResponse);
             this._map.removeLayer(entity.layer);
             this._map.removeLayer(entity.bufferLayer);
             this._placementLayers.removeLayer(entity.layer);
             this._placementBufferLayers.removeLayer(entity.bufferLayer);
+            this.addEntityToMap(entityInResponse);
         }
     }
 
@@ -468,22 +469,23 @@ export class Editor {
         }
 
         // Save it to the entity API
-        const entity = await this._repository.createEntity(geoJson);
+        const entityInResponse = await this._repository.createEntity(geoJson);
 
         // Remove the drawn layer and replace it with one bound to the entity
-        if (entity) {
-            this.addEntityToMap(entity);
+        if (entityInResponse) {
+            this.addEntityToMap(entityInResponse);
             this._map.removeLayer(layer);
+            
             //@ts-ignore
-            const bounds = entity.layer.getBounds();
+            const bounds = entityInResponse.layer.getBounds();
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
-            this.setMode('editing-info', entity);
+            this.setMode('editing-info', entityInResponse);
         }
     }
 
     /** Adds the given map entity as an a editable layer to the map */
-    private addEntityToMap(entity: MapEntity) {
+    private addEntityToMap(entity: MapEntity, checkRules: boolean = true) {
         // Bind the click-event of the editor to the layer
         entity.layer.on('click', ({ latlng }) => {
             // Update the popup-position
@@ -524,8 +526,10 @@ export class Editor {
             entity.bufferLayer.setStyle({ opacity: 0 });
         }
 
-        entity.checkAllRules();
+        if (checkRules) entity.checkAllRules();
     }
+    
+    //Block crazy large areas
     private IsAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
         
@@ -537,6 +541,7 @@ export class Editor {
         this._selected = null;
         this.setMode('none');
         this._placementLayers.removeLayer(entity.layer);
+        this._placementBufferLayers.removeLayer(entity.bufferLayer);
         this._map.removeLayer(entity.layer);
         this._map.removeLayer(entity.bufferLayer);
         this._repository.deleteEntity(entity);
@@ -740,8 +745,10 @@ export class Editor {
         const entities = await this._repository.entities();
 
         for (const entity of entities) {
-            this.addEntityToMap(entity);
+            this.addEntityToMap(entity, false);
         }
+
+        this._repository.checkAllRules();
     }
 
     public gotoEntity(id: string) {
