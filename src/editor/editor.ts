@@ -128,7 +128,7 @@ export class Editor {
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
-    private setPopup(display: 'info' | 'edit-info' | 'none', entity?: MapEntity | null) {
+    private setPopup(display: 'info' | 'edit-info' | 'more' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
             this._popup.close();
@@ -353,6 +353,79 @@ export class Editor {
             };
             content.appendChild(soundField);
 
+            content.appendChild(document.createElement('p'));
+
+            if (this._isEditMode) {
+                const saveInfoButton = document.createElement('button');
+                saveInfoButton.innerHTML = 'Save';
+                saveInfoButton.style.width = '200px';
+                saveInfoButton.onclick = async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setMode('blur');
+                };
+                content.appendChild(saveInfoButton);
+
+                const moreButton = document.createElement('button');
+                moreButton.innerHTML = 'More...';
+                moreButton.style.marginRight = '0';
+                moreButton.onclick = async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setPopup('more', entity);
+                };
+                content.appendChild(moreButton);
+            }
+
+            this._popup.setContent(content).openOn(this._map);
+            return;
+        }
+
+                // Show fields to edit the entity information
+        if (display == 'more') {
+            const content = document.createElement('div');
+            content.innerHTML = ``;
+
+            content.appendChild(document.createElement('label')).innerHTML = 'More stuff';
+            
+            let date = new Date(entity.timeStamp);
+            let formattedDate = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes();
+
+            let entityInfo = content.appendChild(document.createElement('div'));
+            entityInfo.innerHTML = `<b>Last edited:</b> ${formattedDate}` +
+            `<br><b>Revisions: </b> ${entity.revision}`;
+
+            // content.appendChild(document.createElement('br'));
+            // content.appendChild(document.createElement('label')).innerHTML = 'Revisions';
+            // let revisionsList = content.appendChild(document.createElement('div'));
+            // //Create a scrollable list with all revisions for this entity
+            // revisionsList.style.maxHeight = '200px';
+            // revisionsList.style.overflowY = 'scroll';
+            // revisionsList.style.marginBottom = '10px';
+            // revisionsList.style.marginTop = '5px';
+            // revisionsList.style.border = '1px solid #ccc';
+            // revisionsList.style.padding = '5px';
+            // revisionsList.style.width = '100%';
+            // revisionsList.style.display = 'block';
+            // revisionsList.style.textAlign = 'left';
+            // revisionsList.style.fontSize = '12px';
+            // revisionsList.style.fontFamily = 'monospace';
+            // revisionsList.style.whiteSpace = 'pre-wrap';
+            // revisionsList.innerHTML = "Blablablbalablbala\nBlablblbalab\nlablbalbalabb";
+
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('b')).innerHTML = 'Supress warnings\n("I know what I\'m doing")';
+            //A toggle button toggling entity.supressWarnings
+            const supressWarnings = document.createElement('input');
+            supressWarnings.type = 'checkbox';
+            supressWarnings.style.marginLeft = '10px';
+            supressWarnings.checked = entity.warningOverride;
+            supressWarnings.onchange = () => {
+                entity.warningOverride = supressWarnings.checked;
+                entity.checkAllRules();
+            };
+            content.appendChild(supressWarnings);
+
             content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('b')).innerHTML = 'Custom color ';
             const colorPicker = document.createElement('input');
@@ -368,32 +441,35 @@ export class Editor {
 
             content.appendChild(document.createElement('p'));
 
-            if (this._isEditMode) {
-                const saveInfoButton = document.createElement('button');
-                saveInfoButton.innerHTML = 'Save';
-                saveInfoButton.style.width = '200px';
-                saveInfoButton.onclick = async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setMode('blur');
-                };
-                content.appendChild(saveInfoButton);
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-button');
+            deleteButton.innerHTML = 'Delete';
+            deleteButton.style.width = "100%";
+            deleteButton.onclick = async (e) => {
+                if (!confirm('Are you really sure you should delete this area?')) {
+                    return;
+                }
+                e.stopPropagation();
+                e.preventDefault();
+                this.deleteAndRemoveEntity(entity);
+            };
+            content.appendChild(deleteButton);
 
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-button');
-                deleteButton.innerHTML = 'Delete';
-                deleteButton.style.marginRight = '0';
-                deleteButton.onclick = async (e) => {
-                    if (!confirm('Are you really sure you should delete this area?')) {
-                        return;
-                    }
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.deleteAndRemoveEntity(entity);
-                };
-                content.appendChild(deleteButton);
-            }
+            let deleteInfo = content.appendChild(document.createElement('div'));
+            deleteInfo.innerHTML = `Use delete with caution! Only delete things you know is ok. Undelete can only be performed by using black magic.`;
 
+            content.appendChild(document.createElement('br'));
+
+            const backButton = document.createElement('button');
+            backButton.innerHTML = 'Back';
+            backButton.style.width = '200px';
+            backButton.onclick = async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.setMode('blur');
+            };
+            content.appendChild(backButton);
+            
             this._popup.setContent(content).openOn(this._map);
             return;
         }

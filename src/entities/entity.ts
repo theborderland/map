@@ -9,7 +9,7 @@ export interface EntityDTO {
     id: number;
     revision: number;
     geoJson: string;
-    timestamp: number;
+    timeStamp: number;
 }
 
 export const DefaultColor = '#7ae9ff';
@@ -48,7 +48,7 @@ export class MapEntity implements EntityDTO {
 
     public readonly id: number;
     public readonly revision: number;
-    public readonly timestamp: number;
+    public readonly timeStamp: number;
     public readonly layer: L.Layer & { pm?: any };
     public bufferLayer: L.Layer;
 
@@ -63,6 +63,7 @@ export class MapEntity implements EntityDTO {
     public powerNeed: number;
     public amplifiedSound: number;
     public color: string;
+    public warningOverride: boolean = false;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -127,10 +128,9 @@ export class MapEntity implements EntityDTO {
         this.id = data.id;
         this._rules = rules;
         this.revision = data.revision;
-        this.timestamp = data.timestamp;
+        this.timeStamp = data.timeStamp;
 
-        // Keep the original geoJson in memory for
-        // checking if changes has been made
+        // Keep the original geoJson in memory for checking if changes has been made
         this._originalGeoJson = data.geoJson;
 
         // Extract the geoJson data from the DTO
@@ -156,9 +156,10 @@ export class MapEntity implements EntityDTO {
         this.powerNeed = geoJson.properties.powerNeed ?? -1;
         this.amplifiedSound = geoJson.properties.amplifiedSound ?? -1;
         this.color = geoJson.properties.color ?? DefaultColor;
+        this.warningOverride = geoJson.properties.warningOverride ?? false;
         
         this.updateBufferedLayer();
-        // this.checkAllRules();
+        // this.checkAllRules(); //Probably not needed, better to let the editor choose when to do this as it is not allways wanted.
     }
     private GetDefaultLayerStyle(): L.PathOptions {
         return { color: this.color, fillColor: this.color, fillOpacity: 0.3, weight: 1 };
@@ -167,7 +168,8 @@ export class MapEntity implements EntityDTO {
     public checkAllRules() {
         // Check which rules are currently broken
         for (const rule of this._rules) {
-            rule.checkRule(this);
+            if (rule.severity >= 3) rule.checkRule(this);
+            else if (rule.severity <= 2 && !this.warningOverride) rule.checkRule(this);
         }
 
         // Update layer style
@@ -175,7 +177,7 @@ export class MapEntity implements EntityDTO {
         if (severity >= 3) {
             //@ts-ignore
             this.layer.setStyle(DangerLayerStyle);
-        } else if (severity == 2) {
+        } else if (severity == 2 && !this.warningOverride) {
             //@ts-ignore
             this.layer.setStyle(WarningLayerStyle);
         }
@@ -229,6 +231,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.powerNeed = this.powerNeed;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.color = this.color;
+        geoJson.properties.warningOverride = this.warningOverride;
 
         return geoJson;
     }

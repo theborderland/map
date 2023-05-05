@@ -26,12 +26,11 @@ export class MapEntityRepository {
     private async _update(): Promise<void> {
         const res = await fetch(ENTITY_API_ADDRESS);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
-        // console.log('[API]', 'Fetched entities from server', entityDTOs);
         this._latestRevisions = {};
         for (const data of entityDTOs) {
             if (this._entityConstraints) {
                 const { earliest, latest } = this._entityConstraints;
-                if (data.timestamp > latest || data.timestamp < earliest) {
+                if (data.timeStamp > latest || data.timeStamp < earliest) {
                     continue;
                 }
             }
