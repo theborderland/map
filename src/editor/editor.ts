@@ -124,7 +124,7 @@ export class Editor {
 
         // Select the next entity
         this._selected = nextEntity;
-        this._selected.checkAllRules();
+        this._selected?.checkAllRules();
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
