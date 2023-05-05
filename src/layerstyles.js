@@ -13,12 +13,13 @@ export function getStyleFunction(name) {
             return {
             ...baseStyle,
             color: '#00b521',
+            weight: 3,
             };
         case 'propertyborder':
             return {
             ...baseStyle,
             color: '#e77409',
-            weight: 2,
+            weight: 4,
             };
         case 'friends':
             return {
