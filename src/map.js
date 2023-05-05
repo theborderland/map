@@ -38,7 +38,7 @@ export const createMap = async () => {
 
     //Load placenames
     fetch('./data/bl23/placenames.geojson').then(response => response.json()).then(response => {
-      L.geoJSON(response.features, {style: {"color": "#ffff00", "weight": 2}}).addTo(map);
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map);
     });
     
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');

@@ -73,8 +73,8 @@ export function getStyleFunction(name) {
             };
         case 'hiddenforbidden':
             return {
-            color: '#a8b6cc',
-            fillOpacity: 0.5,
+            color: '#ff4444',
+            fillOpacity: 0.35,
             weight: 0,
             };
         case 'mediumprio':
