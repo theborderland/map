@@ -1,14 +1,14 @@
 
 PUBLIC BETA TEST:
-    [] Show supercluster size?
-    [] API: Look over save over deleted entity
-    [] "Get link" link
-    [] Add info about how many sqm tents and vans are in the info box
-    [] "RuleOverride" bool that can be set in "more"-window
-    [] Move Delete to "more"-window
-    [] Move Custom Color to "more"-window
-    [] Show revisions in "more"
+    [] "RuleOverride" bool that can be set in more-window
+    [x] Move Delete to more-window
+    [x] Move Custom Color to more-window
+    [] Show entity data in more-window
+    [] "Get link" link in more-window
     [] Go over styling and make all windows "small-mobile-compatible"
+    [] Add info about how many sqm tents and vans are in the info box
+    [] API: Look over save over deleted entity
+    [x] Show supercluster size?
     [x] Reactivate layer overlap rule
     [x] Review people/vehicle/area rule
     [x] Update error message on Too large cluster
