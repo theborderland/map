@@ -6,7 +6,7 @@ import * as L from 'leaflet';
 
 const MAX_CLUSTER_SIZE: number = 1500;
 const MAX_POWER_NEED: number = 7000;
-const MAX_POINTS_BEFORE_WARNING: number = 8;
+const MAX_POINTS_BEFORE_WARNING: number = 10;
 const FIRE_BUFFER_IN_METER: number = 4;
 
 export class Rule {
@@ -47,28 +47,22 @@ export class Rule {
 /** Utility function to generate a rule generator function to be used with the editor */
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
-        // isBiggerThanNeeded(),
-        // isSmallerThanNeeded(),
-        // isCalculatedAreaTooBig(),
+        isBiggerThanNeeded(),
+        isSmallerThanNeeded(),
+        isCalculatedAreaTooBig(),
         hasLargeEnergyNeed(),
         hasMissingFields(),
-        isOverlapping(groups.fireroad, 3, 'Watch the fireroad!','This area is overlapping a fire road, adjust the placement plz <3'),
-        isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border.','You have placed yourself outside our land, please fix that <3'),
+        hasManyCoordinates(),
+        isOverlapping(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
+        isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
+        isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border!','You have placed yourself outside our land, please fix that <3'),
         isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
-        isOverlapping(groups.slope, 1, 'Slopey!','Your area are in slopey and uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
-        isInsideBoundaries(groups.slope, 1, 'Slopey!','Your area are in slopey and uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
-        isBufferOverlappingRecursive(placementLayers, 3, 'Too close to cluster!','Move away!'),
+        isOverlapping(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
+        isInsideBoundaries(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
+        isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
         // isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
-        // hasManyCoordinates(),
-        // DEPRACATED isBufferOverlapping(placementLayers, 3, 'Too close!','Fire safety distance warning! The dotted line can not touch another area.'),
-        // DEPRACATED isTooBig(),
     ];
 }
-
-const isTooBig = () =>
-    new Rule(3, 'Too big!', 'Area is too big! Max size for one area is 500 m². Add another so that a fire safety buffer is created in between.', (entity) => {
-        return entity.area > MAX_CLUSTER_SIZE;
-    });
 
 const hasManyCoordinates = () =>
     new Rule(1, 'Many points.', 'You have added many points to this shape. Bear in mind that you will have to set this shape up in reality as well :)', (entity) => {
@@ -83,7 +77,7 @@ const hasLargeEnergyNeed = () =>
     });
 
 const hasMissingFields = () =>
-    new Rule(2, 'Missing info', 'Fill in name and description please.', (entity) => {
+    new Rule(2, 'Missing info', 'Fill in name, description and contact info please.', (entity) => {
         return !entity.name || !entity.description || !entity.contactInfo;
     });
 
@@ -93,12 +87,11 @@ const isCalculatedAreaTooBig = () =>
     });
 
 const isBiggerThanNeeded = () =>
-    new Rule(2, 'Bigger than needed.', 'Are you aware that the area is much bigger than the calculated need?', (entity) => {
-        const allowedArea = calculateAllowedArea(entity.calculatedAreaNeeded);
-        return entity.area > allowedArea;
+    new Rule(1, 'Bigger than needed.', 'Your area is quite big for the amount of people/vehicles and extras you have typed in.', (entity) => {
+        return entity.area > calculateReasonableArea(entity.calculatedAreaNeeded);
     });
 
-function calculateAllowedArea(calculatedNeed: number): number {
+function calculateReasonableArea(calculatedNeed: number): number {
   // Define constants for the power function
   const a = 0.5; // Controls the initial additional area
   const b = -0.2; // Controls the rate of decrease of the additional area
@@ -117,9 +110,9 @@ function calculateAllowedArea(calculatedNeed: number): number {
 
 const isSmallerThanNeeded = () =>
     new Rule(
-        2,
+        1,
         'Too small.',
-        'Are you aware that the area is smaller than the calculated need? Consider making it larger.',
+        'Considering the amount of people, vehicles and extras you have, this area is probably too small.',
         (entity) => {
             return entity.area < entity.calculatedAreaNeeded;
         },
@@ -130,18 +123,18 @@ const isOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: s
         return _isGeoJsonOverlappingLayergroup(entity.toGeoJSON(), layerGroup);
     });
 
-const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
-    new Rule(severity, shortMsg, message, (entity) => {
-        //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
-        if (!entity.bufferLayer) {
-            return false;
-        }
-        return _isGeoJsonOverlappingLayergroup(
-            //@ts-ignore
-            entity.bufferLayer.toGeoJSON().features[0],
-            layerGroup as any,
-        );
-    });
+// const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
+//     new Rule(severity, shortMsg, message, (entity) => {
+//         //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
+//         if (!entity.bufferLayer) {
+//             return false;
+//         }
+//         return _isGeoJsonOverlappingLayergroup(
+//             //@ts-ignore
+//             entity.bufferLayer.toGeoJSON().features[0],
+//             layerGroup as any,
+//         );
+//     });
 
 const isInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
     checkEntityBoundaries(layerGroup, severity, shortMsg, message, true);
@@ -186,7 +179,6 @@ function _isGeoJsonOverlappingLayergroup(
 
     let overlap = false;
     layerGroup.eachLayer((layer) => {
-        console.log({layer});
         //@ts-ignore
         let otherGeoJson = layer.toGeoJSON();
 
