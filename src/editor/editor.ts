@@ -4,6 +4,7 @@ import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
+import 'leaflet.path.drag';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -85,6 +86,7 @@ export class Editor {
             // Stop any ongoing editing of the previously selected layer
             if (prevEntity) {
                 prevEntity?.layer.pm.disable();
+                prevEntity?.layer._layers[prevEntity.layer._leaflet_id-1].dragging.disable();
             }
 
             return;
@@ -101,7 +103,7 @@ export class Editor {
             // TODO: Implement this!
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
-            console.log('[Editor]', 'set dragable', nextEntity);
+            // console.log('[Editor]', 'set dragable', nextEntity);
             // console.log('[Editor]', 'nextEntity.layer', nextEntity.layer);
             // console.log('[Editor]', 'nextEntity.layer._layers', nextEntity.layer._layers);
             // console.log('[Editor]', '.layer._layers[nextEntity.layer._leaflet_id-1]', nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]);
@@ -519,7 +521,6 @@ export class Editor {
     private UpdateOnScreenDisplay(entity: MapEntity | null) {
         if (entity) {
             
-            // this.onScreenInfo.textContent = entity.area + "m²";
             let tooltipText = entity.area + "m²";
             
             for (const rule of entity.getAllTriggeredRules()) {
@@ -530,6 +531,7 @@ export class Editor {
             }
             this.sqmTooltip.openOn(this._map);
             this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
+            // this.sqmTooltip.setLatLng(entity.layer._layers[entity.layer._leaflet_id-1].getBounds().getCenter());
             this.sqmTooltip.setContent(tooltipText);
         }
         else {
@@ -590,6 +592,14 @@ export class Editor {
             if (this.IsAreaTooBig(entity.toGeoJSON())) {
                 alert("The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.");
             }
+        });
+
+        entity.layer._layers[entity.layer._leaflet_id-1].on('drag', () => {
+            console.log("dragging");
+            entity.updateBufferedLayer();
+            entity.checkAllRules();
+            //FIXME: Cant get the tooltip to move with the shape yet...
+            this.UpdateOnScreenDisplay(null);
         });
 
         // Update the buffered layer when the layer has a vertex removed
