@@ -101,6 +101,15 @@ export class Editor {
             // TODO: Implement this!
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
+            console.log('[Editor]', 'set dragable', nextEntity);
+            // console.log('[Editor]', 'nextEntity.layer', nextEntity.layer);
+            // console.log('[Editor]', 'nextEntity.layer._layers', nextEntity.layer._layers);
+            // console.log('[Editor]', '.layer._layers[nextEntity.layer._leaflet_id-1]', nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]);
+            // nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]
+            // console.log('[Editor]', 'nextEntity.layer._layers.length', nextEntity.layer._layers.length);
+            // console.log('[Editor]', 'Array.length(nextEntity.layer._layers)', Array.length);
+            // nextEntity.layer.dragging.enable();
+            nextEntity.layer._layers[nextEntity.layer._leaflet_id-1].dragging.enable();
             return;
         }
         // Edit the information of the entity
@@ -187,15 +196,15 @@ export class Editor {
 
                 content.appendChild(editShapeButton);
 
-                // const moveShapeButton = document.createElement('button');
-                // moveShapeButton.innerHTML = 'Move';
-                // moveShapeButton.onclick = (e) => {
-                //     e.stopPropagation();
-                //     e.preventDefault();
-                //     this.setMode('moving-shape', entity);
-                // };
+                const moveShapeButton = document.createElement('button');
+                moveShapeButton.innerHTML = 'Move';
+                moveShapeButton.onclick = (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setMode('moving-shape', entity);
+                };
 
-                // content.appendChild(moveShapeButton);
+                content.appendChild(moveShapeButton);
 
                 const editInfoButton = document.createElement('button');
                 editInfoButton.innerHTML = 'Edit info';
