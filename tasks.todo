@@ -1,12 +1,13 @@
 
 PUBLIC BETA TEST:
-    [] Use OnChange-event instead of TextInput (fix input bug for people, vehicles, extras)
-    [] Go over styling and make all windows "small-mobile-compatible"
+    [] Update sound map
     [] Add legends to heightmap, slope map and soundmap
     [] Add info about how many sqm tents and vans are in the info box
     [] API: Look over save over deleted entity
     [] API: Rate limit
     [] API: Check ip log
+    [x] Fix input bug for people, vehicles, extras.
+    [x] Go over styling and make all windows "small-mobile-compatible"
     [X] "Get link" link in more-window
     [x] Add "Move shape" functionality
     [x] "supressWarnings" bool that can be set in more-window

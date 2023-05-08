@@ -146,7 +146,7 @@ export class MapEntity implements EntityDTO {
 
         
         // Extract information fields from the geoJson
-        this.name = DOMPurify.sanitize(geoJson.properties.name) ?? '';
+        this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';

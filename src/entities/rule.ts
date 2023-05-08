@@ -51,21 +51,18 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         hasLargeEnergyNeed(),
         hasMissingFields(),
         hasManyCoordinates(),
-        // isOverlapping(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
-        // isOverlapping(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
-        // isInsideBoundaries(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
         isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
         isOverlappingOrContained(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
         isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
         isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border!','You have placed yourself outside our land, please fix that <3'),
         isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
         isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
-        // isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border)!'),
+        isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border). Make sure you know what you are doing.'),
     ];
 }
 
 const hasManyCoordinates = () =>
-    new Rule(1, 'Many points.', 'You have added many points to this shape. Bear in mind that you will have to set this shape up in reality as well :)', (entity) => {
+    new Rule(1, 'Many points.', 'You have added many points to this shape. Bear in mind that you will have to set this shape up in reality as well.', (entity) => {
         const geoJson = entity.toGeoJSON();
         //Dont know why I have to use [0] here, but it works
         return {triggered: geoJson.geometry.coordinates[0].length > MAX_POINTS_BEFORE_WARNING};
@@ -161,19 +158,6 @@ const isOverlappingOrContained = (layerGroup: any, severity: Rule["_severity"], 
 
         return { triggered: overlap};
     });
-
-// const isBufferOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
-//     new Rule(severity, shortMsg, message, (entity) => {
-//         //Get the first feature of the buffer layer, since toGeoJSON() always returns a feature collection
-//         if (!entity.bufferLayer) {
-//             return false;
-//         }
-//         return _isGeoJsonOverlappingLayergroup(
-//             //@ts-ignore
-//             entity.bufferLayer.toGeoJSON().features[0],
-//             layerGroup as any,
-//         );
-//     });
 
 const isInsideBoundaries = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
     checkEntityBoundaries(layerGroup, severity, shortMsg, message, true);
