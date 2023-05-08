@@ -735,8 +735,6 @@ export class Editor {
         this.sqmTooltip.setLatLng([0, 0]);
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
-
-        this.AddToggleEditButton();
     }
 
     private AddToggleEditButton() {
@@ -851,6 +849,8 @@ export class Editor {
         }
 
         this._repository.checkAllRules();
+
+        this.AddToggleEditButton();
     }
 
     public gotoEntity(id: string) {
