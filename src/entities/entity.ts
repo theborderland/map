@@ -42,7 +42,7 @@ export const DangerLayerStyle: L.PathOptions = {
 export class MapEntity implements EntityDTO {
     private _rules: Array<Rule>;
     private _originalGeoJson: string;
-    private readonly _bufferWidth: number = 4;
+    private readonly _bufferWidth: number = 5;
     private readonly _sqmPerPerson: number = 12;
     private readonly _sqmPerVehicle: number = 75;
 
@@ -63,7 +63,7 @@ export class MapEntity implements EntityDTO {
     public powerNeed: number;
     public amplifiedSound: number;
     public color: string;
-    public warningOverride: boolean = false;
+    public supressWarnings: boolean = false;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -96,7 +96,6 @@ export class MapEntity implements EntityDTO {
     }
 
     public get severityOfRulesBroken(): number {
-        // console.log("SEVERITY: " + this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0)); 
         return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
     }
 
@@ -156,7 +155,7 @@ export class MapEntity implements EntityDTO {
         this.powerNeed = geoJson.properties.powerNeed ?? -1;
         this.amplifiedSound = geoJson.properties.amplifiedSound ?? -1;
         this.color = geoJson.properties.color ?? DefaultColor;
-        this.warningOverride = geoJson.properties.warningOverride ?? false;
+        this.supressWarnings = geoJson.properties.supressWarnings ?? false;
         
         this.updateBufferedLayer();
         // this.checkAllRules(); //Probably not needed, better to let the editor choose when to do this as it is not allways wanted.
@@ -168,8 +167,7 @@ export class MapEntity implements EntityDTO {
     public checkAllRules() {
         // Check which rules are currently broken
         for (const rule of this._rules) {
-            if (rule.severity >= 3) rule.checkRule(this);
-            else if (rule.severity <= 2 && !this.warningOverride) rule.checkRule(this);
+            rule.checkRule(this);
         }
 
         // Update layer style
@@ -177,7 +175,7 @@ export class MapEntity implements EntityDTO {
         if (severity >= 3) {
             //@ts-ignore
             this.layer.setStyle(DangerLayerStyle);
-        } else if (severity == 2 && !this.warningOverride) {
+        } else if (severity == 2 && !this.supressWarnings) {
             //@ts-ignore
             this.layer.setStyle(WarningLayerStyle);
         }
@@ -231,7 +229,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.powerNeed = this.powerNeed;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.color = this.color;
-        geoJson.properties.warningOverride = this.warningOverride;
+        geoJson.properties.supressWarnings = this.supressWarnings;
 
         return geoJson;
     }

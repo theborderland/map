@@ -210,18 +210,12 @@ export class Editor {
 
                 const editInfoButton = document.createElement('button');
                 editInfoButton.innerHTML = 'Edit info';
-                editInfoButton.style.position = 'absolute';
-                editInfoButton.style.right = '20px';
                 editInfoButton.onclick = (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setMode('editing-info', entity);
                 };
                 content.appendChild(editInfoButton);
-
-                // const info = document.createElement('div');
-                // info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
-                // content.appendChild(info);
             }
 
             this._popup.setContent(content).openOn(this._map);
@@ -398,13 +392,27 @@ export class Editor {
             content.innerHTML = ``;
 
             content.appendChild(document.createElement('label')).innerHTML = 'More stuff';
+            content.appendChild(document.createElement('br'));
             
             let date = new Date(entity.timeStamp);
             let formattedDate = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes();
-
+            
             let entityInfo = content.appendChild(document.createElement('div'));
-            entityInfo.innerHTML = `<b>Last edited:</b> ${formattedDate}` +
-            `<br><b>Revisions: </b> ${entity.revision}`;
+            entityInfo.innerHTML = 
+            `<br><b>Entity Id: </b> ${entity.creator}` +
+            `<br><b>Revisions: </b> ${entity.revision}` + 
+            `<b>Last edited:</b> ${formattedDate}`;
+
+            //A link that when pressed will copy "entity.id" to the clipboard
+            let copyLink = content.appendChild(document.createElement('a'));
+            copyLink.innerHTML = 'Click here to copy a link to this entity';
+            copyLink.href = '#';
+            copyLink.onclick = () => {
+                navigator.clipboard.writeText(window.location.host + '/?id=' + entity.id);
+                return false;
+            };
+
+            //Remove everything after the base domain adress from window.location.href
 
             // content.appendChild(document.createElement('br'));
             // content.appendChild(document.createElement('label')).innerHTML = 'Revisions';
@@ -425,14 +433,13 @@ export class Editor {
             // revisionsList.innerHTML = "Blablablbalablbala\nBlablblbalab\nlablbalbalabb";
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Supress warnings\n("I know what I\'m doing")';
-            //A toggle button toggling entity.supressWarnings
+            content.appendChild(document.createElement('b')).innerHTML = 'Supress yellow warnings';
             const supressWarnings = document.createElement('input');
             supressWarnings.type = 'checkbox';
             supressWarnings.style.marginLeft = '10px';
-            supressWarnings.checked = entity.warningOverride;
+            supressWarnings.checked = entity.supressWarnings;
             supressWarnings.onchange = () => {
-                entity.warningOverride = supressWarnings.checked;
+                entity.supressWarnings = supressWarnings.checked;
                 entity.checkAllRules();
             };
             content.appendChild(supressWarnings);

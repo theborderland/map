@@ -7,7 +7,7 @@ import * as L from 'leaflet';
 const MAX_CLUSTER_SIZE: number = 1500;
 const MAX_POWER_NEED: number = 7000;
 const MAX_POINTS_BEFORE_WARNING: number = 10;
-const FIRE_BUFFER_IN_METER: number = 4;
+const FIRE_BUFFER_IN_METER: number = 5;
 
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
