@@ -129,21 +129,6 @@ export class Editor {
         this._selected?.checkAllRules();
     }
 
-    private areaInfoText(entity?: MapEntity | null): string {
-        if (!entity) {
-            return "";
-        } else {
-            return 'Other stuff could be structures, art, kitchen tents, anything else than vehicles and tents for living. ' + 
-            'At least <b>' + entity.calculatedAreaNeeded + 'm²</b> needed. Current size is <b>' + entity.area + 'm².</b>';
-        }
-    }
-    
-    private updateEditInfo(entity?: MapEntity | null) {
-        const areaInfo = document.getElementById("areaInfo");
-        areaInfo.innerHTML = this.areaInfoText(entity);
-        return;
-    }
-
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
     private setPopup(display: 'info' | 'edit-info' | 'more' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
@@ -172,23 +157,34 @@ export class Editor {
                                     </br>
                                     <b style="text-align:right;">Power need:</b> ${entityPowerNeed}
                                     </br>
-                                    <b style="text-align:right;">Area need:</b> At least ${entity.calculatedAreaNeeded}m²
+                                    <b style="text-align:right;">Suggested size:</b> At least ${entity.calculatedAreaNeeded}m²
                                 </p> 
                                 `;
 
             const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
 
+            
             if (sortedRules.length > 0)
             {
                 content.innerHTML += `<p><b>${sortedRules.length}</b> issues found:</p> `;
+                
+                //A div that will hold all the rule messages
+                const ruleMessages = document.createElement('div');
+                // ruleMessages.style.marginTop = '10px';
+                ruleMessages.style.maxHeight = '200px';
+                ruleMessages.style.overflowY = 'auto';
+                content.appendChild(ruleMessages);
 
                 for (const rule of sortedRules) {
                     if (rule.severity >= 3) {
-                        content.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
-                    } else if (rule.severity >= 2) {
-                        content.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
-                    } else {
-                        content.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
+                        ruleMessages.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
+                    } else if (!entity.supressWarnings)
+                    {
+                        if (rule.severity >= 2) {
+                            ruleMessages.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
+                        } else {
+                            ruleMessages.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
+                        }
                     }
                 }
             }
@@ -216,18 +212,12 @@ export class Editor {
 
                 const editInfoButton = document.createElement('button');
                 editInfoButton.innerHTML = 'Edit info';
-                editInfoButton.style.position = 'absolute';
-                editInfoButton.style.right = '20px';
                 editInfoButton.onclick = (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setMode('editing-info', entity);
                 };
                 content.appendChild(editInfoButton);
-
-                // const info = document.createElement('div');
-                // info.innerHTML = `<p>id: ${entity.id}, rev: ${entity.revision}</p>`;
-                // content.appendChild(info);
             }
 
             this._popup.setContent(content).openOn(this._map);
@@ -239,11 +229,12 @@ export class Editor {
             const content = document.createElement('div');
             content.innerHTML = ``;
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Name of camp/project';
+            content.appendChild(document.createElement('label')).innerHTML = 'Name of camp/dream';
             
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
+            nameField.placeholder = 'Enter campname here..';
             nameField.oninput = () => {
                 entity.name = nameField.value;
                 entity.checkAllRules();
@@ -255,6 +246,7 @@ export class Editor {
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
+            descriptionField.placeholder = 'Describe your camp/dream here as much as you want.';
             descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
@@ -263,10 +255,11 @@ export class Editor {
             };
             content.appendChild(descriptionField);
 
-            content.appendChild(document.createElement('label')).innerHTML = 'Contact info (Name, email or discord)';
+            content.appendChild(document.createElement('label')).innerHTML = 'Contact info';
             const contactField = document.createElement('input');
             contactField.type = 'text';
             contactField.value = entity.contactInfo;
+            contactField.placeholder = 'Email, phone, discord name etc';
             contactField.oninput = () => {
                 entity.contactInfo = contactField.value;
                 entity.checkAllRules();
@@ -287,9 +280,7 @@ export class Editor {
             peopleField.min = '0';
             peopleField.oninput = () => {
                 entity.nrOfPeople = peopleField.value;
-                entity.checkAllRules();
-                this.UpdateOnScreenDisplay(entity);
-                this.updateEditInfo(entity);
+                updateTextAboutNeededSpace(entity);
             };
             content.appendChild(peopleField);
 
@@ -302,9 +293,7 @@ export class Editor {
             vehiclesField.min = '0';
             vehiclesField.oninput = () => {
                 entity.nrOfVehicles = vehiclesField.value;
-                entity.checkAllRules();
-                this.UpdateOnScreenDisplay(entity);
-                this.updateEditInfo(entity);
+                updateTextAboutNeededSpace(entity);
             };
             content.appendChild(vehiclesField);
 
@@ -319,19 +308,27 @@ export class Editor {
             otherSqm.min = '0';
             otherSqm.oninput = () => {
                 entity.additionalSqm = otherSqm.value;
-                entity.checkAllRules();
-                this.UpdateOnScreenDisplay(entity);
-                this.updateEditInfo(entity);
+                updateTextAboutNeededSpace(entity);
             };
             content.appendChild(otherSqm);
 
+            let updateTextAboutNeededSpace = (entity: MapEntity, div : HTMLElement = null) =>{
+                entity?.checkAllRules();
+                this.UpdateOnScreenDisplay(entity);
+                let areaInfo = document.getElementById('areaInfo');
+                if (!areaInfo) {
+                    areaInfo = div;
+                }
+                areaInfo.innerHTML = 'With this amount of people, vehicles and extra m² such as art, kitchen tents and structures, a suggested camp size is <b>' + entity?.calculatedAreaNeeded + 'm²</b>. Currently the area is <b>' + entity?.area + 'm².</b>';
+            };
+
             let areaInfo = content.appendChild(document.createElement('div'));
             areaInfo.id = 'areaInfo';
-            areaInfo.innerHTML = this.areaInfoText(entity);
             areaInfo.style.marginTop = '10px';
             areaInfo.style.marginBottom = '5px';
+            areaInfo.style.fontSize = '12px';
+            updateTextAboutNeededSpace(entity, areaInfo);
 
-            // content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('b')).innerHTML = 'Power need (Watts) ';
 
             const powerField = document.createElement('input');
@@ -403,42 +400,38 @@ export class Editor {
             const content = document.createElement('div');
             content.innerHTML = ``;
 
-            content.appendChild(document.createElement('label')).innerHTML = 'More stuff';
+            content.appendChild(document.createElement('h2')).innerHTML = 'More stuff';
+            // content.appendChild(document.createElement('br'));
+            // content.appendChild(document.createElement('br'));
             
             let date = new Date(entity.timeStamp);
             let formattedDate = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes();
-
+            
             let entityInfo = content.appendChild(document.createElement('div'));
-            entityInfo.innerHTML = `<b>Last edited:</b> ${formattedDate}` +
-            `<br><b>Revisions: </b> ${entity.revision}`;
+            entityInfo.innerHTML = 
+            `<b>Entity Id: </b> ${entity.id}` +
+            `<br><b>Revisions: </b> ${entity.revision}` + 
+            `<br><b>Last edited:</b> ${formattedDate}`;
+            content.appendChild(document.createElement('br'));
 
-            // content.appendChild(document.createElement('br'));
-            // content.appendChild(document.createElement('label')).innerHTML = 'Revisions';
-            // let revisionsList = content.appendChild(document.createElement('div'));
-            // //Create a scrollable list with all revisions for this entity
-            // revisionsList.style.maxHeight = '200px';
-            // revisionsList.style.overflowY = 'scroll';
-            // revisionsList.style.marginBottom = '10px';
-            // revisionsList.style.marginTop = '5px';
-            // revisionsList.style.border = '1px solid #ccc';
-            // revisionsList.style.padding = '5px';
-            // revisionsList.style.width = '100%';
-            // revisionsList.style.display = 'block';
-            // revisionsList.style.textAlign = 'left';
-            // revisionsList.style.fontSize = '12px';
-            // revisionsList.style.fontFamily = 'monospace';
-            // revisionsList.style.whiteSpace = 'pre-wrap';
-            // revisionsList.innerHTML = "Blablablbalablbala\nBlablblbalab\nlablbalbalabb";
+            //A link that when pressed will copy "entity.id" to the clipboard
+            let copyLink = content.appendChild(document.createElement('a'));
+            copyLink.innerHTML = 'Click here to copy a link to this entity';
+            copyLink.href = '#';
+            copyLink.onclick = () => {
+                navigator.clipboard.writeText(window.location.host + '/?id=' + entity.id);
+                return false;
+            };
 
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Supress warnings\n("I know what I\'m doing")';
-            //A toggle button toggling entity.supressWarnings
+            content.appendChild(document.createElement('br'));
+            content.appendChild(document.createElement('b')).innerHTML = 'Supress yellow warnings';
             const supressWarnings = document.createElement('input');
             supressWarnings.type = 'checkbox';
             supressWarnings.style.marginLeft = '10px';
-            supressWarnings.checked = entity.warningOverride;
+            supressWarnings.checked = entity.supressWarnings;
             supressWarnings.onchange = () => {
-                entity.warningOverride = supressWarnings.checked;
+                entity.supressWarnings = supressWarnings.checked;
                 entity.checkAllRules();
             };
             content.appendChild(supressWarnings);
@@ -734,8 +727,6 @@ export class Editor {
         this.sqmTooltip.setLatLng([0, 0]);
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
-
-        this.AddToggleEditButton();
     }
 
     private AddToggleEditButton() {
@@ -850,6 +841,8 @@ export class Editor {
         }
 
         this._repository.checkAllRules();
+
+        this.AddToggleEditButton();
     }
 
     public gotoEntity(id: string) {
