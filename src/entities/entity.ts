@@ -43,8 +43,8 @@ export class MapEntity implements EntityDTO {
     private _rules: Array<Rule>;
     private _originalGeoJson: string;
     private readonly _bufferWidth: number = 5;
-    private readonly _sqmPerPerson: number = 12;
-    private readonly _sqmPerVehicle: number = 75;
+    private readonly _sqmPerPerson: number = 10;
+    private readonly _sqmPerVehicle: number = 70;
 
     public readonly id: number;
     public readonly revision: number;
@@ -169,19 +169,40 @@ export class MapEntity implements EntityDTO {
         for (const rule of this._rules) {
             rule.checkRule(this);
         }
-
-        // Update layer style
-        const severity = this.severityOfRulesBroken;
-        if (severity >= 3) {
-            //@ts-ignore
-            this.layer.setStyle(DangerLayerStyle);
-        } else if (severity == 2 && !this.supressWarnings) {
-            //@ts-ignore
-            this.layer.setStyle(WarningLayerStyle);
-        }
-        //@ts-ignore
-        else this.layer.setStyle(this.GetDefaultLayerStyle());
     }
+
+    public setLayerStyle(mode : "severity" | "sound" | "power" = "severity") {
+        if (mode == "severity") {
+            if (this.severityOfRulesBroken >= 3) {
+                //@ts-ignore
+                this.layer.setStyle(DangerLayerStyle);
+            } else if (this.severityOfRulesBroken == 2 && !this.supressWarnings) {
+                //@ts-ignore
+                this.layer.setStyle(WarningLayerStyle);
+            }
+            //@ts-ignore
+            else this.layer.setStyle(this.GetDefaultLayerStyle());
+        }
+        else if (mode == "power")
+        {
+            let color = "green";
+            if (this.powerNeed > 9000) color = "red";
+            else if (this.powerNeed > 1000) color = "orange";
+            else if (this.powerNeed == -1) color = "darkgray";
+            //@ts-ignore
+            this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
+        }
+        else if (mode == "sound")
+        {
+            let color = "green";
+            if (this.amplifiedSound > 100) color = "red";
+            else if (this.amplifiedSound > 40) color = "orange";
+            else if (this.amplifiedSound == -1) color = "darkgray";
+            //@ts-ignore
+            this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
+        }
+    }
+
 
     public getAllTriggeredRules(): Array<Rule> {
         return this._rules.filter((r) => r.triggered);

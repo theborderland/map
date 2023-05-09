@@ -24,6 +24,8 @@ export class Editor {
     /** The current status of the editor */
     private _mode: 'none' | 'selected' | 'editing-shape' | 'editing-info' | 'moving-shape' = 'none';
 
+    private _currentLayerFilterStyle: 'severity' | 'sound' | 'power' = 'severity';
+
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
 
@@ -100,17 +102,9 @@ export class Editor {
         }
         // Move the shape of the entity
         if (this._mode == 'moving-shape' && nextEntity) {
-            // TODO: Implement this!
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
-            // console.log('[Editor]', 'set dragable', nextEntity);
-            // console.log('[Editor]', 'nextEntity.layer', nextEntity.layer);
-            // console.log('[Editor]', 'nextEntity.layer._layers', nextEntity.layer._layers);
-            // console.log('[Editor]', '.layer._layers[nextEntity.layer._leaflet_id-1]', nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]);
-            // nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]
-            // console.log('[Editor]', 'nextEntity.layer._layers.length', nextEntity.layer._layers.length);
-            // console.log('[Editor]', 'Array.length(nextEntity.layer._layers)', Array.length);
-            // nextEntity.layer.dragging.enable();
+            this.UpdateOnScreenDisplay(nextEntity, "Drag to move");
             nextEntity.layer._layers[nextEntity.layer._leaflet_id-1].dragging.enable();
             return;
         }
@@ -135,7 +129,7 @@ export class Editor {
 
         // Select the next entity
         this._selected = nextEntity;
-        this._selected?.checkAllRules();
+        this.refreshEntity(this._selected);
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
@@ -150,24 +144,30 @@ export class Editor {
         if (display == 'info') {
             const content = document.createElement('div');
 
-            const personText = entity.nrOfPeople === "1" ? 'person' : 'people';
-            const vehicleText = entity.nrOfVehicles === "1" ? 'vehicle' : 'vehicles';
+            const personText = entity.nrOfPeople === "1" ? ' person,' : ' people,';
+            const vehicleText = entity.nrOfVehicles === "1" ? '> vehicle,' : ' vehicles,';
             const entityName = entity.name ? entity.name : 'No name yet';
             const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
             const entityContactInfo = entity.contactInfo ? entity.contactInfo : 'Please add contact info!';
-            const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please set power need! Set to 0 if it is not needed.';
+            const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please state your power need! Set to 0 if you will not use electricity.';
+            const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.powerNeed} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
 
             content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
-                                <div style="font-size: 12px; color:#5c5c5c;">${entity.area} m² - <b>${entity.nrOfPeople}</b> ${personText}, <b>${entity.nrOfVehicles}</b> ${vehicleText} and <b>${entity.additionalSqm}</b>m² other</div>
                                 <p class="scrollable">${DOMPurify.sanitize(entityDescription)}</p>
-                                 
-                                <p style="font-size:14px;">
-                                    <b>Contact info:</b> ${DOMPurify.sanitize(entityContactInfo)}   
-                                    </br>
-                                    <b style="text-align:right;">Power need:</b> ${entityPowerNeed}
-                                    </br>
-                                    <b style="text-align:right;">Suggested size:</b> At least ${entity.calculatedAreaNeeded}m²
+                                <p style="font-size:14px; margin-top:0px !important; margin-bottom:0px !important">
+                                <b>Contact:</b> ${DOMPurify.sanitize(entityContactInfo)}   
+                                </br>
+                                <b style="text-align:right;">Power:</b> ${entityPowerNeed}
+                                </br>
+                                <b style="text-align:right;">Sound:</b> ${entitySoundAmp}
                                 </p> 
+
+                                <div style="font-size: 14px; color:#5c5c5c; margin-bottom: 10px !important">
+                                    <b>${entity.area}</b> m² - 
+                                    ${entity.nrOfPeople > 0 ? "<b>" + entity.nrOfPeople + "</b>" + personText : ""} 
+                                    ${entity.nrOfVehicles > 0 ? "<b>" + entity.nrOfVehicles + "</b>" + vehicleText : ""} 
+                                    ${entity.additionalSqm > 0 ? "<b>" + entity.additionalSqm + "</b> m² other" : ""}
+                                </div>
                                 `;
 
             const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
@@ -175,13 +175,14 @@ export class Editor {
             
             if (sortedRules.length > 0)
             {
-                content.innerHTML += `<p><b>${sortedRules.length}</b> issues found:</p> `;
+                if (!entity.supressWarnings) content.innerHTML += `<p style="margin-bottom: 0px !important"><b>${sortedRules.length}</b> issues found:</p> `;
                 
                 //A div that will hold all the rule messages
                 const ruleMessages = document.createElement('div');
                 // ruleMessages.style.marginTop = '10px';
                 ruleMessages.style.maxHeight = '200px';
                 ruleMessages.style.overflowY = 'auto';
+                ruleMessages.style.marginBottom = '10px';
                 content.appendChild(ruleMessages);
 
                 for (const rule of sortedRules) {
@@ -246,7 +247,7 @@ export class Editor {
             nameField.placeholder = 'Enter campname here..';
             nameField.oninput = () => {
                 entity.name = nameField.value;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
             };
             content.appendChild(nameField);
 
@@ -259,7 +260,7 @@ export class Editor {
             descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
                 this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(descriptionField);
@@ -271,7 +272,7 @@ export class Editor {
             contactField.placeholder = 'Email, phone, discord name etc';
             contactField.oninput = () => {
                 entity.contactInfo = contactField.value;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
                 this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(contactField);
@@ -311,7 +312,7 @@ export class Editor {
             const otherSqm = document.createElement('input');
             otherSqm.title = 'Area needed for kitchen, storage, workshop tents etc.';
             otherSqm.style.width = '5em';
-            otherSqm.style.marginLeft = '101px';
+            otherSqm.style.marginLeft = '132px';
             otherSqm.type = 'number';
             otherSqm.value = String(entity.additionalSqm);
             otherSqm.min = '0';
@@ -322,7 +323,7 @@ export class Editor {
             content.appendChild(otherSqm);
 
             let updateTextAboutNeededSpace = (entity: MapEntity, div : HTMLElement = null) =>{
-                entity?.checkAllRules();
+                this.refreshEntity(entity);
                 this.UpdateOnScreenDisplay(entity);
                 let areaInfo = document.getElementById('areaInfo');
                 if (!areaInfo) {
@@ -352,7 +353,7 @@ export class Editor {
             powerField.oninput = () => {
                 //@ts-ignore
                 entity.powerNeed = powerField.value;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
                 this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(powerField);
@@ -371,7 +372,7 @@ export class Editor {
             soundField.oninput = () => {
                 //@ts-ignore
                 entity.amplifiedSound = soundField.value;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
                 this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(soundField);
@@ -441,7 +442,7 @@ export class Editor {
             supressWarnings.checked = entity.supressWarnings;
             supressWarnings.onchange = () => {
                 entity.supressWarnings = supressWarnings.checked;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
             };
             content.appendChild(supressWarnings);
 
@@ -454,7 +455,7 @@ export class Editor {
             colorPicker.value = entity.color;
             colorPicker.onchange = () => {
                 entity.color = colorPicker.value;
-                entity.checkAllRules();
+                this.refreshEntity(entity);
             };
             content.appendChild(colorPicker);
 
@@ -509,7 +510,7 @@ export class Editor {
 
         this.UpdateOnScreenDisplay(null);
 
-        if (this.IsAreaTooBig(entity.toGeoJSON())) {
+        if (this.isAreaTooBig(entity.toGeoJSON())) {
             alert("The area of the polygon is waaay to big. It will not be saved, please change it.");
             return;
         }
@@ -526,20 +527,27 @@ export class Editor {
         }
     }
 
-    private UpdateOnScreenDisplay(entity: MapEntity | null) {
-        if (entity) {
+    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
+        if (entity || customMsg) {
             
-            let tooltipText = entity.area + "m²";
+            let tooltipText = "";
             
-            for (const rule of entity.getAllTriggeredRules()) {
-                if (rule.severity >= 2) {
-                    // this.onScreenInfo.textContent = rule.shortMessage;
-                    tooltipText += "<br>" + rule.shortMessage;
+            if (customMsg){
+                tooltipText = customMsg;
+            }
+            else{
+                tooltipText = entity.area + "m²";
+    
+                for (const rule of entity.getAllTriggeredRules()) {
+                    if (rule.severity >= 2) {
+                        // this.onScreenInfo.textContent = rule.shortMessage;
+                        tooltipText += "<br>" + rule.shortMessage;
+                    }
                 }
             }
+
             this.sqmTooltip.openOn(this._map);
             this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
-            // this.sqmTooltip.setLatLng(entity.layer._layers[entity.layer._leaflet_id-1].getBounds().getCenter());
             this.sqmTooltip.setContent(tooltipText);
         }
         else {
@@ -557,7 +565,7 @@ export class Editor {
         //@ts-ignore
         const geoJson = layer.toGeoJSON();
 
-        if (this.IsAreaTooBig(geoJson)) {
+        if (this.isAreaTooBig(geoJson)) {
             alert("The area of the polygon is waaay to big. Draw something smaller.");
             this._map.removeLayer(layer);
             return;
@@ -592,12 +600,12 @@ export class Editor {
         // Update the buffered layer when the layer is being edited
         entity.layer.on('pm:markerdrag', () => {
             entity.updateBufferedLayer();
-            entity.checkAllRules();
+            this.refreshEntity(entity);
             this.UpdateOnScreenDisplay(entity);
         });
 
         entity.layer.on('pm:markerdragend', () => {
-            if (this.IsAreaTooBig(entity.toGeoJSON())) {
+            if (this.isAreaTooBig(entity.toGeoJSON())) {
                 alert("The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.");
             }
         });
@@ -605,7 +613,7 @@ export class Editor {
         entity.layer._layers[entity.layer._leaflet_id-1].on('drag', () => {
             console.log("dragging");
             entity.updateBufferedLayer();
-            entity.checkAllRules();
+            this.refreshEntity(entity);
             //FIXME: Cant get the tooltip to move with the shape yet...
             this.UpdateOnScreenDisplay(null);
         });
@@ -613,7 +621,7 @@ export class Editor {
         // Update the buffered layer when the layer has a vertex removed
         entity.layer.on('pm:vertexremoved', () => {
             entity.updateBufferedLayer();
-            entity.checkAllRules(); //important that the buffer get updated before the rules are checked
+            this.refreshEntity(entity); //important that the buffer get updated before the rules are checked
             this.UpdateOnScreenDisplay(entity);
         });
 
@@ -629,11 +637,29 @@ export class Editor {
             entity.bufferLayer.setStyle({ opacity: 0 });
         }
 
-        if (checkRules) entity.checkAllRules();
+        if (checkRules) this.refreshEntity(entity);
     }
     
+    private refreshEntity(entity: MapEntity) {
+        if (entity == null) return;
+
+        entity.checkAllRules();
+        entity.setLayerStyle(this._currentLayerFilterStyle);
+    }
+
+    private refreshAllEntities() {
+        for (const entity of this._repository.getAllEntities()) {
+            this.refreshEntity(entity);
+        }
+    }
+
+    public setLayerFilter(filter: 'severity' | 'sound' | 'power') {
+        this._currentLayerFilterStyle = filter;
+        this.refreshAllEntities();
+    }
+
     //Block crazy large areas
-    private IsAreaTooBig(geoJson: any) {
+    private isAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
         
         if (area > 5000) return true;
@@ -738,7 +764,7 @@ export class Editor {
         this.sqmTooltip.closeTooltip();
     }
 
-    private AddToggleEditButton() {
+    private addToggleEditButton() {
         const customButton = L.Control.extend({
             // button position
             options: { position: 'bottomleft' },
@@ -849,9 +875,8 @@ export class Editor {
             this.addEntityToMap(entity, false);
         }
 
-        this._repository.checkAllRules();
-
-        this.AddToggleEditButton();
+        this.refreshAllEntities();
+        this.addToggleEditButton();
     }
 
     public gotoEntity(id: string) {

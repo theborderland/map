@@ -63,15 +63,14 @@ export class MapEntityRepository {
         return this._latestRevisions[id];
     }
 
+    //get all entities as a readonly list
+    public getAllEntities(): ReadonlyArray<MapEntity> {
+        return Object.values(this._latestRevisions);
+    }
+
     /** Returns true if this is the latest known revision of the given entity */
     public isLatest(entityData: EntityDTO): boolean {
         return entityData.revision == this._latestRevisions[entityData.id].revision;
-    }
-
-    public async checkAllRules() {
-        for (const entity of Object.values(this._latestRevisions)) {
-            entity.checkAllRules();
-        }
     }
 
     /** Creates a new map entity from the given geoJSON  */
