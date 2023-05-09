@@ -78,13 +78,12 @@ export const createMap = async () => {
       });
 
     var extraLayers = {
-        Placement: map.groups.placement,
-        Soundguide: map.groups.soundguide,
-        Slope: map.groups.slopemap,
-        Height: map.groups.heightmap,
-        Terrain: map.groups.terrain,
-        POI: map.groups.poi,
-        // "Power": map.groups.power_menu,
+      Slope: map.groups.slopemap,
+      Height: map.groups.heightmap,
+      Soundguide: map.groups.soundguide,
+      Terrain: map.groups.terrain,
+      Placement: map.groups.placement,
+      POI: map.groups.poi
     };
 
     // Add layer control and legends
