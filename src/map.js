@@ -10,7 +10,6 @@ import { loadGeoJsonFeatureCollections } from './loaders/loadGeoJsonFeatureColle
 import { getStyleFunction } from './layerstyles';
 
 import { loadImageOverlay } from './loaders/loadImageOverlay';
-import { loadDrawnMap } from './loaders/loadDrawnMap';
 
 import { addLegends } from './loaders/addLegends';
 
@@ -30,8 +29,7 @@ export const createMap = async () => {
         maxNativeZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
-    
-    await loadDrawnMap(map);
+
     await loadPoiFromGoogleCsv(map);
 
     showBetaMsg();
@@ -57,10 +55,7 @@ export const createMap = async () => {
     //Initialize the editor (it loads it data at the end)
     const editor = new Editor(map, map.groups);
 
-    var baseLayers = { 'Satellite map': map.groups.googleSatellite, 'Drawn map': map.groups.drawnmap };
-
     // Extra layers
-
     map.groups.terrain = await loadImageOverlay(map, './data/terrain.png', [
         [57.6156422900704257, 14.9150971736724536],
         [57.6291230394961715, 14.9362178462290363],
@@ -82,8 +77,6 @@ export const createMap = async () => {
         tms: false
       });
 
-    // map.groups.power_menu = (new L.LayerGroup());
-
     var extraLayers = {
         Placement: map.groups.placement,
         Soundguide: map.groups.soundguide,
@@ -95,7 +88,7 @@ export const createMap = async () => {
     };
 
     // Add layer control and legends
-    L.control.layers(baseLayers, extraLayers).addTo(map);
+    L.control.layers(undefined, extraLayers).addTo(map);
 
     addLegends(map);
 
