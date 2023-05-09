@@ -30,7 +30,7 @@ EASY:
     [] Add a settings toggle to show custom colors or basic coloring for shapes
     [] Inactivate clicking other shapes when in edit mode
     [] Only allow for hue selection of color instead of RGB
-    [] Use OnChange-event instead of TextInput
+    [x] OnChange-event reset text instead of running setPopup(). 
     [] Escape key close popup
     [] Ctrl+Enter saves and closes
     [] Give motivation when remove a shape

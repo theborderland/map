@@ -100,17 +100,8 @@ export class Editor {
         }
         // Move the shape of the entity
         if (this._mode == 'moving-shape' && nextEntity) {
-            // TODO: Implement this!
             this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
-            // console.log('[Editor]', 'set dragable', nextEntity);
-            // console.log('[Editor]', 'nextEntity.layer', nextEntity.layer);
-            // console.log('[Editor]', 'nextEntity.layer._layers', nextEntity.layer._layers);
-            // console.log('[Editor]', '.layer._layers[nextEntity.layer._leaflet_id-1]', nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]);
-            // nextEntity.layer._layers[nextEntity.layer._leaflet_id-1]
-            // console.log('[Editor]', 'nextEntity.layer._layers.length', nextEntity.layer._layers.length);
-            // console.log('[Editor]', 'Array.length(nextEntity.layer._layers)', Array.length);
-            // nextEntity.layer.dragging.enable();
             nextEntity.layer._layers[nextEntity.layer._leaflet_id-1].dragging.enable();
             return;
         }
@@ -136,6 +127,21 @@ export class Editor {
         // Select the next entity
         this._selected = nextEntity;
         this._selected?.checkAllRules();
+    }
+
+    private areaInfoText(entity?: MapEntity | null): string {
+        if (!entity) {
+            return "";
+        } else {
+            return 'Other stuff could be structures, art, kitchen tents, anything else than vehicles and tents for living. ' + 
+            'At least <b>' + entity.calculatedAreaNeeded + 'm²</b> needed. Current size is <b>' + entity.area + 'm².</b>';
+        }
+    }
+    
+    private updateEditInfo(entity?: MapEntity | null) {
+        const areaInfo = document.getElementById("areaInfo");
+        areaInfo.innerHTML = this.areaInfoText(entity);
+        return;
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
@@ -283,7 +289,7 @@ export class Editor {
                 entity.nrOfPeople = peopleField.value;
                 entity.checkAllRules();
                 this.UpdateOnScreenDisplay(entity);
-                this.setPopup('edit-info', entity);
+                this.updateEditInfo(entity);
             };
             content.appendChild(peopleField);
 
@@ -298,7 +304,7 @@ export class Editor {
                 entity.nrOfVehicles = vehiclesField.value;
                 entity.checkAllRules();
                 this.UpdateOnScreenDisplay(entity);
-                this.setPopup('edit-info', entity);
+                this.updateEditInfo(entity);
             };
             content.appendChild(vehiclesField);
 
@@ -315,13 +321,13 @@ export class Editor {
                 entity.additionalSqm = otherSqm.value;
                 entity.checkAllRules();
                 this.UpdateOnScreenDisplay(entity);
-                this.setPopup('edit-info', entity);
+                this.updateEditInfo(entity);
             };
             content.appendChild(otherSqm);
 
             let areaInfo = content.appendChild(document.createElement('div'));
-            areaInfo.innerHTML = 'Other stuff could be structures, art, kitchen tents, anything else than vehicles and tents for living. ' + 
-            'At least <b>' + entity.calculatedAreaNeeded + 'm²</b> needed. Current size is <b>' + entity.area + 'm².</b>';
+            areaInfo.id = 'areaInfo';
+            areaInfo.innerHTML = this.areaInfoText(entity);
             areaInfo.style.marginTop = '10px';
             areaInfo.style.marginBottom = '5px';
 
