@@ -4,8 +4,8 @@ import { Geometry } from 'geojson';
 import { GeoJSON } from 'leaflet';
 import * as L from 'leaflet';
 
-const MAX_CLUSTER_SIZE: number = 1500;
-const MAX_POWER_NEED: number = 7000;
+const MAX_CLUSTER_SIZE: number = 1250;
+const MAX_POWER_NEED: number = 8000;
 const MAX_POINTS_BEFORE_WARNING: number = 10;
 const FIRE_BUFFER_IN_METER: number = 5;
 
@@ -74,8 +74,8 @@ const hasLargeEnergyNeed = () =>
     });
 
 const hasMissingFields = () =>
-    new Rule(2, 'Missing info', 'Fill in name, description and contact info please.', (entity) => {
-        return {triggered: !entity.name || !entity.description || !entity.contactInfo};
+    new Rule(2, 'Missing info', 'Fill in name, description, contact info, power need and sound amplification please.', (entity) => {
+        return {triggered: !entity.name || !entity.description || !entity.contactInfo || entity.powerNeed === -1 || entity.amplifiedSound === -1};
     });
 
 const isCalculatedAreaTooBig = () =>
