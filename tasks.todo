@@ -1,8 +1,11 @@
 
 PUBLIC BETA TEST:
+    [] Handle sound and power not set, maybe with undefined instead of -1?
     [] Update sound map
     [] Add legends to heightmap, slope map and soundmap
+    [] Update instructions page
     [] Add info about how many sqm tents and vans are in the info box
+    [] Add rule that uses the sound layer
     [] API: Look over save over deleted entity
     [] API: Rate limit
     [] API: Check ip log
