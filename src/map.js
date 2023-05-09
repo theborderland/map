@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import 'leaflet.locatecontrol';
+// import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
 
@@ -102,11 +102,12 @@ export const createMap = async () => {
     // Add map features
     // await loadTooltipZoom(map);
     L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
-    L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
+    
+    // Reactivate closer to BL. Double check this functionality, reportedly buggy.
+    // L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
     
     let polylineMeasure = L.control.polylineMeasure({measureControlLabel: '&#128207;', arrow: {color: '#0000',} });
     polylineMeasure.addTo(map);
-    // polylineMeasure._startMeasuring();
 
     new L.Hash(map);  // Makes the URL follow the map.
     
@@ -120,5 +121,6 @@ export const createMap = async () => {
         editor.gotoEntity(id);
     }
 
+    // Implement search closer to BL.
     // await addSearch(map);
 };
