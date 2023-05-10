@@ -77,14 +77,30 @@ export const createMap = async () => {
         tms: false
       });
 
+    map.groups.power = new L.LayerGroup();
+    map.groups.sound = new L.LayerGroup();
+
     var extraLayers = {
       Slope: map.groups.slopemap,
       Height: map.groups.heightmap,
       Soundguide: map.groups.soundguide,
       Terrain: map.groups.terrain,
       Placement: map.groups.placement,
-      POI: map.groups.poi
+      POI: map.groups.poi,
+      Power: map.groups.power,
+      Sound: map.groups.sound,
     };
+
+    map.on('overlayadd', function (eventLayer) 
+    {
+        if (eventLayer.name === 'Power') editor.setLayerFilter('power', false);
+        else if (eventLayer.name === 'Sound') editor.setLayerFilter('sound', false);
+    });
+
+    map.on('overlayremove', function (eventLayer) 
+    {
+        if (eventLayer.name === 'Power' || eventLayer.name === 'Sound') editor.setLayerFilter('severity', false);
+    });
 
     // Add layer control and legends
     L.control.layers(undefined, extraLayers).addTo(map);

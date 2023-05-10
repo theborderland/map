@@ -640,22 +640,22 @@ export class Editor {
         if (checkRules) this.refreshEntity(entity);
     }
     
-    private refreshEntity(entity: MapEntity) {
+    private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
         if (entity == null) return;
 
-        entity.checkAllRules();
+        if (checkRules) entity.checkAllRules();
         entity.setLayerStyle(this._currentLayerFilterStyle);
     }
 
-    private refreshAllEntities() {
+    private refreshAllEntities(checkRules: boolean = true) {
         for (const entity of this._repository.getAllEntities()) {
-            this.refreshEntity(entity);
+            this.refreshEntity(entity, checkRules);
         }
     }
 
-    public setLayerFilter(filter: 'severity' | 'sound' | 'power') {
+    public setLayerFilter(filter: 'severity' | 'sound' | 'power', checkRules: boolean = true) {
         this._currentLayerFilterStyle = filter;
-        this.refreshAllEntities();
+        this.refreshAllEntities(checkRules);
     }
 
     //Block crazy large areas
