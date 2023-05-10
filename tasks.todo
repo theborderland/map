@@ -1,9 +1,9 @@
 
 PUBLIC BETA TEST:
-    [] Add names for areas on map
     [] Update instructions page
-    [] Add reference size area, maybe in the middle? Cars, tents, vans, people
     [] Handle sound and power not set, maybe with undefined instead of -1?
+    [x] Add names for areas on map
+    [x] Add reference size area, maybe in the middle? Cars, tents, vans, people
     [x] Add info about how many sqm tents and vans are in the info box
     [x] Add rule that uses the sound layer
     [x] API: Look over save over deleted entity

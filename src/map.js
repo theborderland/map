@@ -39,6 +39,11 @@ export const createMap = async () => {
       L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map);
     });
     
+    //Load reference drawings
+    fetch('./data/bl23/references.geojson').then(response => response.json()).then(response => {
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1}}).addTo(map);
+    });
+
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
     
