@@ -410,6 +410,14 @@ export class Editor {
                 content.appendChild(moreButton);
             }
 
+            content.onkeydown = (evt: Event) => {
+                // console.log('onkeydown', evt);
+                if (("key" in evt && evt.key === "Enter") && ("ctrlKey" in evt && evt.ctrlKey == true)) {
+                    // console.log('Ctrl + Enter');
+                    this.setMode('blur');
+                }
+            };
+
             this._popup.setContent(content).openOn(this._map);
             return;
         }
