@@ -253,7 +253,7 @@ export class Editor {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
-            nameField.placeholder = 'Enter campname here..';
+            nameField.placeholder = 'Enter camp name here..';
             nameField.oninput = () => {
                 entity.name = nameField.value;
                 this.refreshEntity(entity);
@@ -287,13 +287,13 @@ export class Editor {
             content.appendChild(contactField);
             
             content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'People in tents ';
+            content.appendChild(document.createElement('b')).innerHTML = 'People';
 
             const peopleField = document.createElement('input');
             peopleField.title = '12m² per person';
             peopleField.style.width = '3em';
-            peopleField.style.marginRight = '65px';
             peopleField.style.marginBottom = '7px';
+            peopleField.style.marginLeft = '5px';
             peopleField.type = 'number';
             peopleField.value = String(entity.nrOfPeople);
             peopleField.min = '0';
@@ -303,10 +303,17 @@ export class Editor {
             };
             content.appendChild(peopleField);
 
+            const personText = document.createElement('span');
+            personText.innerHTML = ' x 12m²';
+            personText.style.fontSize = '12px';
+            personText.style.marginRight = '25px';
+            content.appendChild(personText);
+
             content.appendChild(document.createElement('b')).innerHTML = ' Vehicles ';
             const vehiclesField = document.createElement('input');
             vehiclesField.title = '75m² per vehicle';
             vehiclesField.style.width = '3em';
+            vehiclesField.style.marginLeft = '5px';
             vehiclesField.type = 'number';
             vehiclesField.value = String(entity.nrOfVehicles);
             vehiclesField.min = '0';
@@ -316,12 +323,17 @@ export class Editor {
             };
             content.appendChild(vehiclesField);
 
+            const vehicleText = document.createElement('span');
+            vehicleText.innerHTML = ' x 70m²';
+            vehicleText.style.fontSize = '12px';
+            content.appendChild(vehicleText);
+
             content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('b')).innerHTML = 'Other stuff in m²';
             const otherSqm = document.createElement('input');
             otherSqm.title = 'Area needed for kitchen, storage, workshop tents etc.';
-            otherSqm.style.width = '5em';
-            otherSqm.style.marginLeft = '132px';
+            otherSqm.style.width = '6.2em';
+            otherSqm.style.marginLeft = '116px';
             otherSqm.type = 'number';
             otherSqm.value = String(entity.additionalSqm);
             otherSqm.min = '0';
