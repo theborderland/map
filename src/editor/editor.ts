@@ -486,9 +486,14 @@ export class Editor {
             deleteButton.innerHTML = 'Delete';
             deleteButton.style.width = "100%";
             deleteButton.onclick = async (e) => {
-                if (!confirm('Are you really sure you should delete this area?')) {
+                let changeReason = prompt("Are you really sure you should delete this area? Answer why.", "");
+                if (changeReason == null || changeReason == "") {
+                    console.log('Delete nope, changeReason', changeReason);
                     return;
                 }
+                console.log('Delete yes, changeReason', changeReason);
+                entity.changeReason = "Deleted due to " + changeReason;
+
                 e.stopPropagation();
                 e.preventDefault();
                 this.deleteAndRemoveEntity(entity);
@@ -527,6 +532,7 @@ export class Editor {
         console.log('[Editor]', 'onLayerDoneEditing!', { selected: this._selected });
         // Stop editing
         entity.layer.pm.disable();
+        entity.changeReason = "Editor Done";
 
         this.UpdateOnScreenDisplay(null);
 
