@@ -498,17 +498,16 @@ export class Editor {
             deleteButton.innerHTML = 'Delete';
             deleteButton.style.width = "100%";
             deleteButton.onclick = async (e) => {
-                let changeReason = prompt("Are you really sure you should delete this area? Answer why.", "");
-                if (changeReason == null || changeReason == "") {
-                    console.log('Delete nope, changeReason', changeReason);
+                let deleteReason = prompt("Are you really sure you should delete this area? Answer why.", "");
+                if (deleteReason == null || deleteReason == "") {
+                    console.log('Delete nope, deleteReason', deleteReason);
                     return;
                 }
-                console.log('Delete yes, changeReason', changeReason);
-                entity.changeReason = "Deleted due to " + changeReason;
+                console.log('Delete yes, deleteReason', deleteReason);
 
                 e.stopPropagation();
                 e.preventDefault();
-                this.deleteAndRemoveEntity(entity);
+                this.deleteAndRemoveEntity(entity, deleteReason);
             };
             content.appendChild(deleteButton);
 
@@ -704,14 +703,14 @@ export class Editor {
         return false;   
     }
 
-    private deleteAndRemoveEntity(entity: MapEntity) {
+    private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
         this._selected = null;
         this.setMode('none');
         this._placementLayers.removeLayer(entity.layer);
         this._placementBufferLayers.removeLayer(entity.bufferLayer);
         this._map.removeLayer(entity.layer);
         this._map.removeLayer(entity.bufferLayer);
-        this._repository.deleteEntity(entity);
+        this._repository.deleteEntity(entity, deleteReason);
     }
 
     constructor(map: L.Map, groups: L.FeatureGroup) {
