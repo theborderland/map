@@ -35,6 +35,8 @@ export const DangerLayerStyle: L.PathOptions = {
     weight: 5,
 };
 
+export const GreenColor = "#00FF40";
+
 /**
  * Represents the fields and data for single Map Entity and includes
  * methods both for persisting and updating it, and representing it on a map
@@ -160,8 +162,12 @@ export class MapEntity implements EntityDTO {
         this.updateBufferedLayer();
         // this.checkAllRules(); //Probably not needed, better to let the editor choose when to do this as it is not allways wanted.
     }
-    private GetDefaultLayerStyle(): L.PathOptions {
-        return { color: this.color, fillColor: this.color, fillOpacity: 0.3, weight: 1 };
+    private GetDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
+        let colorToSet = this.color;
+        if (cleancolors) {
+            colorToSet = GreenColor;
+        }
+        return { color: colorToSet, fillColor: colorToSet, fillOpacity: 0.3, weight: 1 };
     }
 
     public checkAllRules() {
@@ -171,8 +177,8 @@ export class MapEntity implements EntityDTO {
         }
     }
 
-    public setLayerStyle(mode : "severity" | "sound" | "power" = "severity") {
-        if (mode == "severity") {
+    public setLayerStyle(mode : "severity" | "sound" | "power" | "cleancolors" = "severity") {
+        if (mode == "severity" || mode == "cleancolors") {
             if (this.severityOfRulesBroken >= 3) {
                 //@ts-ignore
                 this.layer.setStyle(DangerLayerStyle);
@@ -180,24 +186,27 @@ export class MapEntity implements EntityDTO {
                 //@ts-ignore
                 this.layer.setStyle(WarningLayerStyle);
             }
-            //@ts-ignore
-            else this.layer.setStyle(this.GetDefaultLayerStyle());
+            else
+            {
+                //@ts-ignore
+                this.layer.setStyle(this.GetDefaultLayerStyle(mode == "cleancolors"));
+            }
         }
         else if (mode == "power")
         {
-            let color = "green";
-            if (this.powerNeed > 9000) color = "red";
-            else if (this.powerNeed > 1000) color = "orange";
-            else if (this.powerNeed == -1) color = "darkgray";
+            let color = GreenColor;
+            if (this.powerNeed > 9000) color = "#FF0000";
+            else if (this.powerNeed > 1000) color = "#FFA200";
+            else if (this.powerNeed == -1) color = "#D1D1D1";
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }
         else if (mode == "sound")
         {
-            let color = "green";
-            if (this.amplifiedSound > 100) color = "red";
-            else if (this.amplifiedSound > 40) color = "orange";
-            else if (this.amplifiedSound == -1) color = "darkgray";
+            let color = GreenColor;
+            if (this.amplifiedSound > 100) color = "#FF0000";
+            else if (this.amplifiedSound > 40) color = "#FFA200";
+            else if (this.amplifiedSound == -1) color = "#D1D1D1";
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }

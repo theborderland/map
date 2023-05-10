@@ -4,6 +4,7 @@ PUBLIC BETA TEST:
     [] Update slopemap
     [] Update instructions page
     [] Add info about how many sqm tents and vans are in the info box
+    [] Add names for areas on map
     [] API: Look over save over deleted entity
     [] API: Rate limit
     [] API: Check ip log
@@ -39,8 +40,8 @@ PUBLIC BETA TEST:
     [x] Instructions first time you use the editor
     
 EASY:
-    [] Sound visualization layer (green, orange, red)
-    [] Power vizualization layer (green, orange, red)
+    [x] Sound visualization layer (green, orange, red)
+    [x] Power vizualization layer (green, orange, red)
     [] Add a settings toggle to show custom colors or basic coloring for shapes
     [] Inactivate clicking other shapes when in edit mode
     [] Optimize popup position to be at the top of shapes to make info text more visible

@@ -79,6 +79,7 @@ export const createMap = async () => {
 
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
+    map.groups.clean = new L.LayerGroup();
 
     var extraLayers = {
       Slope: map.groups.slopemap,
@@ -89,17 +90,19 @@ export const createMap = async () => {
       POI: map.groups.poi,
       Power: map.groups.power,
       Sound: map.groups.sound,
+      Clean: map.groups.clean,
     };
 
     map.on('overlayadd', function (eventLayer) 
     {
         if (eventLayer.name === 'Power') editor.setLayerFilter('power', false);
         else if (eventLayer.name === 'Sound') editor.setLayerFilter('sound', false);
+        else if (eventLayer.name === 'Clean') editor.setLayerFilter('cleancolors', false);
     });
 
     map.on('overlayremove', function (eventLayer) 
     {
-        if (eventLayer.name === 'Power' || eventLayer.name === 'Sound') editor.setLayerFilter('severity', false);
+        if (eventLayer.name === 'Power' || eventLayer.name === 'Sound' || eventLayer.name === 'Clean') editor.setLayerFilter('severity', false);
     });
 
     // Add layer control and legends
