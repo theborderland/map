@@ -1,14 +1,17 @@
 
 PUBLIC BETA TEST:
-    [] Handle sound and power not set, maybe with undefined instead of -1?
     [] Update sound map
-    [] Add legends to heightmap, slope map and soundmap
+    [] Update slopemap
     [] Update instructions page
     [] Add info about how many sqm tents and vans are in the info box
-    [] Add rule that uses the sound layer
     [] API: Look over save over deleted entity
     [] API: Rate limit
     [] API: Check ip log
+    [] Add rule that uses the sound layer
+    [] Handle sound and power not set, maybe with undefined instead of -1?
+    [x] Slope map legend 
+    [x] Heightmaplegend
+    [x] Soundmap legend
     [x] Fix input bug for people, vehicles, extras.
     [x] Go over styling and make all windows "small-mobile-compatible"
     [X] "Get link" link in more-window

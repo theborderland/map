@@ -19,7 +19,7 @@ import { addLegends } from './loaders/addLegends';
 import { Editor } from './editor';
 
 export const createMap = async () => {
-    const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true })
+    const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false })
     .setView([57.6226, 14.9276], 16);
     
     map.groups = {};
@@ -61,7 +61,7 @@ export const createMap = async () => {
         [57.6291230394961715, 14.9362178462290363],
     ]);
 
-    map.groups.slopemap = L.tileLayer('./data/analysis/slope/{z}/{x}/{y}.png', {
+    map.groups.heightmap = L.tileLayer('./data/analysis/height/{z}/{x}/{y}.jpg', {
         minZoom: 13,
         maxZoom: 21,
         minNativeZoom: 16,
@@ -69,7 +69,7 @@ export const createMap = async () => {
         tms: false
       });
 
-    map.groups.heightmap = L.tileLayer('./data/analysis/height/{z}/{x}/{y}.jpg', {
+    map.groups.slopemap = L.tileLayer('./data/analysis/slope/{z}/{x}/{y}.png', {
         minZoom: 13,
         maxZoom: 21,
         minNativeZoom: 16,
@@ -93,7 +93,8 @@ export const createMap = async () => {
 
     // Add map features
     // await loadTooltipZoom(map);
-    L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
+    
+    // L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
     
     // Reactivate closer to BL. Double check this functionality, reportedly buggy.
     // L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);

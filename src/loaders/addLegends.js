@@ -6,30 +6,41 @@ export const addLegends = async (map) =>
 
     slopeLegend.onAdd = function (map) 
     {
-        var div = L.DomUtil.create('div', 'info legend');
+        var div = L.DomUtil.create('div', 'legend');
         div.innerHTML +='<img src="./img/slopelegend.png" alt="legend" width="100" height="141">';
         return div;
     };
 
-    // var soundLegend = L.control({position: 'bottomleft'});
+    var heightlegend = L.control({position: 'bottomright'});
 
-    // soundLegend.onAdd = function (map) 
-    // {
-    //     var div = L.DomUtil.create('div', 'info legend');
-    //     div.innerHTML += '<img src="./img/soundlegend.png" alt="legend" width="100" height="141">';
-    //     return div;
-    // };
+    heightlegend.onAdd = function (map) 
+    {
+        var div = L.DomUtil.create('div', 'legend');
+        div.innerHTML +='<img src="./img/heightlegend.png" alt="legend" width="100" height="124">';
+        return div;
+    };
+
+    var soundLegend = L.control({position: 'bottomright'});
+
+    soundLegend.onAdd = function (map) 
+    {
+        var div = L.DomUtil.create('div', 'legend');
+        div.innerHTML += '<img src="./img/soundlegend.png" alt="legend" width="100" height="98">';
+        return div;
+    };
 
     map.on('overlayadd', function (eventLayer) 
     {
         console.log(eventLayer.name);
-        if (eventLayer.name === 'Slope map') slopeLegend.addTo(this);
-        // else if (eventLayer.name === 'Sound guide') soundLegend.addTo(this);
+        if (eventLayer.name === 'Slope') slopeLegend.addTo(this);
+        else if (eventLayer.name === 'Soundguide') soundLegend.addTo(this);
+        else if (eventLayer.name === 'Height') heightlegend.addTo(this);
     });
 
     map.on('overlayremove', function (eventLayer) 
     {
-        if (eventLayer.name === 'Slope map') this.removeControl(slopeLegend);
-        // else if (eventLayer.name === 'Sound guide') this.removeControl(soundLegend);
+        if (eventLayer.name === 'Slope') this.removeControl(slopeLegend);
+        else if (eventLayer.name === 'Soundguide') this.removeControl(soundLegend);
+        else if (eventLayer.name === 'Height') this.removeControl(heightlegend);
     });
 };
