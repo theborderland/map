@@ -66,6 +66,7 @@ export class MapEntity implements EntityDTO {
     public amplifiedSound: number;
     public color: string;
     public supressWarnings: boolean = false;
+    public changeReason: string;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -158,6 +159,7 @@ export class MapEntity implements EntityDTO {
         this.amplifiedSound = geoJson.properties.amplifiedSound ?? -1;
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
+        this.changeReason = geoJson.properties.changeReason ?? '';
         
         this.updateBufferedLayer();
         // this.checkAllRules(); //Probably not needed, better to let the editor choose when to do this as it is not allways wanted.
@@ -260,6 +262,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.color = this.color;
         geoJson.properties.supressWarnings = this.supressWarnings;
+        geoJson.properties.changeReason = this.changeReason;
 
         return geoJson;
     }

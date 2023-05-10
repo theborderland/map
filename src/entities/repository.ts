@@ -76,6 +76,8 @@ export class MapEntityRepository {
 
     /** Creates a new map entity from the given geoJSON  */
     public async createEntity(geoJson: object): Promise<MapEntity | null> {
+        console.log('createEntity', geoJson);
+        geoJson['properties']['changeReason'] = "Created editor";
         const response = await fetch(ENTITY_API_ADDRESS, {
             method: 'POST',
             headers: {
