@@ -1,6 +1,7 @@
 import { ENTITY_API_ADDRESS } from '../constants';
 import { MapEntity, EntityDTO } from './entity';
 import type { Rule } from './rule';
+import DOMPurify from 'dompurify';
 
 /**
  * Singleton class that manages entity data from the API
@@ -116,8 +117,8 @@ export class MapEntityRepository {
         }
     }
     /** Deletes the entity in the database  */
-    public async deleteEntity(entity: MapEntity) {
-        const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`, {
+    public async deleteEntity(entity: MapEntity, reason: string = 'No reason given') {
+        const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}?reason=${DOMPurify.sanitize(reason)}`, {
             method: 'DELETE',
         });
         if (response.ok) {
