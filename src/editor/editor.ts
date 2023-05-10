@@ -138,22 +138,7 @@ export class Editor {
             // console.log('not escape...');
             return;
         }
-        if (this._mode == "selected") {
-            this.setMode('none');
-            return;
-        }
-        if (this._mode == "editing-shape") {
-            this.setMode('selected', this._selected);
-            return;
-        }
-        if (this._mode == "editing-info") {
-            this.setMode('selected', this._selected);
-            return;
-        }
-        if (this._mode == "moving-shape") {
-            this.setMode('selected', this._selected);
-            return;
-        }
+        this.setMode('blur');
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
