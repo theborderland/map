@@ -1,13 +1,14 @@
 
 PUBLIC BETA TEST:
+    [] Add info about how many sqm tents and vans are in the info box
     [] Add names for areas on map
     [] Update instructions page
-    [] Add info about how many sqm tents and vans are in the info box
-    [] API: Look over save over deleted entity
-    [] API: Rate limit
-    [] API: Check ip log
-    [] Add rule that uses the sound layer
     [] Handle sound and power not set, maybe with undefined instead of -1?
+    [] Add reference size area, maybe in the middle? Cars, tents, vans, people
+    [x] Add rule that uses the sound layer
+    [x] API: Look over save over deleted entity
+    [x] API: Rate limit
+    [x] API: Check ip log
     [x] Update sound map
     [x] Update slopemap
     [x] Slope map legend 
@@ -40,13 +41,13 @@ PUBLIC BETA TEST:
     [x] Instructions first time you use the editor
     
 EASY:
-    [] Inactivate clicking other shapes when in edit mode
+    [] Inactivate ability yo click other shapes when in edit mode (you can add and edit at the same time..)
     [] Optimize popup position to be at the top of shapes to make info text more visible
-    [x] Escape key close popup
-    [x] Ctrl+Enter saves and closes
-    [] When error validation sugests that area is too big, give option to calculate people
     [] Give motivation when remove a shape
     [] Only allow for hue selection of color instead of RGB
+    [x] When error validation suggests that area is too big, give option to calculate people
+    [x] Escape key close popup
+    [x] Ctrl+Enter saves and closes
     [x] Sound visualization layer (green, orange, red)
     [x] Power vizualization layer (green, orange, red)
     [x] Add a settings toggle to show custom colors or basic coloring for shapes

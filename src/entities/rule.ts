@@ -51,6 +51,8 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         hasLargeEnergyNeed(),
         hasMissingFields(),
         hasManyCoordinates(),
+        isBreakingSoundLimit(groups.soundlow, 1, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!', 40),
+        isBreakingSoundLimit(groups.soundmedium, 1, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!', 100),
         isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
         isOverlappingOrContained(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
         isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
@@ -286,3 +288,40 @@ function _compareLayers(layer1: L.Layer, layer2: L.Layer): boolean {
     //@ts-ignore
     return layer1._leaflet_id === layer2._leaflet_id;
 }
+
+const isBreakingSoundLimit = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string, limit: number) =>
+    new Rule(severity, shortMsg,message, (entity) => {
+
+        if (entity.amplifiedSound < limit) return {triggered: false};
+        
+        let geoJson = entity.toGeoJSON();
+        let overlap = false;
+
+        layerGroup.eachLayer((layer) => {
+            //@ts-ignore
+            let otherGeoJson = layer.toGeoJSON();
+
+            //Loop through all features if it is a feature collection
+            if (otherGeoJson.features) {
+                for (let i = 0; i < otherGeoJson.features.length; i++) {
+                    if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i]) || Turf.booleanContains(otherGeoJson.features[i], geoJson)) {
+                        if (entity.amplifiedSound > limit) {
+                            overlap = true;
+                            return; // Break out of the inner loop
+                        }
+                    }
+                }
+            } else if (Turf.booleanOverlap(geoJson, otherGeoJson) || Turf.booleanContains(otherGeoJson, geoJson)) {
+                if (entity.amplifiedSound > limit) {
+                    overlap = true;
+                           
+                }
+            }
+
+            if (overlap) {
+                return; // Break out of the loop once an overlap is found
+            }
+        });
+
+        return { triggered: overlap};
+    });

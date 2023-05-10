@@ -159,7 +159,7 @@ export class Editor {
             const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
             const entityContactInfo = entity.contactInfo ? entity.contactInfo : 'Please add contact info!';
             const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please state your power need! Set to 0 if you will not use electricity.';
-            const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.powerNeed} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
+            const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.amplifiedSound} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
 
             content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
                                 <p class="scrollable">${DOMPurify.sanitize(entityDescription)}</p>
