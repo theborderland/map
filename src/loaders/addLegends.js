@@ -31,7 +31,6 @@ export const addLegends = async (map) =>
 
     map.on('overlayadd', function (eventLayer) 
     {
-        console.log(eventLayer.name);
         if (eventLayer.name === 'Slope') slopeLegend.addTo(this);
         else if (eventLayer.name === 'Soundguide') soundLegend.addTo(this);
         else if (eventLayer.name === 'Height') heightlegend.addTo(this);
