@@ -132,6 +132,15 @@ export class Editor {
         this.refreshEntity(this._selected);
     }
 
+    private keyEscapeListener(evt: Event) {
+        // console.log('keyEscapeListener', evt);
+        if (("key" in evt) && !(evt.key === "Escape" || evt.key === "Esc")) {
+            // console.log('not escape...');
+            return;
+        }
+        this.setMode('blur');
+    }
+
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
     private setPopup(display: 'info' | 'edit-info' | 'more' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
@@ -401,11 +410,19 @@ export class Editor {
                 content.appendChild(moreButton);
             }
 
+            content.onkeydown = (evt: Event) => {
+                // console.log('onkeydown', evt);
+                if (("key" in evt && evt.key === "Enter") && ("ctrlKey" in evt && evt.ctrlKey == true)) {
+                    // console.log('Ctrl + Enter');
+                    this.setMode('blur');
+                }
+            };
+
             this._popup.setContent(content).openOn(this._map);
             return;
         }
 
-                // Show fields to edit the entity information
+        // Show fields to edit the entity information
         if (display == 'more') {
             const content = document.createElement('div');
             content.innerHTML = ``;
@@ -611,7 +628,7 @@ export class Editor {
         });
 
         entity.layer._layers[entity.layer._leaflet_id-1].on('drag', () => {
-            console.log("dragging");
+            // console.log("dragging");
             entity.updateBufferedLayer();
             this.refreshEntity(entity);
             //FIXME: Cant get the tooltip to move with the shape yet...
@@ -762,6 +779,10 @@ export class Editor {
         this.sqmTooltip.setLatLng([0, 0]);
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
+
+        document.onkeydown = (evt: Event) => {
+            this.keyEscapeListener(evt);
+        };
     }
 
     private addToggleEditButton() {

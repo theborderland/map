@@ -42,8 +42,8 @@ PUBLIC BETA TEST:
 EASY:
     [] Inactivate clicking other shapes when in edit mode
     [] Optimize popup position to be at the top of shapes to make info text more visible
-    [] Escape key close popup
-    [] Ctrl+Enter saves and closes
+    [x] Escape key close popup
+    [x] Ctrl+Enter saves and closes
     [] When error validation sugests that area is too big, give option to calculate people
     [] Give motivation when remove a shape
     [] Only allow for hue selection of color instead of RGB
