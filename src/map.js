@@ -34,6 +34,8 @@ export const createMap = async () => {
 
     showBetaMsg();
 
+    new L.Hash(map);  // Makes the URL follow the map.
+
     //Load placenames
     fetch('./data/bl23/placenames.geojson').then(response => response.json()).then(response => {
       L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map);
@@ -125,9 +127,7 @@ export const createMap = async () => {
     
     let polylineMeasure = L.control.polylineMeasure({measureControlLabel: '&#128207;', arrow: {color: '#0000',} });
     polylineMeasure.addTo(map);
-
-    new L.Hash(map);  // Makes the URL follow the map.
-    
+   
     //Load all entities from the API
     await editor.addAPIEntities();
     
