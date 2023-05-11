@@ -402,7 +402,7 @@ export class Editor {
 
             if (this._isEditMode) {
                 const saveInfoButton = document.createElement('button');
-                saveInfoButton.innerHTML = 'Save';
+                saveInfoButton.innerHTML = 'Ok!';
                 saveInfoButton.style.width = '200px';
                 saveInfoButton.onclick = async (e) => {
                     e.stopPropagation();
@@ -834,9 +834,9 @@ export class Editor {
     public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
-        if (localStorage.getItem("hasSeenInstructions") == null)
+        if (localStorage.getItem("hasSeenInstructions2") == null)
         {
-            localStorage.setItem("hasSeenInstructions", "true");
+            localStorage.setItem("hasSeenInstructions2", "true");
 
             // Show instructions when entering edit mode, and wait for the user 
             // to press a button on that screen before continuing
