@@ -811,9 +811,7 @@ export class Editor {
             options: { position: 'bottomleft' },
 
             onAdd: () => {
-                // create button
-                // let btn = L.DomUtil.create('button', 'placement-btn');
-                let btn = L.DomUtil.create('button', 'btn btn-gradient1');
+                let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
                 btn.title = 'Edit';
                 btn.textContent = 'Edit';
                 L.DomEvent.disableClickPropagation(btn);
@@ -831,6 +829,28 @@ export class Editor {
         this._map.addControl(new customButton());
     }
 
+
+    private addHelpButton() {
+        const customButton = L.Control.extend({
+            options: { position: 'topleft' },
+
+            onAdd: () => {
+                let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
+                btn.title = 'Guide to the placement process';
+                btn.textContent = '❔';
+                L.DomEvent.disableClickPropagation(btn);
+
+                btn.onclick = () => {
+                    console.log('Help button');
+                    window.open('/instructions', '_blank').focus();
+                };
+
+                return btn;
+            },
+        });
+
+        this._map.addControl(new customButton());
+    }
     public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
@@ -918,6 +938,7 @@ export class Editor {
 
         this.refreshAllEntities();
         this.addToggleEditButton();
+        this.addHelpButton();
     }
 
     public gotoEntity(id: string) {

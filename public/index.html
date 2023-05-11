@@ -166,15 +166,6 @@
                 width: 100px;
                 height: 35px !important;
                 margin-bottom: 15px !important; 
-
-                animation-name: shake;
-                animation-duration: 1s; 
-                animation-timing-function: ease-out; 
-                animation-delay: 5s;
-                animation-direction: alternate;
-                animation-iteration-count: 2;
-                animation-fill-mode: none;
-                animation-play-state: running;   
             }
 
             @keyframes shake {
@@ -482,26 +473,38 @@
                 width: 100px;
                 border: solid;
                 border-color: #fbc2eb;
+            }
 
+            .btn:hover {
+                background-position: right center; /* change the direction of the change here */
+            }
+
+            .btn-gradient1 {
+                background-image: linear-gradient(to right, #fbc2eb 0%, #a6c1ee 51%, #fbc2eb 100%);
+            }
+
+            .help-button {
+                padding: 3px;
+                text-align: center;
+                color: white;
+                width: 34px;
+                height: 34px;
+                border: 2px solid rgba(0,0,0,0.2);
+                background-color: #ffffff;
+                border-radius: 4px;
+            }
+
+            .button-shake-animate
+            {
                 animation-name: shake;
                 animation-duration: 1s; 
                 animation-timing-function: ease-out; 
-                animation-delay: 10s;
+                animation-delay: 5s;
                 animation-direction: alternate;
-                animation-iteration-count: 3;
+                animation-iteration-count: 2;
                 animation-fill-mode: none;
                 animation-play-state: running;   
-                }
-
-                .btn:hover {
-                background-position: right center; /* change the direction of the change here */
-                }
-
-                .btn-gradient1 {
-                background-image: linear-gradient(to right, #fbc2eb 0%, #a6c1ee 51%, #fbc2eb 100%);
-                }
-
-
+            }
         </style>
     </head>
     <body>
