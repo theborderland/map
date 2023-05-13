@@ -43,7 +43,7 @@ PUBLIC BETA TEST:
 EASY:
     [] Inactivate ability yo click other shapes when in edit mode (you can add and edit at the same time..)
     [] Optimize popup position to be at the top of shapes to make info text more visible
-    [] Place visal layers like sound bellow entitys
+    [x] Place visal layers like sound bellow entitys
     [x] Fix Sound legend "soundguide is a bit confusing for the >100W category because the direction of the sign changed".
     [x] Give motivation when remove a shape
     [x] When error validation suggests that area is too big, give option to calculate people

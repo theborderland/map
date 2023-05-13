@@ -74,7 +74,7 @@ export const createMap = async () => {
         minNativeZoom: 16,
         maxNativeZoom: 17,
         tms: false
-      });
+    });
 
     map.groups.slopemap = L.tileLayer('./data/analysis/slope/{z}/{x}/{y}.png', {
         minZoom: 13,
@@ -82,22 +82,22 @@ export const createMap = async () => {
         minNativeZoom: 16,
         maxNativeZoom: 17,
         tms: false
-      });
+    });
 
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
 
     var extraLayers = {
-      Slope: map.groups.slopemap,
-      Height: map.groups.heightmap,
-      Soundguide: map.groups.soundguide,
-      Terrain: map.groups.terrain,
-      Placement: map.groups.placement,
-      POI: map.groups.poi,
-      Power: map.groups.power,
-      Sound: map.groups.sound,
-      Clean: map.groups.clean,
+        Slope: map.groups.slopemap,
+        Height: map.groups.heightmap,
+        Soundguide: map.groups.soundguide,
+        Terrain: map.groups.terrain,
+        Placement: map.groups.placement,
+        POI: map.groups.poi,
+        Power: map.groups.power,
+        Sound: map.groups.sound,
+        Clean: map.groups.clean,
     };
 
     map.on('overlayadd', function (eventLayer) 
@@ -105,6 +105,12 @@ export const createMap = async () => {
         if (eventLayer.name === 'Power') editor.setLayerFilter('power', false);
         else if (eventLayer.name === 'Sound') editor.setLayerFilter('sound', false);
         else if (eventLayer.name === 'Clean') editor.setLayerFilter('cleancolors', false);
+
+        if (eventLayer.name === 'Soundguide') {
+            map.groups.soundhigh.bringToBack();
+            map.groups.soundmedium.bringToBack();
+            map.groups.soundlow.bringToBack();
+        }
     });
 
     map.on('overlayremove', function (eventLayer) 
