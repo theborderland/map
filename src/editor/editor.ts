@@ -563,9 +563,10 @@ export class Editor {
 
             let entityInfo = content.appendChild(document.createElement('div'));
             entityInfo.innerHTML =
-            `<b>Entity Id: </b> ${entity.id}` +
-            `<br><b>Revisions: </b> ${entity.revision}` +
-            `<br><b>Last edited:</b> ${formattedDate}`;
+            `<b>Entity Id: </b> ${entity.id}<br>` +
+            `<b>Name: </b> ${entity.name}<br>` +
+            `<b>Revisions: </b> ${entity.revision}<br>` +
+            `<b>Last edited:</b> ${formattedDate}`;
             content.appendChild(document.createElement('br'));
 
             // Prepare table for showing revisions
