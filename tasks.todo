@@ -43,8 +43,9 @@ PUBLIC BETA TEST:
 EASY:
     [] Inactivate ability yo click other shapes when in edit mode (you can add and edit at the same time..)
     [] Optimize popup position to be at the top of shapes to make info text more visible
-    [] Give motivation when remove a shape
-    [] Only allow for hue selection of color instead of RGB
+    [] Place visal layers like sound bellow entitys
+    [] Fix Sound legend "soundguide is a bit confusing for the >100W category because the direction of the sign changed".
+    [x] Give motivation when remove a shape
     [x] When error validation suggests that area is too big, give option to calculate people
     [x] Escape key close popup
     [x] Ctrl+Enter saves and closes
@@ -63,7 +64,7 @@ EASY:
     [x] Rule for many points in area (INFO)
     
 MEDIUM:
-    [] Show history for a shape
+    [x] Show history for a shape
     [] Add "Add Dream" feature
     [] Implement PostHog analytics
     [] Simple HTTP Basic Auth with email + birthdate
