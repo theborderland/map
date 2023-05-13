@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
-import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
+import { MapEntity, MapEntityRepository, DefaultLayerStyle, EntityDifferences } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
@@ -32,6 +32,7 @@ export class Editor {
     private _groups: L.FeatureGroup<any>;
     private _placementLayers: L.LayerGroup<any>;
     private _placementBufferLayers: L.LayerGroup<any>;
+    private _ghostLayers: L.LayerGroup<any>;
     
     private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
@@ -142,10 +143,11 @@ export class Editor {
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
-    private setPopup(display: 'info' | 'edit-info' | 'more' | 'none', entity?: MapEntity | null) {
+    private setPopup(display: 'info' | 'edit-info' | 'more' | 'history' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
             this._popup.close();
+            this._ghostLayers.clearLayers();  // Remove ghosted entitys if non selected
             return;
         }
 
@@ -237,6 +239,16 @@ export class Editor {
                     this.setMode('editing-info', entity);
                 };
                 content.appendChild(editInfoButton);
+
+                const historyButton = document.createElement('button');
+                historyButton.innerHTML = 'History';
+                historyButton.style.marginRight = '0';
+                historyButton.onclick = async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    this.setPopup('history', entity);
+                };
+                content.appendChild(historyButton);
             }
 
             this._popup.setContent(content).openOn(this._map);
@@ -440,11 +452,8 @@ export class Editor {
             content.innerHTML = ``;
 
             content.appendChild(document.createElement('h2')).innerHTML = 'More stuff';
-            // content.appendChild(document.createElement('br'));
-            // content.appendChild(document.createElement('br'));
             
-            let date = new Date(entity.timeStamp);
-            let formattedDate = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes();
+            let formattedDate = this.formatDate(entity.timeStamp);
             
             let entityInfo = content.appendChild(document.createElement('div'));
             entityInfo.innerHTML = 
@@ -511,6 +520,16 @@ export class Editor {
             };
             content.appendChild(deleteButton);
 
+            const historyButton = document.createElement('button');
+            historyButton.innerHTML = 'History';
+            historyButton.style.marginRight = '0';
+            historyButton.onclick = async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.setPopup('history', entity);
+            };
+            content.appendChild(historyButton);
+
             let deleteInfo = content.appendChild(document.createElement('div'));
             deleteInfo.innerHTML = `Use delete with caution! Only delete things you know is ok. Undelete can only be performed by using black magic.`;
 
@@ -529,6 +548,114 @@ export class Editor {
             this._popup.setContent(content).openOn(this._map);
             return;
         }
+
+        // Show edit-history for the entity
+        if (display == 'history') {
+            const content = document.createElement('div');
+            content.innerHTML = ``;
+
+            content.appendChild(document.createElement('h2')).innerHTML = 'Edit-History';
+
+            let formattedDate = this.formatDate(entity.timeStamp);
+
+            let entityInfo = content.appendChild(document.createElement('div'));
+            entityInfo.innerHTML =
+            `<b>Entity Id: </b> ${entity.id}` +
+            `<br><b>Revisions: </b> ${entity.revision}` +
+            `<br><b>Last edited:</b> ${formattedDate}`;
+            content.appendChild(document.createElement('br'));
+
+            // Prepare table for showing revisions
+            const divtable = document.createElement('div');
+            const divdescriptionframe = document.createElement('div');
+            const divdescription = document.createElement('div');
+            const divdescriptionheader = document.createElement('h3');
+            divdescriptionheader.innerText = 'Description';
+            divdescriptionframe.append(divdescriptionheader);
+            divdescriptionframe.append(divdescription);
+            divtable.id = "history-table";
+            content.appendChild(divtable);
+            divdescription.id = "change-description";
+            content.appendChild(divdescriptionframe);
+            const table: HTMLTableElement = document.createElement('table');
+            divtable.appendChild(table);
+            const thead = table.createTHead();
+            const theadrow: HTMLTableRowElement = thead.insertRow();
+            theadrow.insertCell().innerText = "Revision";
+            theadrow.insertCell().innerText = "Timestamp";
+            theadrow.insertCell().innerText = "What Changed";
+            const tbody = table.createTBody();
+
+            // Get revisions and create tale rows for each revision
+            this._repository.getRevisionsForEntity(entity);
+            // console.log('result from getRevisionsForEntity', entity.revisions);
+            let rowsToAdd: Array<HTMLTableRowElement> = [];
+            let entityCurrent = null;
+            let entityPrevious = null;
+            const GhostLayerStyle: L.PathOptions = {
+                color: '#ff0000',
+                fillColor: '#000000',
+                fillOpacity: 0.50,
+                weight: 5,
+            };
+            for (let revisionentity in entity.revisions) {
+                // Prepare list with individual changes for revision
+                let ulChanges = document.createElement('ul');
+                const row: HTMLTableRowElement = document.createElement('tr');
+                entityCurrent = entity.revisions[revisionentity];
+                row.insertCell().innerText = entityCurrent.revision;
+                row.insertCell().innerText = this.formatDate(entityCurrent.timeStamp, 'short', 'medium');
+                row.insertCell().append(ulChanges);
+                let diff = this.getEntityDifferences(entityCurrent, entityPrevious);
+                // console.log('Differences', diff);
+                for (let changeid in diff) {
+                    let change = diff[changeid];
+                    let li = document.createElement('li');
+                    li.innerText = change['changeShort'];
+                    let btn = L.DomUtil.create('button', 'desc-button');
+                    btn.title = 'Show a detailed description about this change.';
+                    btn.textContent = '?';
+                    btn.onclick = () => {
+                        divdescription.innerText = change['changeLong'];
+                    };
+                    // li.append(btn);
+                    let a = document.createElement('a');
+                    a.href = '#';
+                    a.innerText = ' Show';
+                    a.title = 'Show a detailed description about this change.';
+                    a.onclick = () => {
+                        divdescription.innerText = change['changeLong'];
+                        // console.log('show revisionentity', revisionentity);
+                        let entityRevSelected = entity.revisions[revisionentity];
+                        // console.log(entityRevSelected);
+                        this._ghostLayers.clearLayers();
+                        entityRevSelected.layer.setStyle(GhostLayerStyle);
+                        this._ghostLayers.addLayer(entityRevSelected.layer);
+                    };
+                    li.append(a);
+                    ulChanges.append(li);
+                }
+                rowsToAdd.push(row);
+                entityPrevious = entityCurrent;
+            }
+
+            // Add all history-rows backwards
+            rowsToAdd.slice().reverse().forEach(function(row) {
+                tbody.append(row);
+            });
+
+            const backButton = document.createElement('button');
+            backButton.innerHTML = 'Back';
+            backButton.style.width = '200px';
+            backButton.onclick = async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                this.setMode('blur');
+            };
+            content.appendChild(backButton);
+            this._popup.setContent(content).openOn(this._map);
+            return;
+        }
     }
 
     /** Event handler for when an editable map entity is clicked */
@@ -543,7 +670,6 @@ export class Editor {
         console.log('[Editor]', 'onLayerDoneEditing!', { selected: this._selected });
         // Stop editing
         entity.layer.pm.disable();
-        entity.changeReason = "Editor Done";
 
         this.UpdateOnScreenDisplay(null);
 
@@ -722,6 +848,7 @@ export class Editor {
         //Create two separate layersgroups, so that we can use them to check overlaps separately
         this._placementLayers = new L.LayerGroup().addTo(map);
         this._placementBufferLayers = new L.LayerGroup().addTo(map);
+        this._ghostLayers = new L.LayerGroup().addTo(map);
 
         //Place both in the same group so that we can toggle them on and off together on the map
         //@ts-ignore
@@ -841,7 +968,6 @@ export class Editor {
                 L.DomEvent.disableClickPropagation(btn);
 
                 btn.onclick = () => {
-                    console.log('Help button');
                     window.open('/instructions', '_blank').focus();
                 };
 
@@ -851,6 +977,113 @@ export class Editor {
 
         this._map.addControl(new customButton());
     }
+
+    private formatDate(timeStamp: any,
+                        styleDate: "full" | "long" | "medium" | "short" = "short",
+                        styleTime: "full" | "long" | "medium" | "short" = "short"): string {
+        // let date = new Date(Date.parse(timeStamp + ' UTC'));
+        let date = new Date(Date.parse(timeStamp));
+        // console.log('date', date);
+        let formatted: string = date.toLocaleString('sv', { dateStyle: styleDate, timeStyle: styleTime });
+        // console.log('formatted', formatted);
+        return formatted;
+    }
+
+    private getEntityDifferences(current: MapEntity, previous: MapEntity): Array<EntityDifferences> {
+        let differences: Array<EntityDifferences> = [];
+        // If previous entity is null it must be the first revision
+        if (previous == null) {
+            differences.push({ what: 'Created',
+                                changeShort: 'Created',
+                                changeLong: `Someone created this entity.`
+                            });
+            return differences;
+        }
+
+        // Go through all relevant properties and look for differences, list them verbosly under differences
+        if (current.isDeleted != previous.isDeleted) {
+            differences.push({ what: 'Deleted',
+                                changeShort: 'Is Deleted',
+                                changeLong: `Is Deleted due to ${current.deleteReason}.`
+                            });
+        }
+        if (current.name != previous.name) {
+            differences.push({ what: 'Name',
+                                changeShort: 'Name Changed',
+                                changeLong: `Someone changed the name from ${previous.name} to ${current.name}.`
+                            });
+        }
+        if (current.description != previous.description) {
+            differences.push({ what: 'Description',
+                                changeShort: 'Description Changed',
+                                changeLong: `Someone changed the description from ${previous.description} to ${current.description}.`
+                            });
+        }
+        if (current.contactInfo != previous.contactInfo) {
+            differences.push({ what: 'Contact Info',
+                                changeShort: 'Contact Info Changed',
+                                changeLong: `Someone changed the contact info from ${previous.contactInfo} to ${current.contactInfo}.`
+                            });
+        }
+        if (current.nrOfPeople != previous.nrOfPeople) {
+            differences.push({ what: 'NrOfPeople',
+                                changeShort: 'NrOfPeople Changed',
+                                changeLong: `Someone changed the number of people from ${previous.nrOfPeople} to ${current.nrOfPeople}.`
+                            });
+        }
+        if (current.nrOfVehicles != previous.nrOfVehicles) {
+            differences.push({ what: 'NrOfVehicles',
+                                changeShort: 'NrOfVehicles Changed',
+                                changeLong: `Someone changed the number of vehicles from ${previous.nrOfVehicles} to ${current.nrOfVehicles}.`
+                            });
+        }
+        if (current.additionalSqm != previous.additionalSqm) {
+            differences.push({ what: 'AdditionalSqm',
+                                changeShort: 'AdditionalSqm Changed',
+                                changeLong: `Someone changed additional Sqm from ${previous.additionalSqm} to ${current.additionalSqm}.`
+                            });
+        }
+        if (current.powerNeed != previous.powerNeed) {
+            differences.push({ what: 'PowerNeed',
+                                changeShort: 'PowerNeed Changed',
+                                changeLong: `Someone changed power need from ${previous.powerNeed} to ${current.powerNeed}.`
+                            });
+        }
+        if (current.amplifiedSound != previous.amplifiedSound) {
+            differences.push({ what: 'AmplifiedSound',
+                                changeShort: 'AmplifiedSound Changed',
+                                changeLong: `Someone changed amplified sound from ${previous.amplifiedSound} to ${current.amplifiedSound}.`
+                            });
+        }
+        if (current.color != previous.color) {
+            differences.push({ what: 'Color',
+                                changeShort: 'Color Changed',
+                                changeLong: `Someone changed color from ${previous.color} to ${current.color}.`
+                            });
+        }
+        if (current.supressWarnings != previous.supressWarnings) {
+            differences.push({ what: 'SupressWarnings',
+                                changeShort: 'SupressWarnings Changed',
+                                changeLong: `Someone changed supress warnings from ${previous.supressWarnings} to ${current.supressWarnings}.`
+                            });
+        }
+        let currentGeoJson = JSON.stringify(current.toGeoJSON()['geometry']);
+        let previousGeoJson = JSON.stringify(previous.toGeoJSON()['geometry']);
+        if (currentGeoJson != previousGeoJson) {
+            differences.push({ what: 'GeoJson',
+                                changeShort: 'Polygon Changed',
+                                changeLong: `Someone changed the polygon.`
+                            });
+        }
+        if (differences.length == 0) {
+            differences.push({ what: 'NoDifference',
+                                changeShort: 'No difference',
+                                changeLong: `No difference detected between revisions.`
+                            });
+        }
+        return differences;
+    }
+
     public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
