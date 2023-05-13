@@ -49,6 +49,9 @@ export class Editor {
             return;
         }
 
+        // Always remove ghosted entitys when changing mode
+        this._ghostLayers.clearLayers();
+
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
             if ((prevMode == 'editing-shape' || prevMode == 'moving-shape' || prevMode == 'editing-info') && prevEntity) {
@@ -147,7 +150,6 @@ export class Editor {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
             this._popup.close();
-            this._ghostLayers.clearLayers();  // Remove ghosted entitys if non selected
             return;
         }
 
@@ -246,6 +248,7 @@ export class Editor {
                 historyButton.onclick = async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
+                    this.setMode('editing-info', entity);
                     this.setPopup('history', entity);
                 };
                 content.appendChild(historyButton);
@@ -624,8 +627,8 @@ export class Editor {
                     a.innerText = ' Show';
                     a.title = 'Show a detailed description about this change.';
                     a.onclick = () => {
+                        divdescriptionheader.innerText = `Description of revision ${revisionentity}`;
                         divdescription.innerText = change['changeLong'];
-                        // console.log('show revisionentity', revisionentity);
                         let entityRevSelected = entity.revisions[revisionentity];
                         // console.log(entityRevSelected);
                         this._ghostLayers.clearLayers();
