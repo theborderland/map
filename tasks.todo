@@ -1,6 +1,6 @@
 
 PUBLIC BETA TEST:
-    [] Handle sound and power not set, maybe with undefined instead of -1?
+    [x] Handle sound and power not set, maybe with undefined instead of -1?
     [x] Update instructions page
     [x] Add names for areas on map
     [x] Add reference size area, maybe in the middle? Cars, tents, vans, people
