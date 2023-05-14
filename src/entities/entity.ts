@@ -10,6 +10,14 @@ export interface EntityDTO {
     revision: number;
     geoJson: string;
     timeStamp: number;
+    isDeleted: boolean;
+    deleteReason: string;
+}
+
+export interface EntityDifferences {
+    what: string;
+    changeShort: string;
+    changeLong: string;
 }
 
 export const DefaultColor = '#7ae9ff';
@@ -51,11 +59,13 @@ export class MapEntity implements EntityDTO {
     public readonly id: number;
     public readonly revision: number;
     public readonly timeStamp: number;
+    public readonly isDeleted: boolean;
+    public readonly deleteReason: string;
     public readonly layer: L.Layer & { pm?: any };
     public bufferLayer: L.Layer;
+    public revisions: Record<number, MapEntity>;
 
     // Information fields
-
     public name: string;
     public description: string;
     public contactInfo: string;
@@ -66,7 +76,6 @@ export class MapEntity implements EntityDTO {
     public amplifiedSound: number;
     public color: string;
     public supressWarnings: boolean = false;
-    public changeReason: string;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -131,6 +140,8 @@ export class MapEntity implements EntityDTO {
         this._rules = rules;
         this.revision = data.revision;
         this.timeStamp = data.timeStamp;
+        this.isDeleted = data.isDeleted;
+        this.deleteReason = data.deleteReason;
 
         // Keep the original geoJson in memory for checking if changes has been made
         this._originalGeoJson = data.geoJson;
@@ -147,6 +158,7 @@ export class MapEntity implements EntityDTO {
             style: (/*feature*/) => this.GetDefaultLayerStyle(),
         });
 
+        this.revisions = {};
         
         // Extract information fields from the geoJson
         this.name = DOMPurify.sanitize(geoJson.properties.name);
@@ -159,7 +171,6 @@ export class MapEntity implements EntityDTO {
         this.amplifiedSound = geoJson.properties.amplifiedSound ?? undefined;
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
-        this.changeReason = geoJson.properties.changeReason ?? '';
         
         this.updateBufferedLayer();
         // this.checkAllRules(); //Probably not needed, better to let the editor choose when to do this as it is not allways wanted.
@@ -214,7 +225,6 @@ export class MapEntity implements EntityDTO {
         }
     }
 
-
     public getAllTriggeredRules(): Array<Rule> {
         return this._rules.filter((r) => r.triggered);
     }
@@ -262,7 +272,6 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.color = this.color;
         geoJson.properties.supressWarnings = this.supressWarnings;
-        geoJson.properties.changeReason = this.changeReason;
 
         return geoJson;
     }

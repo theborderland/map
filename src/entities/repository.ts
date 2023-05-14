@@ -77,7 +77,6 @@ export class MapEntityRepository {
     /** Creates a new map entity from the given geoJSON  */
     public async createEntity(geoJson: object): Promise<MapEntity | null> {
         console.log('createEntity', geoJson);
-        geoJson['properties']['changeReason'] = "Created editor";
         const response = await fetch(ENTITY_API_ADDRESS, {
             method: 'POST',
             headers: {
@@ -130,5 +129,14 @@ export class MapEntityRepository {
             const err = await response.json();
             console.warn('[API]', 'Failed to delete entity with id:', entity.id, err);
         }
+    }
+
+    public async getRevisionsForEntity(entity: MapEntity) {
+        const res = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`);
+        const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
+        for (const data of entityDTOs) {
+            entity.revisions[data.revision] = new MapEntity(data, this._rulesGenerator());
+        }
+        // console.log('revisions', entity.revisions);
     }
 }
