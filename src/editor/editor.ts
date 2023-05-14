@@ -265,7 +265,7 @@ export class Editor {
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
-            descriptionField.placeholder = 'Describe your camp/dream here as much as you want.';
+            descriptionField.placeholder = 'Describe your camp/dream here as much as you want. Remember that this information is public.';
             descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
@@ -370,7 +370,8 @@ export class Editor {
             powerField.style.marginLeft = '110px';
             powerField.type = 'number';
             powerField.value = String(entity.powerNeed);
-            powerField.min = '-1';
+            powerField.placeholder = '?';
+            powerField.min = '0';
             powerField.oninput = () => {
                 //@ts-ignore
                 entity.powerNeed = powerField.value;
@@ -389,7 +390,8 @@ export class Editor {
             soundField.style.marginLeft = '58px';
             soundField.type = 'number';
             soundField.value = String(entity.amplifiedSound);
-            soundField.min = '-1';
+            soundField.min = '0';
+            soundField.placeholder = '?';
             soundField.oninput = () => {
                 //@ts-ignore
                 entity.amplifiedSound = soundField.value;

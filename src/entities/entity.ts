@@ -155,8 +155,8 @@ export class MapEntity implements EntityDTO {
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
-        this.powerNeed = geoJson.properties.powerNeed ?? -1;
-        this.amplifiedSound = geoJson.properties.amplifiedSound ?? -1;
+        this.powerNeed = geoJson.properties.powerNeed ?? undefined;
+        this.amplifiedSound = geoJson.properties.amplifiedSound ?? undefined;
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
         this.changeReason = geoJson.properties.changeReason ?? '';
@@ -197,18 +197,18 @@ export class MapEntity implements EntityDTO {
         else if (mode == "power")
         {
             let color = GreenColor;
-            if (this.powerNeed > 9000) color = "#FF0000";
+            if (!this.powerNeed) color = "#D1D1D1";
+            else if (this.powerNeed > 9000) color = "#FF0000";
             else if (this.powerNeed > 1000) color = "#FFA200";
-            else if (this.powerNeed == -1) color = "#D1D1D1";
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }
         else if (mode == "sound")
         {
             let color = GreenColor;
-            if (this.amplifiedSound > 100) color = "#FF0000";
+            if (!this.amplifiedSound) color = "#D1D1D1";
+            else if (this.amplifiedSound > 100) color = "#FF0000";
             else if (this.amplifiedSound > 40) color = "#FFA200";
-            else if (this.amplifiedSound == -1) color = "#D1D1D1";
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }
