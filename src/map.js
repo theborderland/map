@@ -87,6 +87,7 @@ export const createMap = async () => {
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
+    map.groups.names = new L.LayerGroup();
 
     var extraLayers = {
         Slope: map.groups.slopemap,
@@ -94,6 +95,7 @@ export const createMap = async () => {
         Soundguide: map.groups.soundguide,
         Terrain: map.groups.terrain,
         Placement: map.groups.placement,
+        Names: map.groups.names,
         POI: map.groups.poi,
         Power: map.groups.power,
         Sound: map.groups.sound,

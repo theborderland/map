@@ -36,6 +36,7 @@ export class Editor {
     
     private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
+    private _nameTooltips: Record<number, L.Tooltip>;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -766,6 +767,12 @@ export class Editor {
             this.onLayerClicked(entity);
         });
 
+        // Add name tooltips
+        this._nameTooltips[entity.id] = new L.Tooltip({ permanent: true, interactive: false, direction: 'center', className: 'name-tooltip' });
+        this._nameTooltips[entity.id].setLatLng(entity.layer.getBounds().getCenter());
+        this._nameTooltips[entity.id].setContent(entity.name);
+        this._nameTooltips[entity.id].addTo(this._groups['names']);
+
         // Update the buffered layer when the layer is being edited
         entity.layer.on('pm:markerdrag', () => {
             entity.updateBufferedLayer();
@@ -811,6 +818,11 @@ export class Editor {
     private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
         if (entity == null) return;
 
+        if (this._isEditMode) {
+            this._nameTooltips[entity.id].setLatLng(entity.layer.getBounds().getCenter());
+            this._nameTooltips[entity.id].setContent(entity.name);
+        }
+
         if (checkRules) entity.checkAllRules();
         entity.setLayerStyle(this._currentLayerFilterStyle);
     }
@@ -837,6 +849,7 @@ export class Editor {
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
         this._selected = null;
         this.setMode('none');
+        this._groups['names'].unbindTooltip(this._nameTooltips[entity.id]);
         this._placementLayers.removeLayer(entity.layer);
         this._placementBufferLayers.removeLayer(entity.bufferLayer);
         this._map.removeLayer(entity.layer);
@@ -872,8 +885,7 @@ export class Editor {
                     //@ts-ignore
                     layer.setStyle({ opacity: 1 });
                 });
-            } 
-            else {
+            } else {
                 bufferLayers.getLayers().forEach(function (layer) {
                     //@ts-ignore
                     layer.setStyle({ opacity: 0 });
@@ -931,6 +943,20 @@ export class Editor {
         this.sqmTooltip.setLatLng([0, 0]);
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
+        this._nameTooltips = {};
+
+        //Hide name tooltips when zoomed out
+        map.on('zoomend', function () {
+            console.log('this.groups', this.groups['names']);
+            var zoom = map.getZoom();
+            this.groups['names'].getLayers().forEach(function (layer: L.Tooltip) {
+                if (zoom >= 18) {
+                    layer.setOpacity(1);
+                } else {
+                    layer.setOpacity(0);
+                }
+            });
+        });
 
         document.onkeydown = (evt: Event) => {
             this.keyEscapeListener(evt);
