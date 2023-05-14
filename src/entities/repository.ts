@@ -137,6 +137,5 @@ export class MapEntityRepository {
         for (const data of entityDTOs) {
             entity.revisions[data.revision] = new MapEntity(data, this._rulesGenerator());
         }
-        // console.log('revisions', entity.revisions);
     }
 }
