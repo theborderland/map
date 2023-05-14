@@ -146,7 +146,7 @@ export class Editor {
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
-    private setPopup(display: 'info' | 'edit-info' | 'more' | 'history' | 'none', entity?: MapEntity | null) {
+    private async setPopup(display: 'info' | 'edit-info' | 'more' | 'history' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
             this._popup.close();
@@ -305,7 +305,7 @@ export class Editor {
             content.appendChild(document.createElement('b')).innerHTML = 'People';
 
             const peopleField = document.createElement('input');
-            peopleField.title = '12m² per person';
+            peopleField.title = '10m² per person';
             peopleField.style.width = '3em';
             peopleField.style.marginBottom = '7px';
             peopleField.style.marginLeft = '5px';
@@ -319,14 +319,14 @@ export class Editor {
             content.appendChild(peopleField);
 
             const personText = document.createElement('span');
-            personText.innerHTML = ' x 12m²';
+            personText.innerHTML = ' x 10m²';
             personText.style.fontSize = '12px';
             personText.style.marginRight = '25px';
             content.appendChild(personText);
 
             content.appendChild(document.createElement('b')).innerHTML = ' Vehicles ';
             const vehiclesField = document.createElement('input');
-            vehiclesField.title = '75m² per vehicle';
+            vehiclesField.title = '70m² per vehicle';
             vehiclesField.style.width = '3em';
             vehiclesField.style.marginLeft = '5px';
             vehiclesField.type = 'number';
@@ -593,7 +593,7 @@ export class Editor {
             const tbody = table.createTBody();
 
             // Get revisions and create tale rows for each revision
-            this._repository.getRevisionsForEntity(entity);
+            await this._repository.getRevisionsForEntity(entity);
             // console.log('result from getRevisionsForEntity', entity.revisions);
             let rowsToAdd: Array<HTMLTableRowElement> = [];
             let entityCurrent = null;
@@ -783,7 +783,6 @@ export class Editor {
             // console.log("dragging");
             entity.updateBufferedLayer();
             this.refreshEntity(entity);
-            //FIXME: Cant get the tooltip to move with the shape yet...
             this.UpdateOnScreenDisplay(null);
         });
 
