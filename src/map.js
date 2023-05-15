@@ -37,6 +37,11 @@ export const createMap = async () => {
     fetch('./data/bl23/placenames.geojson').then(response => response.json()).then(response => {
       L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map);
     });
+
+    //Load contours
+    fetch('./data/analysis/contours.geojson').then(response => response.json()).then(response => {
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1, "opacity": 0.5}}).addTo(map);
+    });
     
     //Load reference drawings
     fetch('./data/bl23/references.geojson').then(response => response.json()).then(response => {
