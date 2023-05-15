@@ -1,11 +1,16 @@
 
-BEFORE RELASE:
+BEFORE RELEASE:
     [ ] Update fireroads in QGIS
     [ ] Add containers
+    [ ] Update soundlayer
     [ ] Explain the buffers in the instructions better
-    [ ] Optimize popup position to be at the top of shapes to make info text more visible
+    [ ] Update first welcome message
+    [ ] Remove first edit messages?
+    [ ] Push to master branch on Github  
     
 AFTER RELEASE:
+    [ ] Optimize popup position to be at the top of shapes to make info text more visible
+    [ ] Optimize when rules are evaluated
     [ ] Inactivate ability to click other shapes when in edit mode (you can add and edit at the same time..)
     [ ] Add "Add Dream" feature
     [ ] Implement PostHog analytics
