@@ -81,15 +81,15 @@ export class Editor {
 
         // Deselect and stop editing
         if (this._mode == 'none') {
-            this.setPopup('none');
             this.setSelected(null, prevEntity);
+            this.setPopup('none');
             return;
         }
 
         // Select an entity for editing
         if (this._mode == 'selected' && nextEntity) {
-            this.setPopup('info', nextEntity);
             this.setSelected(nextEntity, prevEntity);
+            this.setPopup('info', nextEntity);
 
             // Stop any ongoing editing of the previously selected layer
             if (prevEntity) {
@@ -102,22 +102,22 @@ export class Editor {
         // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
             nextEntity.layer.pm.enable({ editMode: true, snappable: false});
-            this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
+            this.setPopup('none');
             return;
         }
         // Move the shape of the entity
         if (this._mode == 'moving-shape' && nextEntity) {
-            this.setPopup('none');
             this.setSelected(nextEntity, prevEntity);
+            this.setPopup('none');
             this.UpdateOnScreenDisplay(nextEntity, "Drag to move");
             nextEntity.layer._layers[nextEntity.layer._leaflet_id-1].dragging.enable();
             return;
         }
         // Edit the information of the entity
         if (this._mode == 'editing-info' && nextEntity) {
-            this.setPopup('edit-info', nextEntity);
             this.setSelected(nextEntity, prevEntity);
+            this.setPopup('edit-info', nextEntity);
             return;
         }
     }
@@ -953,7 +953,6 @@ export class Editor {
 
         //Hide name tooltips when zoomed out
         map.on('zoomend', function () {
-            console.log('this.groups', this.groups['names']);
             var zoom = map.getZoom();
             this.groups['names'].getLayers().forEach(function (layer: L.Tooltip) {
                 if (zoom >= 18) {
@@ -972,6 +971,7 @@ export class Editor {
         this.addHelpButton();
 
         // Add search control
+        //@ts-ignore
         var searchControl = new L.Control.Search({
             layer: this._placementLayers,
             propertyName: 'name',
@@ -1219,7 +1219,7 @@ export class Editor {
             this.addEntityToMap(entity, false);
         }
 
-        this.refreshAllEntities();
+        // this.refreshAllEntities();
         this.addToggleEditButton();
     }
 
