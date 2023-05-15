@@ -94,16 +94,16 @@ export const createMap = async () => {
         Placement: map.groups.placement,
         Names: map.groups.names,
         POI: map.groups.poi,
-        Power: map.groups.power,
-        Sound: map.groups.sound,
-        Clean: map.groups.clean,
+        Check_Power: map.groups.power,
+        Check_Sound: map.groups.sound,
+        Check_Clean: map.groups.clean,
     };
 
     map.on('overlayadd', function (eventLayer) 
     {
-        if (eventLayer.name === 'Power') editor.setLayerFilter('power', false);
-        else if (eventLayer.name === 'Sound') editor.setLayerFilter('sound', false);
-        else if (eventLayer.name === 'Clean') editor.setLayerFilter('cleancolors', false);
+        if (eventLayer.name === 'Check_Power') editor.setLayerFilter('power', false);
+        else if (eventLayer.name === 'Check_Sound') editor.setLayerFilter('sound', false);
+        else if (eventLayer.name === 'Check_Clean') editor.setLayerFilter('cleancolors', false);
 
         if (eventLayer.name === 'Soundguide') {
             map.groups.soundhigh.bringToBack();
@@ -114,7 +114,7 @@ export const createMap = async () => {
 
     map.on('overlayremove', function (eventLayer) 
     {
-        if (eventLayer.name === 'Power' || eventLayer.name === 'Sound' || eventLayer.name === 'Clean') editor.setLayerFilter('severity', false);
+        if (eventLayer.name === 'Check_Power' || eventLayer.name === 'Check_Sound' || eventLayer.name === 'Check_Clean') editor.setLayerFilter('severity', false);
     });
 
     // Add layer control and legends
