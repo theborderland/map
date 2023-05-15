@@ -167,8 +167,13 @@ export class Editor {
             const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please state your power need! Set to 0 if you will not use electricity.';
             const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.amplifiedSound} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
 
+            let descriptionSanitized = DOMPurify.sanitize(entityDescription);
+            //URLs starting with http://, https://, or ftp://
+            let replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+            let descriptionWithLinks = descriptionSanitized.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+
             content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
-                                <p class="scrollable">${DOMPurify.sanitize(entityDescription)}</p>
+                                <p class="scrollable">${descriptionWithLinks}</p>
                                 <p style="font-size:14px; margin-top:0px !important; margin-bottom:0px !important">
                                 <b>Contact:</b> ${DOMPurify.sanitize(entityContactInfo)}   
                                 </br>
