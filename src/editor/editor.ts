@@ -5,6 +5,7 @@ import { generateRulesForEditor } from '../entities/rule';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
 import 'leaflet.path.drag';
+import 'leaflet-search';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -961,6 +962,19 @@ export class Editor {
         document.onkeydown = (evt: Event) => {
             this.keyEscapeListener(evt);
         };
+
+        // Add controls
+        this.addHelpButton();
+
+        // Add search control
+        var searchControl = new L.Control.Search({
+            layer: this._placementLayers,
+            propertyName: 'name',
+            marker: false,
+            zoom: 19,
+            initial: false
+        });
+        map.addControl(searchControl);
     }
 
     private addToggleEditButton() {
@@ -1202,7 +1216,6 @@ export class Editor {
 
         this.refreshAllEntities();
         this.addToggleEditButton();
-        this.addHelpButton();
     }
 
     public gotoEntity(id: string) {

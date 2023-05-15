@@ -13,9 +13,6 @@ import { loadImageOverlay } from './loaders/loadImageOverlay';
 
 import { addLegends } from './loaders/addLegends';
 
-// import 'leaflet-search';
-// import { addSearch } from './utils/searchControl';
-
 import { Editor } from './editor';
 
 export const createMap = async () => {
@@ -145,7 +142,4 @@ export const createMap = async () => {
     if (id) {
         editor.gotoEntity(id);
     }
-
-    // Implement search closer to BL.
-    // await addSearch(map);
 };
