@@ -1,9 +1,9 @@
 
 EASY:
-    [] Make the too big rule a warning and add custom long msg
-    [] Explain the buffers in the instructions better
-    [] Inactivate ability yo click other shapes when in edit mode (you can add and edit at the same time..)
-    [] Optimize popup position to be at the top of shapes to make info text more visible
+    [ ] Explain the buffers in the instructions better
+    [ ] Inactivate ability yo click other shapes when in edit mode (you can add and edit at the same time..)
+    [ ] Optimize popup position to be at the top of shapes to make info text more visible
+    [x] Make the too big rule a warning and add custom long msg
     [x] Place visal layers like sound bellow entitys
     [x] Fix Sound legend "soundguide is a bit confusing for the >100W category because the direction of the sign changed".
     [x] Give motivation when remove a shape
