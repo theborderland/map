@@ -1,5 +1,5 @@
 import L from 'leaflet';
-// import 'leaflet.locatecontrol';
+import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
 
@@ -12,9 +12,6 @@ import { getStyleFunction } from './layerstyles';
 import { loadImageOverlay } from './loaders/loadImageOverlay';
 
 import { addLegends } from './loaders/addLegends';
-
-// import 'leaflet-search';
-// import { addSearch } from './utils/searchControl';
 
 import { Editor } from './editor';
 
@@ -87,6 +84,7 @@ export const createMap = async () => {
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
+    map.groups.names = new L.LayerGroup();
 
     var extraLayers = {
         Slope: map.groups.slopemap,
@@ -94,17 +92,18 @@ export const createMap = async () => {
         Soundguide: map.groups.soundguide,
         Terrain: map.groups.terrain,
         Placement: map.groups.placement,
+        Names: map.groups.names,
         POI: map.groups.poi,
-        Power: map.groups.power,
-        Sound: map.groups.sound,
-        Clean: map.groups.clean,
+        Check_Power: map.groups.power,
+        Check_Sound: map.groups.sound,
+        Check_Clean: map.groups.clean,
     };
 
     map.on('overlayadd', function (eventLayer) 
     {
-        if (eventLayer.name === 'Power') editor.setLayerFilter('power', false);
-        else if (eventLayer.name === 'Sound') editor.setLayerFilter('sound', false);
-        else if (eventLayer.name === 'Clean') editor.setLayerFilter('cleancolors', false);
+        if (eventLayer.name === 'Check_Power') editor.setLayerFilter('power', false);
+        else if (eventLayer.name === 'Check_Sound') editor.setLayerFilter('sound', false);
+        else if (eventLayer.name === 'Check_Clean') editor.setLayerFilter('cleancolors', false);
 
         if (eventLayer.name === 'Soundguide') {
             map.groups.soundhigh.bringToBack();
@@ -115,7 +114,7 @@ export const createMap = async () => {
 
     map.on('overlayremove', function (eventLayer) 
     {
-        if (eventLayer.name === 'Power' || eventLayer.name === 'Sound' || eventLayer.name === 'Clean') editor.setLayerFilter('severity', false);
+        if (eventLayer.name === 'Check_Power' || eventLayer.name === 'Check_Sound' || eventLayer.name === 'Check_Clean') editor.setLayerFilter('severity', false);
     });
 
     // Add layer control and legends
@@ -124,12 +123,10 @@ export const createMap = async () => {
     addLegends(map);
 
     // Add map features
-    // await loadTooltipZoom(map);
-    
     // L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
     
     // Reactivate closer to BL. Double check this functionality, reportedly buggy.
-    // L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
+    L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
     
     let polylineMeasure = L.control.polylineMeasure({measureControlLabel: '&#128207;', arrow: {color: '#0000',} });
     polylineMeasure.addTo(map);
@@ -143,7 +140,4 @@ export const createMap = async () => {
     if (id) {
         editor.gotoEntity(id);
     }
-
-    // Implement search closer to BL.
-    // await addSearch(map);
 };
