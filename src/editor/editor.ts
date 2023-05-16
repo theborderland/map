@@ -163,7 +163,7 @@ export class Editor {
             const vehicleText = entity.nrOfVehicles === "1" ? '> vehicle,' : ' vehicles,';
             const entityName = entity.name ? entity.name : 'No name yet';
             const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
-            const entityContactInfo = entity.contactInfo ? entity.contactInfo : 'Please add contact info!';
+            const entityContactInfo = entity.contactInfo ? entity.contactInfo : 'Please add contact info! Without it, your area might be removed.';
             const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please state your power need! Set to 0 if you will not use electricity.';
             const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.amplifiedSound} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
 
@@ -916,7 +916,7 @@ export class Editor {
         // Disable edit mode on all layers by default
         L.PM.setOptIn(true);
 
-        // add controls for creating and editing shapes to the map
+        // Add controls for creating and editing shapes to the map
         this._map.pm.addControls({
             position: 'bottomleft',
             drawPolygon: false,
@@ -953,7 +953,6 @@ export class Editor {
 
         //Hide name tooltips when zoomed out
         map.on('zoomend', function () {
-            console.log('this.groups', this.groups['names']);
             var zoom = map.getZoom();
             this.groups['names'].getLayers().forEach(function (layer: L.Tooltip) {
                 if (zoom >= 18) {
