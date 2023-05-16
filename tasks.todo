@@ -1,16 +1,12 @@
 
 BEFORE RELEASE:
-    [ ] Update fireroads in QGIS
-    [ ] Add containers
-    [ ] Update soundlayer
-    [ ] Explain the buffers in the instructions better
     [ ] Update first welcome message
-    [ ] Remove first edit messages?
-    [ ] Push to master branch on Github  
+    [ ] Explain the buffers in the instructions better
+    [ ] Push to master branch on Github without edit button available
     
 AFTER RELEASE:
+    [ ] Optimize when and how rules are evaluated
     [ ] Optimize popup position to be at the top of shapes to make info text more visible
-    [ ] Optimize when rules are evaluated
     [ ] Inactivate ability to click other shapes when in edit mode (you can add and edit at the same time..)
     [ ] Add "Add Dream" feature
     [ ] Implement PostHog analytics
@@ -24,6 +20,10 @@ IDEAS FOR LATER:
     [ ] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
             
 DONE:
+    [x] Update soundlayer legend (add labels?)
+    [x] Update fireroads in QGIS
+    [x] Add containers
+    [x] Update soundlayer
     [x] Show history for a shape
     [x] Make the too big rule a warning and add custom long msg
     [x] Place visal layers like sound bellow entitys
