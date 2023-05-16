@@ -55,10 +55,14 @@ export const createMap = async () => {
     map.groups.soundguide = new L.LayerGroup();
     map.groups.soundhigh.addTo(map.groups.soundguide);
     map.groups.soundmedium.addTo(map.groups.soundguide);
+    map.groups.soundmediumlow.addTo(map.groups.soundguide);
     map.groups.soundlow.addTo(map.groups.soundguide);
+    map.groups.soundquiet.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundhigh);
     map.removeLayer(map.groups.soundmedium);
+    map.removeLayer(map.groups.soundmediumlow);
     map.removeLayer(map.groups.soundlow);
+    map.removeLayer(map.groups.soundquiet);
 
 
     //Initialize the editor (it loads it data at the end)
@@ -113,7 +117,9 @@ export const createMap = async () => {
         if (eventLayer.name === 'Soundguide') {
             map.groups.soundhigh.bringToBack();
             map.groups.soundmedium.bringToBack();
+            map.groups.soundmediumlow.bringToBack();
             map.groups.soundlow.bringToBack();
+            map.groups.soundquiet.bringToBack();
         }
     });
 
