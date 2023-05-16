@@ -1,7 +1,8 @@
 
 BEFORE RELEASE:
-    [ ] Update first welcome message
     [ ] Explain the buffers in the instructions better
+    [ ] Add constant message that says: "Remember to reload page to see changes made ny others!" ?
+    [ ] Update first welcome message
     [ ] Push to master branch on Github without edit button available
     
 AFTER RELEASE:
