@@ -4,7 +4,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <title>Borderland 2022 Map</title>
+        <title>Borderland Placement Map</title>
 
         <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 
@@ -12,6 +12,287 @@
         <link rel="stylesheet" href="js/plugins/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />
         <link rel="stylesheet" href="js/plugins/leaflet-polylinemeasure/Leaflet.PolylineMeasure.css" />
         <link rel="stylesheet" href="js/plugins/leaflet-search/dist/leaflet-search.min.css" />
+        
+          
+        <link rel="stylesheet" href="/leaflet-geoman.css" />  
+<style>
+            *, *:before, *:after 
+            {
+                box-sizing: border-box;
+            }
+
+            *:focus {outline:none !important}
+
+            input[type=checkbox] {
+                transform: scale(1.5);
+            }
+
+            input[type=text], textarea, select, button
+            {
+                font-family:Arial, Helvetica, sans-serif;
+                font-size: medium;
+                padding:5px;
+                margin:0 0 10px 0;
+                border-radius:10px;
+                border: 1px solid #aaa;
+                width:100%;
+                font-weight:500;
+            }
+
+            input[type=text], textarea, button
+            {
+                /* remove default behavior */
+                appearance:none;
+                -webkit-appearance:none;
+            }
+
+            textarea { resize: none; }
+
+            select
+            {
+                text-align: right;
+                width:60%;
+                display: inline-block;
+                font-weight:600;
+            }
+
+            label 
+            {
+                display: inline-block;
+                font-size: medium;
+                width: 100%;
+                text-align: left;
+                font-weight: bold;
+            }
+
+            button
+            {
+                color:#fff;
+                font-weight:600;
+                font-size: large;
+                background-color: lightseagreen;
+                box-shadow:2px 2px 8px 2px rgba(0,0,0,0.2);
+                width: auto;
+                margin-right: 15px;
+            }
+
+            button:disabled 
+            {
+                background-color: rgb(150, 151, 151);
+            }
+
+            .delete-button
+            {
+                background-color: rgb(255, 0, 0);
+            }
+
+            .leaflet-bar a
+            {
+                /* background-color: #ff07ee; */
+                border-style: none;
+                width: 100px;
+            }
+
+            .leaflet-pm-toolbar
+            {
+                background-image: none;
+                width: 100px;
+            }
+
+            .control-icon
+            {
+                background-image: none;
+                width: 100px;
+            }
+
+            .leaflet-pm-toolbar .leaflet-pm-icon-polygon 
+            {
+                border-radius: 10px;
+                background-image: none;
+                background-color: rgb(139, 64, 161); 
+                color: #f9f9f9;
+                border-style: double;
+                width: 100px;
+                /* border-radius: 10%; */
+                margin-top: -11px;
+                margin-left: -6px;
+                padding: 10%;
+                height: unset;  
+                text-anchor: middle;
+                font-size: large;
+
+                text-shadow: 2px 2px 3px rgb(0 0 0 / 50%);
+                box-shadow: 3px 5px 5px rgb(0 0 0 / 20%);
+
+                animation-name: borderColorFade;
+                animation-duration: 1s; 
+                animation-timing-function: ease-out; 
+                animation-delay: 0;
+                animation-direction: alternate;
+                animation-iteration-count: infinite;
+                animation-fill-mode: none;
+                animation-play-state: running;   
+            }
+            
+            .leaflet-pm-icon-polygon::before 
+            {
+                width: 100px;
+                content: "Draw"; /* Add a custom text or icon */
+                font-size: 18px; /* Adjust the font size */
+                font-weight: bold; /* Adjust the font weight */
+                color: white; /* Change the icon color */
+            }
+
+            .leaflet-container 
+            {
+                height: 400px;
+                width: 600px;
+                max-width: 100%;
+                max-height: 100%;
+                background-color: #deefd6;
+            }
+
+            .placement-btn
+            {
+                /* border-style: solid;
+                border-color: #ffffff; */
+                /* background-color: #e7e309;  */
+                /* background-color: #000000;  */
+                background-color: #07cf25; 
+                border-width: 0px;
+                color: #ffffff;
+                text-shadow: 2px 2px 3px rgb(0 0 0 / 50%);
+                box-shadow: 3px 5px 5px rgb(0 0 0 / 20%);
+                width: 100px;
+                height: 35px !important;
+                margin-bottom: 15px !important; 
+            }
+
+            @keyframes shake {
+            10%, 90% {
+                transform: translate3d(0, -1px, 0);
+            }
+            
+            20%, 80% {
+                transform: translate3d(0, 2px, 0);
+            }
+
+            30%, 50%, 70% {
+                transform: translate3d(0, -4px, 0);
+            }
+
+            40%, 60% {
+                transform: translate3d(0, 4px, 0);
+            }
+            }
+
+            .description 
+            {
+                width: 100px;
+                font-size: 16px;
+                color: #333;
+                padding: 10px 14px;
+                background-color: hsla(0, 0%, 100%, 0.8);
+                box-shadow: 0 0 15px rgb(0 0 0 / 20%);
+                border-radius: 5px;
+                line-height: 120%;
+                border: 1px solid grey;
+            }
+
+            .add-todo-btn-animated
+            {
+                animation-name: stretch;
+                animation-duration: 1s; 
+                animation-timing-function: ease-out; 
+                animation-delay: 0;
+                animation-direction: alternate;
+                animation-iteration-count: infinite;
+                animation-fill-mode: none;
+                animation-play-state: running;   
+            }
+
+            @keyframes stretch
+            {
+                0% 
+                {
+                    background-color: rgb(205, 205, 205);
+                }
+                100% 
+                {
+                    border-radius: 0%;
+                    background-color: rgb(255, 255, 255);
+                    border-color: rgb(251, 255, 0);
+                }
+            }
+
+            .todo-icon
+            {
+                width:100px;height:100px;
+                border: solid 2px rgb(33, 33, 33);
+                background-color: rgb(238, 238, 221);
+                box-shadow: 3px 3px  rgba(0,0,0,0.3);
+                -moz-box-shadow: 3px 3px  rgba(0,0,0,0.3);
+                -webkit-box-shadow: 3px 3px  rgba(0,0,0,0.3);
+                -o-box-shadow: 3px 3px  rgba(0,0,0,0.3);
+                border-radius:150px;                
+            }
+
+            @keyframes borderColorFade
+            {
+                0% { border-color: rgb(247, 0, 255); }
+                100% { border-color: rgb(226, 171, 255); }
+            }
+
+            .todo-unsaved
+            { 
+                /* background-color: rgba(255, 255, 255);  */
+                border: dotted 2px rgb(255, 255, 255);
+                opacity: 0.4;
+            }
+
+            .todo-lowprio { background-color: rgb(65, 162, 51); }
+            .todo-normalprio{ background-color: rgb(226, 204, 34); }
+            .todo-highprio{ background-color: rgb(205, 39, 24); }
+
+            .todo-mysticalprio
+            {
+                border-style: dotted;
+                background-color: rgb(136, 20, 189);
+                animation-name: borderColorFade;
+                animation-duration: 1s; 
+                animation-timing-function: ease-out; 
+                animation-delay: 0;
+                animation-direction: alternate;
+                animation-iteration-count: infinite;
+                animation-fill-mode: none;
+                animation-play-state: running;   
+                background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cGF0aCBkPSJNLTIgMTBMMTAgLTJaTTEwIDZMNiAxMFpNLTIgMkwyIC0yIiBzdHJva2U9InB1cnBsZSIgc3Ryb2tlLXdpZHRoPSIzLjUiPjwvcGF0aD4KPC9zdmc+"),url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgo8bGluZWFyR3JhZGllbnQgaWQ9ImYiIHgyPSIiIHkyPSIxIj4KPHN0b3Agc3RvcC1jb2xvcj0iI0YxOSI+PC9zdG9wPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwQ0YiPjwvc3RvcD4KPC9saW5lYXJHcmFkaWVudD4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNmKSI+PC9yZWN0Pgo8L3N2Zz4=");
+                background-repeat: repeat;
+            }
+
+            p { font-size: 16px; }
+
+            .scrollable
+            {
+                overflow-y: auto;
+                max-height: 200px;  
+            }
+
+            .task-header
+            {
+                font-size: 14px;
+                font-family: 'Courier New', Courier, monospace;
+                color: rgb(134, 134, 134);
+                line-height: 0%;
+                text-transform: uppercase;
+            }
+            
+            .leaflet-control-layers label
+            {
+                width: auto; 
+                font-size: 1.3em;
+            }
+        </style>
 
         <style>
             html,
@@ -25,6 +306,24 @@
                 max-width: 100%;
                 max-height: 100%;
                 background-color: #deefd6;
+            }
+
+            .shape-tooltip {
+                color: #fff;
+                opacity: 1.0;
+                text-shadow: 1px 1px #000000;
+                font-size: 1rem;
+                font-weight: bold;
+                text-align: center;
+            }
+
+            .name-tooltip {
+                color: #fff;
+                opacity: 1.0;
+                text-shadow: 1px 1px #000000;
+                font-size: 1rem;
+                font-weight: bold;
+                text-align: center;
             }
 
             .camps-list-tooltip ul {
@@ -80,6 +379,66 @@
                 padding: 0;
                 margin: 0;
             }
+
+            .entity-onscreen-info {
+                position: absolute;
+                bottom: 0;
+                left: 190px;
+                right: 100px;
+                z-index: 999;
+                color: #f9f9f9;
+                padding: 10px;
+                font-weight: bold;
+                font-size: 2rem;
+                font-family: Arial, Helvetica, sans-serif;
+                text-align: center;
+                pointer-events: none;    
+            }
+
+            .error::before
+            {
+                background-color: rgb(255, 0, 0);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "NOT ALLOWED:"; /* Add a custom text or icon */
+            }
+
+            .error
+            {
+                font-size: 16px;
+                font-family: Arial, Helvetica, sans-serif;
+                margin-top: 0 !important;
+            }
+
+            .warning::before
+            {
+                background-color: rgb(255, 132, 0);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "OOPS!:"; /* Add a custom text or icon */
+            }
+            
+            .warning
+            {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
+                margin-top: 0 !important;
+            }
+
+            .info::before
+            {
+                background-color: rgb(20, 20, 20);
+                color: #f9f9f9;
+                font-weight: bold;
+                content: "INFO:"; /* Add a custom text or icon */
+            }
+            
+            .info
+            {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 16px;
+                margin-top: 0 !important;
+            }
         </style>
 
         <style>
@@ -91,23 +450,140 @@
                 height: 100%;
                 width: 100vw;
             }
+
+            .instructions {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 80%;
+                /* height: 70%;  */
+                max-width: 500px;
+                max-height: 500px;
+                background-color: #f1f1f1; /* Change the background color as desired */
+                border-radius: 10px;
+                z-index: 999;
+                padding: 20px;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            .btn {
+                font-size: 1rem;
+                margin: 10px;
+                margin-top: 0;
+                padding: 7px;
+                text-align: center;
+                transition: 0.5s;
+                background-size: 200% auto;
+                color: white;
+                text-shadow: 2px 2px 2px rgba(0,0,0,0.75);
+                box-shadow: 0 0 10px #eee;
+                border-radius: 5px;
+                width: 100px;
+                border: solid;
+                border-color: #fbc2eb;
+            }
+
+            .btn:hover {
+                background-position: right center; /* change the direction of the change here */
+            }
+
+            .btn-gradient1 {
+                background-image: linear-gradient(to right, #fbc2eb 0%, #a6c1ee 51%, #fbc2eb 100%);
+            }
+
+            .help-button {
+                padding: 3px;
+                text-align: center;
+                color: white;
+                width: 34px;
+                height: 34px;
+                border: 2px solid rgba(0,0,0,0.2);
+                background-color: #ffffff;
+                border-radius: 4px;
+            }
+
+            #history-table {
+                max-height: 500px;
+                overflow: scroll;
+            }
+
+            .desc-button {
+                padding: 3px;
+                text-align: center;
+                font-size: 1em;
+                width: 34px;
+                height: 34px;
+                border: 2px solid rgba(0,0,0,0.2);
+                border-radius: 4px;
+            }
+
+            #history-table ul {
+                padding: 0px;
+                padding-left: 10px;
+            }
+
+            #history-table thead td {
+                font-weight: bold;
+            }
+
+            #history-table tbody td {
+                padding: 0px;
+            }
+            #history-table tbody tr:nth-child(odd) {
+                background-color: #f6f6f6;
+            }
+
+            .button-shake-animate
+            {
+                animation-name: shake;
+                animation-duration: 1s; 
+                animation-timing-function: ease-out; 
+                animation-delay: 5s;
+                animation-direction: alternate;
+                animation-iteration-count: 2;
+                animation-fill-mode: none;
+                animation-play-state: running;   
+            }
         </style>
     </head>
     <body>
+        <div hidden class="instructions" id="betaMsg">
+            <p>
+                <b>WELCOME!</b>
+                </br></br>
+                The placement process will start on the <b>17th of May, 20:00CET.</b>
+                <br><br>
+                Until then, <a href="/instructions"><b>read the instructions</b></a> 
+                to get to know the process! Check the layout out, get familiar with the 
+                extra info layers, the soundguide and so on.
+            </p>
+        </div>
+        <div hidden class="instructions" id="editMsg">
+            <div id="pageOne">
+                <h2 style="margin-top: 0;">Welcome!</h2>
+                <p>
+                    You have now entered the edit mode for the placement process of The Borderland 2023.
+                    You have a lot of power here, but with great power comes great responsibility! This is a co-created effort,
+                    so please be respectful of other people's work and ideas. Do not delete or change anything that is not yours, 
+                    without asking first (Discord is the best way to do this). <br><br>
+                    If you questions or need support, please ask in <a href="https://discord.com/channels/932714386286575736/1100734590370455563">🚩Placement -> 🏴general</a>.
+                </p>
+            </div>
+            <div hidden id="pageTwo">
+                <h2 style="margin-top: 0;">Instructions</h2>
+                <p>
+                    The main area for The Borderland 2023 is within the yellow border. Try to stay within that.<br><br>
+                    The system will warn you if you are breaking any rules, and will tell you all kinds of things along the way. 
+                    Try to fix as many issues as possible.<br><br>
+                    <a href="/instructions" target="_blank">Read more about placement instructions here.</a><br><br>
+                    <i><b>IMPORTANT!</b> At the moment the page is not auto-reloading, so please refresh the page to see other peoples changes!</i>
+                </p>
+            </div>
+        </div>
+        <div class="entity-onscreen-info"></div>
         <div id="map"></div>
-        <script>
-            function navigatehere(lat, lng) {
-                console.log("navigatehere", lat, lng);
-                var xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function() {
-                    if (this.readyState == 4 && this.status == 200) {
-                        console.log(this.responseText);
-                    }
-                };
-                xhttp.open("GET", "https://tim.gremalm.se/gps/updategps.php?lat="+lat+"&lng="+lng, true);
-                xhttp.send();
-            }
-        </script>
         <script src="bundle.js"></script>
+        <script src="js/plugins/leaflet-hash-plus.js"></script>
     </body>
 </html>
