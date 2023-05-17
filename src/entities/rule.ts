@@ -86,9 +86,9 @@ const isCalculatedAreaTooBig = () =>
     });
 
 const isBiggerThanNeeded = () =>
-    new Rule(1, 'Bigger than needed.', 'Your area is quite big for the amount of people/vehicles and extras you have typed in.', (entity) => {
+    new Rule(2, 'Bigger than needed?', 'Your area is quite big for the amount of people/vehicles and extras you have typed in.', (entity) => {
         
-        return {triggered: entity.area > calculateReasonableArea(entity.calculatedAreaNeeded)};
+        return {triggered: entity.area > calculateReasonableArea(entity.calculatedAreaNeeded), message: `Your area is <b>${entity.area - entity.calculatedAreaNeeded}m² bigger</b> than the suggested area size. Consider making it smaller.`};
     });
 
 function calculateReasonableArea(calculatedNeed: number): number {

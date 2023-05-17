@@ -37,6 +37,11 @@ export const createMap = async () => {
     fetch('./data/bl23/placenames.geojson').then(response => response.json()).then(response => {
       L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map);
     });
+
+    //Load contours
+    fetch('./data/analysis/contours.geojson').then(response => response.json()).then(response => {
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1, "opacity": 0.5}}).addTo(map);
+    });
     
     //Load reference drawings
     fetch('./data/bl23/references.geojson').then(response => response.json()).then(response => {
@@ -50,10 +55,14 @@ export const createMap = async () => {
     map.groups.soundguide = new L.LayerGroup();
     map.groups.soundhigh.addTo(map.groups.soundguide);
     map.groups.soundmedium.addTo(map.groups.soundguide);
+    map.groups.soundmediumlow.addTo(map.groups.soundguide);
     map.groups.soundlow.addTo(map.groups.soundguide);
+    map.groups.soundquiet.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundhigh);
     map.removeLayer(map.groups.soundmedium);
+    map.removeLayer(map.groups.soundmediumlow);
     map.removeLayer(map.groups.soundlow);
+    map.removeLayer(map.groups.soundquiet);
 
 
     //Initialize the editor (it loads it data at the end)
@@ -109,7 +118,9 @@ export const createMap = async () => {
         if (eventLayer.name === 'Soundguide') {
             map.groups.soundhigh.bringToBack();
             map.groups.soundmedium.bringToBack();
+            map.groups.soundmediumlow.bringToBack();
             map.groups.soundlow.bringToBack();
+            map.groups.soundquiet.bringToBack();
         }
     });
 
@@ -127,7 +138,7 @@ export const createMap = async () => {
     // L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
     
     // Reactivate closer to BL. Double check this functionality, reportedly buggy.
-    L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
+    // L.control.locate({ setView: 'once', keepCurrentZoomLevel: true,	returnToPrevBounds: true, drawCircle: true,	flyTo: true}).addTo(map);
     
     let polylineMeasure = L.control.polylineMeasure({measureControlLabel: '&#128207;', arrow: {color: '#0000',} });
     polylineMeasure.addTo(map);

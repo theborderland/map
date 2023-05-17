@@ -1,12 +1,35 @@
 
-EASY:
-    [] Enable names-group layer on by default
-    [] Make the too big rule a warning and add custom long msg
-    [] Explain the buffers in the instructions better
-    [] Inactivate ability yo click other shapes when in edit mode (you can add and edit at the same time..)
-    [] Optimize popup position to be at the top of shapes to make info text more visible
+BEFORE RELEASE:
+    [ ] Explain the buffers in the instructions better
+    [ ] Add constant message that says: "Remember to reload page to see changes made ny others!" ?
+    [ ] Update first welcome message
+    [ ] Push to master branch on Github without edit button available
+    
+AFTER RELEASE:
+    [ ] Optimize when and how rules are evaluated
+    [ ] Optimize popup position to be at the top of shapes to make info text more visible
+    [ ] Inactivate ability to click other shapes when in edit mode (you can add and edit at the same time..)
+    [ ] Add "Add Dream" feature
+    [ ] Implement PostHog analytics
+    [ ] Simple HTTP Basic Auth with email + birthdate
+    
+MAYBE:
+    [ ] Update entites on a regular interval
+        
+IDEAS FOR LATER:
+    [ ] Lock-down the API so that only the admin can add and remove shapes
+    [ ] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
+            
+DONE:
+    [x] Enable names-group layer on by default
     [x] POI Länkar i description Åkerholme
     [x] Contact is important! Without it, your area might be removed
+    [x] Update soundlayer legend (add labels?)
+    [x] Update fireroads in QGIS
+    [x] Add containers
+    [x] Update soundlayer
+    [x] Show history for a shape
+    [x] Make the too big rule a warning and add custom long msg
     [x] Place visal layers like sound bellow entitys
     [x] Fix Sound legend "soundguide is a bit confusing for the >100W category because the direction of the sign changed".
     [x] Give motivation when remove a shape
@@ -65,16 +88,3 @@ EASY:
     [X] Fix position of buttons under Add button
     [x] Placemarks for toilets and water
     [x] Instructions first time you use the editor
-    
-MEDIUM:
-    [x] Show history for a shape
-    [] Add "Add Dream" feature
-    [] Implement PostHog analytics
-    [] Simple HTTP Basic Auth with email + birthdate
-        
-HARD:
-    [] Update entites on a regular interval
-            
-RESEEARCH:
-    [] Lock-down the API so that only the admin can add and remove shapes
-    [] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.

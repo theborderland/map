@@ -9,6 +9,13 @@ export function getStyleFunction(name) {
         };
 
         switch (name) {
+        case 'container':
+            return {
+            ...baseStyle,
+            fillOpacity: 1,
+            color: '#c3c3c3',
+            weight: 0
+            };
         case 'naturereserve':
             return {
             ...baseStyle,
@@ -35,8 +42,9 @@ export function getStyleFunction(name) {
         case 'toilet':
             return {
             ...baseStyle,
-            color: 'blue',
-            fillOpacity: 1
+            color: 'skyblue',
+            fillOpacity: 1,
+            dashArray: '0'
             };
         case 'bridge':
             return {
@@ -96,14 +104,21 @@ export function getStyleFunction(name) {
             case 'soundhigh':
             return {
             ...baseStyle,
-            color: '#ff4400',
+            color: '#b60d0d',
             fillOpacity: 0.75,
             weight: 0,
             };
             case 'soundmedium':
             return {
             ...baseStyle,
-            color: '#e7e309',
+            color: '#ff6f16',
+            fillOpacity: 0.75,
+            weight: 0,
+            };
+            case 'soundmediumlow':
+            return {
+            ...baseStyle,
+            color: '#f4e512',
             fillOpacity: 0.75,
             weight: 0,
             };
@@ -111,6 +126,13 @@ export function getStyleFunction(name) {
             return {
             ...baseStyle,
             color: '#00e300',
+            fillOpacity: 0.75,
+            weight: 0,
+            };
+            case 'soundquiet':
+            return {
+            ...baseStyle,
+            color: '#29b6f3',
             fillOpacity: 0.75,
             weight: 0,
             };
