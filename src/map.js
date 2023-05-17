@@ -85,6 +85,7 @@ export const createMap = async () => {
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
     map.groups.names = new L.LayerGroup();
+    map.groups.names.addTo(map);
 
     var extraLayers = {
         Slope: map.groups.slopemap,
@@ -140,4 +141,6 @@ export const createMap = async () => {
     if (id) {
         editor.gotoEntity(id);
     }
+
+    console.log('Map is loaded');
 };

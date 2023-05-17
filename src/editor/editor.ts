@@ -1245,12 +1245,14 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
+        console.log('Load entities');
         const entities = await this._repository.entities();
 
         for (const entity of entities) {
             this.addEntityToMap(entity, false);
         }
 
+        console.log('Evaluate rules for entities and draw colors');
         this.refreshAllEntities();
         this.addToggleEditButton();
     }
