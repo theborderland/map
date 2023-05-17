@@ -449,6 +449,9 @@
             #map {
                 height: 100%;
                 width: 100vw;
+                float: left;
+                z-index: 1;
+                position: relative;
             }
 
             .instructions {
@@ -545,6 +548,24 @@
                 animation-fill-mode: none;
                 animation-play-state: running;   
             }
+
+            #loading-overlay {
+                position: absolute;
+                float: left;
+                height: 100%;
+                width: 100vw;
+                z-index: 2;
+                display: grid;
+                place-content: center;
+                gap: 1ch;
+            }
+
+            #loading-box {
+                background-color: #ccc;
+                margin: 10%;
+                padding: 2em;
+                width: 400px;
+            }
         </style>
     </head>
     <body>
@@ -583,6 +604,12 @@
         </div>
         <div class="entity-onscreen-info"></div>
         <div id="map"></div>
+        <div id="loading-overlay">
+            <div id="loading-box">
+                <h1 id="loading-overlay-header">Loading Borderland Placement Map</h1>
+                <p id="loading-overlay-decription">Initializing javascript floof...</p>
+            </div>
+        </div>
         <script src="bundle.js"></script>
         <script src="js/plugins/leaflet-hash-plus.js"></script>
     </body>

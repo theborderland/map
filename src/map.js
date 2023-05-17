@@ -154,4 +154,5 @@ export const createMap = async () => {
     }
 
     console.log('Map is loaded');
+    editor.loadingScreenShow(false);
 };

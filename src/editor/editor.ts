@@ -1246,14 +1246,14 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        console.log('Load entities');
+        this.loadingScreenDescription('Load entities');
         const entities = await this._repository.entities();
 
         for (const entity of entities) {
             this.addEntityToMap(entity, false);
         }
 
-        console.log('Evaluate rules for entities and draw colors');
+        this.loadingScreenDescription('Evaluate rules for entities and draw colors');
         this.refreshAllEntities();
         this.addToggleEditButton();
     }
@@ -1268,5 +1268,27 @@ export class Editor {
             // Call the click event
             this.onLayerClicked(entity);
         }
+    }
+
+    public loadingScreenShow(show: boolean) {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        console.log('loadingScreenShow()', show);
+        if (show) {
+            loadingOverlay.style.display = 'grid';
+        } else {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+
+    public loadingScreenHeader(header: string) {
+        const loadingHeader = document.getElementById('loading-overlay-header');
+        console.log('loadingScreenHeader()', header);
+        loadingHeader.innerText = header;
+    }
+
+    public loadingScreenDescription(description: string) {
+        const loadingDescription = document.getElementById('loading-overlay-decription');
+        console.log('loadingScreenDescription()', description);
+        loadingDescription.innerText = description;
     }
 }
