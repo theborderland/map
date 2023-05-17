@@ -1,5 +1,6 @@
 
 BEFORE RELEASE:
+    [ ] Reset database on api server
     [ ] Push to master branch on Github with edit button available
     
 AFTER RELEASE:
