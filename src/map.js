@@ -29,7 +29,11 @@ export const createMap = async () => {
 
     await loadPoiFromGoogleCsv(map);
 
-    showBetaMsg();
+    //Only show message if user has not seen instructions yet
+    if (localStorage.getItem('hasSeenPlacementInstructions') === null)
+    {
+        showBetaMsg();
+    }
 
     new L.Hash(map);  // Makes the URL follow the map.
 
