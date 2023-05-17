@@ -51,15 +51,14 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         hasLargeEnergyNeed(),
         hasMissingFields(),
         // hasManyCoordinates(),
-        isBreakingSoundLimit(groups.soundlow, 1, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!', 40),
-        isBreakingSoundLimit(groups.soundmedium, 1, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!', 100),
+        isBreakingSoundLimit(groups.soundguide, 2, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!'),
         isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
         isOverlappingOrContained(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
         isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
         isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border!','You have placed yourself outside our land, please fix that <3'),
         isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
         isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
-        isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the placement area (yellow border). Make sure you know what you are doing.'),
+        isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the main placement area (yellow border). Make sure you know what you are doing.'),
     ];
 }
 
@@ -289,10 +288,10 @@ function _compareLayers(layer1: L.Layer, layer2: L.Layer): boolean {
     return layer1._leaflet_id === layer2._leaflet_id;
 }
 
-const isBreakingSoundLimit = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string, limit: number) =>
+const isBreakingSoundLimit = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
     new Rule(severity, shortMsg,message, (entity) => {
 
-        if (entity.amplifiedSound < limit) return {triggered: false};
+        if (entity.amplifiedSound === undefined) return {triggered: false};
         
         let geoJson = entity.toGeoJSON();
         let overlap = false;
@@ -300,21 +299,39 @@ const isBreakingSoundLimit = (layerGroup: any, severity: Rule["_severity"], shor
         layerGroup.eachLayer((layer) => {
             //@ts-ignore
             let otherGeoJson = layer.toGeoJSON();
-
+            
             //Loop through all features if it is a feature collection
             if (otherGeoJson.features) {
                 for (let i = 0; i < otherGeoJson.features.length; i++) {
                     if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i]) || Turf.booleanContains(otherGeoJson.features[i], geoJson)) {
-                        if (entity.amplifiedSound > limit) {
+                        if (otherGeoJson.features[i].properties.type == "soundquiet" && entity.amplifiedSound > 10) {
                             overlap = true;
-                            return; // Break out of the inner loop
+                            return; 
+                        } else if (otherGeoJson.features[i].properties.type == "soundlow" && entity.amplifiedSound > 120) {
+                            overlap = true;
+                            return; 
+                        } else if (otherGeoJson.features[i].properties.type == "soundmediumlow" && entity.amplifiedSound > 1200) {
+                            overlap = true;
+                            return; 
+                        } else if (otherGeoJson.features[i].properties.type == "soundmedium" && entity.amplifiedSound > 1200) {
+                            overlap = true;
+                            return; 
                         }
                     }
                 }
             } else if (Turf.booleanOverlap(geoJson, otherGeoJson) || Turf.booleanContains(otherGeoJson, geoJson)) {
-                if (entity.amplifiedSound > limit) {
+                if (otherGeoJson.properties.type == "soundquiet" && entity.amplifiedSound > 10) {
                     overlap = true;
-                           
+                    return; 
+                } else if (otherGeoJson.properties.type == "soundlow" && entity.amplifiedSound > 120) {
+                    overlap = true;
+                    return; 
+                } else if (otherGeoJson.properties.type == "soundmediumlow" && entity.amplifiedSound > 1200) {
+                    overlap = true;
+                    return; 
+                } else if (otherGeoJson.properties.type == "soundmedium" && entity.amplifiedSound > 1200) {
+                    overlap = true;
+                    return; 
                 }
             }
 
