@@ -50,7 +50,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         isCalculatedAreaTooBig(),
         hasLargeEnergyNeed(),
         hasMissingFields(),
-        hasManyCoordinates(),
+        // hasManyCoordinates(),
         isBreakingSoundLimit(groups.soundlow, 1, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!', 40),
         isBreakingSoundLimit(groups.soundmedium, 1, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!', 100),
         isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
