@@ -1,9 +1,6 @@
 
 BEFORE RELEASE:
-    [ ] Explain the buffers in the instructions better
-    [ ] Add constant message that says: "Remember to reload page to see changes made ny others!" ?
-    [ ] Update first welcome message
-    [ ] Push to master branch on Github without edit button available
+    [ ] Push to master branch on Github with edit button available
     
 AFTER RELEASE:
     [ ] Optimize when and how rules are evaluated
@@ -21,6 +18,8 @@ IDEAS FOR LATER:
     [ ] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
             
 DONE:
+    [x] Only show start message again if you have not looked at instructions
+    [x] Explain the buffers in the instructions better
     [x] Update soundlayer legend (add labels?)
     [x] Update fireroads in QGIS
     [x] Add containers
