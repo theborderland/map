@@ -449,9 +449,6 @@
             #map {
                 height: 100%;
                 width: 100vw;
-                float: left;
-                z-index: 1;
-                position: relative;
             }
 
             .instructions {
@@ -549,51 +546,33 @@
                 animation-play-state: running;   
             }
 
-            #loading-overlay {
-                position: absolute;
-                float: left;
-                height: 100%;
-                width: 100vw;
-                z-index: 2;
-                display: grid;
-                place-content: center;
-                gap: 1ch;
-            }
-
             #loading-box {
-                margin: 10%;
-                padding: 1em;
-                background: rgba(240,240,240,0.8);
-
-                font-family: sans-serif;
-                font-size: 2em;
-                line-height: 2em;
-                color: #181617;
-                box-shadow:
-                    inset #a6c1ee 0 0 0 5px,
-                    inset #b2c1f1 0 0 0 1px,
-                    inset #bec2f3 0 0 0 10px,
-                    inset #cbc2f4 0 0 0 11px,
-                    inset #d8c2f3 0 0 0 16px,
-                    inset #e4c1f2 0 0 0 17px,
-                    inset #f0c2ef 0 0 0 21px,
-                    inset #fbc2eb 0 0 0 22px;
-                text-shadow: 3px 3px 1px #bfecf7;
                 text-align: center;
+                top: 80%;
+                background: rgba(255,255,255,0.8);
+                font-size: 0.8em;
             }
 
             #loading-overlay-header {
+                /*
                 font-weight: bold;
                 text-shadow: 0.1em 0.1em #bfecf7;
+                */
             }
 
             #loading-overlay-decription {
+                /*
                 color: #000000;
                 font-size: 1em;
+                */
             }
         </style>
     </head>
     <body>
+        <div class="instructions" id="loading-box">
+            <h2 id="loading-overlay-header">Loading</h2>
+            <p id="loading-overlay-decription">Initializing javascript floof...</p>
+        </div>
         <div hidden class="instructions" id="betaMsg">
             <p>
                 <b>WELCOME!</b>
@@ -629,12 +608,6 @@
         </div>
         <div class="entity-onscreen-info"></div>
         <div id="map"></div>
-        <div id="loading-overlay">
-            <div id="loading-box">
-                <h1 id="loading-overlay-header">Loading Borderland Placement Map</h1>
-                <p id="loading-overlay-decription">Initializing javascript floof...</p>
-            </div>
-        </div>
         <script src="bundle.js"></script>
         <script src="js/plugins/leaflet-hash-plus.js"></script>
     </body>

@@ -250,17 +250,6 @@ export class Editor {
                     this.setMode('editing-info', entity);
                 };
                 content.appendChild(editInfoButton);
-
-                const historyButton = document.createElement('button');
-                historyButton.innerHTML = 'History';
-                historyButton.style.marginRight = '0';
-                historyButton.onclick = async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setMode('editing-info', entity);
-                    this.setPopup('history', entity);
-                };
-                content.appendChild(historyButton);
             }
 
             this._popup.setContent(content).openOn(this._map);
@@ -884,8 +873,6 @@ export class Editor {
             let entity = this._validateEntitiesQueue.pop();
             validated = validated + 1;
             this.refreshEntity(entity, true);
-            // console.log('Validate entity', entity);
-            // console.log(`Validated ${validated} so far, ${this._validateEntitiesQueue.length} left for validation.`);
         }
 
         // At end of validation cycle, check if done or to continue
@@ -1310,12 +1297,12 @@ export class Editor {
     }
 
     public loadingScreenShow(show: boolean) {
-        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingOverlay = document.getElementById('loading-box');
         console.log('loadingScreenShow()', show);
         if (show) {
-            loadingOverlay.style.display = 'grid';
+            loadingOverlay.removeAttribute("hidden");
         } else {
-            loadingOverlay.style.display = 'none';
+            loadingOverlay.setAttribute("hidden", "");
         }
     }
 
