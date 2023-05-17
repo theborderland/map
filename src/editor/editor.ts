@@ -761,6 +761,7 @@ export class Editor {
             },
             properties: {},
         };
+        marker.options.icon.options.iconSize = [1, 1];
         marker.bindTooltip(entity.name, { permanent: true, interactive: false, direction: 'center', className: 'name-tooltip' });
         entity.nameMarker = marker;
         return marker;
