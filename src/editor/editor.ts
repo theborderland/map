@@ -869,7 +869,7 @@ export class Editor {
     // Slowly validate entities in chunks
     private validateSlowly() {
         let validated = 0;
-        this.loadingScreenDescription(`${this._validateEntitiesQueue.length} entities left for validation.`);
+        this.loadingScreenDescription(`${this._validateEntitiesQueue.length} entities left for validation by small bureaucrats.<br /><img src="img/hermes.png" height="48px" />`);
         while (this._validateEntitiesQueue.length > 0 && validated < 50) {
             let entity = this._validateEntitiesQueue.pop();
             validated = validated + 1;
@@ -1316,6 +1316,6 @@ export class Editor {
     public loadingScreenDescription(description: string) {
         const loadingDescription = document.getElementById('loading-overlay-decription');
         console.log('loadingScreenDescription()', description);
-        loadingDescription.innerText = description;
+        loadingDescription.innerHTML = description;
     }
 }
