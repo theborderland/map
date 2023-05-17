@@ -14,6 +14,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
+
+    <script>
+        localStorage.setItem('hasSeenPlacementInstructions', true);
+    </script>
+
 </head>
 <body>
 
@@ -47,8 +52,10 @@
                 </ul> 
                 Communication is the key to the placement process! Coordinate on Discord in the 🚩Placement section about ideas, disputes and so on. Each zone has its own channel.
                 <br><br>
-                When the process opens on May 17th 20:00CET you will be able to draw your camp on the map according to the instructions below:
+                When the process starts, you will be able to draw your camp on the map according to the instructions below:
             </p>
+
+            <img class="pure-img" src="quickhelp.png" alt="Quick help">
 
             <h2 class="content-subhead">How to use the Placement Tool</h2>
             <ol>
@@ -60,13 +67,10 @@
                 <li>Done! You have placed your camp at The Borderland! Now go to <a href="https://discord.com/channels/932714386286575736/1100734590370455563">Discord</a> and talk with your neighbors about how and if you want to coordinate. Maybe you want to create a street somewhere, a square or whatnot. Be creative! </li>
             </ol>  
 
+            <p>While editing your shape, pay attention to the thin dotted black line around your shape. That is the "fire buffer", and is drawn 5 meters away. This is here to guide you to make enough separation between camps or clusters of camps.</p>
+            <img class="pure-img" src="buffer.png" alt="Fire buffer zone">
+
             <h2 class="content-subhead">Extra layers and measure tool!</h2>
-
-            <p>
-                There's a bunch of useful tools available.
-            </p>
-            <img class="pure-img" src="quickhelp.png">
-
             <p>
                 Make sure to check out the <b>slopemap, soundmap, heightmap</b> and a bunch of other layers in the top right menu!
             </p>
@@ -152,6 +156,25 @@
                 </ol> 
             </p>
 
+            <h2 class="content-subhead">Basic fire rules</h2>
+            <p>
+                <ol>
+                    <li>Inside your camp normal tents for living do not need separation.</li>
+                    <li>Larger structures, kitchen tents, RVs and vans need 4 meters between them and something else that can burn.</li>
+                    <li>All camps should have at least one fire extinguisher.</li>
+                    <li>The fire roads outside your camp or your camp cluster must be kept clear at all times.</li>
+                </ol> 
+            </p>
+
+            <h2 class="content-subhead">Basic sound agreements</h2>
+            <p>
+                <ol>
+                    <li>Look at the soundguide layer on the map</li>
+                    <li><a href="https://docs.google.com/document/d/1-ApOTbfL2YgUnr9b8WEia3x5YhFNDEXlUu7j6DmMSR8/">Read the soundguide</a></li>
+                    <li>Follow the recommmended levels and curfews and everything will be easier</li>
+                </ol> 
+            </p>
+
             <h2 class="content-subhead">FAQ</h2>
             <p>
                 <b>Can I only make one shape?</b><br>
@@ -204,7 +227,10 @@
                 <b>My question was not answered here!</b><br>
                 Oh my! Go to the <a href="https://discord.com/channels/932714386286575736/1100734590370455563">Discord channel ⛳placement-general</a>, and ask it there! Maybe someone has an answer.
             </p>
+            
+            <p><br><br>The Borderland Placement Tool was based on <a href="https://leafletjs.com/">Leaflet</a>. Please give them your support! </p>
         </div>
+
     </div>
 </div>
 
