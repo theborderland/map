@@ -30,6 +30,8 @@ export class Editor {
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
 
+    private _validateEntitiesQueue: Array<MapEntity>;
+
     private _groups: L.FeatureGroup<any>;
     private _placementLayers: L.LayerGroup<any>;
     private _placementBufferLayers: L.LayerGroup<any>;
@@ -865,12 +867,45 @@ export class Editor {
         }
     }
 
+    private refreshAllEntitiesSlow() {
+        for (const entity of this._repository.getAllEntities()) {
+            // this.refreshEntity(entity, true);
+            this._validateEntitiesQueue.push(entity);
+        }
+        console.log(`Prepped ${this._validateEntitiesQueue.length} entities for validation.`);
+        this.validateSlowly();
+    }
+
+    // Slowly validate entities in chunks
+    private validateSlowly() {
+        let validated = 0;
+        this.loadingScreenDescription(`${this._validateEntitiesQueue.length} entities left for validation.`);
+        while (this._validateEntitiesQueue.length > 0 && validated < 50) {
+            let entity = this._validateEntitiesQueue.pop();
+            validated = validated + 1;
+            this.refreshEntity(entity, true);
+            // console.log('Validate entity', entity);
+            // console.log(`Validated ${validated} so far, ${this._validateEntitiesQueue.length} left for validation.`);
+        }
+
+        // At end of validation cycle, check if done or to continue
+        if (this._validateEntitiesQueue.length == 0) {
+            this.loadingScreenDescription('Finished validating.');
+            this.loadingScreenShow(false);
+        } else {
+            // Let the UI redraw by resting a while, then continue until validated
+            setTimeout(() => {
+                this.validateSlowly();
+            }, 50)
+        }
+    }
+
     public setLayerFilter(filter: 'severity' | 'sound' | 'power', checkRules: boolean = true) {
         this._currentLayerFilterStyle = filter;
         this.refreshAllEntities(checkRules);
     }
 
-    //Block crazy large areas
+    // Block crazy large areas
     private isAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
         
@@ -915,7 +950,8 @@ export class Editor {
         //@ts-ignore
         this._placementBufferLayers.addTo(groups.placement);
 
-        
+        this._validateEntitiesQueue = new Array<MapEntity>;
+
         //Hide buffers when zoomed out
         var bufferLayers = this._placementBufferLayers;
         map.on('zoomend', function () {
@@ -1017,7 +1053,6 @@ export class Editor {
 
     private addToggleEditButton() {
         const customButton = L.Control.extend({
-            // button position
             options: { position: 'bottomleft' },
 
             onAdd: () => {
@@ -1246,15 +1281,19 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        this.loadingScreenDescription('Load entities');
+        this.loadingScreenDescription('Load your drawn polygons from da interweb!');
         const entities = await this._repository.entities();
 
         for (const entity of entities) {
             this.addEntityToMap(entity, false);
         }
+        this.refreshAllEntities(false);
 
-        this.loadingScreenDescription('Evaluate rules for entities and draw colors');
-        this.refreshAllEntities();
+        // Delayed start of validation
+        setTimeout(() => {
+            this.refreshAllEntitiesSlow();
+        }, 100)
+
         this.addToggleEditButton();
     }
 

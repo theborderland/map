@@ -153,6 +153,5 @@ export const createMap = async () => {
         editor.gotoEntity(id);
     }
 
-    console.log('Map is loaded');
-    editor.loadingScreenShow(false);
+    editor.loadingScreenDescription('Entities is load, now evaluate them.');
 };
