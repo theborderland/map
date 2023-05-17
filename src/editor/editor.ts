@@ -1219,7 +1219,7 @@ export class Editor {
             this.addEntityToMap(entity, false);
         }
 
-        // this.refreshAllEntities();
+        this.refreshAllEntities();
         this.addToggleEditButton();
     }
 
