@@ -37,7 +37,7 @@ export class Editor {
     
     private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
-    private _nameTooltips: Record<number, L.Tooltip>;
+    private _nameTooltips: Record<number, L.Marker>;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -168,7 +168,7 @@ export class Editor {
             const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.amplifiedSound} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
 
             let descriptionSanitized = DOMPurify.sanitize(entityDescription);
-            //URLs starting with http://, https://, or ftp://
+            // URLs starting with http://, https://, or ftp://
             let replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
             let descriptionWithLinks = descriptionSanitized.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
 
@@ -705,13 +705,11 @@ export class Editor {
 
     private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
         if (entity || customMsg) {
-            
             let tooltipText = "";
             
             if (customMsg){
                 tooltipText = customMsg;
-            }
-            else{
+            } else {
                 tooltipText = entity.area + "m²";
     
                 for (const rule of entity.getAllTriggeredRules()) {
@@ -725,8 +723,7 @@ export class Editor {
             this.sqmTooltip.openOn(this._map);
             this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
             this.sqmTooltip.setContent(tooltipText);
-        }
-        else {
+        } else {
             // this.onScreenInfo.textContent = "";
             this.sqmTooltip.close();
         }
@@ -763,6 +760,21 @@ export class Editor {
         }
     }
 
+    private createEntityTooltip(entity: MapEntity) {
+        let marker = new L.Marker(entity.layer.getBounds().getCenter(), {opacity: 0});
+        marker.feature = {
+            type: 'Feature',
+            geometry: {
+              type: 'Point',
+              coordinates: [0, 0],
+            },
+            properties: {},
+        };
+        marker.bindTooltip(entity.name, { permanent: true, interactive: false, direction: 'center', className: 'name-tooltip' });
+        entity.nameMarker = marker;
+        return marker;
+    }
+
     /** Adds the given map entity as an a editable layer to the map */
     private addEntityToMap(entity: MapEntity, checkRules: boolean = true) {
         // Bind the click-event of the editor to the layer
@@ -774,9 +786,7 @@ export class Editor {
         });
 
         // Add name tooltips
-        this._nameTooltips[entity.id] = new L.Tooltip({ permanent: true, interactive: false, direction: 'center', className: 'name-tooltip' });
-        this._nameTooltips[entity.id].setLatLng(entity.layer.getBounds().getCenter());
-        this._nameTooltips[entity.id].setContent(entity.name);
+        this._nameTooltips[entity.id] = this.createEntityTooltip(entity);
         this._nameTooltips[entity.id].addTo(this._groups['names']);
 
         // Update the buffered layer when the layer is being edited
@@ -824,9 +834,25 @@ export class Editor {
     private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
         if (entity == null) return;
 
-        if (this._isEditMode) {
-            this._nameTooltips[entity.id].setLatLng(entity.layer.getBounds().getCenter());
-            this._nameTooltips[entity.id].setContent(entity.name);
+        // Update name tooltip
+        let a: L.Marker = entity.nameMarker;
+        let posMarker = entity.nameMarker.getLatLng();
+        let posEntity = entity.layer.getBounds().getCenter();
+        if ((posEntity.lat != posMarker.lat) || (posEntity.lng != posMarker.lng)) {
+            // console.log('entity pos changed');
+            entity.nameMarker.setLatLng(posEntity);
+        }
+        if (entity.nameMarker._tooltip._content != entity.name) {
+            // console.log('tooltip content changed', entity.nameMarker._tooltip);
+            entity.nameMarker.setTooltipContent(entity.name);
+        }
+        var zoom = this._map.getZoom();
+        if (zoom >= 19) {
+            //@ts-ignore
+            this._nameTooltips[entity.id]._tooltip.setOpacity(1);
+        } else {
+            //@ts-ignore
+            this._nameTooltips[entity.id]._tooltip.setOpacity(0);
         }
 
         if (checkRules) entity.checkAllRules();
@@ -855,7 +881,14 @@ export class Editor {
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
         this._selected = null;
         this.setMode('none');
-        this._groups['names'].unbindTooltip(this._nameTooltips[entity.id]);
+
+        // Remove name-tooltip
+        entity.nameMarker.unbindTooltip();
+        this._groups['names'].removeLayer(entity.nameMarker);
+        entity.nameMarker = null;
+        delete this._nameTooltips[entity.id];
+
+        // Remove entity from layers
         this._placementLayers.removeLayer(entity.layer);
         this._placementBufferLayers.removeLayer(entity.bufferLayer);
         this._map.removeLayer(entity.layer);
@@ -951,14 +984,14 @@ export class Editor {
         this.sqmTooltip.closeTooltip();
         this._nameTooltips = {};
 
-        //Hide name tooltips when zoomed out
+        // Hide name tooltips when zoomed out
         map.on('zoomend', function () {
             var zoom = map.getZoom();
-            this.groups['names'].getLayers().forEach(function (layer: L.Tooltip) {
-                if (zoom >= 18) {
-                    layer.setOpacity(1);
+            this.groups['names'].getLayers().forEach(function (layer: any) {
+                if (zoom >= 19) {
+                    layer._tooltip.setOpacity(1);
                 } else {
-                    layer.setOpacity(0);
+                    layer._tooltip.setOpacity(0);
                 }
             });
         });
