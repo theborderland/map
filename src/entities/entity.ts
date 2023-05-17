@@ -240,7 +240,7 @@ export class MapEntity implements EntityDTO {
                 style: {
                     color: 'black',
                     fillOpacity: 0.0,
-                    weight: 0.5, // Set the outline width
+                    weight: 0.75, // Set the outline width
                     dashArray: '5, 5', // Set the outline to be dashed,
                 },
                 interactive: false,
