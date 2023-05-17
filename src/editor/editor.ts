@@ -1018,7 +1018,7 @@ export class Editor {
                 L.DomEvent.disableClickPropagation(btn);
 
                 btn.onclick = () => {
-                    window.open('/instructions', '_blank').focus();
+                    window.open('instructions/', '_blank').focus();
                 };
 
                 return btn;
