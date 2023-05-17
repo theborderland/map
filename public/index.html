@@ -545,9 +545,34 @@
                 animation-fill-mode: none;
                 animation-play-state: running;   
             }
+
+            #loading-box {
+                text-align: center;
+                top: 80%;
+                background: rgba(255,255,255,0.8);
+                font-size: 0.8em;
+            }
+
+            #loading-overlay-header {
+                /*
+                font-weight: bold;
+                text-shadow: 0.1em 0.1em #bfecf7;
+                */
+            }
+
+            #loading-overlay-decription {
+                /*
+                color: #000000;
+                font-size: 1em;
+                */
+            }
         </style>
     </head>
     <body>
+        <div class="instructions" id="loading-box">
+            <h2 id="loading-overlay-header">Loading</h2>
+            <p id="loading-overlay-decription">Initializing javascript floof...</p>
+        </div>
         <div hidden class="instructions" id="betaMsg">
             <p>
                 <b>WELCOME!</b>

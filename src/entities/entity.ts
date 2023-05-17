@@ -64,6 +64,7 @@ export class MapEntity implements EntityDTO {
     public readonly layer: L.Layer & { pm?: any };
     public bufferLayer: L.Layer;
     public revisions: Record<number, MapEntity>;
+    public nameMarker: L.Marker;
 
     // Information fields
     public name: string;

@@ -21,6 +21,9 @@ IDEAS FOR LATER:
 DONE:
     [x] Only show start message again if you have not looked at instructions
     [x] Explain the buffers in the instructions better
+    [x] Enable names-group layer on by default
+    [x] POI Länkar i description Åkerholme
+    [x] Contact is important! Without it, your area might be removed
     [x] Update soundlayer legend (add labels?)
     [x] Update fireroads in QGIS
     [x] Add containers
