@@ -2,6 +2,7 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle, EntityDifferences } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
+import { EntityChanges } from '../entities/repository';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
 import 'leaflet.path.drag';
@@ -29,6 +30,7 @@ export class Editor {
 
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
+    private _currentRevisions: Record<MapEntity['id'], MapEntity>;
 
     private _validateEntitiesQueue: Array<MapEntity>;
 
@@ -36,6 +38,9 @@ export class Editor {
     private _placementLayers: L.LayerGroup<any>;
     private _placementBufferLayers: L.LayerGroup<any>;
     private _ghostLayers: L.LayerGroup<any>;
+
+    private _lastEnityFetch: number;
+    private _autoRefreshIntervall: number;
     
     private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
@@ -769,6 +774,7 @@ export class Editor {
 
     /** Adds the given map entity as an a editable layer to the map */
     private addEntityToMap(entity: MapEntity, checkRules: boolean = true) {
+        this._currentRevisions[entity.id] = entity;
         // Bind the click-event of the editor to the layer
         entity.layer.on('click', ({ latlng }) => {
             // Update the popup-position
@@ -852,17 +858,22 @@ export class Editor {
     }
 
     private refreshAllEntities(checkRules: boolean = true) {
-        for (const entity of this._repository.getAllEntities()) {
-            this.refreshEntity(entity, checkRules);
+        for (const entityid in this._currentRevisions) {
+            this.refreshEntity(this._currentRevisions[entityid], checkRules);
         }
     }
 
-    private refreshAllEntitiesSlow() {
-        for (const entity of this._repository.getAllEntities()) {
-            // this.refreshEntity(entity, true);
-            this._validateEntitiesQueue.push(entity);
+    private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity>|null = null) {
+        this.loadingScreenDescription('Validate entitys.');
+        this.loadingScreenShow(true);
+        if (entitysToRefresh) {
+            this._validateEntitiesQueue = entitysToRefresh;
+        } else {
+            for (const entityid in this._currentRevisions) {
+                this._validateEntitiesQueue.push(this._currentRevisions[entityid]);
+            }
         }
-        console.log(`Prepped ${this._validateEntitiesQueue.length} entities for validation.`);
+        // console.log(`Prepped ${this._validateEntitiesQueue.length} entities for validation.`);
         this.validateSlowly();
     }
 
@@ -904,7 +915,11 @@ export class Editor {
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
         this._selected = null;
         this.setMode('none');
+        this.removeEntity(entity);
+        this._repository.deleteEntity(entity, deleteReason);
+    }
 
+    private removeEntity(entity: MapEntity, roveInRepository:boolean=true) {
         // Remove name-tooltip
         entity.nameMarker.unbindTooltip();
         this._groups['names'].removeLayer(entity.nameMarker);
@@ -916,7 +931,14 @@ export class Editor {
         this._placementBufferLayers.removeLayer(entity.bufferLayer);
         this._map.removeLayer(entity.layer);
         this._map.removeLayer(entity.bufferLayer);
-        this._repository.deleteEntity(entity, deleteReason);
+
+        // Remove from current
+        delete this._currentRevisions[entity.id];
+
+        // Remove from repository
+        if (roveInRepository) {
+            this._repository.remove(entity);
+        }
     }
 
     constructor(map: L.Map, groups: L.FeatureGroup) {
@@ -939,6 +961,11 @@ export class Editor {
         this._placementBufferLayers.addTo(groups.placement);
 
         this._validateEntitiesQueue = new Array<MapEntity>;
+
+        this._lastEnityFetch = 0;
+        this._autoRefreshIntervall = 90;  // Seconds
+
+        this._currentRevisions = {};
 
         //Hide buffers when zoomed out
         var bufferLayers = this._placementBufferLayers;
@@ -1269,20 +1296,73 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
+        this.loadingScreenShow(true);
         this.loadingScreenDescription('Load your drawn polygons from da interweb!');
         const entities = await this._repository.entities();
+        this._lastEnityFetch = new Date().getTime() / 1000;
 
         for (const entity of entities) {
             this.addEntityToMap(entity, false);
         }
+        // Refresh enity with no rulecheck
         this.refreshAllEntities(false);
 
         // Delayed start of validation
         setTimeout(() => {
-            this.refreshAllEntitiesSlow();
-        }, 100)
+            this.refreshEntitiesSlow();
+        }, 100);
+
+        // Automatic refresh of entities after a minute
+        setTimeout(() => {
+            this.checkForUpdatedEntities();
+        }, this._autoRefreshIntervall * 1000);
 
         this.addToggleEditButton();
+    }
+
+    // Atutomatically check for updates every minute or so
+    private async checkForUpdatedEntities() {
+        // Check for changed enities if not in edit mode
+        if (this._isEditMode == false) {
+            var now = new Date().getTime() / 1000;
+            // If last check was performed too long ago, fetch again
+            if ((now - this._lastEnityFetch) > this._autoRefreshIntervall) {
+                this._lastEnityFetch = now;
+                const changes: EntityChanges = await this._repository.reload();
+                // console.log('checkForUpdatedEntities look for changed enities', changes);
+                let changesToQueue:Array<MapEntity> = new Array<MapEntity>;
+                let changesInformative:Array<string> = new Array<string>;
+                for (const id of changes.refreshedAdded) {
+                    let entity = this._repository.getEntityById(id);
+                    changesInformative.push(`Add new entity ${entity.id} ${entity.name}`);
+                    this.addEntityToMap(entity, false);
+                    changesToQueue.push(entity);
+                }
+                for (const id of changes.refreshedDeleted) {
+                    let entity = this._currentRevisions[id];
+                    changesInformative.push(`Removed entity ${entity.id} ${entity.name}`);
+                    this.removeEntity(entity);
+                }
+                for (const id of changes.refreshedUpdated) {
+                    let entity = this._repository.getEntityById(id);
+                    changesInformative.push(`Updated entity ${entity.id} ${entity.name}`);
+                    this.removeEntity(this._currentRevisions[id], false);
+                    this.addEntityToMap(entity, false);
+                    changesToQueue.push(entity);
+                }
+                if (changesInformative.length > 0) {
+                    console.log('Fetched latest changes from map', new Date().toISOString(), changesInformative);
+                    this.refreshAllEntities(false);
+                }
+                if (changesToQueue.length > 0) {
+                    this.refreshEntitiesSlow(changesToQueue);
+                }
+            }
+        }
+        // Set next automatic check
+        setTimeout(() => {
+            this.checkForUpdatedEntities();
+        }, 10000)
     }
 
     public gotoEntity(id: string) {
@@ -1299,7 +1379,6 @@ export class Editor {
 
     public loadingScreenShow(show: boolean) {
         const loadingOverlay = document.getElementById('loading-box');
-        console.log('loadingScreenShow()', show);
         if (show) {
             loadingOverlay.removeAttribute("hidden");
         } else {
@@ -1309,13 +1388,13 @@ export class Editor {
 
     public loadingScreenHeader(header: string) {
         const loadingHeader = document.getElementById('loading-overlay-header');
-        console.log('loadingScreenHeader()', header);
+        // console.log('loadingScreenHeader()', header);
         loadingHeader.innerText = header;
     }
 
     public loadingScreenDescription(description: string) {
         const loadingDescription = document.getElementById('loading-overlay-decription');
-        console.log('loadingScreenDescription()', description);
+        // console.log('loadingScreenDescription()', description);
         loadingDescription.innerHTML = description;
     }
 }

@@ -3,6 +3,12 @@ import { MapEntity, EntityDTO } from './entity';
 import type { Rule } from './rule';
 import DOMPurify from 'dompurify';
 
+export interface EntityChanges {
+    refreshedDeleted: Array<number>;
+    refreshedAdded: Array<number>;
+    refreshedUpdated: Array<number>;
+}
+
 /**
  * Singleton class that manages entity data from the API
  *
@@ -39,6 +45,61 @@ export class MapEntityRepository {
         }
     }
 
+	/** Reloads data */
+    public async reload(): Promise<EntityChanges> {
+        const res = await fetch(ENTITY_API_ADDRESS);
+        const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
+        const fetchedEntities: Array<MapEntity> = new Array<MapEntity>;
+        const refresh:EntityChanges = {
+            refreshedDeleted: new Array<number>,
+            refreshedAdded: new Array<number>,
+            refreshedUpdated: new Array<number>,
+        };
+        for (const data of entityDTOs) {
+            if (this._entityConstraints) {
+                const { earliest, latest } = this._entityConstraints;
+                if (data.timeStamp > latest || data.timeStamp < earliest) {
+                    continue;
+                }
+            }
+            fetchedEntities[data.id] = new MapEntity(data, this._rulesGenerator());
+        }
+
+        // Look through old entities for removed entities
+        for (const oldEntityId in this._latestRevisions) {
+            if (fetchedEntities[oldEntityId]) {
+                // console.log('Old revision exist in fetched, its not removed');
+            } else {
+                // console.log('Old revision is removed', oldEntityId);
+                //@ts-ignore
+                refresh.refreshedDeleted.push(oldEntityId);
+            }
+        }
+
+        // Look through fetched entities for added or new revisions
+        let refreshedAdded = new Array<number>;
+        let refreshedUpdated = new Array<number>;
+        for (const fetchedId in fetchedEntities) {
+            //@ts-ignore
+            let entity:MapEntity = fetchedEntities[fetchedId];
+            if (this._latestRevisions[entity.id]) {
+                // Check if revision has changed
+                if (this._latestRevisions[entity.id].revision < entity.revision) {
+                    // console.log(`Entity ${entity.id} has revision ${this._latestRevisions[entity.id].revision} new is ${entity.revision}`)
+                    this._latestRevisions[entity.id] = entity;
+                    refresh.refreshedUpdated.push(entity.id);
+                }
+            } else {
+                // Add entity
+                // console.log('New enity', entity.id);
+                this._latestRevisions[entity.id] = entity;
+                refresh.refreshedAdded.push(entity.id);
+            }
+        }
+        // console.log(refresh.refreshedAdded, refresh.refreshedDeleted, refresh.refreshedUpdated);
+        return refresh;
+    }
+
     constructor(rulesGenerator: () => Array<Rule>) {
         this._rulesGenerator = rulesGenerator;
         // Update on page load
@@ -59,12 +120,13 @@ export class MapEntityRepository {
         return Object.values(this._latestRevisions);
     }
 
+    /** Returns a single entity */
     public getEntityById(id: string)
     {
         return this._latestRevisions[id];
     }
 
-    //get all entities as a readonly list
+    /** Get all entities as a readonly list */
     public getAllEntities(): ReadonlyArray<MapEntity> {
         return Object.values(this._latestRevisions);
     }
@@ -74,7 +136,7 @@ export class MapEntityRepository {
         return entityData.revision == this._latestRevisions[entityData.id].revision;
     }
 
-    /** Creates a new map entity from the given geoJSON  */
+    /** Creates a new map entity from the given geoJSON */
     public async createEntity(geoJson: object): Promise<MapEntity | null> {
         console.log('createEntity', geoJson);
         const response = await fetch(ENTITY_API_ADDRESS, {
@@ -96,7 +158,8 @@ export class MapEntityRepository {
             return null;
         }
     }
-    /** Creates a new revision of the current entity in the database  */
+
+    /** Creates a new revision of the current entity in the database */
     public async updateEntity(entity: MapEntity) {
         const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`, {
             method: 'PUT',
@@ -117,7 +180,8 @@ export class MapEntityRepository {
             return null;
         }
     }
-    /** Deletes the entity in the database  */
+
+    /** Deletes the entity in the database */
     public async deleteEntity(entity: MapEntity, reason: string = 'No reason given') {
         const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}?reason=${DOMPurify.sanitize(reason)}`, {
             method: 'DELETE',
@@ -131,6 +195,12 @@ export class MapEntityRepository {
         }
     }
 
+    /** Remove entity, used when an entity has been removed by other */
+    public async remove(entity: MapEntity): Promise<void> {
+        delete this._latestRevisions[entity.id];
+    }
+
+    /** Load all revisions of an entity */
     public async getRevisionsForEntity(entity: MapEntity) {
         const res = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
