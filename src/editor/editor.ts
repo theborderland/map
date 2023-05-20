@@ -691,10 +691,7 @@ export class Editor {
         const entityInResponse = await this._repository.updateEntity(entity);
 
         if (entityInResponse) {
-            this._map.removeLayer(entity.layer);
-            this._map.removeLayer(entity.bufferLayer);
-            this._placementLayers.removeLayer(entity.layer);
-            this._placementBufferLayers.removeLayer(entity.bufferLayer);
+            this.removeEntity(entity);
             this.addEntityToMap(entityInResponse);
         }
     }

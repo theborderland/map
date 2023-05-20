@@ -6,7 +6,6 @@ BEFORE RELEASE:
     [x] Push to master branch on Github without edit button available
 
 AFTER RELEASE:
-    [ ] Find out what duplicates name tooltip. Removal of entity when updating?
     [ ] Warn/close if a new update is made during editing of entity
     [ ] Optimize when and how rules are evaluated
     [ ] Optimize popup position to be at the top of shapes to make info text more visible
@@ -20,6 +19,7 @@ IDEAS FOR LATER:
     [ ] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
 
 DONE:
+    [x] Find out what duplicates name tooltip. Removal of entity when updating?
     [x] Update entites on a regular interval
     [x] Enable names-group layer on by default
     [x] POI Länkar i description Åkerholme
