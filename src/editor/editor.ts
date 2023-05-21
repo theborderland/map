@@ -682,6 +682,25 @@ export class Editor {
 
         this.UpdateOnScreenDisplay(null);
 
+        // Check if ther's any later revision since editor opened
+        await this._repository.getRevisionsForEntity(entity);
+        let latestKey;
+        for (let revisionentitykey in entity.revisions) {
+            latestKey = revisionentitykey;
+        }
+        let latestEntity = entity.revisions[latestKey];
+        if (entity.revision != latestEntity.revision) {
+            let diff = this.getEntityDifferences(latestEntity, entity);
+            let diffDescription: string = `Description Changed, someone have saved a revision ${latestEntity.revision} since this revision ${entity.revision} opened.\n`;
+            for (let changeid in diff) {
+                diffDescription += `* ${diff[changeid]['changeLong']}\n`;
+            }
+            diffDescription += '\nDescription has changed to this diff. Open version history if unsure what happened. You find ut under Edit info>More>History.';
+            console.log(diffDescription);
+            entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
+            alert(diffDescription);
+        }
+
         if (this.isAreaTooBig(entity.toGeoJSON())) {
             alert("The area of the polygon is waaay to big. It will not be saved, please change it.");
             return;
