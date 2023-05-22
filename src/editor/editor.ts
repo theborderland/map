@@ -621,22 +621,45 @@ export class Editor {
                     let change = diff[changeid];
                     let li = document.createElement('li');
                     li.innerText = change['changeShort'];
-                    let btn = L.DomUtil.create('button', 'desc-button');
-                    btn.title = 'Show a detailed description about this change.';
-                    btn.textContent = '?';
-                    btn.onclick = () => {
-                        divdescription.innerText = change['changeLong'];
-                    };
-                    // li.append(btn);
                     let a = document.createElement('a');
                     a.href = '#';
                     a.innerText = ' Show';
                     a.title = 'Show a detailed description about this change.';
                     a.onclick = () => {
-                        divdescriptionheader.innerText = `Description of revision ${revisionentity}`;
-                        divdescription.innerText = change['changeLong'];
                         let entityRevSelected = entity.revisions[revisionentity];
-                        // console.log(entityRevSelected);
+                        divdescriptionheader.innerText = `Description of revision ${revisionentity}`;
+                        divdescription.innerText = `${change['changeLong']}\n\n`;
+                        // Restore buttons
+                        let btnRestoreDetails = L.DomUtil.create('button', 'history-button');
+                        btnRestoreDetails.title = `Restores detailes from revision ${revisionentity}.`;
+                        btnRestoreDetails.textContent = '⚠ Restore Details';
+                        btnRestoreDetails.onclick = () => {
+                            console.log(`Restores detailes from revision ${revisionentity}.`);
+                            entity.name = entity.revisions[revisionentity].name;
+                            entity.description = entity.revisions[revisionentity].description;
+                            entity.contactInfo = entity.revisions[revisionentity].contactInfo;
+                            entity.nrOfPeople = entity.revisions[revisionentity].nrOfPeople;
+                            entity.nrOfVehicles = entity.revisions[revisionentity].nrOfVehicles;
+                            entity.additionalSqm = entity.revisions[revisionentity].additionalSqm;
+                            entity.powerNeed = entity.revisions[revisionentity].powerNeed;
+                            entity.amplifiedSound = entity.revisions[revisionentity].amplifiedSound;
+                            entity.color = entity.revisions[revisionentity].color;
+                            entity.supressWarnings = entity.revisions[revisionentity].supressWarnings;
+                        };
+                        divdescription.append(btnRestoreDetails);
+                        let btnRestoreShape = L.DomUtil.create('button', 'history-button');
+                        btnRestoreShape.title = `Restores shape from revision ${revisionentity}.`;
+                        btnRestoreShape.textContent = '⚠ Restore Shape';
+                        btnRestoreShape.onclick = () => {
+                            console.log(`Restores shape from revision ${revisionentity}.`);
+                            // First remove currently drawn shape to avoid duplicates
+                            this.removeEntityNameTooltip(entity);
+                            this.removeEntityFromLayers(entity);
+                            entity.layer = entity.revisions[revisionentity].layer;
+                            this.addEntityToMap(entity);
+                        };
+                        divdescription.append(btnRestoreShape);
+                        // Draw ghosted shape of selected revision
                         this._ghostLayers.clearLayers();
                         entityRevSelected.layer.setStyle(GhostLayerStyle);
                         this._ghostLayers.addLayer(entityRevSelected.layer);
@@ -710,6 +733,7 @@ export class Editor {
         const entityInResponse = await this._repository.updateEntity(entity);
 
         if (entityInResponse) {
+            // Redraw shape efter a succefull update
             this.removeEntity(entity);
             this.addEntityToMap(entityInResponse);
         }
@@ -935,24 +959,31 @@ export class Editor {
         this._repository.deleteEntity(entity, deleteReason);
     }
 
-    private removeEntity(entity: MapEntity, roveInRepository:boolean=true) {
-        // Remove name-tooltip
+    private removeEntityNameTooltip(entity: MapEntity) {
+        // Remove entity name-tooltip
         entity.nameMarker.unbindTooltip();
         this._groups['names'].removeLayer(entity.nameMarker);
         entity.nameMarker = null;
         delete this._nameTooltips[entity.id];
+    }
 
+    private removeEntityFromLayers(entity: MapEntity) {
         // Remove entity from layers
         this._placementLayers.removeLayer(entity.layer);
         this._placementBufferLayers.removeLayer(entity.bufferLayer);
         this._map.removeLayer(entity.layer);
         this._map.removeLayer(entity.bufferLayer);
+    }
+
+    private removeEntity(entity: MapEntity, removeInRepository:boolean=true) {
+        this.removeEntityNameTooltip(entity);
+        this.removeEntityFromLayers(entity);
 
         // Remove from current
         delete this._currentRevisions[entity.id];
 
-        // Remove from repository
-        if (roveInRepository) {
+        // If an entity was updated via checkForUpdatedEntities we want to keep in in the repository
+        if (removeInRepository) {
             this._repository.remove(entity);
         }
     }
