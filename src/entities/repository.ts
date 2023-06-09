@@ -47,6 +47,7 @@ export class MapEntityRepository {
 
 	/** Reloads data */
     public async reload(): Promise<EntityChanges> {
+        // Fetch all entities
         const res = await fetch(ENTITY_API_ADDRESS);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
         const fetchedEntities: Array<MapEntity> = new Array<MapEntity>;
@@ -66,34 +67,32 @@ export class MapEntityRepository {
         }
 
         // Look through old entities for removed entities
-        for (const oldEntityId in this._latestRevisions) {
+        for (const oldEntityIdString in this._latestRevisions) {
+            let oldEntityId = parseInt(oldEntityIdString);
             if (fetchedEntities[oldEntityId]) {
                 // console.log('Old revision exist in fetched, its not removed');
             } else {
                 // console.log('Old revision is removed', oldEntityId);
-                //@ts-ignore
                 refresh.refreshedDeleted.push(oldEntityId);
             }
         }
 
         // Look through fetched entities for added or new revisions
-        let refreshedAdded = new Array<number>;
-        let refreshedUpdated = new Array<number>;
-        for (const fetchedId in fetchedEntities) {
-            //@ts-ignore
-            let entity:MapEntity = fetchedEntities[fetchedId];
-            if (this._latestRevisions[entity.id]) {
+        for (const fetchedIdString in fetchedEntities) {
+            let fetchedId = parseInt(fetchedIdString);
+            let fetchedEntity:MapEntity = fetchedEntities[fetchedId];
+            // If it's an old enity it must be an update
+            if (this._latestRevisions[fetchedId]) {
                 // Check if revision has changed
-                if (this._latestRevisions[entity.id].revision < entity.revision) {
+                if (this._latestRevisions[fetchedId].revision < fetchedEntity.revision) {
                     // console.log(`Entity ${entity.id} has revision ${this._latestRevisions[entity.id].revision} new is ${entity.revision}`)
-                    this._latestRevisions[entity.id] = entity;
-                    refresh.refreshedUpdated.push(entity.id);
+                    this._latestRevisions[fetchedId] = fetchedEntity;
+                    refresh.refreshedUpdated.push(fetchedId);
                 }
             } else {
-                // Add entity
-                // console.log('New enity', entity.id);
-                this._latestRevisions[entity.id] = entity;
-                refresh.refreshedAdded.push(entity.id);
+                // Added entity
+                this._latestRevisions[fetchedId] = fetchedEntity;
+                refresh.refreshedAdded.push(fetchedId);
             }
         }
         // console.log(refresh.refreshedAdded, refresh.refreshedDeleted, refresh.refreshedUpdated);
@@ -149,9 +148,9 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Saved initial entity', data);
-            const entity = new MapEntity(data, this._rulesGenerator());
-            this._latestRevisions[entity.id] = entity;
-            return entity;
+            const entity_new = new MapEntity(data, this._rulesGenerator());
+            this._latestRevisions[entity_new.id] = entity_new;
+            return entity_new;
         } else {
             const err = await response.json();
             console.warn('[API]', 'Failed to save entity', err);
@@ -171,9 +170,9 @@ export class MapEntityRepository {
         if (response.ok) {
             const data: EntityDTO = await response.json();
             console.log('[API]', 'Updated existing entity', data);
-            const entity = new MapEntity(data, this._rulesGenerator());
-            this._latestRevisions[entity.id] = entity;
-            return entity;
+            const entity_updated = new MapEntity(data, this._rulesGenerator());
+            this._latestRevisions[entity.id] = entity_updated;
+            return entity_updated;
         } else {
             const err = await response.json();
             console.warn('[API]', 'Failed to update entity with id:', entity.id, err);
