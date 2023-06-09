@@ -29,7 +29,7 @@ export const createMap = async () => {
 
     await loadPoiFromGoogleCsv(map);
 
-    showBetaMsg();
+    // showBetaMsg();
 
     new L.Hash(map);  // Makes the URL follow the map.
 
