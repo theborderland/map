@@ -1,8 +1,3 @@
-
-BEFORE RELEASE:
-    [ ] Reset database on api server
-    [ ] Push to master branch on Github with edit button available
-    
 AFTER RELEASE:
     [ ] Optimize when and how rules are evaluated
     [ ] Optimize popup position to be at the top of shapes to make info text more visible
@@ -10,17 +5,23 @@ AFTER RELEASE:
     [ ] Add "Add Dream" feature
     [ ] Implement PostHog analytics
     [ ] Simple HTTP Basic Auth with email + birthdate
-    
-MAYBE:
-    [ ] Update entites on a regular interval
-        
+
 IDEAS FOR LATER:
     [ ] Lock-down the API so that only the admin can add and remove shapes
     [ ] How can different placement rules apply to different areas? Say, a much longer buffer for the meadows.
-            
+
 DONE:
+    [x] Update entites on a regular interval
+    [x] Warn/close if a new update is made during editing of entity
+    [x] Find out what duplicates name tooltip. Removal of entity when updating?
+    [x] Update entites on a regular interval
+    [x] Reset database on api server
+    [x] Push to master branch on Github with edit button available
     [x] Only show start message again if you have not looked at instructions
     [x] Explain the buffers in the instructions better
+    [x] Add constant message that says: "Remember to reload page to see changes made ny others!" ?
+    [x] Update first welcome message
+    [x] Push to master branch on Github without edit button available
     [x] Enable names-group layer on by default
     [x] POI Länkar i description Åkerholme
     [x] Contact is important! Without it, your area might be removed
