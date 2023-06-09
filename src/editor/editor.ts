@@ -732,9 +732,10 @@ export class Editor {
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
+        // Redraw shape efter a successful update
         if (entityInResponse) {
-            // Redraw shape efter a succefull update
-            this.removeEntity(entity);
+            // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
+            this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
         }
     }
