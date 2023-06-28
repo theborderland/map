@@ -25,7 +25,7 @@ export const addLegends = async (map) =>
     soundLegend.onAdd = function (map) 
     {
         var div = L.DomUtil.create('div', 'legend');
-        div.innerHTML += '<img src="./img/soundlegend.png" alt="legend" width="100" height="141">';
+        div.innerHTML += '<img src="./img/soundlegend.png" alt="legend" width="150" height="165">';
         return div;
     };
 
