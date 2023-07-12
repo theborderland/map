@@ -263,8 +263,8 @@ export class MapEntity implements EntityDTO {
         geoJson.properties = geoJson.properties || {};
 
         // Add all information fields as properties
-        geoJson.properties.name = DOMPurify.sanitize(this.name);
-        geoJson.properties.description = DOMPurify.sanitize(this.description);
+        geoJson.properties.name = DOMPurify.sanitize(this.name).substring(0, 100);
+        geoJson.properties.description = DOMPurify.sanitize(this.description).substring(0, 1000);
         geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
         geoJson.properties.nrOfPeople = this.nrOfPeople;
         geoJson.properties.nrOfVechiles = this.nrOfVehicles;
