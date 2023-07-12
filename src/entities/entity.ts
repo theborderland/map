@@ -219,8 +219,8 @@ export class MapEntity implements EntityDTO {
         {
             let color = GreenColor;
             if (!this.amplifiedSound) color = "#D1D1D1";
-            else if (this.amplifiedSound > 100) color = "#FF0000";
-            else if (this.amplifiedSound > 40) color = "#FFA200";
+            else if (this.amplifiedSound > 2000) color = "#FF0000";
+            else if (this.amplifiedSound > 120) color = "#FFA200";
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }
