@@ -133,6 +133,11 @@ export const createMap = async () => {
         if (eventLayer.name === 'Check_Power' || eventLayer.name === 'Check_Sound' || eventLayer.name === 'Check_Clean') editor.setLayerFilter('severity', false);
     });
 
+    //log the lat and long to the console when clicking the map or a layer or marker
+    map.on('click', function(e) {
+        console.log(e.latlng);
+    });
+
     // Add layer control and legends
     L.control.layers(undefined, extraLayers).addTo(map);
 

@@ -818,6 +818,7 @@ export class Editor {
         this._currentRevisions[entity.id] = entity;
         // Bind the click-event of the editor to the layer
         entity.layer.on('click', ({ latlng }) => {
+            console.log(latlng);
             // Update the popup-position
             this._popup.setLatLng(latlng);
             // Call the click event
