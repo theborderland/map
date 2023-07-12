@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A layout example with a side menu that hides on mobile, just like the Pure website.">
+    <title>Placement instructions</title>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+    <!-- <link rel="stylesheet" href="/css/pure/pure-min.css"> -->
+    <link rel="stylesheet" href="styles.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+</head>
+<body>
+
+<div id="layout">
+    <div id="main">
+        <div class="content">
+            <h2 class="content-subhead" id="title">List of camps</h2>
+            <div id="campslist">Calling the Placement Bureau...</div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+
+<script>
+// A script that fetches everything from https://placement.freaks.se/api/v1/mapentities
+// and displays the camps names in a list in the div with id "campslist"
+// The script uses fetch()
+
+// The URL to the API
+const url = 'https://placement.freaks.se/api/v1/mapentities';
+
+// The div where the list of camps will be displayed
+const campslist = document.getElementById('campslist');
+
+const totalAmountOfCamps = 0;
+
+// Fetch the data
+fetch(url)
+    .then((resp) => resp.json())
+    .then(function(data) {
+
+        //remove the ...Loading... text
+        campslist.innerHTML = '';
+
+        //set the text "List of camps" to the number of camps
+        document.getElementById('title').innerHTML = 'List of ' + data.length + ' camps:';
+
+        //for each object in data parse its geojson property
+        data.forEach(function(obj) {
+            //parse the geojson property
+            var geojson = JSON.parse(obj.geoJson);
+
+            //create a new paragraph element and add it to the div with id "campslist"
+            var newp = document.createElement('p');
+            newp.style.margin = '0';
+            newp.innerHTML = geojson.properties.name;
+            campslist.appendChild(newp);
+
+            //hovering the camp name will show the camps description as a tooltip
+            newp.addEventListener('mouseover', function() {
+                newp.title = geojson.properties.description;
+            });
+
+        });
+
+
+    })
+    .catch(function(error) {
+        console.log(error);
+    });
+
+</script>
+
+</html>
