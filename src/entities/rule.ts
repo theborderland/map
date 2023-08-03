@@ -45,19 +45,19 @@ export class Rule {
 /** Utility function to generate a rule generator function to be used with the editor */
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
-        isBiggerThanNeeded(),
-        isSmallerThanNeeded(),
-        isCalculatedAreaTooBig(),
+        // isBiggerThanNeeded(),
+        // isSmallerThanNeeded(),
+        // isCalculatedAreaTooBig(),
         hasLargeEnergyNeed(),
-        hasMissingFields(),
+        // hasMissingFields(),
         // hasManyCoordinates(),
-        isBreakingSoundLimit(groups.soundguide, 2, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!'),
-        isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
+        // isBreakingSoundLimit(groups.soundguide, 2, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!'),
+        // isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
         // isOverlappingOrContained(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
-        isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
+        // isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
         // isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border!','You have placed yourself outside our land, please fix that <3'),
-        isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
-        isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
+        // isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
+        // isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
         // isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the main placement area (yellow border). Make sure you know what you are doing.'),
     ];
 }
