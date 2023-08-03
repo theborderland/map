@@ -1367,6 +1367,20 @@ export class Editor {
         }, this._autoRefreshIntervall * 1000);
 
         this.addToggleEditButton();
+
+        // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
+    }
+
+    private consoleLogAllEntitiesAsOneGeoJSONFeatureCollection() {
+        let featureCollection = {
+            type: 'FeatureCollection',
+            features: []
+        };
+        for (const entityid in this._currentRevisions) {
+            let entity = this._currentRevisions[entityid];
+            featureCollection.features.push(entity.toGeoJSON());
+        }
+        console.log(JSON.stringify(featureCollection));
     }
 
     // Atutomatically check for updates every minute or so
