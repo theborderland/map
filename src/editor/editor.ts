@@ -1356,18 +1356,20 @@ export class Editor {
         // Refresh enity with no rulecheck
         this.refreshAllEntities(false);
 
-        // Delayed start of validation
+        // Delayed start of validation 
         setTimeout(() => {
             this.refreshEntitiesSlow();
         }, 100);
 
-        // Automatic refresh of entities after a minute
-        setTimeout(() => {
-            this.checkForUpdatedEntities();
-        }, this._autoRefreshIntervall * 1000);
+        // Automatic refresh of entities after a minute //Disabled after the event
+        // setTimeout(() => {
+        //     this.checkForUpdatedEntities();
+        // }, this._autoRefreshIntervall * 1000);
 
-        this.addToggleEditButton();
+        // Edit button disabled after the event took place
+        // this.addToggleEditButton();
 
+        // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
     }
 

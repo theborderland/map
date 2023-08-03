@@ -38,5 +38,5 @@ export const loadPoiFromGoogleCsv = async (map) => {
     }
 
     map.groups.poi = poiLayer;
-    map.groups.poi.addTo(map);
+    // map.groups.poi.addTo(map);
 };
