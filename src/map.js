@@ -37,19 +37,21 @@ export const createMap = async () => {
 
     new L.Hash(map);  // Makes the URL follow the map.
 
+    map.groups.mapstuff = new L.LayerGroup();
+
     //Load placenames
     fetch('./data/bl23/placenames.geojson').then(response => response.json()).then(response => {
-      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map);
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 2}}).addTo(map.groups.mapstuff);
     });
 
     //Load contours
     fetch('./data/analysis/contours.geojson').then(response => response.json()).then(response => {
-      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1, "opacity": 0.5}}).addTo(map);
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1, "opacity": 0.5}}).addTo(map.groups.mapstuff);
     });
     
     //Load reference drawings
     fetch('./data/bl23/references.geojson').then(response => response.json()).then(response => {
-      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1}}).addTo(map);
+      L.geoJSON(response.features, {style: {"color": "#ffffff", "weight": 1}}).addTo(map.groups.mapstuff);
     });
 
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/borders.geojson');
@@ -67,6 +69,17 @@ export const createMap = async () => {
     map.removeLayer(map.groups.soundmediumlow);
     map.removeLayer(map.groups.soundlow);
     map.removeLayer(map.groups.soundquiet);
+
+    map.groups.fireroad.addTo(map.groups.mapstuff);
+    map.groups.propertyborder.addTo(map.groups.mapstuff);
+    map.groups.highprio.addTo(map.groups.mapstuff);
+    map.groups.lowprio.addTo(map.groups.mapstuff);
+    map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
+    map.groups.container.addTo(map.groups.mapstuff);
+    map.groups.parking.addTo(map.groups.mapstuff);
+    map.groups.toilet.addTo(map.groups.mapstuff);
+    map.groups.bridge.addTo(map.groups.mapstuff);
+    map.groups.mapstuff.addTo(map);
 
 
     //Initialize the editor (it loads it data at the end)
@@ -110,6 +123,7 @@ export const createMap = async () => {
 
     var extraLayers = {
         Aftermath: map.groups.aftermath,
+        Placement_map: map.groups.mapstuff,
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Soundguide: map.groups.soundguide,
