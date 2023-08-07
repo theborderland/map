@@ -94,13 +94,22 @@ export const createMap = async () => {
         tms: false
     });
 
+    map.groups.aftermath = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', {
+        minZoom: 0,
+        maxZoom: 21,
+        minNativeZoom: 0,
+        maxNativeZoom: 20,
+        tms: false
+    });
+
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
     map.groups.names = new L.LayerGroup();
-    map.groups.names.addTo(map);
+    // map.groups.names.addTo(map);
 
     var extraLayers = {
+        Aftermath: map.groups.aftermath,
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Soundguide: map.groups.soundguide,
@@ -108,8 +117,8 @@ export const createMap = async () => {
         Placement: map.groups.placement,
         Names: map.groups.names,
         POI: map.groups.poi,
-        Check_Power: map.groups.power,
-        Check_Sound: map.groups.sound,
+        // Check_Power: map.groups.power,
+        // Check_Sound: map.groups.sound,
         Check_Clean: map.groups.clean,
     };
 
