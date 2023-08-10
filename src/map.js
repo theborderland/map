@@ -115,6 +115,14 @@ export const createMap = async () => {
         tms: false
     });
 
+    map.groups.aftermath22 = L.tileLayer('./data/bl22/aftermath/{z}/{x}/{y}.png', {
+        minZoom: 0,
+        maxZoom: 21,
+        minNativeZoom: 0,
+        maxNativeZoom: 20,
+        tms: false
+    });
+
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
@@ -122,7 +130,8 @@ export const createMap = async () => {
     // map.groups.names.addTo(map);
 
     var extraLayers = {
-        Aftermath: map.groups.aftermath,
+        Aftermath23: map.groups.aftermath,
+        Aftermath22: map.groups.aftermath22,
         Placement_map: map.groups.mapstuff,
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
