@@ -15,6 +15,29 @@ import { addLegends } from './loaders/addLegends';
 
 import { Editor } from './editor';
 
+function encodeHashMeta(layers) {
+    if (layers instanceof Set) {
+        layers = Array.from(layers);
+    }
+
+    const hashMeta = [];
+
+    if (layers.length > 0) {
+        hashMeta.push('layers:' + layers.join(','))
+    }
+
+    return hashMeta;
+}
+
+function decodeHashMeta(hashMeta) {
+    const layersKey = 'layers:';
+    const layersVal = hashMeta.find(val => val.startsWith(layersKey));
+
+    const layers = layersVal ? layersVal.substring(layersKey.length).split(',') : [];
+
+    return { layers };
+}
+
 export const createMap = async () => {
     // default visible map layers
     let visibleLayers = new Set(['Placement', 'Placement_map']);
@@ -146,7 +169,9 @@ export const createMap = async () => {
     };
 
     map.on("hashmetainit", function(initState) {
-        initState.meta
+        const { layers } = decodeHashMeta(initState.meta);
+
+        layers
             .filter(name => name in extraLayers)
             .forEach(layerName => visibleLayers.add(layerName));
 
@@ -156,7 +181,7 @@ export const createMap = async () => {
     const hash = new L.Hash(map);  // Makes the URL follow the map.
 
     // force update of URL hash on first load
-    hash.setHashMeta(Array.from(visibleLayers), true);
+    hash.setHashMeta(encodeHashMeta(visibleLayers), true);
 
     map.on('overlayadd', function (eventLayer)
     {
@@ -183,15 +208,16 @@ export const createMap = async () => {
         console.log(e.latlng);
     });
 
-    map.on('overlayadd overlayremove', function (event) {
-        if (event.type === 'overlayadd') {
-            visibleLayers.push(event.name);
-        }
-        else if (event.type === 'overlayremove') {
-            visibleLayers.splice(visibleLayers.indexOf(event.name), 1);
-        }
-
-        hash.setHashMeta(visibleLayers, true);
+    // maintain visible layers list and update hash
+    map.on('overlayadd', function (event) {
+        visibleLayers.add(event.name);
+        // update hash state
+        hash.setHashMeta(encodeHashMeta(visibleLayers), true);
+    });
+    map.on('overlayremove', function (event) {
+        visibleLayers.delete(event.name);
+        // update hash state
+        hash.setHashMeta(encodeHashMeta(visibleLayers), true);
     });
 
     // Add layer control and legends
