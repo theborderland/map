@@ -17,7 +17,7 @@ export const loadGeoJsonFeatureCollections = async (map, styleFunction, groupByP
     const geojsonLayer = L.geoJSON(geojsonData, {
       filter: filterByProperty(groupByProperty, value),
       style: styleFunction(value),
-    }).addTo(map);
+    });
 
     map.groups[value] = geojsonLayer;
   });

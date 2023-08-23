@@ -16,9 +16,12 @@ import { addLegends } from './loaders/addLegends';
 import { Editor } from './editor';
 
 export const createMap = async () => {
+    // default visible map layers
+    let visibleLayers = new Set(['Placement', 'Placement_map']);
+
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false })
     .setView([57.6226, 14.9276], 16);
-    
+
     map.groups = {};
 
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -34,8 +37,6 @@ export const createMap = async () => {
     {
         showBetaMsg();
     }
-
-    new L.Hash(map);  // Makes the URL follow the map.
 
     map.groups.mapstuff = new L.LayerGroup();
 
@@ -79,7 +80,6 @@ export const createMap = async () => {
     map.groups.parking.addTo(map.groups.mapstuff);
     map.groups.toilet.addTo(map.groups.mapstuff);
     map.groups.bridge.addTo(map.groups.mapstuff);
-    map.groups.mapstuff.addTo(map);
 
 
     //Initialize the editor (it loads it data at the end)
@@ -145,7 +145,20 @@ export const createMap = async () => {
         Check_Clean: map.groups.clean,
     };
 
-    map.on('overlayadd', function (eventLayer) 
+    map.on("hashmetainit", function(initState) {
+        initState.meta
+            .filter(name => name in extraLayers)
+            .forEach(layerName => visibleLayers.add(layerName));
+
+        visibleLayers.forEach(layer => map.addLayer(extraLayers[layer]))
+    });
+
+    const hash = new L.Hash(map);  // Makes the URL follow the map.
+
+    // force update of URL hash on first load
+    hash.setHashMeta(Array.from(visibleLayers), true);
+
+    map.on('overlayadd', function (eventLayer)
     {
         if (eventLayer.name === 'Check_Power') editor.setLayerFilter('power', false);
         else if (eventLayer.name === 'Check_Sound') editor.setLayerFilter('sound', false);
@@ -168,6 +181,17 @@ export const createMap = async () => {
     //log the lat and long to the console when clicking the map or a layer or marker
     map.on('click', function(e) {
         console.log(e.latlng);
+    });
+
+    map.on('overlayadd overlayremove', function (event) {
+        if (event.type === 'overlayadd') {
+            visibleLayers.push(event.name);
+        }
+        else if (event.type === 'overlayremove') {
+            visibleLayers.splice(visibleLayers.indexOf(event.name), 1);
+        }
+
+        hash.setHashMeta(visibleLayers, true);
     });
 
     // Add layer control and legends
