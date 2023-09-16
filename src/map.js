@@ -15,10 +15,36 @@ import { addLegends } from './loaders/addLegends';
 
 import { Editor } from './editor';
 
+function encodeHashMeta(layers) {
+    if (layers instanceof Set) {
+        layers = Array.from(layers);
+    }
+
+    const hashMeta = [];
+
+    if (layers.length > 0) {
+        hashMeta.push('layers:' + layers.join(','))
+    }
+
+    return hashMeta;
+}
+
+function decodeHashMeta(hashMeta) {
+    const layersKey = 'layers:';
+    const layersVal = hashMeta.find(val => val.startsWith(layersKey));
+
+    const layers = layersVal ? layersVal.substring(layersKey.length).split(',') : [];
+
+    return { layers };
+}
+
 export const createMap = async () => {
+    // default visible map layers
+    let visibleLayers = new Set(['Placement', 'Placement_map']);
+
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false })
     .setView([57.6226, 14.9276], 16);
-    
+
     map.groups = {};
 
     map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
@@ -34,8 +60,6 @@ export const createMap = async () => {
     {
         showBetaMsg();
     }
-
-    new L.Hash(map);  // Makes the URL follow the map.
 
     map.groups.mapstuff = new L.LayerGroup();
 
@@ -79,7 +103,6 @@ export const createMap = async () => {
     map.groups.parking.addTo(map.groups.mapstuff);
     map.groups.toilet.addTo(map.groups.mapstuff);
     map.groups.bridge.addTo(map.groups.mapstuff);
-    map.groups.mapstuff.addTo(map);
 
 
     //Initialize the editor (it loads it data at the end)
@@ -145,7 +168,22 @@ export const createMap = async () => {
         Check_Clean: map.groups.clean,
     };
 
-    map.on('overlayadd', function (eventLayer) 
+    map.on("hashmetainit", function(initState) {
+        const { layers } = decodeHashMeta(initState.meta);
+
+        layers
+            .filter(name => name in extraLayers)
+            .forEach(layerName => visibleLayers.add(layerName));
+
+        visibleLayers.forEach(layer => map.addLayer(extraLayers[layer]))
+    });
+
+    const hash = new L.Hash(map);  // Makes the URL follow the map.
+
+    // force update of URL hash on first load
+    hash.setHashMeta(encodeHashMeta(visibleLayers), true);
+
+    map.on('overlayadd', function (eventLayer)
     {
         if (eventLayer.name === 'Check_Power') editor.setLayerFilter('power', false);
         else if (eventLayer.name === 'Check_Sound') editor.setLayerFilter('sound', false);
@@ -168,6 +206,18 @@ export const createMap = async () => {
     //log the lat and long to the console when clicking the map or a layer or marker
     map.on('click', function(e) {
         console.log(e.latlng);
+    });
+
+    // maintain visible layers list and update hash
+    map.on('overlayadd', function (event) {
+        visibleLayers.add(event.name);
+        // update hash state
+        hash.setHashMeta(encodeHashMeta(visibleLayers), true);
+    });
+    map.on('overlayremove', function (event) {
+        visibleLayers.delete(event.name);
+        // update hash state
+        hash.setHashMeta(encodeHashMeta(visibleLayers), true);
     });
 
     // Add layer control and legends
