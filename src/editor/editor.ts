@@ -271,6 +271,7 @@ export class Editor {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
+            nameField.maxLength = 100;
             nameField.placeholder = 'Enter camp name here..';
             nameField.oninput = () => {
                 entity.name = nameField.value;
@@ -283,7 +284,8 @@ export class Editor {
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
-            descriptionField.placeholder = 'Describe your camp/dream here as much as you want. Remember that this information is public.';
+            descriptionField.maxLength = 300;
+            descriptionField.placeholder = 'Describe your camp/dream here as much as you want. Remember that this information is public. 300 characters max.';
             descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
