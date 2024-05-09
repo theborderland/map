@@ -9,6 +9,40 @@ const MAX_POWER_NEED: number = 8000;
 const MAX_POINTS_BEFORE_WARNING: number = 10;
 const FIRE_BUFFER_IN_METER: number = 5;
 
+
+
+
+class ClusterCache{
+    // Class to cache overlap and area calculations of entities.
+    // Since moving or redrawing a entity creates a new leaflet_id we dont have to worry about invalidating cache results.
+    private areaCache: {[key:number]:number} = {}
+    private overlapCache: {[key:number]:{[key:number]:Boolean}} ={}// a dict with a dict of booleans eg. x[1][2] = true
+
+    public areaIsCached(layerID:number):Boolean{
+        return layerID in this.areaCache
+    }
+    public getAreaCache(layerID:number):number{
+        return this.areaCache[layerID]
+    }
+    public setAreaCache(layerID:number,value:number){
+        this.areaCache[layerID] = value
+    }
+    public overlapIsCached(layerID1:number,layerID2:number):Boolean{
+        return (layerID1 in this.overlapCache) && (layerID2 in this.overlapCache[layerID1])
+    }
+    public getOverlapCache(layerID1:number,layerID2:number):Boolean{
+        return this.overlapCache[layerID1][layerID2]
+    }
+    public setOverlapCache(layerID1:number,layerID2:number,value:Boolean){
+        for (let layerIDS of [[layerID1,layerID2],[layerID2,layerID1]]){
+            if (!( layerIDS[0] in this.overlapCache)){
+                this.overlapCache[layerIDS[0]] = {}
+            }
+            this.overlapCache[layerIDS[0]][layerIDS[1]] = value
+        }
+    }
+}
+const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
 export class Rule {
     private _severity: 0 | 1 | 2 | 3;
     private _triggered: boolean;
@@ -57,7 +91,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         // isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
         // isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border!','You have placed yourself outside our land, please fix that <3'),
         // isInsideBoundaries(groups.hiddenforbidden, 3, 'Inside forbidden zone!', 'You are inside a zone that can not be used this year.'),
-        // isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
+        isBufferOverlappingRecursive(placementLayers, 3, 'Too large/close to others!','This area is either in itself too large, or too close to other areas. Make it smaller or move it further away.'),
         // isNotInsideBoundaries(groups.highprio, 2, 'Outside placement areas.', 'You are outside the main placement area (yellow border). Make sure you know what you are doing.'),
     ];
 }
@@ -229,14 +263,18 @@ function _isGeoJsonOverlappingLayergroup(
 const isBufferOverlappingRecursive = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
     new Rule(severity, shortMsg, message, (entity) => {
         const checkedOverlappingLayers = new Set<string>();
-        
         let totalArea = _getTotalAreaOfOverlappingEntities(entity.layer, layerGroup, checkedOverlappingLayers);
-
         if ( totalArea > MAX_CLUSTER_SIZE) {
             return {triggered: true, shortMessage: `Cluster too big: ${Math.round(totalArea).toString()}m²`};
         }
         return {triggered: false};
     });
+function getLayerName(layer:L.Layer){
+    // Helper funciton to debug. Returns the camp name for the layer
+    //@ts-ignore
+    return layer._layers[Object.keys(layer._layers)[0]].feature.properties.name
+}
+
 
 function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerGroup, checkedOverlappingLayers: Set<string>): number {
     //@ts-ignore
@@ -249,33 +287,55 @@ function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerG
         //@ts-ignore
         checkedOverlappingLayers.add(layer._leaflet_id);
     }
-    
-    //@ts-ignore
-    let totalArea = Turf.area(layer.toGeoJSON());
-    
-    //@ts-ignore
-    let buffer = Turf.buffer(layer.toGeoJSON(), FIRE_BUFFER_IN_METER, { units: 'meters' }) as Turf.helpers.FeatureCollection<Turf.helpers.Polygon>;
 
+    let totalArea:number;
+    //@ts-ignore
+    if (clusterCache.areaIsCached(layer._leaflet_id)){
+        //@ts-ignore
+        totalArea = clusterCache.getAreaCache(layer._leaflet_id)
+    }else{
+        //@ts-ignore
+        totalArea = Turf.area(layer.toGeoJSON());
+        //@ts-ignore
+        clusterCache.setAreaCache(layer._leaflet_id,totalArea)
+    }
+    //@ts-ignore
     layerGroup.eachLayer((otherLayer) => {
         if (!_compareLayers(layer, otherLayer))
         {
+            let overlaps; // true if the two layers overlap
             //@ts-ignore
-            const otherLayerGeoJSON = otherLayer.toGeoJSON();
-            let otherLayerPolygon;
-            if (otherLayerGeoJSON.type === 'Feature') {
-                otherLayerPolygon = otherLayerGeoJSON.geometry;
-            } else if (otherLayerGeoJSON.type === 'FeatureCollection') {
-                otherLayerPolygon = otherLayerGeoJSON.features[0];
-            } else {
-                // Unsupported geometry type
-                return;
+            if(clusterCache.overlapIsCached(layer._leaflet_id,otherLayer._leaflet_id)){
+                //@ts-ignore
+                overlaps = clusterCache.getOverlapCache(layer._leaflet_id,otherLayer._leaflet_id)
+            }
+            else{
+                // Overlap is not cached -> calculate it
+                //@ts-ignore
+                const otherLayerGeoJSON = otherLayer.toGeoJSON();
+                let otherLayerPolygon;
+                if (otherLayerGeoJSON.type === 'Feature') {
+                    otherLayerPolygon = otherLayerGeoJSON.geometry;
+                } else if (otherLayerGeoJSON.type === 'FeatureCollection') {
+                    otherLayerPolygon = otherLayerGeoJSON.features[0];
+                } else {
+                    // Unsupported geometry type
+                    throw new Error("unsupported geometry")
+                }
+                //@ts-ignore
+                let buffer = Turf.buffer(layer.toGeoJSON(), FIRE_BUFFER_IN_METER, { units: 'meters' }) as Turf.helpers.FeatureCollection<Turf.helpers.Polygon>;
+
+                if (Turf.booleanOverlap(buffer.features[0], otherLayerPolygon)) {
+                    overlaps=true
+                }else{
+                    overlaps = false
+                }
+                //@ts-ignore
+                clusterCache.setOverlapCache(layer._leaflet_id,otherLayer._leaflet_id,overlaps)
             }
 
-            //@ts-ignore
-            if (Turf.booleanOverlap(buffer.features[0], otherLayerPolygon)) { //&& !checkedOverlappingLayers.has(otherLayer._leaflet_id)
-                //@ts-ignore
+            if (overlaps){
                 totalArea += _getTotalAreaOfOverlappingEntities(otherLayer, layerGroup, checkedOverlappingLayers);
-                return;
             }
         }
     });

@@ -271,6 +271,7 @@ export class Editor {
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
+            nameField.maxLength = 100;
             nameField.placeholder = 'Enter camp name here..';
             nameField.oninput = () => {
                 entity.name = nameField.value;
@@ -283,7 +284,8 @@ export class Editor {
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
-            descriptionField.placeholder = 'Describe your camp/dream here as much as you want. Remember that this information is public.';
+            descriptionField.maxLength = 300;
+            descriptionField.placeholder = 'Describe your camp/dream here as much as you want. Remember that this information is public. 300 characters max.';
             descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
@@ -728,7 +730,6 @@ export class Editor {
             alert("The area of the polygon is waaay to big. It will not be saved, please change it.");
             return;
         }
-
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
@@ -737,6 +738,7 @@ export class Editor {
             // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
             this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
+            this.showSavedInfo();
         }
     }
 
@@ -794,6 +796,7 @@ export class Editor {
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
             this.setMode('editing-info', entityInResponse);
+            this.showSavedInfo();
         }
     }
 
@@ -1115,6 +1118,15 @@ export class Editor {
         map.addControl(searchControl);
     }
 
+    private showSavedInfo(){
+        // Show a box to notify user that their editgs have been saved
+        const savedBox = document.getElementById("saving-box");
+        savedBox.removeAttribute("hidden");   
+        setInterval(()=>{
+            // remove box again after after 5 seconds
+            savedBox.setAttribute("hidden", "");
+        },5000)
+    }
     private addToggleEditButton() {
         const customButton = L.Control.extend({
             options: { position: 'bottomleft' },
@@ -1367,7 +1379,7 @@ export class Editor {
         // }, this._autoRefreshIntervall * 1000);
 
         // Edit button disabled after the event took place
-        // this.addToggleEditButton();
+        this.addToggleEditButton();
 
         // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
