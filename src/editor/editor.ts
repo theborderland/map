@@ -1122,10 +1122,10 @@ export class Editor {
         // Show a box to notify user that their editgs have been saved
         const savedBox = document.getElementById("saving-box");
         savedBox.removeAttribute("hidden");   
-        setInterval(()=>{
-            // remove box again after after 5 seconds
+        setTimeout(()=>{
+            // remove box again after after 3 seconds
             savedBox.setAttribute("hidden", "");
-        },5000)
+        },3000)
     }
     private addToggleEditButton() {
         const customButton = L.Control.extend({
