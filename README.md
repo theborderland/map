@@ -1,28 +1,21 @@
-The Borderland Map
-==================
+# The Borderland Map
 
 https://www.theborderland.se/map/
 
-Running the code
+## Available commands
 
-We use rollup to generate the javascript code.
-
-
-Development
------------
-
-Use: 
+## Serve for development
 
 ```bash
-npm install
-npm run dev
+npm ci
+npm run serve
 ```
 
-Build
------
+## Build for production
 
 ```bash
-npm build
+npm run ci
+npm run build
 ```
 
-All the production assets can be found in the folder `public`
+All the production assets can then be found in the folder `public`, can be deployed to any web server for static files
