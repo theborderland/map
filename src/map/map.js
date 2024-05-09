@@ -3,17 +3,17 @@ import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
 
-import { showBetaMsg } from './betaMsg';
+import { showBetaMsg } from '../betaMsg';
 
-import { loadPoiFromGoogleCsv } from './loaders/loadPoiFromGoogleCsv';
-import { loadGeoJsonFeatureCollections } from './loaders/loadGeoJsonFeatureCollections';
-import { getStyleFunction } from './layerstyles';
+import { loadPoiFromGoogleCsv } from '../loaders/loadPoiFromGoogleCsv';
+import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureCollections';
+import { getStyleFunction } from '../layerstyles';
 
-import { loadImageOverlay } from './loaders/loadImageOverlay';
+import { loadImageOverlay } from '../loaders/loadImageOverlay';
 
-import { addLegends } from './loaders/addLegends';
+import { addLegends } from '../loaders/addLegends';
 
-import { Editor } from './editor';
+import { Editor } from '../editor';
 
 function encodeHashMeta(layers) {
     if (layers instanceof Set) {
@@ -64,30 +64,30 @@ export const createMap = async () => {
 
     map.groups.mapstuff = new L.LayerGroup();
 
-    //Load placenames
-    // fetch('./data/bl23/placenames.geojson')
-    //     .then((response) => response.json())
-    //     .then((response) => {
-    //         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 2 } }).addTo(map.groups.mapstuff);
-    //     });
+    //  Load placenames
+    fetch('./data/bl23/placenames.geojson')
+        .then((response) => response.json())
+        .then((response) => {
+            L.geoJSON(response.features, { style: { color: '#ffffff', weight: 2 } }).addTo(map.groups.mapstuff);
+        });
 
     //Load contours
-    // fetch('./data/analysis/contours.geojson')
-    //     .then((response) => response.json())
-    //     .then((response) => {
-    //         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1, opacity: 0.5 } }).addTo(
-    //             map.groups.mapstuff,
-    //         );
-    //     });
+    fetch('./data/analysis/contours.geojson')
+        .then((response) => response.json())
+        .then((response) => {
+            L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1, opacity: 0.5 } }).addTo(
+                map.groups.mapstuff,
+            );
+        });
 
-    //Load reference drawings
-    // fetch('./data/bl23/references.geojson')
-    //     .then((response) => response.json())
-    //     .then((response) => {
-    //         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
-    //     });
+    // Load reference drawings
+    fetch('./data/bl23/references.geojson')
+        .then((response) => response.json())
+        .then((response) => {
+            L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
+        });
 
-    await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl24/fire.geojson');
+    // await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl24/fire.geojson');
     await loadGeoJsonFeatureCollections(map, getStyleFunction, 'type', './data/bl23/placement.geojson');
 
     //     //Set up the soundguide layers added from placement.geojson
