@@ -1369,7 +1369,7 @@ export class Editor {
         // }, this._autoRefreshIntervall * 1000);
 
         // Edit button disabled after the event took place
-        // this.addToggleEditButton();
+        this.addToggleEditButton();
 
         // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
