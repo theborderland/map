@@ -1,7 +1,8 @@
-import { ENTITY_API_ADDRESS } from '../constants';
 import { MapEntity, EntityDTO } from './entity';
 import type { Rule } from './rule';
 import DOMPurify from 'dompurify';
+
+const ENTITY_API_ADDRESS = 'https://placement.freaks.se/api/v1/mapentities';
 
 export interface EntityChanges {
     refreshedDeleted: Array<number>;
@@ -45,16 +46,16 @@ export class MapEntityRepository {
         }
     }
 
-	/** Reloads data */
+    /** Reloads data */
     public async reload(): Promise<EntityChanges> {
         // Fetch all entities
         const res = await fetch(ENTITY_API_ADDRESS);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
-        const fetchedEntities: Array<MapEntity> = new Array<MapEntity>;
-        const refresh:EntityChanges = {
-            refreshedDeleted: new Array<number>,
-            refreshedAdded: new Array<number>,
-            refreshedUpdated: new Array<number>,
+        const fetchedEntities: Array<MapEntity> = new Array<MapEntity>();
+        const refresh: EntityChanges = {
+            refreshedDeleted: new Array<number>(),
+            refreshedAdded: new Array<number>(),
+            refreshedUpdated: new Array<number>(),
         };
         for (const data of entityDTOs) {
             if (this._entityConstraints) {
@@ -80,7 +81,7 @@ export class MapEntityRepository {
         // Look through fetched entities for added or new revisions
         for (const fetchedIdString in fetchedEntities) {
             let fetchedId = parseInt(fetchedIdString);
-            let fetchedEntity:MapEntity = fetchedEntities[fetchedId];
+            let fetchedEntity: MapEntity = fetchedEntities[fetchedId];
             // If it's an old enity it must be an update
             if (this._latestRevisions[fetchedId]) {
                 // Check if revision has changed
@@ -120,8 +121,7 @@ export class MapEntityRepository {
     }
 
     /** Returns a single entity */
-    public getEntityById(id: string)
-    {
+    public getEntityById(id: string) {
         return this._latestRevisions[id];
     }
 
