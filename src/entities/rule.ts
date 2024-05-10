@@ -401,7 +401,7 @@ function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerG
 
                         //@ts-ignore
                         let buffer = Turf.buffer(layer.toGeoJSON(), FIRE_BUFFER_IN_METER, { units: 'meters' }) as Turf.helpers.FeatureCollection<Turf.helpers.Polygon>;
-                        if (Turf.booleanOverlap(buffer.features[0], otherLayerPolygon)) {
+                        if (Turf.booleanOverlap(buffer.features[0], otherLayerPolygon)||Turf.booleanContains(buffer.features[0], otherLayerPolygon)) {
                             overlaps=true
                         }else{
                             overlaps = false
