@@ -353,7 +353,7 @@ function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerG
     const bounds = layer.getBounds()
     let boxBounds = [bounds._southWest.lng,bounds._southWest.lat,bounds._northEast.lng,bounds._northEast.lat]
     //@ts-ignore
-    const bBox = ruler.bufferBBox(boxBounds, 0.2);
+    const bBox = ruler.bufferBBox(boxBounds, CHEAP_RULER_BUFFER);
     
     //@ts-ignore
     layerGroup.eachLayer((otherLayer) => {
@@ -373,7 +373,7 @@ function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerG
                 const otherBounds = otherLayer.getBounds()
                 let otherBoxBounds = [otherBounds._southWest.lng,otherBounds._southWest.lat,otherBounds._northEast.lng,otherBounds._northEast.lat]
                 //@ts-ignore
-                const otherBbox = ruler.bufferBBox(otherBoxBounds, CHEAP_RULER_BUFFER);
+                const otherBbox = otherBoxBounds; // We already padded layer. No need to pad otherLayer also
                     // check if approx bounding boxes overlap
                     if( (otherBbox[0] > bBox[2] ||
                       otherBbox[2] < bBox[0] ||
