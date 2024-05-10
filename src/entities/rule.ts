@@ -130,11 +130,11 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         // isBiggerThanNeeded(),
         // isSmallerThanNeeded(),
         // isCalculatedAreaTooBig(),
-        hasLargeEnergyNeed(),
+        // hasLargeEnergyNeed(),
         // hasMissingFields(),
         // hasManyCoordinates(),
         // isBreakingSoundLimit(groups.soundguide, 2, 'Making too much noise?', 'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!'),
-        // isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
+        isOverlapping(placementLayers, 2, 'Overlapping other area!','Your area is overlapping someone elses, plz fix <3'),
         // isOverlappingOrContained(groups.slope, 1, 'Slope warning!','Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)'),
         // isOverlappingOrContained(groups.fireroad, 3, 'Touching fireroad!','Plz move this area away from the fire road!'),
         // isNotInsideBoundaries(groups.propertyborder, 3, 'Outside border!','You have placed yourself outside our land, please fix that <3'),
@@ -209,7 +209,7 @@ const isSmallerThanNeeded = () =>
 
 const isOverlapping = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
     new Rule(severity, shortMsg,message, (entity) => {
-        return {triggered: _isGeoJsonOverlappingLayergroup(entity.toGeoJSON(), layerGroup) };
+        return {triggered: _isLayerOverlappingOrContained(entity.layer, layerGroup) };
     });
 
 const isOverlappingOrContained = (layerGroup: any, severity: Rule["_severity"], shortMsg: string, message: string) =>
@@ -285,6 +285,7 @@ function _isGeoJsonOverlappingLayergroup(
 
     let overlap = false;
     layerGroup.eachLayer((layer) => {
+        
         //@ts-ignore
         let otherGeoJson = layer.toGeoJSON();
 
@@ -305,6 +306,41 @@ function _isGeoJsonOverlappingLayergroup(
         }
     });
 
+    return overlap;
+}
+
+/** Utility function to calculate the ovelap between a layer and layergroup */
+function _isLayerOverlappingOrContained(
+    layer: L.Layer,
+    layerGroup: L.GeoJSON,
+): boolean {
+    //NOTE: Only checks overlaps, not if its inside or covers completely
+    //@ts-ignore
+    let layerGeoJson = layer.toGeoJSON()
+    let bBox = getBBoxForCoords(layerGeoJson.features[0].geometry.coordinates[0])
+    //@ts-ignore
+  
+    let overlap = false;
+    let i = 0
+    layerGroup.eachLayer((otherLayer) => {
+        if(overlap){
+            return;
+        }
+        if(_compareLayers(layer,otherLayer)) {
+            return
+        }
+        //@ts-ignore
+        let otherGeoJson = otherLayer.toGeoJSON();
+        //@ts-ignore
+        let otherBBox = getBBoxForCoords(otherGeoJson.features[0].geometry.coordinates[0])
+        if(fastIsOverlap(bBox,otherBBox)){
+            // Might overlap
+            if (Turf.booleanOverlap(layerGeoJson.features[0], otherGeoJson.features[0]) || Turf.booleanContains(layerGeoJson.features[0], otherGeoJson.features[0]) ) {
+              
+                overlap = true
+            }
+        }
+    });
     return overlap;
 }
 
@@ -348,6 +384,23 @@ function getBBoxForCoords(coords:Array<Array<number>>):Array<number>{
     return bbox;
 }
 
+function fastIsOverlap(layerBBox:Array<number>,otherBBox:Array<number>){
+        // input  bounding boxes: [west,south,east,north]
+
+        // Takes two bounding boxes and returns true if the bounding boxes overlap.
+        // If the bounding boxes do not overlap then the polygins contained in eahc bounding box also do not.
+        // this is a fast way to precheck overlaps
+
+        // check if approx bounding boxes overlap
+        if( (otherBBox[0] > layerBBox[2] ||
+          otherBBox[2] < layerBBox[0] ||
+          otherBBox[3] < layerBBox[1] ||
+          otherBBox[1] > layerBBox[3])
+        ){
+            return false
+        }
+        return true
+}
 function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerGroup, checkedOverlappingLayers: Set<string>): number {
     //@ts-ignore
     if (checkedOverlappingLayers.has(layer._leaflet_id))
@@ -400,19 +453,13 @@ function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerG
             }
             else{
                 // Overlap is not cached -> calculate it
-
-                // approximate bounding box
-                //@ts-ignore
-                const otherBounds = otherLayer.getBounds()
-                let otherBoxBounds = [otherBounds._southWest.lng,otherBounds._southWest.lat,otherBounds._northEast.lng,otherBounds._northEast.lat]
-                //@ts-ignore
-                const otherBbox = otherBoxBounds; // We already padded layer. No need to pad otherLayer also
+                 //@ts-ignore
+                    const otherBounds = otherLayer.getBounds()
+                    let otherBoxBounds = [otherBounds._southWest.lng,otherBounds._southWest.lat,otherBounds._northEast.lng,otherBounds._northEast.lat]
+                    //@ts-ignore
+                    const otherBbox = otherBoxBounds; // We already padded layer. No need to pad otherLayer also
                     // check if approx bounding boxes overlap
-                    if( (otherBbox[0] > bBox[2] ||
-                      otherBbox[2] < bBox[0] ||
-                      otherBbox[3] < bBox[1] ||
-                      otherBbox[1] > bBox[3])
-                    ){
+                    if( !fastIsOverlap(bBox,otherBbox)){
                         // bounding boxes do not overlap so polygons also dont overlap
                         overlaps = false
                         //@ts-ignore
