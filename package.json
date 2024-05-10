@@ -24,6 +24,7 @@
     "dependencies": {
         "@geoman-io/leaflet-geoman-free": "^2.14.2",
         "@turf/turf": "^6.5.0",
+        "cheap-ruler": "^3.0.2",
         "dompurify": "^3.0.2",
         "leaflet": "^1.9.0",
         "leaflet-search": "^3.0.9",
