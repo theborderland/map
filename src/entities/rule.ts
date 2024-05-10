@@ -324,6 +324,30 @@ const isBufferOverlappingRecursive = (layerGroup: any, severity: Rule["_severity
         return {triggered: false};
     });
 
+function getBBoxForCoords(coords:Array<Array<number>>):Array<number>{
+    // input coords -> [lat,lng]...
+    const bbox = [null,null,null,null] // west,south,east,north
+    let firstCoord = true
+    for(let coord of coords ){
+        if(firstCoord){
+            bbox[0] = coord[0]
+            bbox[2] = coord[0]
+            bbox[1] = coord[1]
+            bbox[3] = coord[1]
+            firstCoord = false
+        }
+        else{
+            //lngs
+            if(coord[0]< bbox[0]) bbox[0] = coord[0]
+            if(coord[0]> bbox[2]) bbox[2] = coord[0]
+            // lats
+            if(coord[1]< bbox[1]) bbox[1] = coord[1]
+            if(coord[1]> bbox[3]) bbox[3] = coord[1]
+        }
+    }
+    return bbox;
+}
+
 function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerGroup, checkedOverlappingLayers: Set<string>): number {
     //@ts-ignore
     if (checkedOverlappingLayers.has(layer._leaflet_id))
@@ -348,12 +372,21 @@ function _getTotalAreaOfOverlappingEntities(layer: L.Layer, layerGroup: L.LayerG
         clusterCache.setAreaCache(layer._leaflet_id,totalArea)
     }
 
+    
+    
+
     // get an approximate bounding box with firebuffer padding to use for later calculations
+
     //@ts-ignore
+    /* you can get bounds like so:
     const bounds = layer.getBounds()
     let boxBounds = [bounds._southWest.lng,bounds._southWest.lat,bounds._northEast.lng,bounds._northEast.lat]
+    However, layer.getBounds is not updated when moving the layer. Need to call layer.geoJson for an udpated bounds.
+    */
+   //@ts-ignore
+    let boxBounds = getBBoxForCoords(layer.toGeoJSON().features[0].geometry.coordinates[0])
     //@ts-ignore
-    const bBox = ruler.bufferBBox(boxBounds, CHEAP_RULER_BUFFER);
+    const bBox = ruler.bufferBBox(boxBounds, CHEAP_RULER_BUFFER); // add buffer padding to box
     
     //@ts-ignore
     layerGroup.eachLayer((otherLayer) => {
