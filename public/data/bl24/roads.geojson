@@ -1,0 +1,65 @@
+{
+    "type": "FeatureCollection",
+    "name": "roads",
+    "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+    "features": [
+        {
+            "type": "Feature",
+            "properties": { "id": null, "type": "road" },
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [14.928770853445501, 57.626085000357719],
+                        [14.928568916990764, 57.625994958056559],
+                        [14.927672932431696, 57.625897416515137],
+                        [14.926929804285427, 57.625733823633986],
+                        [14.926357994493054, 57.625444256557643]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "id": null, "type": "road" },
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [14.924505908171829, 57.626378263824208],
+                        [14.925241805023884, 57.62595039118424],
+                        [14.926142496955251, 57.625535564697323]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "id": null, "type": "road" },
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [14.92518132129646, 57.624549850046392],
+                        [14.92549697264867, 57.62511205155095],
+                        [14.926142818385948, 57.625377169826578]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "id": null, "type": "road" },
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": [
+                    [
+                        [14.926577795434781, 57.62538236032448],
+                        [14.927152801986619, 57.62511981485698],
+                        [14.927563526467193, 57.624623755191784]
+                    ]
+                ]
+            }
+        }
+    ]
+}
