@@ -278,6 +278,9 @@ textarea {
     width: 80%;
     z-index: 999;
 }
+.instructions.hidden {
+    display: none;
+}
 
 .leaflet-bar a {
     border-style: none;

@@ -1,3 +1,12 @@
-import { createMap } from './map'
+import { createMap } from './map';
+//import { showBetaMsg } from './messages';
 
-createMap();
+async function main() {
+    createMap();
+
+    //Only show message if user has not seen instructions yet
+    if (!localStorage.getItem('hasSeenPlacementInstructions')) {
+        //showBetaMsg();
+    }
+}
+main();
