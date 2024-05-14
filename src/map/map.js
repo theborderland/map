@@ -11,6 +11,7 @@ import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureColl
 
 import { loadImageOverlay } from '../loaders/loadImageOverlay';
 
+import { showNotification } from '../messages';
 import { Editor } from '../editor';
 
 /** Initializes the leaflet map and load data to create layers */
@@ -202,7 +203,7 @@ export const createMap = async () => {
     // ON LOAD
 
     // Load all entities from the API
-    //await editor.addAPIEntities();
+    await editor.addAPIEntities();
 
     // Create the hash for the URL
     const hash = new L.Hash(map);
@@ -217,14 +218,14 @@ export const createMap = async () => {
         editor.gotoEntity(id);
     }
 
-    // Update the loading screen
-    //editor.loadingScreenDescription('Entities is load, now evaluate them.');
-
     // Log the the lat and long to the console when clicking the map or a layer or marker
-    map.on('click', function (e) {
-        console.log(e.latlng);
-    });
+    // map.on('click', function (e) {
+    //     console.log(e.latlng);
+    // });
 
     // Add layer control and legends
-    addLegends(map, availableLayers);
+    await addLegends(map, availableLayers);
+
+    // Done!
+    showNotification('Loaded everything!', 'success');
 };

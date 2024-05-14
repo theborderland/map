@@ -436,13 +436,6 @@ textarea {
     overflow: scroll;
 }
 
-#loading-box {
-    background: rgba(255, 255, 255, 0.8);
-    font-size: 0.8em;
-    text-align: center;
-    top: 80%;
-}
-
 #map {
     height: 100%;
     width: 100vw;

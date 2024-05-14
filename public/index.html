@@ -16,18 +16,41 @@
         <link rel="stylesheet" href="lib/leaflet-search/dist/leaflet-search.min.css" />
         <link rel="stylesheet" href="lib/leaflet-geoman/leaflet-geoman.css" />
 
+        <!-- Shoelace -->
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/cdn/themes/light.css"
+        />
+
         <!-- Site -->
         <link rel="stylesheet" href="index.css" />
+        <style>
+            :root {
+                --sl-z-index-drawer: 10000;
+                --sl-z-index-toast: 10000;
+            }
+        </style>
     </head>
     <body>
-        <!-- Popups and overlays -->
-        <div id="loading-box">
-            <div id="loading-overlay-decription"></div>
-        </div>
-        <div class="entity-onscreen-info"></div>
-
         <!-- Map -->
         <div id="map"></div>
+
+        <!-- Notifications / Alerts / Toasts -->
+        <div class="alert-toast-wrapper">
+            <sl-button variant="primary">Create Toast</sl-button>
+        </div>
+
+        <!-- Instructions and informations drawer -->
+        <sl-drawer id="drawer" label="Drawer" placement="bottom" class="drawer-placement-bottom">
+            This drawer slides in from the bottom.
+            <sl-button slot="footer" variant="primary">Close</sl-button>
+        </sl-drawer>
+
+        <!-- Shoelace Scripts-->
+        <script
+            type="module"
+            src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/cdn/shoelace-autoloader.js"
+        ></script>
 
         <!-- Src -->
         <script src="bundle.js"></script>

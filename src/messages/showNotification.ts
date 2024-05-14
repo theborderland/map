@@ -1,27 +1,78 @@
-export const showBetaMsg = async () => {
-    return new Promise((resolve) => {
-        const instructions = document.getElementById('betaMsg');
-        if (instructions != null) {
-            //Show the instructions screen
-            instructions.removeAttribute('hidden');
+const container = document.querySelector('.alert-toast-wrapper');
 
-            //Add a close button
-            const nextButton = document.createElement('button');
-            //Center this button in its div
-            nextButton.style.margin = 'auto';
-            nextButton.style.display = 'block';
-            nextButton.innerHTML = 'Okidoki!';
-            nextButton.onclick = (e) => {
-                instructions.setAttribute('hidden', '');
-                resolve(true);
-            };
-            instructions.appendChild(nextButton);
-        } else {
-            resolve(true);
-        }
+export async function showNotification(
+    message: string,
+    variant: 'primary' | 'success' | 'neutral' | 'warning' | 'danger' = 'primary',
+    icon = 'info-circle',
+    duration = 3000,
+) {
+    const alert: any = Object.assign(document.createElement('sl-alert'), {
+        variant,
+        closable: true,
+        duration: duration,
+        innerHTML: `
+		<sl-icon name="${icon}" slot="icon"></sl-icon>
+		${message}
+	  `,
     });
-};
 
+    document.body.append(alert);
+
+    // Wait for custom elements to be defined
+    await Promise.allSettled([customElements.whenDefined('sl-alert')]);
+
+    alert.toast();
+    return alert;
+}
+
+export async function updateNotification(
+    alert: any,
+    message: string,
+    variant: 'primary' | 'success' | 'neutral' | 'warning' | 'danger' = 'primary',
+    icon = 'info-circle',
+    duration = 3000,
+) {
+    alert.innerHTML = `
+		<sl-icon name="${icon}" slot="icon"></sl-icon>
+		${message}
+	  `;
+
+    return alert;
+}
+
+export async function closeNotification(alert) {
+    alert.hide();
+}
+
+// export const showBetaMsg = async () => {
+//     return new Promise((resolve) => {
+//         const instructions = document.getElementById('betaMsg');
+//         if (instructions != null) {
+//             //Show the instructions screen
+//             instructions.removeAttribute('hidden');
+//
+//             //Add a close button
+//             const nextButton = document.createElement('button');
+//             //Center this button in its div
+//             nextButton.style.margin = 'auto';
+//             nextButton.style.display = 'block';
+//             nextButton.innerHTML = 'Okidoki!';
+//             nextButton.onclick = (e) => {
+//                 instructions.setAttribute('hidden', '');
+//                 resolve(true);
+//             };
+//             instructions.appendChild(nextButton);
+//         } else {
+//             resolve(true);
+//         }
+//     });
+// };
+
+// <!-- Popups and overlays -->
+// <div id="loading-box">
+// 	<div id="loading-overlay-decription"></div>
+// </div>
+// <div class="entity-onscreen-info"></div>
 //
 //
 // <!-- Instructions -->
