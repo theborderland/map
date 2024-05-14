@@ -69,13 +69,6 @@ export async function closeNotification(alert) {
 // };
 
 // <!-- Instructions -->
-// <div class="instructions" id="loading-box">
-//     <h2 id="loading-overlay-header">Loading</h2>
-//     <p id="loading-overlay-decription">Initializing javascript floof...</p>
-// </div>
-// <div hidden class="instructions" id="saving-box">
-//     <h2 id="saved-header">Saved!</h2>
-// </div>
 // <div hidden class="hidden instructions" id="messages">
 //     <h2 class="title">Welcome!</h2>
 //     <p class="content">

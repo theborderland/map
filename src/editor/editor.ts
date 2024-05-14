@@ -766,7 +766,7 @@ export class Editor {
             // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
             this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
-            this.showSavedInfo();
+            showNotification('Saved!', 'success');
         }
     }
 
@@ -822,7 +822,7 @@ export class Editor {
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
             this.setMode('editing-info', entityInResponse);
-            this.showSavedInfo();
+            showNotification('Saved!', 'success');
         }
     }
 
@@ -1157,16 +1157,6 @@ export class Editor {
         });
         map.addControl(searchControl);
     }
-
-    private showSavedInfo() {
-        // Show a box to notify user that their editgs have been saved
-        const savedBox = document.getElementById('saving-box');
-        savedBox.removeAttribute('hidden');
-        setInterval(() => {
-            // remove box again after after 5 seconds
-            savedBox.setAttribute('hidden', '');
-        }, 5000);
-    }
     private addToggleEditButton() {
         const customButton = L.Control.extend({
             options: { position: 'bottomleft' },
@@ -1332,8 +1322,8 @@ export class Editor {
     public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
-        if (localStorage.getItem('hasSeenInstructions2') == null) {
-            localStorage.setItem('hasSeenInstructions2', 'true');
+        if (localStorage.getItem('hasSeenInstructions') == null) {
+            localStorage.setItem('hasSeenInstructions', 'true');
 
             // Show instructions when entering edit mode, and wait for the user
             // to press a button on that screen before continuing
