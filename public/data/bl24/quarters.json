@@ -315,7 +315,7 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {"name":"Texas"},
       "geometry": {
         "coordinates": [
           14.92596945364781,

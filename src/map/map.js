@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
-
+import {AddQuartersToMap,AddNeighbourhoodsToMap,AddPlazasToMap} from "../overlay"
 import { addLegends } from './_addLegends';
 import { encodeHashMeta, decodeHashMeta } from './_hashMeta';
 
@@ -156,6 +156,9 @@ export const createMap = async () => {
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
+    map.groups.neighbourhoods = new L.LayerGroup();
+    map.groups.quarters = new L.LayerGroup();
+    map.groups.plazas = new L.LayerGroup();
 
     var availableLayers = {
         Placement: map.groups.placement,
@@ -167,6 +170,9 @@ export const createMap = async () => {
         Terrain: map.groups.terrain,
         Aftermath22: map.groups.aftermath22,
         Aftermath23: map.groups.aftermath,
+        Neighbourhoods: map.groups.neighbourhoods,
+        Quarters: map.groups.quarters,
+        Plazas: map.groups.plazas
         // Names: map.groups.names,
         // Check_Power: map.groups.power,
         // Check_Sound: map.groups.sound,
@@ -227,4 +233,7 @@ export const createMap = async () => {
 
     // Add layer control and legends
     addLegends(map, availableLayers);
+    AddQuartersToMap(map.groups.quarters)
+    AddPlazasToMap(map.groups.plazas)
+    AddNeighbourhoodsToMap(map.groups.neighbourhoods)
 };
