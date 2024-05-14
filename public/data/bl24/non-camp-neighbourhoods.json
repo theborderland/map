@@ -16,7 +16,7 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {"name": "Secret lake"},
       "geometry": {
         "coordinates": [
           14.928306913666745,
@@ -41,7 +41,7 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Forest path"
+        "name": "Pretty parking"
       },
       "geometry": {
         "coordinates": [
@@ -53,7 +53,7 @@
     },
     {
       "type": "Feature",
-      "properties": {},
+      "properties": {"name":"Forest path"},
       "geometry": {
         "coordinates": [
           14.921435550491026,

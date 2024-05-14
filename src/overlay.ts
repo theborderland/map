@@ -2,18 +2,19 @@ import * as L from 'leaflet';
 
 export const AddQuartersToMap =  async (layerGroup:L.LayerGroup)=>{
     let json = await (await fetch("./data/bl24/quarters.json")).json()
-    console.log(json)
     AddOverlaysToMap(json,layerGroup,"red",0.001)
 }
 export const AddPlazasToMap =  async (layerGroup:L.LayerGroup)=>{
     let json = await (await fetch("./data/bl24/plaza.json")).json()
-    console.log(json)
     AddOverlaysToMap(json,layerGroup,"orange",0.0015)
 }
 export const AddNeighbourhoodsToMap =  async (layerGroup:L.LayerGroup)=>{
     let json = await (await fetch("./data/bl24/neighbourhoods.json")).json()
-    console.log(json)
     AddOverlaysToMap(json,layerGroup,"blue",0.003)
+    let jsonNonCamp = await (await fetch("./data/bl24/non-camp-neighbourhoods.json")).json()
+    AddOverlaysToMap(jsonNonCamp,layerGroup,"blue",0.003)
+
+    
 }
 
 
@@ -29,7 +30,7 @@ const AddOverlaysToMap = (json:JSON,layerGroup:L.LayerGroup,color:string,size:nu
         var latLngBounds = L.latLngBounds([[lat-size*0.5, lng-size*0.5], [lat+size*0.5, lng+size*0.5]]); 
         const elem = createSVGTextElement(name,"bradleyHand",color)
         // add svg text to map
-        var svgOverlay = L.svgOverlay(elem, latLngBounds, {
+        L.svgOverlay(elem, latLngBounds, {
             opacity: 1,
             interactive: false
         }).addTo(layerGroup);
