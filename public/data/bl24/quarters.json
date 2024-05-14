@@ -1,0 +1,781 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Assfar"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928950545794436,
+          57.62656886390215
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Butterflies"
+      },
+      "geometry": {
+        "coordinates": [
+          14.925892223281949,
+          57.6262463179813
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ants"
+      },
+      "geometry": {
+        "coordinates": [
+          14.926757203386614,
+          57.62617188390061
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Indigo"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92780753637092,
+          57.6260560972494
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ladybugs"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92718969343835,
+          57.62548542907692
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Jaune"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92973829553327,
+          57.62568392337121
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Saffron"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92888876150198,
+          57.625501970309614
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Clementime"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928641624328748,
+          57.625088437234666
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Avalanche"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930479707050694,
+          57.62515460284314
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Alibi"
+      },
+      "geometry": {
+        "coordinates": [
+          14.931869853647527,
+          57.62514633214866
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Haunted"
+      },
+      "geometry": {
+        "coordinates": [
+          14.932116990820731,
+          57.62440196193654
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Possesion"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930448814905048,
+          57.62436887846178
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pomelo"
+      },
+      "geometry": {
+        "coordinates": [
+          14.929166790820915,
+          57.62431925319373
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Lime"
+      },
+      "geometry": {
+        "coordinates": [
+          14.929398481920742,
+          57.62480723205462
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Grapefruit"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92814734998342,
+          57.62374028672059
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Tsunami"
+      },
+      "geometry": {
+        "coordinates": [
+          14.929645619092867,
+          57.62372374468566
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Obsession"
+      },
+      "geometry": {
+        "coordinates": [
+          14.931035765689671,
+          57.62365757647129
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Twin peaks"
+      },
+      "geometry": {
+        "coordinates": [
+          14.927653075638034,
+          57.62326883577663
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Minimal"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928502609669323,
+          57.62270639506815
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "DTC"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92976918768008,
+          57.62254096967334
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Druids"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930726844223926,
+          57.622474799304285
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Horny Nuns"
+      },
+      "geometry": {
+        "coordinates": [
+          14.931622716475403,
+          57.62205296036936
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bro"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930016324852147,
+          57.6218627176784
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Grasshoppers"
+      },
+      "geometry": {
+        "coordinates": [
+          14.926649080872835,
+          57.62477414894926
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          14.92596945364781,
+          57.62364930543592
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dragonflies"
+      },
+      "geometry": {
+        "coordinates": [
+          14.9258304389883,
+          57.62469971185158
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bees"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92518170391017,
+          57.62525385102944
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sanctuary"
+      },
+      "geometry": {
+        "coordinates": [
+          14.924486630611739,
+          57.62401322920746
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Liminal"
+      },
+      "geometry": {
+        "coordinates": [
+          14.925923115428759,
+          57.623095141781334
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Squeeze"
+      },
+      "geometry": {
+        "coordinates": [
+          14.926726311239804,
+          57.62323575127019
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Bardo"
+      },
+      "geometry": {
+        "coordinates": [
+          14.926556404433512,
+          57.62252442709226
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Nutcase Central"
+      },
+      "geometry": {
+        "coordinates": [
+          14.927236031658566,
+          57.62189580343559
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Samurai"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92814734998342,
+          57.62167247399162
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Matador"
+      },
+      "geometry": {
+        "coordinates": [
+          14.929506604433413,
+          57.62130852677066
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Vampires"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928425379302297,
+          57.621085193716596
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pagans"
+      },
+      "geometry": {
+        "coordinates": [
+          14.931190226422501,
+          57.621498772363566
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Witches"
+      },
+      "geometry": {
+        "coordinates": [
+          14.932132436894193,
+          57.620994205782466
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pots & Plates"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930217123805193,
+          57.620613708316114
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Cloverfield"
+      },
+      "geometry": {
+        "coordinates": [
+          14.931391025375547,
+          57.620051226501346
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Strike"
+      },
+      "geometry": {
+        "coordinates": [
+          14.932827510192539,
+          57.62015876046283
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Raspberry"
+      },
+      "geometry": {
+        "coordinates": [
+          14.929830971972478,
+          57.619885789016394
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dear"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928935099721087,
+          57.620241478678
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pigs"
+      },
+      "geometry": {
+        "coordinates": [
+          14.9291204526007,
+          57.61957145571941
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": ""
+      },
+      "geometry": {
+        "coordinates": [
+          14.926278375114634,
+          57.62039037099095
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": ""
+      },
+      "geometry": {
+        "coordinates": [
+          14.92683443375239,
+          57.62140778546518
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "The barn"
+      },
+      "geometry": {
+        "coordinates": [
+          14.925722316475685,
+          57.62149050083673
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Laundromat"
+      },
+      "geometry": {
+        "coordinates": [
+          14.923868787679169,
+          57.621217539395815
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sunrise Cult Compound"
+      },
+      "geometry": {
+        "coordinates": [
+          14.922061597104062,
+          57.6206716103616
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Swampy Lovebugs"
+      },
+      "geometry": {
+        "coordinates": [
+          14.923482635847648,
+          57.6199602359778
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Hony Slope South"
+      },
+      "geometry": {
+        "coordinates": [
+          14.92433216987888,
+          57.62034901207636
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Sharks"
+      },
+      "geometry": {
+        "coordinates": [
+          14.919188627470021,
+          57.62390570665431
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Pufferfish"
+      },
+      "geometry": {
+        "coordinates": [
+          14.91782937301997,
+          57.62407939677436
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Dolphins"
+      },
+      "geometry": {
+        "coordinates": [
+          14.918802475638472,
+          57.62498918859612
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Coral"
+      },
+      "geometry": {
+        "coordinates": [
+          14.91818463270593,
+          57.62528693369828
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Oyster"
+      },
+      "geometry": {
+        "coordinates": [
+          14.919930038988639,
+          57.62497264712991
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Starfish"
+      },
+      "geometry": {
+        "coordinates": [
+          14.919883700768366,
+          57.626180154361606
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Candystick"
+      },
+      "geometry": {
+        "coordinates": [
+          14.927174247364917,
+          57.62082050091186
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Wherewolves"
+      },
+      "geometry": {
+        "coordinates": [
+          14.926093022235023,
+          57.62094457590413
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Moo"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930603275637935,
+          57.61950527994182
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"name":"Edgling Forest"},
+      "geometry": {
+        "coordinates": [
+          14.925876777208543,
+          57.61950527994182
+        ],
+        "type": "Point"
+      }
+    }
+  ]
+}

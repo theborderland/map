@@ -202,7 +202,7 @@ export const createMap = async () => {
     // ON LOAD
 
     // Load all entities from the API
-    //await editor.addAPIEntities();
+    await editor.addAPIEntities();
 
     // Create the hash for the URL
     const hash = new L.Hash(map);
