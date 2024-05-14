@@ -43,7 +43,6 @@ export class Editor {
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
 
-    private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
     private _nameTooltips: Record<number, L.Marker>;
 
@@ -782,7 +781,6 @@ export class Editor {
 
                 for (const rule of entity.getAllTriggeredRules()) {
                     if (rule.severity >= 2) {
-                        // this.onScreenInfo.textContent = rule.shortMessage;
                         tooltipText += '<br>' + rule.shortMessage;
                     }
                 }
@@ -792,7 +790,6 @@ export class Editor {
             this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
             this.sqmTooltip.setContent(tooltipText);
         } else {
-            // this.onScreenInfo.textContent = "";
             this.sqmTooltip.close();
         }
     }
@@ -1119,7 +1116,6 @@ export class Editor {
             this.setMode('blur');
         });
 
-        this.onScreenInfo = document.querySelector('.entity-onscreen-info');
         this.sqmTooltip = new L.Tooltip({
             permanent: true,
             interactive: false,

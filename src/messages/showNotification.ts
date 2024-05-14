@@ -68,13 +68,6 @@ export async function closeNotification(alert) {
 //     });
 // };
 
-// <!-- Popups and overlays -->
-// <div id="loading-box">
-// 	<div id="loading-overlay-decription"></div>
-// </div>
-// <div class="entity-onscreen-info"></div>
-//
-//
 // <!-- Instructions -->
 // <div class="instructions" id="loading-box">
 //     <h2 id="loading-overlay-header">Loading</h2>

@@ -214,21 +214,6 @@ textarea {
     width: 100px;
 }
 
-.entity-onscreen-info {
-    bottom: 0;
-    color: #f9f9f9;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 2rem;
-    font-weight: 700;
-    left: 190px;
-    padding: 10px;
-    pointer-events: none;
-    position: absolute;
-    right: 100px;
-    text-align: center;
-    z-index: 999;
-}
-
 .error {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 16px;
