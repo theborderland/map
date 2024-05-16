@@ -2,7 +2,7 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle, EntityDifferences } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
-import { showNotification } from '../messages';
+import { showNotification, showDrawers } from '../messages';
 import { EntityChanges } from '../entities/repository';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
@@ -1322,13 +1322,19 @@ export class Editor {
     public async toggleEditMode() {
         this._isEditMode = !this._isEditMode;
 
-        if (localStorage.getItem('hasSeenInstructions') == null) {
-            localStorage.setItem('hasSeenInstructions', 'true');
-
-            // Show instructions when entering edit mode, and wait for the user
-            // to press a button on that screen before continuing
-            if (this._isEditMode) {
-                await this.ShowInstructionsScreenAndWait();
+        // Show instructions when entering edit mode, and wait for the user
+        // to press a button on that screen before continuing
+        if (this._isEditMode) {
+            if (localStorage.getItem('hasSeenEditorInstructions') == null) {
+                showDrawers([
+                    { file: 'entering_edit_mode', btn: 'Next' },
+                    {
+                        file: 'entering_edit_mode_page_two',
+                        onClose: () => {
+                            localStorage.setItem('hasSeenEditorInstructions', 'true');
+                        },
+                    },
+                ]);
             }
         }
 
@@ -1346,50 +1352,6 @@ export class Editor {
 
         //Use changeActionsOfControl to only show the cancel button on the draw polygon toolbar
         this._map.pm.Toolbar.changeActionsOfControl('Polygon', ['cancel']);
-    }
-
-    ShowInstructionsScreenAndWait() {
-        return new Promise((resolve) => {
-            const instructions = document.getElementById('editMsg');
-            const pageOne = document.getElementById('pageOne');
-            const pageTwo = document.getElementById('pageTwo');
-
-            if (instructions != null && pageOne != null && pageTwo != null) {
-                //Inactivate the customButton
-                const customButton = document.querySelector('.placement-btn');
-                customButton?.setAttribute('disabled', '');
-
-                //Show the instructions screen
-                instructions.removeAttribute('hidden');
-
-                //Create the content for pageOne
-                const nextButton = document.createElement('button');
-                //Center this button in its div
-                nextButton.style.margin = 'auto';
-                nextButton.style.display = 'block';
-                nextButton.innerHTML = 'NEXT >';
-                nextButton.onclick = (e) => {
-                    pageOne.setAttribute('hidden', '');
-                    pageTwo.removeAttribute('hidden');
-                };
-                pageOne.appendChild(nextButton);
-
-                //Create the content for pageTwo
-                const okButton = document.createElement('button');
-                //Center this button in its div
-                okButton.style.margin = 'auto';
-                okButton.style.display = 'block';
-                okButton.innerHTML = "Let's go!";
-                okButton.onclick = (e) => {
-                    instructions.setAttribute('hidden', '');
-                    customButton?.removeAttribute('disabled');
-                    resolve(true);
-                };
-                pageTwo.appendChild(okButton);
-            } else {
-                resolve(true);
-            }
-        });
     }
 
     /** Add each existing map entity from the API as an editable layer */
@@ -1419,18 +1381,6 @@ export class Editor {
 
         // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
-    }
-
-    private consoleLogAllEntitiesAsOneGeoJSONFeatureCollection() {
-        let featureCollection = {
-            type: 'FeatureCollection',
-            features: [],
-        };
-        for (const entityid in this._currentRevisions) {
-            let entity = this._currentRevisions[entityid];
-            featureCollection.features.push(entity.toGeoJSON());
-        }
-        console.log(JSON.stringify(featureCollection));
     }
 
     // Atutomatically check for updates every minute or so

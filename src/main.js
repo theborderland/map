@@ -1,22 +1,18 @@
 import { createMap } from './map';
-import { showNotification, updateNotification, closeNotification } from './messages';
+import { showDrawer } from './messages';
 
 async function main() {
-    // const a = await showNotification('Test');
-    // console.log('here', a);
-    // setTimeout(() => {
-    //     updateNotification(a, 'lololol');
-    // }, 2000);
-    // setTimeout(() => {
-    //     closeNotification(a);
-    // }, 5000);
-
     // Create the map
-    createMap();
+    await createMap();
 
-    //Only show message if user has not seen instructions yet
-    if (!localStorage.getItem('hasSeenPlacementInstructions')) {
-        //showBetaMsg();
+    // Only show message if user has not seen the welcome message yet
+    if (!localStorage.getItem('hasSeenPlacementWelcome')) {
+        showDrawer({
+            file: 'welcome',
+            onClose: () => {
+                localStorage.setItem('hasSeenPlacementWelcome', 'true');
+            },
+        });
     }
 }
 main();
