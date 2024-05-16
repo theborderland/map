@@ -1,11 +1,8 @@
+import { hash } from '../utils';
+
 let onCloseResolve = null;
 let onCloseAction = null;
-
-type DrawerOptions = {
-    file: string;
-    onClose?: () => any;
-    btn?: string;
-};
+let onBtnAction = null;
 
 let drawerLoader = new Promise<any>(async (resolve) => {
     // Wait for custom elements to be defined
@@ -19,6 +16,7 @@ let drawerLoader = new Promise<any>(async (resolve) => {
             event.preventDefault();
         }
     });
+
     drawerElement.addEventListener('sl-after-hide', (event) => {
         if (onCloseAction) {
             onCloseAction();
@@ -26,26 +24,36 @@ let drawerLoader = new Promise<any>(async (resolve) => {
         if (onCloseResolve) {
             onCloseResolve();
         }
+        hash.page = undefined;
     });
-    btn.addEventListener('click', () => drawerElement.hide());
-
+    btn.addEventListener('click', () => {
+        if (onBtnAction) {
+            onBtnAction();
+        }
+    });
     resolve(drawerElement);
 });
 
-export async function showDrawers(options: Array<DrawerOptions>) {
-    for (const option of options) {
-        await showDrawer(option);
+export async function showDrawers(drawerOptions: Array<DrawerOptions>) {
+    for (let i = 0; i < drawerOptions.length; i++) {
+        const option = drawerOptions[i];
+        if (i == drawerOptions.length - 1) {
+            await showDrawer(option, { keepOpen: false });
+        } else {
+            await showDrawer(option, { keepOpen: true });
+        }
     }
 }
 
-export async function showDrawer(option: DrawerOptions) {
+export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: OrderOptions = {}) {
     return new Promise(async (resolve) => {
-        onCloseAction = option.onClose || null;
+        onCloseAction = drawerOptions.onClose || null;
         onCloseResolve = resolve;
+        onBtnAction = null;
         const drawer = await drawerLoader;
         const content = drawer.querySelector('.content');
         content.innerHTML = '';
-        const res = await fetch(`/drawers/${option.file}.html`);
+        const res = await fetch(`/drawers/${drawerOptions.file}.html`);
         const html = await res.text();
 
         // Content
@@ -55,12 +63,28 @@ export async function showDrawer(option: DrawerOptions) {
 
         // Button
         const btn = document.getElementById('drawer-button');
-        if (option.btn) {
-            btn.innerHTML = option.btn;
+        if (orderOptions.keepOpen) {
+            btn.innerHTML = 'Continue';
+            onBtnAction = resolve;
         } else {
             btn.innerHTML = 'Close';
+            onBtnAction = () => drawer.hide();
+        }
+        if (drawerOptions.btn) {
+            btn.innerHTML = drawerOptions.btn;
         }
 
+        hash.page = drawerOptions.file;
         drawer.show();
     });
 }
+
+type DrawerOptions = {
+    file: string;
+    onClose?: () => any;
+    btn?: string;
+};
+
+type OrderOptions = {
+    keepOpen?: boolean;
+};

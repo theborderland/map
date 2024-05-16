@@ -4,14 +4,14 @@ import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
 
 import { addLegends } from './_addLegends';
-import { encodeHashMeta, decodeHashMeta } from './_hashMeta';
 
 import { loadPoiFromGoogleCsv } from '../loaders/loadPoiFromGoogleCsv';
 import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureCollections';
 
 import { loadImageOverlay } from '../loaders/loadImageOverlay';
 
-import { showNotification } from '../messages';
+import { hash } from '../utils';
+import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
 
 /** Initializes the leaflet map and load data to create layers */
@@ -181,35 +181,35 @@ export const createMap = async () => {
     let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });
     polylineMeasure.addTo(map);
 
-    // Makes the URL update to include a hashed location that follows the map.
+    // Make all layers in the URL hash visible on load
     map.on('hashmetainit', function (initState) {
-        const { layers } = decodeHashMeta(initState.meta);
-        layers.filter((name) => name in availableLayers).forEach((layerName) => visibleLayers.add(layerName));
+        hash.decode(initState.meta);
+        hash.layers.filter((name) => name in availableLayers).forEach((layerName) => visibleLayers.add(layerName));
         visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
     });
 
     // Add any visible layers to in the URL hash
     map.on('overlayadd', function (event) {
         visibleLayers.add(event.name);
-        hash.setHashMeta(encodeHashMeta(visibleLayers), true);
+        hash.layers = visibleLayers;
     });
 
     // Remove any hidden layers from the URL hash
     map.on('overlayremove', function (event) {
         visibleLayers.delete(event.name);
-        hash.setHashMeta(encodeHashMeta(visibleLayers), true);
+        hash.layers = visibleLayers;
     });
 
     // ON LOAD
 
     // Load all entities from the API
     await editor.addAPIEntities();
-
-    // Create the hash for the URL
-    const hash = new L.Hash(map);
+    // Link the map to the URL hash
+    hash.map = map;
 
     // Force the URL hash to update on the initial load.
-    hash.setHashMeta(encodeHashMeta(visibleLayers), true);
+    hash.layers = visibleLayers;
+
 
     // Access the query string and zoom to entity if id is present
     const urlParams = new URLSearchParams(window.location.search);

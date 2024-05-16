@@ -1327,7 +1327,7 @@ export class Editor {
         if (this._isEditMode) {
             if (localStorage.getItem('hasSeenEditorInstructions') == null) {
                 showDrawers([
-                    { file: 'entering_edit_mode', btn: 'Next' },
+                    { file: 'entering_edit_mode' },
                     {
                         file: 'entering_edit_mode_page_two',
                         onClose: () => {
