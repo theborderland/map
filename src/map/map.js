@@ -68,7 +68,7 @@ export const createMap = async () => {
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl23/placement.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/fire.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/roads.geojson');
-
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/sound.geojson');
     // Combine the Sound guide layers
     map.groups.soundguide = new L.LayerGroup();
     map.groups.soundhigh.addTo(map.groups.soundguide);
