@@ -445,3 +445,8 @@ body,
     text-align: center;
     text-shadow: 1px 1px #000;
 }
+
+@font-face{
+        font-family: "bradleyHand";
+        src: url("./fonts/Bradley Hand ITC TT Bold.woff") format('woff');
+}

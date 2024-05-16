@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
-
+import {AddQuartersToMap,AddNeighbourhoodsToMap,AddPlazasToMap} from "../overlay"
 import { addLegends } from './_addLegends';
 
 import { loadPoiFromGoogleCsv } from '../loaders/loadPoiFromGoogleCsv';
@@ -69,7 +69,7 @@ export const createMap = async () => {
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl23/placement.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/fire.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/roads.geojson');
-
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/sound.geojson');
     // Combine the Sound guide layers
     map.groups.soundguide = new L.LayerGroup();
     map.groups.soundhigh.addTo(map.groups.soundguide);
@@ -157,6 +157,9 @@ export const createMap = async () => {
     map.groups.power = new L.LayerGroup();
     map.groups.sound = new L.LayerGroup();
     map.groups.clean = new L.LayerGroup();
+    map.groups.neighbourhoods = new L.LayerGroup();
+    map.groups.quarters = new L.LayerGroup();
+    map.groups.plazas = new L.LayerGroup();
 
     var availableLayers = {
         Placement: map.groups.placement,
@@ -168,6 +171,9 @@ export const createMap = async () => {
         Terrain: map.groups.terrain,
         Aftermath22: map.groups.aftermath22,
         Aftermath23: map.groups.aftermath,
+        Neighbourhoods: map.groups.neighbourhoods,
+        Quarters: map.groups.quarters,
+        Plazas: map.groups.plazas
         // Names: map.groups.names,
         // Check_Power: map.groups.power,
         // Check_Sound: map.groups.sound,
@@ -240,6 +246,11 @@ export const createMap = async () => {
     // map.on('click', function (e) {
     //     console.log(e.latlng);
     // });
+
+	// Add text labels to the map
+	AddQuartersToMap(map.groups.quarters)
+    AddPlazasToMap(map.groups.plazas)
+    AddNeighbourhoodsToMap(map.groups.neighbourhoods)
 
     // Add layer control and legends
     await addLegends(map, availableLayers);

@@ -1,0 +1,68 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "ECLAIRE"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928832918348803,
+          57.62605614176769
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "THE LEMON"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928337184601162,
+          57.62450496088573
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "MELLOW"
+      },
+      "geometry": {
+        "coordinates": [
+          14.927314733746385,
+          57.62288734877282
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "THE COVE"
+      },
+      "geometry": {
+        "coordinates": [
+          14.9193675021003,
+          57.62585706343461
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"name":"THE BAY"},
+      "geometry": {
+        "coordinates": [
+          14.929142751940958,
+          57.62074701281918
+        ],
+        "type": "Point"
+      }
+    }
+  ]
+}
