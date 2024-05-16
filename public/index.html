@@ -35,15 +35,10 @@
         <!-- Map -->
         <div id="map"></div>
 
-        <!-- Notifications / Alerts / Toasts -->
-        <div class="alert-toast-wrapper">
-            <sl-button variant="primary">Create Toast</sl-button>
-        </div>
-
         <!-- Instructions and informations drawer -->
-        <sl-drawer id="drawer" placement="bottom" class="drawer-placement-bottom">
+        <sl-drawer id="drawer" placement="bottom" class="drawer-placement-bottom" no-header>
             <div class="content"></div>
-            <sl-button slot="footer" variant="primary" id="drawer-button">Close</sl-button>
+            <sl-button id="drawer-button" slot="footer" variant="primary">Close</sl-button>
         </sl-drawer>
 
         <!-- Shoelace Scripts-->
