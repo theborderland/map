@@ -2,7 +2,7 @@ import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
-import {AddQuartersToMap,AddNeighbourhoodsToMap,AddPlazasToMap} from "../overlay"
+import { AddQuartersToMap, AddNeighbourhoodsToMap, AddPlazasToMap } from '../overlay';
 import { addLegends } from './_addLegends';
 
 import { loadPoiFromGoogleCsv } from '../loaders/loadPoiFromGoogleCsv';
@@ -17,7 +17,7 @@ import { Editor } from '../editor';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
-    let visibleLayers = new Set(['Placement', 'Placement_map']);
+    let visibleLayers = new Set(['Placements', 'Placement_map']);
 
     // Create map
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false }).setView(
@@ -162,22 +162,18 @@ export const createMap = async () => {
     map.groups.plazas = new L.LayerGroup();
 
     var availableLayers = {
-        Placement: map.groups.placement,
         Placement_map: map.groups.mapstuff,
         POI: map.groups.poi,
         Soundguide: map.groups.soundguide,
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
+        Placements: map.groups.placement,
         Aftermath22: map.groups.aftermath22,
         Aftermath23: map.groups.aftermath,
-        Neighbourhoods: map.groups.neighbourhoods,
-        Quarters: map.groups.quarters,
-        Plazas: map.groups.plazas
-        // Names: map.groups.names,
-        // Check_Power: map.groups.power,
-        // Check_Sound: map.groups.sound,
-        // Check_Clean: map.groups.clean,
+        Neighbourhood: map.groups.neighbourhoods,
+        Quarter: map.groups.quarters,
+        Plaza: map.groups.plazas,
     };
 
     // Initialize the editor
@@ -234,7 +230,6 @@ export const createMap = async () => {
     // Force the URL hash to update on the initial load.
     hash.layers = visibleLayers;
 
-
     // Access the query string and zoom to entity if id is present
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
@@ -247,10 +242,10 @@ export const createMap = async () => {
     //     console.log(e.latlng);
     // });
 
-	// Add text labels to the map
-	AddQuartersToMap(map.groups.quarters)
-    AddPlazasToMap(map.groups.plazas)
-    AddNeighbourhoodsToMap(map.groups.neighbourhoods)
+    // Add text labels to the map
+    AddQuartersToMap(map.groups.quarters);
+    AddPlazasToMap(map.groups.plazas);
+    AddNeighbourhoodsToMap(map.groups.neighbourhoods);
 
     // Add layer control and legends
     await addLegends(map, availableLayers);
