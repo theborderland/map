@@ -1143,9 +1143,6 @@ export class Editor {
             this.keyEscapeListener(evt);
         };
 
-        // Add controls
-        this.addHelpButton();
-
         // Add search control
         //@ts-ignore
         var searchControl = new L.Control.Search({
@@ -1171,27 +1168,6 @@ export class Editor {
                     this.toggleEditMode();
                     btn.textContent = this._isEditMode ? 'Done' : 'Edit';
                     btn.title = this._isEditMode ? 'Done' : 'Edit';
-                };
-
-                return btn;
-            },
-        });
-
-        this._map.addControl(new customButton());
-    }
-
-    private addHelpButton() {
-        const customButton = L.Control.extend({
-            options: { position: 'topleft' },
-
-            onAdd: () => {
-                let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
-                btn.title = 'Guide to the placement process';
-                btn.textContent = '❔';
-                L.DomEvent.disableClickPropagation(btn);
-
-                btn.onclick = () => {
-                    window.open('instructions/', '_blank').focus();
                 };
 
                 return btn;

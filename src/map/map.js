@@ -177,6 +177,24 @@ export const createMap = async () => {
     // Initialize the editor
     const editor = new Editor(map, map.groups);
 
+    // Add the guide button
+    const guideButton = L.Control.extend({
+        options: { position: 'topleft' },
+        onAdd: () => {
+            let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
+            btn.title = 'Guide to the placement process';
+            btn.textContent = '⛑️';
+            L.DomEvent.disableClickPropagation(btn);
+
+            btn.onclick = () => {
+                showDrawer({ file: 'guide' });
+            };
+
+            return btn;
+        },
+    });
+    map.addControl(new guideButton());
+
     // Add the measure tool
     let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });
     polylineMeasure.addTo(map);
