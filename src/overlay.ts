@@ -2,17 +2,17 @@ import * as L from 'leaflet';
 
 export const AddQuartersToMap =  async (layerGroup:L.LayerGroup)=>{
     let json = await (await fetch("./data/bl24/quarters.json")).json()
-    AddOverlaysToMap(json,layerGroup,"red",0.001)
+    AddOverlaysToMap(json,layerGroup,"white",0.001)
 }
 export const AddPlazasToMap =  async (layerGroup:L.LayerGroup)=>{
     let json = await (await fetch("./data/bl24/plaza.json")).json()
-    AddOverlaysToMap(json,layerGroup,"orange",0.0015)
+    AddOverlaysToMap(json,layerGroup,"white",0.0015)
 }
 export const AddNeighbourhoodsToMap =  async (layerGroup:L.LayerGroup)=>{
     let json = await (await fetch("./data/bl24/neighbourhoods.json")).json()
-    AddOverlaysToMap(json,layerGroup,"blue",0.003)
+    AddOverlaysToMap(json,layerGroup,"white",0.003)
     let jsonNonCamp = await (await fetch("./data/bl24/non-camp-neighbourhoods.json")).json()
-    AddOverlaysToMap(jsonNonCamp,layerGroup,"blue",0.003)
+    AddOverlaysToMap(jsonNonCamp,layerGroup,"white",0.003)
 
     
 }
