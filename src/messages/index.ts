@@ -1,2 +1,2 @@
-export * from './showInstruction';
+export * from './showDrawer';
 export * from './showNotification';
