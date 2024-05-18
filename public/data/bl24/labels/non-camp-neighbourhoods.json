@@ -1,0 +1,89 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Arctic zone"
+            },
+            "geometry": {
+                "coordinates": [14.925788675444892, 57.62807545095191],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Secret lake" },
+            "geometry": {
+                "coordinates": [14.928306913666745, 57.62971263243014],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "On edge"
+            },
+            "geometry": {
+                "coordinates": [14.932527790278101, 57.62656132472026],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Parking"
+            },
+            "geometry": {
+                "coordinates": [14.922596137750437, 57.62743934024116],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Forest path" },
+            "geometry": {
+                "coordinates": [14.921435550491026, 57.62372003975091],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Lake"
+            },
+            "geometry": {
+                "coordinates": [14.91888733324248, 57.62025240785053],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The void"
+            },
+            "geometry": {
+                "coordinates": [14.933247286912092, 57.623431083067175],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Magic forest"
+            },
+            "geometry": {
+                "coordinates": [14.934746238235732, 57.620091861320475],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "name": "Antarctica" },
+            "geometry": {
+                "coordinates": [14.92785106215075, 57.61879140828006],
+                "type": "Point"
+            }
+        }
+    ]
+}

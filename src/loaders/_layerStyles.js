@@ -26,7 +26,7 @@ export function getStyleFunction(name) {
                 return {
                     ...baseStyle,
                     color: '#e77409',
-                    weight: 4,
+                    weight: 1,
                 };
             case 'friends':
                 return {
@@ -64,7 +64,7 @@ export function getStyleFunction(name) {
                     fillOpacity: 0,
                     opacity: 0,
                 };
-            case 'fireroad':
+            case 'fireroads':
                 return {
                     ...baseStyle,
                     weight: 1.5,
@@ -72,25 +72,35 @@ export function getStyleFunction(name) {
                     color: '#f05039',
                     fillOpacity: 0.15,
                 };
-            case 'road':
+            case 'plaza':
                 return {
                     ...baseStyle,
-                    weight: 1.5,
-                    dashArray: '1.5',
-                    color: '#0bf5e5',
-                    fillOpacity: 0.15,
+                    weight: 2,
+                    dashArray: '4',
+                    color: 'white',
+                    opacity: 0.5,
+                    fillOpacity: 0,
                 };
-            case 'lowprio':
+            case 'minorroad':
                 return {
-                    dashArray: '3',
+                    ...baseStyle,
+                    weight: 1,
+                    dashArray: '20',
+                    color: 'black',
+                    opacity: 0.5,
+                    fillOpacity: 0,
+                };
+            case 'area':
+                return {
+                    dashArray: '5',
                     color: '#e7e309',
                     fillOpacity: 0,
                     weight: 2,
                 };
             case 'hiddenforbidden':
                 return {
-                    color: '#ff4444',
-                    fillOpacity: 0.35,
+                    color: 'black',
+                    fillOpacity: 1,
                     weight: 0,
                 };
             case 'mediumprio':
@@ -109,35 +119,35 @@ export function getStyleFunction(name) {
                     fillOpacity: 0,
                     weight: 2,
                 };
-            case 'soundhigh':
+            case 'redsoundzone':
                 return {
                     ...baseStyle,
                     color: '#b60d0d',
                     fillOpacity: 0.75,
                     weight: 0,
                 };
-            case 'soundmedium':
+            case 'orangesoundzone':
                 return {
                     ...baseStyle,
                     color: '#ff6f16',
                     fillOpacity: 0.75,
                     weight: 0,
                 };
-            case 'soundmediumlow':
+            case 'yellowsoundzone':
                 return {
                     ...baseStyle,
                     color: '#f4e512',
                     fillOpacity: 0.75,
                     weight: 0,
                 };
-            case 'soundlow':
+            case 'greensoundzone':
                 return {
                     ...baseStyle,
                     color: '#00e300',
                     fillOpacity: 0.75,
                     weight: 0,
                 };
-            case 'soundquiet':
+            case 'bluesoundzone':
                 return {
                     ...baseStyle,
                     color: '#29b6f3',

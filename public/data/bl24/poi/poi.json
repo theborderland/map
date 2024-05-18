@@ -1,0 +1,387 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Red Sound Dot",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.918556142129404, 57.62385367089115],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Red Sound Dot",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.920225043013971, 57.625793730397305],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Red Sound Dot",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.923218293313937, 57.621490554619356],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Red Sound Dot",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.925785083837525, 57.61986570452274],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Church",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot-indoor"
+            },
+            "geometry": {
+                "coordinates": [14.926054439595987, 57.620946421129474],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Barn",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot-indoor"
+            },
+            "geometry": {
+                "coordinates": [14.925810132345134, 57.621796639173624],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Machinehall",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot-indoor"
+            },
+            "geometry": {
+                "coordinates": [14.926687251186621, 57.62204469970172],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Sanctuary",
+                "description": "The Sanctuary is the First Aid and Emotional Support space of The Borderland.",
+                "link": "https://docs.google.com/document/d/15h51rBlfih84XK9HceFjTytABKrJ3aTpYFFGCkOhfI4",
+                "category": "sanctuary"
+            },
+            "geometry": {
+                "coordinates": [14.924891357152552, 57.62386755448056],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Power Camp",
+                "description": "This is the location of the power camp",
+                "category": "electricity"
+            },
+            "geometry": {
+                "coordinates": [14.927184887301744, 57.62125943289193],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "HQ",
+                "description": "The Headquarters",
+                "category": "helm"
+            },
+            "geometry": {
+                "coordinates": [14.92530857455476, 57.62125475306233],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Well",
+                "description": "4 taps available. Only for drinking and cooking!",
+                "category": "water"
+            },
+            "geometry": {
+                "coordinates": [14.925387436364057, 57.62120664395475],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Toilets",
+                "description": "There will be toilets here. Please clean them when needed!",
+                "category": "toilet"
+            },
+            "geometry": {
+                "coordinates": [14.928900693268433, 57.622239798764504],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Toilets",
+                "description": "There will be toilets here. Please clean them when needed!",
+                "category": "toilet"
+            },
+            "geometry": {
+                "coordinates": [14.928312289705323, 57.62687428562875],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Effigy site",
+                "description": "Burn site of this years effigy",
+                "category": "burn"
+            },
+            "geometry": {
+                "coordinates": [14.927722800012509, 57.62029255858535],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Toilets",
+                "description": "There will be toilets here. Please clean them when needed!",
+                "category": "toilet"
+            },
+            "geometry": {
+                "coordinates": [14.926704191795753, 57.62122521886785],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "This is a nature reserve and not our lands. Please treat it with respect!",
+                "category": "info"
+            },
+            "geometry": {
+                "coordinates": [14.92257767668516, 57.62296706968672],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "This is a nature reserve and not our lands. Please treat it with respect!",
+                "category": "info"
+            },
+            "geometry": {
+                "coordinates": [14.934005302856574, 57.61975462994453],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Please don't disturb them. And dont use their trashbin on your way home.",
+                "category": "neighbour"
+            },
+            "geometry": {
+                "coordinates": [14.921468596024436, 57.63350055264746],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Their property is off-limits! Respect this.",
+                "category": "neighbour"
+            },
+            "geometry": {
+                "coordinates": [14.92576027815691, 57.61891998744287],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "You can swim in the lakes. But no washing in the lake with soap shampoo or conditioner. Not even with environmentally friendly soaps. And no sunscreen or glitter either. https://www.facebook.com/groups/theborderland/permalink/5668316446521075",
+                "category": "info"
+            },
+            "geometry": {
+                "coordinates": [14.922202, 57.620027],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "You can swim in the lakes. But no washing in the lake with soap shampoo or conditioner. Not even with environmentally friendly soaps. And no sunscreen or glitter either. https://www.facebook.com/groups/theborderland/permalink/5668316446521075",
+                "category": "info"
+            },
+            "geometry": {
+                "coordinates": [14.92835, 57.628828],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Toilets",
+                "description": "There will be toilets here. Please clean them when needed!",
+                "category": "toilet"
+            },
+            "geometry": {
+                "coordinates": [14.924627739508647, 57.626384777387294],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Toilets",
+                "description": "There will be toilets here. Please clean them when needed!",
+                "category": "toilet"
+            },
+            "geometry": {
+                "coordinates": [14.92521344400533, 57.6248866973357],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Toilets",
+                "description": "There will be toilets here. Please clean them when needed!",
+                "category": "toilet"
+            },
+            "geometry": {
+                "coordinates": [14.926120479847077, 57.622455248086176],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Main parking",
+                "description": "Place your vehicle here.",
+                "category": "parking"
+            },
+            "geometry": {
+                "coordinates": [14.922152359901222, 57.62869211034791],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Gate",
+                "description": "This is the Gate run by The Threshold.",
+                "category": "threshold"
+            },
+            "geometry": {
+                "coordinates": [14.923771053584561, 57.62825166977558],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "This is a nature reserve and not our lands. Please treat it with respect!",
+                "category": "info"
+            },
+            "geometry": {
+                "coordinates": [14.931330406379983, 57.62784857119008],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "coordinates": [14.925435854288482, 57.626398527405534],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "coordinates": [14.92834260028053, 57.62618440582377],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Trash2Treasure",
+                "description": "Recycling station with containers and trash bins. Remember:  Reuse -> Repair -> Recycle. Don't waste resources.",
+                "category": "treasure"
+            },
+            "geometry": {
+                "coordinates": [14.925041138191101, 57.62536176294976],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Please don't disturb them!",
+                "category": "neighbour"
+            },
+            "geometry": {
+                "coordinates": [14.933759252202757, 57.613007131943114],
+                "type": "Point"
+            }
+        }
+    ]
+}

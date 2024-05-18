@@ -2,10 +2,10 @@ import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import '@geoman-io/leaflet-geoman-free';
-import { AddQuartersToMap, AddNeighbourhoodsToMap, AddPlazasToMap } from '../overlay';
+import { addPointsOfInterestsTomap } from './_addPOI';
+import { addQuarterLabelsToMap, addNeighbourhoodLabelsToMap, addPlazaLabelsToMap } from './_addLabels';
 import { addLegends } from './_addLegends';
 
-import { loadPoiFromGoogleCsv } from '../loaders/loadPoiFromGoogleCsv';
 import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureCollections';
 
 import { loadImageOverlay } from '../loaders/loadImageOverlay';
@@ -29,6 +29,10 @@ export const createMap = async () => {
     map.groups = {
         placement: new L.LayerGroup(),
         mapstuff: new L.LayerGroup(),
+        neighbourhoods: new L.LayerGroup(),
+        quarters: new L.LayerGroup(),
+        plazas: new L.LayerGroup(),
+        poi: new L.LayerGroup(),
     };
 
     // Add the Google Satellite layer
@@ -37,16 +41,6 @@ export const createMap = async () => {
         maxNativeZoom: 20,
         subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
     }).addTo(map);
-
-    // FIXME: Re-add
-    await loadPoiFromGoogleCsv(map);
-
-    //  Load place names
-    fetch('./data/bl23/placenames.geojson')
-        .then((response) => response.json())
-        .then((response) => {
-            L.geoJSON(response.features, { style: { color: '#ffffff', weight: 2 } }).addTo(map.groups.mapstuff);
-        });
 
     // Load contours
     fetch('./data/analysis/contours.geojson')
@@ -58,59 +52,63 @@ export const createMap = async () => {
         });
 
     // Load reference drawings
-    fetch('./data/bl23/references.geojson')
-        .then((response) => response.json())
-        .then((response) => {
-            L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
-        });
+    // fetch('./data/analysis/references.geojson')
+    //     .then((response) => response.json())
+    //     .then((response) => {
+    //         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
+    //     });
 
-    await loadGeoJsonFeatureCollections(map, 'type', './data/fire.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl23/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl23/placement.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/fire.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/roads.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/sound.geojson');
-    // Combine the Sound guide layers
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/placement_areas.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/borders.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/roads_and_distances.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/plazas.geojson');
+
+    // Combine the Placement Area layers
+    map.groups.propertyborder.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.propertyborder);
+    map.groups.minorroad.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.minorroad);
+    map.groups.fireroads.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.fireroads);
+    map.groups.area.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.area);
+    map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
+
+    // Add known objects
+    map.groups.container.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.container);
+    map.groups.parking.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.parking);
+    map.groups.toilet.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.toilet);
+
+    // Camp names layer - used by the editor to render names of placement
+    map.groups.names = new L.LayerGroup();
+    map.groups.names.addTo(map);
+
+    // Combine and add sound guide
     map.groups.soundguide = new L.LayerGroup();
-    map.groups.soundhigh.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundhigh);
-    map.groups.soundmedium.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundmedium);
-    map.groups.soundmediumlow.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundmediumlow);
-    map.groups.soundlow.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundlow);
-    map.groups.soundquiet.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundquiet);
+    map.groups.bluesoundzone.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.bluesoundzone);
+    map.groups.greensoundzone.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.greensoundzone);
+    map.groups.yellowsoundzone.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.yellowsoundzone);
+    map.groups.orangesoundzone.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.orangesoundzone);
+    map.groups.redsoundzone.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.redsoundzone);
 
     // TODO: Its unknown what this does
     map.on('overlayadd', function (eventLayer) {
         if (eventLayer.name === 'Soundguide') {
-            map.groups.soundhigh.bringToBack();
-            map.groups.soundmedium.bringToBack();
-            map.groups.soundmediumlow.bringToBack();
-            map.groups.soundlow.bringToBack();
-            map.groups.soundquiet.bringToBack();
+            map.groups.bluesoundzone.bringToBack();
+            map.groups.greensoundzone.bringToBack();
+            map.groups.yellowsoundzone.bringToBack();
+            map.groups.orangesoundzone.bringToBack();
+            map.groups.redsoundzone.bringToBack();
         }
     });
-
-    // Combine the Placement Guide layers
-    map.groups.fireroad.addTo(map.groups.mapstuff);
-    map.removeLayer(map.groups.fireroad);
-    map.groups.road.addTo(map.groups.mapstuff);
-    map.removeLayer(map.groups.road);
-    map.groups.propertyborder.addTo(map.groups.mapstuff);
-    map.groups.highprio.addTo(map.groups.mapstuff);
-    map.groups.lowprio.addTo(map.groups.mapstuff);
-    map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
-    map.groups.container.addTo(map.groups.mapstuff);
-    map.groups.parking.addTo(map.groups.mapstuff);
-    map.groups.toilet.addTo(map.groups.mapstuff);
-    map.groups.bridge.addTo(map.groups.mapstuff);
-
-    // Area names layer
-    map.groups.names = new L.LayerGroup();
-    map.groups.names.addTo(map);
 
     // Load and add the terrain layer
     map.groups.terrain = await loadImageOverlay(map, './data/terrain.png', [
@@ -154,12 +152,8 @@ export const createMap = async () => {
         tms: false,
     });
 
-    map.groups.power = new L.LayerGroup();
-    map.groups.sound = new L.LayerGroup();
-    map.groups.clean = new L.LayerGroup();
-    map.groups.neighbourhoods = new L.LayerGroup();
-    map.groups.quarters = new L.LayerGroup();
-    map.groups.plazas = new L.LayerGroup();
+    map.groups.plaza.addTo(map.groups.plazas);
+    map.removeLayer(map.groups.plaza);
 
     var availableLayers = {
         Placement_map: map.groups.mapstuff,
@@ -169,11 +163,11 @@ export const createMap = async () => {
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
         Placements: map.groups.placement,
+        Plazas: map.groups.plazas,
+        Neighbourhoods: map.groups.neighbourhoods,
+        Quarters: map.groups.quarters,
         Aftermath22: map.groups.aftermath22,
         Aftermath23: map.groups.aftermath,
-        Neighbourhood: map.groups.neighbourhoods,
-        Quarter: map.groups.quarters,
-        Plaza: map.groups.plazas,
     };
 
     // Initialize the editor
@@ -223,7 +217,8 @@ export const createMap = async () => {
     // ON LOAD
 
     // Load all entities from the API
-    await editor.addAPIEntities();
+    //await editor.addAPIEntities();
+
     // Link the map to the URL hash
     hash.map = map;
 
@@ -242,10 +237,13 @@ export const createMap = async () => {
     //     console.log(e.latlng);
     // });
 
+    // Add points of interests to the map
+    await addPointsOfInterestsTomap(map.groups.poi);
+
     // Add text labels to the map
-    AddQuartersToMap(map.groups.quarters);
-    AddPlazasToMap(map.groups.plazas);
-    AddNeighbourhoodsToMap(map.groups.neighbourhoods);
+    addQuarterLabelsToMap(map.groups.quarters);
+    addPlazaLabelsToMap(map.groups.plazas);
+    addNeighbourhoodLabelsToMap(map.groups.neighbourhoods);
 
     // Add layer control and legends
     await addLegends(map, availableLayers);

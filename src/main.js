@@ -3,7 +3,11 @@ import { showDrawer } from './messages';
 
 async function main() {
     // Create the map
-    await createMap();
+    try {
+        await createMap();
+    } catch (err) {
+        console.error(err);
+    }
 
     // Only show message if user has not seen the welcome message yet
     if (!localStorage.getItem('hasSeenPlacementWelcome')) {
