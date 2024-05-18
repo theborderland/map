@@ -68,8 +68,8 @@ export const createMap = async () => {
     map.removeLayer(map.groups.propertyborder);
     map.groups.minorroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.minorroad);
-    map.groups.fireroads.addTo(map.groups.mapstuff);
-    map.removeLayer(map.groups.fireroads);
+    map.groups.fireroad.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.fireroad);
     map.groups.area.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.area);
     map.groups.hiddenforbidden.addTo(map.groups.mapstuff);

@@ -64,7 +64,7 @@ export function getStyleFunction(name) {
                     fillOpacity: 0,
                     opacity: 0,
                 };
-            case 'fireroads':
+            case 'fireroad':
                 return {
                     ...baseStyle,
                     weight: 1.5,
