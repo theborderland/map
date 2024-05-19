@@ -237,13 +237,14 @@ export class MapEntity implements EntityDTO {
         //@ts-ignore
         const geoJson = this.layer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
-
+        //const weight = this.getAllTriggeredRules().findIndex((r) => r.severity == 3) > -1 ? 0.75 : 0;
+        const weight = 0;
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
                 style: {
-                    color: 'black',
+                    color: 'red',
                     fillOpacity: 0.0,
-                    weight: 0.75, // Set the outline width
+                    weight, // Set the outline width
                     dashArray: '5, 5', // Set the outline to be dashed,
                 },
                 interactive: false,
