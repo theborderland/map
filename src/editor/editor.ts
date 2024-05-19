@@ -1,6 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
+import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
 import { generateRulesForEditor } from '../entities/rule';
 import { showNotification, showDrawers } from '../messages';
 import { EntityChanges } from '../entities/repository';
@@ -1135,26 +1136,38 @@ export class Editor {
         map.addControl(searchControl);
     }
     private addToggleEditButton() {
-        const customButton = L.Control.extend({
-            options: { position: 'bottomleft' },
+        if (IS_EDITING_POSSIBLE) {
+            const customButton = L.Control.extend({
+                options: { position: 'bottomleft' },
 
-            onAdd: () => {
-                let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
-                btn.title = 'Edit';
-                btn.textContent = 'Edit';
-                L.DomEvent.disableClickPropagation(btn);
+                onAdd: () => {
+                    let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
+                    btn.title = 'Edit';
+                    btn.textContent = 'Edit';
+                    L.DomEvent.disableClickPropagation(btn);
 
-                btn.onclick = () => {
-                    this.toggleEditMode();
-                    btn.textContent = this._isEditMode ? 'Done' : 'Edit';
-                    btn.title = this._isEditMode ? 'Done' : 'Edit';
-                };
+                    btn.onclick = () => {
+                        this.toggleEditMode();
+                        btn.textContent = this._isEditMode ? 'Done' : 'Edit';
+                        btn.title = this._isEditMode ? 'Done' : 'Edit';
+                    };
 
-                return btn;
-            },
-        });
-
-        this._map.addControl(new customButton());
+                    return btn;
+                },
+            });
+            this._map.addControl(new customButton());
+        }
+        if (NOTE_ABOUT_EDITING) {
+            const msg = L.Control.extend({
+                options: { position: 'bottomleft' },
+                onAdd: () => {
+                    var div = L.DomUtil.create('p', 'btn btn-gradient1 button-shake-animate');
+                    div.innerHTML += NOTE_ABOUT_EDITING;
+                    return div;
+                },
+            });
+            this._map.addControl(new msg());
+        }
     }
 
     private formatDate(
@@ -1276,6 +1289,11 @@ export class Editor {
     }
 
     public async toggleEditMode() {
+        if (!IS_EDITING_POSSIBLE) {
+            this._isEditMode = false;
+            return;
+        }
+
         this._isEditMode = !this._isEditMode;
 
         // Show instructions when entering edit mode, and wait for the user
