@@ -734,7 +734,7 @@ export class Editor {
 
         this.UpdateOnScreenDisplay(null);
 
-        // Check if ther's any later revision since editor opened
+        // Check if there is any later revision since editor opened
         await this._repository.getRevisionsForEntity(entity);
         let latestKey;
         for (let revisionentitykey in entity.revisions) {
@@ -906,12 +906,15 @@ export class Editor {
     }
 
     private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
-        if (entity == null) return;
+        if (entity == null) {
+            return;
+        }
 
-        // Update name tooltip
+        // Update the entities name marker
         let a: L.Marker = entity.nameMarker;
         let posMarker = entity.nameMarker.getLatLng();
         let posEntity = entity.layer.getBounds().getCenter();
+
         if (posEntity.lat != posMarker.lat || posEntity.lng != posMarker.lng) {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
@@ -920,6 +923,8 @@ export class Editor {
             // console.log('tooltip content changed', entity.nameMarker._tooltip);
             entity.nameMarker.setTooltipContent(entity.name);
         }
+
+        // Only show the name if zoomed beyond 19
         var zoom = this._map.getZoom();
         if (zoom >= 19) {
             //@ts-ignore
@@ -929,7 +934,9 @@ export class Editor {
             this._nameTooltips[entity.id]._tooltip.setOpacity(0);
         }
 
-        if (checkRules) entity.checkAllRules();
+        if (checkRules) {
+            entity.checkAllRules();
+        }
         entity.setLayerStyle(this._currentLayerFilterStyle);
     }
 
@@ -948,7 +955,6 @@ export class Editor {
                 this._validateEntitiesQueue.push(this._currentRevisions[entityid]);
             }
         }
-        // console.log(`Prepped ${this._validateEntitiesQueue.length} entities for validation.`);
         this.validateSlowly();
     }
 
@@ -1036,8 +1042,6 @@ export class Editor {
         this._ghostLayers = new L.LayerGroup().addTo(map);
 
         //Place both in the same group so that we can toggle them on and off together on the map
-        //@ts-ignore
-        groups.placement = new L.LayerGroup().addTo(map);
         //@ts-ignore
         this._placementLayers.addTo(groups.placement);
         //@ts-ignore

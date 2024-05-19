@@ -52,6 +52,8 @@ export function getStyleFunction(name) {
                     color: 'brown',
                     fillOpacity: 1,
                 };
+            case 'oktocamp':
+            case 'publicplease':
             case 'parking':
                 return {
                     ...baseStyle,
