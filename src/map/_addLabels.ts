@@ -11,7 +11,7 @@ export const addPlazaLabelsToMap = async (layerGroup: L.LayerGroup) => {
 export const addNeighbourhoodLabelsToMap = async (layerGroup: L.LayerGroup) => {
     let json = await (await fetch('./data/bl24/labels/neighbourhoods.json')).json();
     addLabelOverlayToMap(json, layerGroup, 'white', 0.003);
-    let jsonNonCamp = await (await fetch('./data/bl24/non-camp-neighbourhoods.json')).json();
+    let jsonNonCamp = await (await fetch('./data/bl24/labels/non-camp-neighbourhoods.json')).json();
     addLabelOverlayToMap(jsonNonCamp, layerGroup, 'white', 0.003);
 };
 

@@ -37,19 +37,6 @@ export const addLegends = async (map, toggableLayers) => {
             case 'Soundguide':
                 soundLegend.addTo(map);
                 break;
-            // TODO: Unknown what this did
-            case 'Check_Power':
-                // TODO: Unknown what this did
-                editor.setLayerFilter('power', false);
-                break;
-            case 'Check_Sound':
-                // TODO: Unknown what this did
-                editor.setLayerFilter('sound', false);
-                break;
-            case 'Check_Clean':
-                // TODO: Unknown what this did
-                editor.setLayerFilter('cleancolors', false);
-                break;
         }
     });
 
@@ -65,18 +52,12 @@ export const addLegends = async (map, toggableLayers) => {
             case 'Soundguide':
                 map.removeControl(soundLegend);
                 break;
-            case 'Check_Power':
-            case 'Check_Sound':
-            case 'Check_Clean':
-                // TODO: Unknown what this didd
-                //editor.setLayerFilter('severity', false);
-                break;
         }
     });
 
     // Add scale indicator to the UI
-    L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
+    //L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
 
     // Add all toggable layers as a control to the map
-    L.control.layers(undefined, toggableLayers).addTo(map);
+    L.control.layers(undefined, toggableLayers, { position: 'bottomright' }).addTo(map);
 };

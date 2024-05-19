@@ -105,22 +105,6 @@ export function getStyleFunction(name) {
                     fillOpacity: 1,
                     weight: 0,
                 };
-            case 'mediumprio':
-                return {
-                    ...baseStyle,
-                    dashArray: '0',
-                    color: '#e7e309',
-                    fillOpacity: 0,
-                    weight: 2,
-                };
-            case 'highprio':
-                return {
-                    ...baseStyle,
-                    dashArray: '0',
-                    color: '#e7e309',
-                    fillOpacity: 0,
-                    weight: 2,
-                };
             case 'redsoundzone':
                 return {
                     ...baseStyle,

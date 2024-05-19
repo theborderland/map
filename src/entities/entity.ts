@@ -169,7 +169,16 @@ export class MapEntity implements EntityDTO {
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
         this.powerNeed = geoJson.properties.powerNeed ?? undefined;
-        this.amplifiedSound = geoJson.properties.amplifiedSound ?? undefined;
+        if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
+            this.powerNeed = -1;
+        } else {
+            this.powerNeed = Number(geoJson.properties.powerNeed);
+        }
+        if (Number.isNaN(Number(geoJson.properties.amplifiedSound))) {
+            this.amplifiedSound = -1;
+        } else {
+            this.amplifiedSound = Number(geoJson.properties.amplifiedSound);
+        }
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
 
@@ -186,7 +195,6 @@ export class MapEntity implements EntityDTO {
     public checkAllRules() {
         // Check which rules are currently broken
         for (const rule of this._rules) {
-            console.log(rule);
             rule.checkRule(this);
         }
     }

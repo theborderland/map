@@ -17,7 +17,7 @@ import { Editor } from '../editor';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
-    let visibleLayers = new Set(['Placements', 'Placement_map']);
+    let visibleLayers = new Set(['Placement', 'Placement_map']);
 
     // Create map
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false }).setView(
@@ -70,6 +70,10 @@ export const createMap = async () => {
     map.removeLayer(map.groups.minorroad);
     map.groups.fireroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.fireroad);
+    // map.groups.publicplease.addTo(map.groups.mapstuff);
+    // map.removeLayer(map.groups.publicplease);
+    // map.groups.oktocamp.addTo(map.groups.mapstuff);
+    // map.removeLayer(map.groups.oktocamp);
     map.groups.area.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.area);
     map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
@@ -101,6 +105,7 @@ export const createMap = async () => {
 
     // TODO: Its unknown what this does
     map.on('overlayadd', function (eventLayer) {
+        map.groups.names.setZIndex(101);
         if (eventLayer.name === 'Soundguide') {
             map.groups.bluesoundzone.bringToBack();
             map.groups.greensoundzone.bringToBack();
@@ -162,8 +167,9 @@ export const createMap = async () => {
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
-        Placements: map.groups.placement,
         Plazas: map.groups.plazas,
+        Placement: map.groups.placement,
+        Names: map.groups.names,
         Neighbourhoods: map.groups.neighbourhoods,
         Quarters: map.groups.quarters,
         Aftermath22: map.groups.aftermath22,
@@ -183,7 +189,7 @@ export const createMap = async () => {
             L.DomEvent.disableClickPropagation(btn);
 
             btn.onclick = () => {
-                showDrawer({ file: 'guide' });
+                showDrawer({ file: 'test/guide', position: 'end' });
             };
 
             return btn;
@@ -216,21 +222,11 @@ export const createMap = async () => {
 
     // ON LOAD
 
-    // Load all entities from the API
-    //await editor.addAPIEntities();
-
     // Link the map to the URL hash
     hash.map = map;
 
     // Force the URL hash to update on the initial load.
     hash.layers = visibleLayers;
-
-    // Access the query string and zoom to entity if id is present
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
-    if (id) {
-        editor.gotoEntity(id);
-    }
 
     // Log the the lat and long to the console when clicking the map or a layer or marker
     // map.on('click', function (e) {
@@ -247,6 +243,17 @@ export const createMap = async () => {
 
     // Add layer control and legends
     await addLegends(map, availableLayers);
+
+    // Load all entities from the API
+    await editor.addAPIEntities();
+    map.groups.placement.addTo(map);
+
+    // Access the query string and zoom to entity if id is present
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    if (id) {
+        editor.gotoEntity(id);
+    }
 
     // Done!
     showNotification('Loaded everything!', 'success');

@@ -13,15 +13,13 @@ const centeredIcon: any = L.Icon.extend({
 export const addPointsOfInterestsTomap = async (layerGroup: L.LayerGroup) => {
     let json = await (await fetch('./data/bl24/poi/poi.json')).json();
     let iconDict = {};
-    let out = ``;
+
     for (let place of json['features']) {
         let { name, description, category, link } = place.properties;
 
         const lng = place.geometry.coordinates[0];
         const lat = place.geometry.coordinates[1];
-        console.log('here');
-        place.geometry.coordinates = [place.geometry.coordinates[1], place.geometry.coordinates[0]];
-        out += `${JSON.stringify(place)},`;
+
         // Load the icon
         if (!iconDict[category]) iconDict[category] = new centeredIcon({ iconUrl: './img/icons/' + category + '.png' });
 
@@ -35,5 +33,4 @@ export const addPointsOfInterestsTomap = async (layerGroup: L.LayerGroup) => {
         const content = `<h3>${name}</h3> <p>${description}</p>`;
         L.marker([lat, lng], { icon: iconDict[category] }).addTo(layerGroup).bindPopup(content);
     }
-    console.log(out);
 };

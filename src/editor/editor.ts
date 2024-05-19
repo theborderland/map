@@ -1,6 +1,6 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
-import { MapEntity, MapEntityRepository, DefaultLayerStyle, EntityDifferences } from '../entities';
+import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { generateRulesForEditor } from '../entities/rule';
 import { showNotification, showDrawers } from '../messages';
 import { EntityChanges } from '../entities/repository';
@@ -770,30 +770,6 @@ export class Editor {
         }
     }
 
-    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
-        if (entity || customMsg) {
-            let tooltipText = '';
-
-            if (customMsg) {
-                tooltipText = customMsg;
-            } else {
-                tooltipText = entity.area + 'm²';
-
-                for (const rule of entity.getAllTriggeredRules()) {
-                    if (rule.severity >= 2) {
-                        tooltipText += '<br>' + rule.shortMessage;
-                    }
-                }
-            }
-
-            this.sqmTooltip.openOn(this._map);
-            this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
-            this.sqmTooltip.setContent(tooltipText);
-        } else {
-            this.sqmTooltip.close();
-        }
-    }
-
     /** Event handler for when an new layer is created */
     private async onNewLayerCreated(createEvent: { layer: L.Layer }) {
         console.log('[Editor]', 'Create event fired', { createEvent });
@@ -1418,6 +1394,30 @@ export class Editor {
             this._popup.setLatLng(latlong);
             // Call the click event
             this.onLayerClicked(entity);
+        }
+    }
+
+    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
+        if (entity || customMsg) {
+            let tooltipText = '';
+
+            if (customMsg) {
+                tooltipText = customMsg;
+            } else {
+                tooltipText = entity.area + 'm²';
+
+                for (const rule of entity.getAllTriggeredRules()) {
+                    if (rule.severity >= 2) {
+                        tooltipText += '<br>' + rule.shortMessage;
+                    }
+                }
+            }
+
+            this.sqmTooltip.openOn(this._map);
+            this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
+            this.sqmTooltip.setContent(tooltipText);
+        } else {
+            this.sqmTooltip.close();
         }
     }
 }
