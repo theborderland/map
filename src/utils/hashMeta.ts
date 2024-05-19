@@ -78,7 +78,7 @@ class HashMetaImplementation {
                 }
                 if (hashMetadata.indexOf(PAGE_KEY) == 0) {
                     this.page = hashMetadata.substring(PAGE_KEY.length);
-                    showDrawer({ file: this.page });
+                    showDrawer({ file: this.page, position: 'end' });
                 }
             }
         });

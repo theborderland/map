@@ -51,6 +51,7 @@ export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: Ord
         onCloseResolve = resolve;
         onBtnAction = null;
         const drawer = await drawerLoader;
+        drawer.placement = drawerOptions.position || 'bottom';
         const content = drawer.querySelector('.content');
         content.innerHTML = '';
         const res = await fetch(`/drawers/${drawerOptions.file}.html`);
@@ -81,6 +82,7 @@ export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: Ord
 
 type DrawerOptions = {
     file: string;
+    position: 'end' | 'bottom' | 'start' | 'top';
     onClose?: () => any;
     btn?: string;
 };

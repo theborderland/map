@@ -13,6 +13,7 @@ async function main() {
     if (!localStorage.getItem('hasSeenPlacementWelcome')) {
         showDrawer({
             file: 'welcome',
+            position: 'bottom',
             onClose: () => {
                 localStorage.setItem('hasSeenPlacementWelcome', 'true');
             },
