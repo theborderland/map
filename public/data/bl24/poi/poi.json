@@ -342,6 +342,19 @@
                 "category": "notice"
             },
             "geometry": {
+                "coordinates": [14.930495023727419, 57.621981668808694],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
                 "coordinates": [14.925435854288482, 57.626398527405534],
                 "type": "Point"
             }
