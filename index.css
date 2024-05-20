@@ -449,5 +449,5 @@ body,
 
 @font-face {
     font-family: 'bradleyHand';
-    src: url('./fonts/Bradley Hand ITC TT Bold.woff') format('woff');
+    src: url('fonts/bradley.woff') format('woff');
 }
