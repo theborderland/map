@@ -33,6 +33,7 @@ export const createMap = async () => {
         quarters: new L.LayerGroup(),
         plazas: new L.LayerGroup(),
         poi: new L.LayerGroup(),
+        soundspots: new L.LayerGroup(),
     };
 
     // Add the Google Satellite layer
@@ -244,7 +245,12 @@ export const createMap = async () => {
     });
 
     // Add points of interests to the map
-    await addPointsOfInterestsTomap(map.groups.poi);
+    await addPointsOfInterestsTomap('poi.json', map.groups.poi);
+
+    // Add soundspots and add it to the soundguide layer
+    await addPointsOfInterestsTomap('soundspots.json', map.groups.soundspots);
+    map.groups.soundspots.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.soundspots);
 
     // Add text labels to the map
     addQuarterLabelsToMap(map.groups.quarters);

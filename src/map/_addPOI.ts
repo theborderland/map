@@ -10,8 +10,8 @@ const centeredIcon: any = L.Icon.extend({
     },
 });
 
-export const addPointsOfInterestsTomap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl24/poi/poi.json')).json();
+export const addPointsOfInterestsTomap = async (filename: string, layerGroup: L.LayerGroup) => {
+    let json = await (await fetch(`./data/bl24/poi/${filename}`)).json();
     let iconDict = {};
 
     for (let place of json['features']) {
