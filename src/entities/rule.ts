@@ -140,12 +140,12 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         hasLargeEnergyNeed(),
         hasMissingFields(),
         // hasManyCoordinates(),
-        isBreakingSoundLimit(
-            groups.soundguide,
-            2,
-            'Making too much noise?',
-            'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!',
-        ),
+        // isBreakingSoundLimit(
+        //     groups.soundguide,
+        //     2,
+        //     'Making too much noise?',
+        //     'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!',
+        // ),
         isOverlapping(
             placementLayers,
             2,
