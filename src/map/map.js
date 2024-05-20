@@ -248,7 +248,7 @@ export const createMap = async () => {
     addNeighbourhoodLabelsToMap(map.groups.neighbourhoods);
 
     // Add layer control and legends
-    await addLegends(map, availableLayers);
+    await addLegends(map, availableLayers, visibleLayers);
 
     // Load all entities from the API
     await editor.addAPIEntities();

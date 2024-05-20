@@ -1,6 +1,6 @@
 import L from 'leaflet';
 
-export const addLegends = async (map, toggableLayers) => {
+export const addLegends = async (map, toggableLayers, visibleLayers) => {
     // Create the slope legend
     let slopeLegend = L.control({ position: 'bottomright' });
     slopeLegend.onAdd = function (map) {
@@ -21,7 +21,8 @@ export const addLegends = async (map, toggableLayers) => {
     let soundLegend = L.control({ position: 'bottomright' });
     soundLegend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'legend');
-        div.innerHTML += '<img src="./img/soundlegend.png" alt="legend" width="150" height="165">';
+        div.innerHTML +=
+            '<a target="blank" href="https://docs.google.com/document/d/1JjJArPpIsX-F82Xmcr2Y2dSPHtu2TjGTeYbP4ASkOWY"><img src="./img/soundlegend.png" alt="legend" width="150" height="165"></a>';
         return div;
     };
 
@@ -55,9 +56,20 @@ export const addLegends = async (map, toggableLayers) => {
         }
     });
 
-    // Add scale indicator to the UI
-    //L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
-
     // Add all toggable layers as a control to the map
     L.control.layers(undefined, toggableLayers, { position: 'bottomright' }).addTo(map);
+
+    // Add all initial visible legends
+    if (visibleLayers.has('Slope')) {
+        slopeLegend.addTo(map);
+    }
+    if (visibleLayers.has('Height')) {
+        heightlegend.addTo(map);
+    }
+    if (visibleLayers.has('Soundguide')) {
+        soundLegend.addTo(map);
+    }
+
+    // Add scale indicator to the UI
+    //L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
 };
