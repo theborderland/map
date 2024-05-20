@@ -1,0 +1,159 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "GOGOGO"
+      },
+      "geometry": {
+        "coordinates": [
+          14.925897190080775,
+          57.62605718174669
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "VANILLA"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930027247496383,
+          57.62597705813255
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Chaos reigns"
+      },
+      "geometry": {
+        "coordinates": [
+          14.931523645110445,
+          57.62474313215574
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CITRUS"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928590705786235,
+          57.62405403837121
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Eclipse"
+      },
+      "geometry": {
+        "coordinates": [
+          14.925627838510678,
+          57.62394185907593
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "MELLAN"
+      },
+      "geometry": {
+        "coordinates": [
+          14.928560777834889,
+          57.62298030805047
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "GENXXX"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930536022685288,
+          57.622034758057
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "DOWN TOWN"
+      },
+      "geometry": {
+        "coordinates": [
+          14.927513299504739,
+          57.62134561289648
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "LUCKY"
+      },
+      "geometry": {
+        "coordinates": [
+          14.930296599066509,
+          57.62028782977771
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "FOREST CAVE"
+      },
+      "geometry": {
+        "coordinates": [
+          14.925897190080775,
+          57.61987111888152
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "SUNNY HILL"
+      },
+      "geometry": {
+        "coordinates": [
+          14.923383242089074,
+          57.62080069816625
+        ],
+        "type": "Point"
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {"name":"ABYSS"},
+      "geometry": {
+        "coordinates": [
+          14.91886412129449,
+          57.62485530897669
+        ],
+        "type": "Point"
+      }
+    }
+  ]
+}

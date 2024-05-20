@@ -43,7 +43,7 @@ export const DangerLayerStyle: L.PathOptions = {
     weight: 5,
 };
 
-export const GreenColor = "#00FF40";
+export const GreenColor = '#00FF40';
 
 /**
  * Represents the fields and data for single Map Entity and includes
@@ -160,7 +160,7 @@ export class MapEntity implements EntityDTO {
         });
 
         this.revisions = {};
-        
+
         // Extract information fields from the geoJson
         this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
@@ -169,12 +169,20 @@ export class MapEntity implements EntityDTO {
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
         this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
         this.powerNeed = geoJson.properties.powerNeed ?? undefined;
-        this.amplifiedSound = geoJson.properties.amplifiedSound ?? undefined;
+        if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
+            this.powerNeed = -1;
+        } else {
+            this.powerNeed = Number(geoJson.properties.powerNeed);
+        }
+        if (Number.isNaN(Number(geoJson.properties.amplifiedSound))) {
+            this.amplifiedSound = -1;
+        } else {
+            this.amplifiedSound = Number(geoJson.properties.amplifiedSound);
+        }
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
-        
+
         this.updateBufferedLayer();
-        // this.checkAllRules(); //Probably not needed, better to let the editor choose when to do this as it is not allways wanted.
     }
     private GetDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
         let colorToSet = this.color;
@@ -191,36 +199,30 @@ export class MapEntity implements EntityDTO {
         }
     }
 
-    public setLayerStyle(mode : "severity" | "sound" | "power" | "cleancolors" = "severity") {
-        if (mode == "severity" || mode == "cleancolors") {
+    public setLayerStyle(mode: 'severity' | 'sound' | 'power' | 'cleancolors' = 'severity') {
+        if (mode == 'severity' || mode == 'cleancolors') {
             if (this.severityOfRulesBroken >= 3) {
                 //@ts-ignore
                 this.layer.setStyle(DangerLayerStyle);
             } else if (this.severityOfRulesBroken == 2 && !this.supressWarnings) {
                 //@ts-ignore
                 this.layer.setStyle(WarningLayerStyle);
-            }
-            else
-            {
+            } else {
                 //@ts-ignore
-                this.layer.setStyle(this.GetDefaultLayerStyle(mode == "cleancolors"));
+                this.layer.setStyle(this.GetDefaultLayerStyle(mode == 'cleancolors'));
             }
-        }
-        else if (mode == "power")
-        {
+        } else if (mode == 'power') {
             let color = GreenColor;
-            if (!this.powerNeed) color = "#D1D1D1";
-            else if (this.powerNeed > 9000) color = "#FF0000";
-            else if (this.powerNeed > 1000) color = "#FFA200";
+            if (!this.powerNeed) color = '#D1D1D1';
+            else if (this.powerNeed > 9000) color = '#FF0000';
+            else if (this.powerNeed > 1000) color = '#FFA200';
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
-        }
-        else if (mode == "sound")
-        {
+        } else if (mode == 'sound') {
             let color = GreenColor;
-            if (!this.amplifiedSound) color = "#D1D1D1";
-            else if (this.amplifiedSound > 2000) color = "#FF0000";
-            else if (this.amplifiedSound > 120) color = "#FFA200";
+            if (!this.amplifiedSound) color = '#D1D1D1';
+            else if (this.amplifiedSound > 2000) color = '#FF0000';
+            else if (this.amplifiedSound > 120) color = '#FFA200';
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }
@@ -235,13 +237,14 @@ export class MapEntity implements EntityDTO {
         //@ts-ignore
         const geoJson = this.layer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
-
+        //const weight = this.getAllTriggeredRules().findIndex((r) => r.severity == 3) > -1 ? 0.75 : 0;
+        const weight = 0;
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
                 style: {
-                    color: 'black',
+                    color: 'red',
                     fillOpacity: 0.0,
-                    weight: 0.75, // Set the outline width
+                    weight, // Set the outline width
                     dashArray: '5, 5', // Set the outline to be dashed,
                 },
                 interactive: false,

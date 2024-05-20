@@ -1,7 +1,9 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
-import { MapEntity, MapEntityRepository, DefaultLayerStyle, EntityDifferences } from '../entities';
+import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
+import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
 import { generateRulesForEditor } from '../entities/rule';
+import { showNotification, showDrawers } from '../messages';
 import { EntityChanges } from '../entities/repository';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
@@ -41,8 +43,7 @@ export class Editor {
 
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
-    
-    private onScreenInfo: any; //The little bottom down thingie that shows the current area and stuff
+
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
     private _nameTooltips: Record<number, L.Marker>;
 
@@ -63,7 +64,10 @@ export class Editor {
 
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
-            if ((prevMode == 'editing-shape' || prevMode == 'moving-shape' || prevMode == 'editing-info') && prevEntity) {
+            if (
+                (prevMode == 'editing-shape' || prevMode == 'moving-shape' || prevMode == 'editing-info') &&
+                prevEntity
+            ) {
                 nextMode = 'selected';
                 nextEntity = nextEntity || prevEntity;
                 //re-center the pop up on the new layer, in case the layer has moved
@@ -101,14 +105,14 @@ export class Editor {
             // Stop any ongoing editing of the previously selected layer
             if (prevEntity) {
                 prevEntity?.layer.pm.disable();
-                prevEntity?.layer._layers[prevEntity.layer._leaflet_id-1].dragging.disable();
+                prevEntity?.layer._layers[prevEntity.layer._leaflet_id - 1].dragging.disable();
             }
 
             return;
         }
         // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
-            nextEntity.layer.pm.enable({ editMode: true, snappable: false});
+            nextEntity.layer.pm.enable({ editMode: true, snappable: false });
             this.setSelected(nextEntity, prevEntity);
             this.setPopup('none');
             return;
@@ -117,8 +121,8 @@ export class Editor {
         if (this._mode == 'moving-shape' && nextEntity) {
             this.setSelected(nextEntity, prevEntity);
             this.setPopup('none');
-            this.UpdateOnScreenDisplay(nextEntity, "Drag to move");
-            nextEntity.layer._layers[nextEntity.layer._leaflet_id-1].dragging.enable();
+            this.UpdateOnScreenDisplay(nextEntity, 'Drag to move');
+            nextEntity.layer._layers[nextEntity.layer._leaflet_id - 1].dragging.enable();
             return;
         }
         // Edit the information of the entity
@@ -147,7 +151,7 @@ export class Editor {
 
     private keyEscapeListener(evt: Event) {
         // console.log('keyEscapeListener', evt);
-        if (("key" in evt) && !(evt.key === "Escape" || evt.key === "Esc")) {
+        if ('key' in evt && !(evt.key === 'Escape' || evt.key === 'Esc')) {
             // console.log('not escape...');
             return;
         }
@@ -166,18 +170,29 @@ export class Editor {
         if (display == 'info') {
             const content = document.createElement('div');
 
-            const personText = entity.nrOfPeople === "1" ? ' person,' : ' people,';
-            const vehicleText = entity.nrOfVehicles === "1" ? '> vehicle,' : ' vehicles,';
+            const personText = entity.nrOfPeople === '1' ? ' person,' : ' people,';
+            const vehicleText = entity.nrOfVehicles === '1' ? '> vehicle,' : ' vehicles,';
             const entityName = entity.name ? entity.name : 'No name yet';
             const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
-            const entityContactInfo = entity.contactInfo ? entity.contactInfo : 'Please add contact info! Without it, your area might be removed.';
-            const entityPowerNeed = entity.powerNeed != -1 ? `${entity.powerNeed} Watts` : 'Please state your power need! Set to 0 if you will not use electricity.';
-            const entitySoundAmp = entity.amplifiedSound != -1 ? `${entity.amplifiedSound} Watts` : 'Please set sound amplification! Set to 0 if you wont have speakers.';
+            const entityContactInfo = entity.contactInfo
+                ? entity.contactInfo
+                : 'Please add contact info! Without it, your area might be removed.';
+            const entityPowerNeed =
+                entity.powerNeed != -1
+                    ? `${entity.powerNeed} Watts`
+                    : 'Please state your power need! Set to 0 if you will not use electricity.';
+            const entitySoundAmp =
+                entity.amplifiedSound != -1
+                    ? `${entity.amplifiedSound} Watts`
+                    : 'Please set sound amplification! Set to 0 if you wont have speakers.';
 
             let descriptionSanitized = DOMPurify.sanitize(entityDescription);
             // URLs starting with http://, https://, or ftp://
             let replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
-            let descriptionWithLinks = descriptionSanitized.replace(replacePattern1, '<a href="$1" target="_blank">$1</a>');
+            let descriptionWithLinks = descriptionSanitized.replace(
+                replacePattern1,
+                '<a href="$1" target="_blank">$1</a>',
+            );
 
             content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
                                 <p class="scrollable">${descriptionWithLinks}</p>
@@ -191,19 +206,22 @@ export class Editor {
 
                                 <div style="font-size: 14px; color:#5c5c5c; margin-bottom: 10px !important">
                                     <b>${entity.area}</b> m² - 
-                                    ${entity.nrOfPeople > 0 ? "<b>" + entity.nrOfPeople + "</b>" + personText : ""} 
-                                    ${entity.nrOfVehicles > 0 ? "<b>" + entity.nrOfVehicles + "</b>" + vehicleText : ""} 
-                                    ${entity.additionalSqm > 0 ? "<b>" + entity.additionalSqm + "</b> m² other" : ""}
+                                    ${entity.nrOfPeople > 0 ? '<b>' + entity.nrOfPeople + '</b>' + personText : ''} 
+                                    ${
+                                        entity.nrOfVehicles > 0
+                                            ? '<b>' + entity.nrOfVehicles + '</b>' + vehicleText
+                                            : ''
+                                    } 
+                                    ${entity.additionalSqm > 0 ? '<b>' + entity.additionalSqm + '</b> m² other' : ''}
                                 </div>
                                 `;
 
             const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
 
-            
-            if (sortedRules.length > 0)
-            {
-                if (!entity.supressWarnings) content.innerHTML += `<p style="margin-bottom: 0px !important"><b>${sortedRules.length}</b> issues found:</p> `;
-                
+            if (sortedRules.length > 0) {
+                if (!entity.supressWarnings)
+                    content.innerHTML += `<p style="margin-bottom: 0px !important"><b>${sortedRules.length}</b> issues found:</p> `;
+
                 //A div that will hold all the rule messages
                 const ruleMessages = document.createElement('div');
                 // ruleMessages.style.marginTop = '10px';
@@ -215,8 +233,7 @@ export class Editor {
                 for (const rule of sortedRules) {
                     if (rule.severity >= 3) {
                         ruleMessages.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
-                    } else if (!entity.supressWarnings)
-                    {
+                    } else if (!entity.supressWarnings) {
                         if (rule.severity >= 2) {
                             ruleMessages.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
                         } else {
@@ -267,10 +284,11 @@ export class Editor {
             content.innerHTML = ``;
 
             content.appendChild(document.createElement('label')).innerHTML = 'Name of camp/dream';
-            
+
             const nameField = document.createElement('input');
             nameField.type = 'text';
             nameField.value = entity.name;
+            nameField.maxLength = 100;
             nameField.placeholder = 'Enter camp name here..';
             nameField.oninput = () => {
                 entity.name = nameField.value;
@@ -283,7 +301,9 @@ export class Editor {
 
             const descriptionField = document.createElement('textarea');
             descriptionField.value = entity.description;
-            descriptionField.placeholder = 'Describe your camp/dream here as much as you want. Remember that this information is public.';
+            descriptionField.maxLength = 300;
+            descriptionField.placeholder =
+                'Describe your camp/dream here as much as you want. Remember that this information is public. 300 characters max.';
             descriptionField.style.height = '100px';
             descriptionField.oninput = () => {
                 entity.description = descriptionField.value;
@@ -303,7 +323,7 @@ export class Editor {
                 this.UpdateOnScreenDisplay(entity);
             };
             content.appendChild(contactField);
-            
+
             content.appendChild(document.createElement('br'));
             content.appendChild(document.createElement('b')).innerHTML = 'People';
 
@@ -361,14 +381,19 @@ export class Editor {
             };
             content.appendChild(otherSqm);
 
-            let updateTextAboutNeededSpace = (entity: MapEntity, div : HTMLElement = null) =>{
+            let updateTextAboutNeededSpace = (entity: MapEntity, div: HTMLElement = null) => {
                 this.refreshEntity(entity);
                 this.UpdateOnScreenDisplay(entity);
                 let areaInfo = document.getElementById('areaInfo');
                 if (!areaInfo) {
                     areaInfo = div;
                 }
-                areaInfo.innerHTML = 'With this amount of people, vehicles and extra m² such as art, kitchen tents and structures, a suggested camp size is <b>' + entity?.calculatedAreaNeeded + 'm²</b>. Currently the area is <b>' + entity?.area + 'm².</b>';
+                areaInfo.innerHTML =
+                    'With this amount of people, vehicles and extra m² such as art, kitchen tents and structures, a suggested camp size is <b>' +
+                    entity?.calculatedAreaNeeded +
+                    'm²</b>. Currently the area is <b>' +
+                    entity?.area +
+                    'm².</b>';
             };
 
             let areaInfo = content.appendChild(document.createElement('div'));
@@ -381,7 +406,8 @@ export class Editor {
             content.appendChild(document.createElement('b')).innerHTML = 'Power need (Watts) ';
 
             const powerField = document.createElement('input');
-            powerField.title = 'A water boiler is about 2000W, a fridge is about 100W,\na laptop is about 50W, a phone charger is about 10W.';
+            powerField.title =
+                'A water boiler is about 2000W, a fridge is about 100W,\na laptop is about 50W, a phone charger is about 10W.';
             powerField.style.width = '5em';
             powerField.style.marginTop = '7px';
             powerField.style.marginBottom = '7px';
@@ -403,7 +429,8 @@ export class Editor {
 
             const soundField = document.createElement('input');
             soundField.style.width = '5em';
-            soundField.title = 'If over 100W then you are considered a sound camp.\nPlease get in contact with the sound lead.';
+            soundField.title =
+                'If over 100W then you are considered a sound camp.\nPlease get in contact with the sound lead.';
             soundField.style.marginBottom = '7px';
             soundField.style.marginLeft = '58px';
             soundField.type = 'number';
@@ -444,7 +471,7 @@ export class Editor {
 
             content.onkeydown = (evt: Event) => {
                 // console.log('onkeydown', evt);
-                if (("key" in evt && evt.key === "Enter") && ("ctrlKey" in evt && evt.ctrlKey == true)) {
+                if ('key' in evt && evt.key === 'Enter' && 'ctrlKey' in evt && evt.ctrlKey == true) {
                     // console.log('Ctrl + Enter');
                     this.setMode('blur');
                 }
@@ -460,14 +487,14 @@ export class Editor {
             content.innerHTML = ``;
 
             content.appendChild(document.createElement('h2')).innerHTML = 'More stuff';
-            
+
             let formattedDate = this.formatDate(entity.timeStamp);
-            
+
             let entityInfo = content.appendChild(document.createElement('div'));
-            entityInfo.innerHTML = 
-            `<b>Entity Id: </b> ${entity.id}` +
-            `<br><b>Revisions: </b> ${entity.revision}` + 
-            `<br><b>Last edited:</b> ${formattedDate}`;
+            entityInfo.innerHTML =
+                `<b>Entity Id: </b> ${entity.id}` +
+                `<br><b>Revisions: </b> ${entity.revision}` +
+                `<br><b>Last edited:</b> ${formattedDate}`;
             content.appendChild(document.createElement('br'));
 
             //A link that when pressed will copy "entity.id" to the clipboard
@@ -475,7 +502,7 @@ export class Editor {
             copyLink.innerHTML = 'Click here to copy a link to this entity';
             copyLink.href = '?id=' + entity.id;
             copyLink.onclick = (e) => {
-                console.log("Copy to clipboard", copyLink.href);
+                console.log('Copy to clipboard', copyLink.href);
                 e.stopPropagation();
                 e.preventDefault();
                 navigator.clipboard.writeText(copyLink.href);
@@ -513,10 +540,10 @@ export class Editor {
             const deleteButton = document.createElement('button');
             deleteButton.classList.add('delete-button');
             deleteButton.innerHTML = 'Delete';
-            deleteButton.style.width = "100%";
+            deleteButton.style.width = '100%';
             deleteButton.onclick = async (e) => {
-                let deleteReason = prompt("Are you really sure you should delete this area? Answer why.", "");
-                if (deleteReason == null || deleteReason == "") {
+                let deleteReason = prompt('Are you really sure you should delete this area? Answer why.', '');
+                if (deleteReason == null || deleteReason == '') {
                     console.log('Delete nope, deleteReason', deleteReason);
                     return;
                 }
@@ -552,7 +579,7 @@ export class Editor {
                 this.setMode('blur');
             };
             content.appendChild(backButton);
-            
+
             this._popup.setContent(content).openOn(this._map);
             return;
         }
@@ -568,10 +595,10 @@ export class Editor {
 
             let entityInfo = content.appendChild(document.createElement('div'));
             entityInfo.innerHTML =
-            `<b>Entity Id: </b> ${entity.id}<br>` +
-            `<b>Name: </b> ${entity.name}<br>` +
-            `<b>Revisions: </b> ${entity.revision}<br>` +
-            `<b>Last edited:</b> ${formattedDate}`;
+                `<b>Entity Id: </b> ${entity.id}<br>` +
+                `<b>Name: </b> ${entity.name}<br>` +
+                `<b>Revisions: </b> ${entity.revision}<br>` +
+                `<b>Last edited:</b> ${formattedDate}`;
             content.appendChild(document.createElement('br'));
 
             // Prepare table for showing revisions
@@ -582,17 +609,17 @@ export class Editor {
             divdescriptionheader.innerText = 'Description';
             divdescriptionframe.append(divdescriptionheader);
             divdescriptionframe.append(divdescription);
-            divtable.id = "history-table";
+            divtable.id = 'history-table';
             content.appendChild(divtable);
-            divdescription.id = "change-description";
+            divdescription.id = 'change-description';
             content.appendChild(divdescriptionframe);
             const table: HTMLTableElement = document.createElement('table');
             divtable.appendChild(table);
             const thead = table.createTHead();
             const theadrow: HTMLTableRowElement = thead.insertRow();
-            theadrow.insertCell().innerText = "Revision";
-            theadrow.insertCell().innerText = "Timestamp";
-            theadrow.insertCell().innerText = "What Changed";
+            theadrow.insertCell().innerText = 'Revision';
+            theadrow.insertCell().innerText = 'Timestamp';
+            theadrow.insertCell().innerText = 'What Changed';
             const tbody = table.createTBody();
 
             // Get revisions and create tale rows for each revision
@@ -604,7 +631,7 @@ export class Editor {
             const GhostLayerStyle: L.PathOptions = {
                 color: '#ff0000',
                 fillColor: '#000000',
-                fillOpacity: 0.50,
+                fillOpacity: 0.5,
                 weight: 5,
             };
             for (let revisionentity in entity.revisions) {
@@ -672,9 +699,12 @@ export class Editor {
             }
 
             // Add all history-rows backwards
-            rowsToAdd.slice().reverse().forEach(function(row) {
-                tbody.append(row);
-            });
+            rowsToAdd
+                .slice()
+                .reverse()
+                .forEach(function (row) {
+                    tbody.append(row);
+                });
 
             const backButton = document.createElement('button');
             backButton.innerHTML = 'Back';
@@ -705,7 +735,7 @@ export class Editor {
 
         this.UpdateOnScreenDisplay(null);
 
-        // Check if ther's any later revision since editor opened
+        // Check if there is any later revision since editor opened
         await this._repository.getRevisionsForEntity(entity);
         let latestKey;
         for (let revisionentitykey in entity.revisions) {
@@ -718,17 +748,17 @@ export class Editor {
             for (let changeid in diff) {
                 diffDescription += `* ${diff[changeid]['changeLong']}\n`;
             }
-            diffDescription += '\nDescription has changed to this diff. Open version history if unsure what happened. You find ut under Edit info>More>History.';
+            diffDescription +=
+                '\nDescription has changed to this diff. Open version history if unsure what happened. You find ut under Edit info>More>History.';
             console.log(diffDescription);
             entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
             alert(diffDescription);
         }
 
         if (this.isAreaTooBig(entity.toGeoJSON())) {
-            alert("The area of the polygon is waaay to big. It will not be saved, please change it.");
+            alert('The area of the polygon is waaay to big. It will not be saved, please change it.');
             return;
         }
-
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
@@ -737,32 +767,7 @@ export class Editor {
             // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
             this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
-        }
-    }
-
-    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
-        if (entity || customMsg) {
-            let tooltipText = "";
-            
-            if (customMsg){
-                tooltipText = customMsg;
-            } else {
-                tooltipText = entity.area + "m²";
-    
-                for (const rule of entity.getAllTriggeredRules()) {
-                    if (rule.severity >= 2) {
-                        // this.onScreenInfo.textContent = rule.shortMessage;
-                        tooltipText += "<br>" + rule.shortMessage;
-                    }
-                }
-            }
-
-            this.sqmTooltip.openOn(this._map);
-            this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
-            this.sqmTooltip.setContent(tooltipText);
-        } else {
-            // this.onScreenInfo.textContent = "";
-            this.sqmTooltip.close();
+            showNotification('Saved!', 'success');
         }
     }
 
@@ -776,7 +781,7 @@ export class Editor {
         const geoJson = layer.toGeoJSON();
 
         if (this.isAreaTooBig(geoJson)) {
-            alert("The area of the polygon is waaay to big. Draw something smaller.");
+            alert('The area of the polygon is waaay to big. Draw something smaller.');
             this._map.removeLayer(layer);
             return;
         }
@@ -788,27 +793,33 @@ export class Editor {
         if (entityInResponse) {
             this.addEntityToMap(entityInResponse);
             this._map.removeLayer(layer);
-            
+
             //@ts-ignore
             const bounds = entityInResponse.layer.getBounds();
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
             this.setMode('editing-info', entityInResponse);
+            showNotification('Saved!', 'success');
         }
     }
 
     private createEntityTooltip(entity: MapEntity) {
-        let marker = new L.Marker(entity.layer.getBounds().getCenter(), {opacity: 0});
+        let marker = new L.Marker(entity.layer.getBounds().getCenter(), { opacity: 0 });
         marker.feature = {
             type: 'Feature',
             geometry: {
-              type: 'Point',
-              coordinates: [0, 0],
+                type: 'Point',
+                coordinates: [0, 0],
             },
             properties: {},
         };
         marker.options.icon.options.iconSize = [1, 1];
-        marker.bindTooltip(entity.name, { permanent: true, interactive: false, direction: 'center', className: 'name-tooltip' });
+        marker.bindTooltip(entity.name, {
+            permanent: true,
+            interactive: false,
+            direction: 'center',
+            className: 'name-tooltip',
+        });
         entity.nameMarker = marker;
         return marker;
     }
@@ -838,11 +849,11 @@ export class Editor {
 
         entity.layer.on('pm:markerdragend', () => {
             if (this.isAreaTooBig(entity.toGeoJSON())) {
-                alert("The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.");
+                alert('The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.');
             }
         });
 
-        entity.layer._layers[entity.layer._leaflet_id-1].on('drag', () => {
+        entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
             // console.log("dragging");
             entity.updateBufferedLayer();
             this.refreshEntity(entity);
@@ -870,15 +881,18 @@ export class Editor {
 
         if (checkRules) this.refreshEntity(entity);
     }
-    
-    private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
-        if (entity == null) return;
 
-        // Update name tooltip
+    private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
+        if (entity == null) {
+            return;
+        }
+
+        // Update the entities name marker
         let a: L.Marker = entity.nameMarker;
         let posMarker = entity.nameMarker.getLatLng();
         let posEntity = entity.layer.getBounds().getCenter();
-        if ((posEntity.lat != posMarker.lat) || (posEntity.lng != posMarker.lng)) {
+
+        if (posEntity.lat != posMarker.lat || posEntity.lng != posMarker.lng) {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
@@ -886,6 +900,8 @@ export class Editor {
             // console.log('tooltip content changed', entity.nameMarker._tooltip);
             entity.nameMarker.setTooltipContent(entity.name);
         }
+
+        // Only show the name if zoomed beyond 19
         var zoom = this._map.getZoom();
         if (zoom >= 19) {
             //@ts-ignore
@@ -895,7 +911,9 @@ export class Editor {
             this._nameTooltips[entity.id]._tooltip.setOpacity(0);
         }
 
-        if (checkRules) entity.checkAllRules();
+        if (checkRules) {
+            entity.checkAllRules();
+        }
         entity.setLayerStyle(this._currentLayerFilterStyle);
     }
 
@@ -905,9 +923,8 @@ export class Editor {
         }
     }
 
-    private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity>|null = null) {
-        this.loadingScreenDescription('Validate entitys.');
-        this.loadingScreenShow(true);
+    private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity> | null = null) {
+        showNotification('Validating...');
         if (entitysToRefresh) {
             this._validateEntitiesQueue = entitysToRefresh;
         } else {
@@ -915,14 +932,15 @@ export class Editor {
                 this._validateEntitiesQueue.push(this._currentRevisions[entityid]);
             }
         }
-        // console.log(`Prepped ${this._validateEntitiesQueue.length} entities for validation.`);
         this.validateSlowly();
     }
 
     // Slowly validate entities in chunks
     private validateSlowly() {
         let validated = 0;
-        this.loadingScreenDescription(`${this._validateEntitiesQueue.length} entities left for validation by small bureaucrats.<br /><img src="img/hermes.png" height="48px" />`);
+        // this.showLoadingMessage(
+        //     `<img src="img/hermes.png" height="48px" /> ${this._validateEntitiesQueue.length} entities left for validation by small bureaucrats.`,
+        // );
         while (this._validateEntitiesQueue.length > 0 && validated < 50) {
             let entity = this._validateEntitiesQueue.pop();
             validated = validated + 1;
@@ -931,13 +949,12 @@ export class Editor {
 
         // At end of validation cycle, check if done or to continue
         if (this._validateEntitiesQueue.length == 0) {
-            this.loadingScreenDescription('Finished validating.');
-            this.loadingScreenShow(false);
+            showNotification('Validation done', 'success');
         } else {
             // Let the UI redraw by resting a while, then continue until validated
             setTimeout(() => {
                 this.validateSlowly();
-            }, 50)
+            }, 50);
         }
     }
 
@@ -949,9 +966,9 @@ export class Editor {
     // Block crazy large areas
     private isAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
-        
+
         if (area > 5000) return true;
-        return false;   
+        return false;
     }
 
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
@@ -977,7 +994,7 @@ export class Editor {
         this._map.removeLayer(entity.bufferLayer);
     }
 
-    private removeEntity(entity: MapEntity, removeInRepository:boolean=true) {
+    private removeEntity(entity: MapEntity, removeInRepository: boolean = true) {
         this.removeEntityNameTooltip(entity);
         this.removeEntityFromLayers(entity);
 
@@ -1003,16 +1020,14 @@ export class Editor {
 
         //Place both in the same group so that we can toggle them on and off together on the map
         //@ts-ignore
-        groups.placement = new L.LayerGroup().addTo(map);
-        //@ts-ignore
         this._placementLayers.addTo(groups.placement);
         //@ts-ignore
         this._placementBufferLayers.addTo(groups.placement);
 
-        this._validateEntitiesQueue = new Array<MapEntity>;
+        this._validateEntitiesQueue = new Array<MapEntity>();
 
         this._lastEnityFetch = 0;
-        this._autoRefreshIntervall = 90;  // Seconds
+        this._autoRefreshIntervall = 90; // Seconds
 
         this._currentRevisions = {};
 
@@ -1066,7 +1081,12 @@ export class Editor {
 
         // Set path style options for newly created layers
         this._map.pm.setPathOptions(DefaultLayerStyle);
-        this._map.pm.setGlobalOptions({ tooltips: false, allowSelfIntersection: false, snappable: true, draggable: true }); 
+        this._map.pm.setGlobalOptions({
+            tooltips: false,
+            allowSelfIntersection: false,
+            snappable: true,
+            draggable: true,
+        });
 
         // Add the event handler for newly created layers
         this._map.on('pm:create', this.onNewLayerCreated.bind(this));
@@ -1077,8 +1097,12 @@ export class Editor {
             this.setMode('blur');
         });
 
-        this.onScreenInfo = document.querySelector(".entity-onscreen-info");
-        this.sqmTooltip = new L.Tooltip({ permanent: true, interactive: false, direction: 'center', className: 'shape-tooltip' });
+        this.sqmTooltip = new L.Tooltip({
+            permanent: true,
+            interactive: false,
+            direction: 'center',
+            className: 'shape-tooltip',
+        });
         this.sqmTooltip.setLatLng([0, 0]);
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
@@ -1100,9 +1124,6 @@ export class Editor {
             this.keyEscapeListener(evt);
         };
 
-        // Add controls
-        this.addHelpButton();
-
         // Add search control
         //@ts-ignore
         var searchControl = new L.Control.Search({
@@ -1110,59 +1131,50 @@ export class Editor {
             propertyName: 'name',
             marker: false,
             zoom: 19,
-            initial: false
+            initial: false,
         });
         map.addControl(searchControl);
     }
-
     private addToggleEditButton() {
-        const customButton = L.Control.extend({
-            options: { position: 'bottomleft' },
+        if (IS_EDITING_POSSIBLE) {
+            const customButton = L.Control.extend({
+                options: { position: 'bottomleft' },
 
-            onAdd: () => {
-                let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
-                btn.title = 'Edit';
-                btn.textContent = 'Edit';
-                L.DomEvent.disableClickPropagation(btn);
+                onAdd: () => {
+                    let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
+                    btn.title = 'Edit';
+                    btn.textContent = 'Edit';
+                    L.DomEvent.disableClickPropagation(btn);
 
-                btn.onclick = () => {
-                    this.toggleEditMode();
-                    btn.textContent = this._isEditMode ? 'Done' : 'Edit';
-                    btn.title = this._isEditMode ? 'Done' : 'Edit';
-                };
+                    btn.onclick = () => {
+                        this.toggleEditMode();
+                        btn.textContent = this._isEditMode ? 'Done' : 'Edit';
+                        btn.title = this._isEditMode ? 'Done' : 'Edit';
+                    };
 
-                return btn;
-            },
-        });
-
-        this._map.addControl(new customButton());
+                    return btn;
+                },
+            });
+            this._map.addControl(new customButton());
+        }
+        if (NOTE_ABOUT_EDITING) {
+            const msg = L.Control.extend({
+                options: { position: 'bottomleft' },
+                onAdd: () => {
+                    var div = L.DomUtil.create('p', 'btn btn-gradient1 button-shake-animate');
+                    div.innerHTML += NOTE_ABOUT_EDITING;
+                    return div;
+                },
+            });
+            this._map.addControl(new msg());
+        }
     }
 
-
-    private addHelpButton() {
-        const customButton = L.Control.extend({
-            options: { position: 'topleft' },
-
-            onAdd: () => {
-                let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
-                btn.title = 'Guide to the placement process';
-                btn.textContent = '❔';
-                L.DomEvent.disableClickPropagation(btn);
-
-                btn.onclick = () => {
-                    window.open('instructions/', '_blank').focus();
-                };
-
-                return btn;
-            },
-        });
-
-        this._map.addControl(new customButton());
-    }
-
-    private formatDate(timeStamp: any,
-                        styleDate: "full" | "long" | "medium" | "short" = "short",
-                        styleTime: "full" | "long" | "medium" | "short" = "short"): string {
+    private formatDate(
+        timeStamp: any,
+        styleDate: 'full' | 'long' | 'medium' | 'short' = 'short',
+        styleTime: 'full' | 'long' | 'medium' | 'short' = 'short',
+    ): string {
         // let date = new Date(Date.parse(timeStamp + ' UTC'));
         let date = new Date(Date.parse(timeStamp));
         // console.log('date', date);
@@ -1175,108 +1187,129 @@ export class Editor {
         let differences: Array<EntityDifferences> = [];
         // If previous entity is null it must be the first revision
         if (previous == null) {
-            differences.push({ what: 'Created',
-                                changeShort: 'Created',
-                                changeLong: `Someone created this entity.`
-                            });
+            differences.push({ what: 'Created', changeShort: 'Created', changeLong: `Someone created this entity.` });
             return differences;
         }
 
         // Go through all relevant properties and look for differences, list them verbosly under differences
         if (current.isDeleted != previous.isDeleted) {
-            differences.push({ what: 'Deleted',
-                                changeShort: 'Is Deleted',
-                                changeLong: `Is Deleted due to ${current.deleteReason}.`
-                            });
+            differences.push({
+                what: 'Deleted',
+                changeShort: 'Is Deleted',
+                changeLong: `Is Deleted due to ${current.deleteReason}.`,
+            });
         }
         if (current.name != previous.name) {
-            differences.push({ what: 'Name',
-                                changeShort: 'Name Changed',
-                                changeLong: `Someone changed the name from ${previous.name} to ${current.name}.`
-                            });
+            differences.push({
+                what: 'Name',
+                changeShort: 'Name Changed',
+                changeLong: `Someone changed the name from ${previous.name} to ${current.name}.`,
+            });
         }
         if (current.description != previous.description) {
-            differences.push({ what: 'Description',
-                                changeShort: 'Description Changed',
-                                changeLong: `Someone changed the description from ${previous.description} to ${current.description}.`
-                            });
+            differences.push({
+                what: 'Description',
+                changeShort: 'Description Changed',
+                changeLong: `Someone changed the description from ${previous.description} to ${current.description}.`,
+            });
         }
         if (current.contactInfo != previous.contactInfo) {
-            differences.push({ what: 'Contact Info',
-                                changeShort: 'Contact Info Changed',
-                                changeLong: `Someone changed the contact info from ${previous.contactInfo} to ${current.contactInfo}.`
-                            });
+            differences.push({
+                what: 'Contact Info',
+                changeShort: 'Contact Info Changed',
+                changeLong: `Someone changed the contact info from ${previous.contactInfo} to ${current.contactInfo}.`,
+            });
         }
         if (current.nrOfPeople != previous.nrOfPeople) {
-            differences.push({ what: 'NrOfPeople',
-                                changeShort: 'NrOfPeople Changed',
-                                changeLong: `Someone changed the number of people from ${previous.nrOfPeople} to ${current.nrOfPeople}.`
-                            });
+            differences.push({
+                what: 'NrOfPeople',
+                changeShort: 'NrOfPeople Changed',
+                changeLong: `Someone changed the number of people from ${previous.nrOfPeople} to ${current.nrOfPeople}.`,
+            });
         }
         if (current.nrOfVehicles != previous.nrOfVehicles) {
-            differences.push({ what: 'NrOfVehicles',
-                                changeShort: 'NrOfVehicles Changed',
-                                changeLong: `Someone changed the number of vehicles from ${previous.nrOfVehicles} to ${current.nrOfVehicles}.`
-                            });
+            differences.push({
+                what: 'NrOfVehicles',
+                changeShort: 'NrOfVehicles Changed',
+                changeLong: `Someone changed the number of vehicles from ${previous.nrOfVehicles} to ${current.nrOfVehicles}.`,
+            });
         }
         if (current.additionalSqm != previous.additionalSqm) {
-            differences.push({ what: 'AdditionalSqm',
-                                changeShort: 'AdditionalSqm Changed',
-                                changeLong: `Someone changed additional Sqm from ${previous.additionalSqm} to ${current.additionalSqm}.`
-                            });
+            differences.push({
+                what: 'AdditionalSqm',
+                changeShort: 'AdditionalSqm Changed',
+                changeLong: `Someone changed additional Sqm from ${previous.additionalSqm} to ${current.additionalSqm}.`,
+            });
         }
         if (current.powerNeed != previous.powerNeed) {
-            differences.push({ what: 'PowerNeed',
-                                changeShort: 'PowerNeed Changed',
-                                changeLong: `Someone changed power need from ${previous.powerNeed} to ${current.powerNeed}.`
-                            });
+            differences.push({
+                what: 'PowerNeed',
+                changeShort: 'PowerNeed Changed',
+                changeLong: `Someone changed power need from ${previous.powerNeed} to ${current.powerNeed}.`,
+            });
         }
         if (current.amplifiedSound != previous.amplifiedSound) {
-            differences.push({ what: 'AmplifiedSound',
-                                changeShort: 'AmplifiedSound Changed',
-                                changeLong: `Someone changed amplified sound from ${previous.amplifiedSound} to ${current.amplifiedSound}.`
-                            });
+            differences.push({
+                what: 'AmplifiedSound',
+                changeShort: 'AmplifiedSound Changed',
+                changeLong: `Someone changed amplified sound from ${previous.amplifiedSound} to ${current.amplifiedSound}.`,
+            });
         }
         if (current.color != previous.color) {
-            differences.push({ what: 'Color',
-                                changeShort: 'Color Changed',
-                                changeLong: `Someone changed color from ${previous.color} to ${current.color}.`
-                            });
+            differences.push({
+                what: 'Color',
+                changeShort: 'Color Changed',
+                changeLong: `Someone changed color from ${previous.color} to ${current.color}.`,
+            });
         }
         if (current.supressWarnings != previous.supressWarnings) {
-            differences.push({ what: 'SupressWarnings',
-                                changeShort: 'SupressWarnings Changed',
-                                changeLong: `Someone changed supress warnings from ${previous.supressWarnings} to ${current.supressWarnings}.`
-                            });
+            differences.push({
+                what: 'SupressWarnings',
+                changeShort: 'SupressWarnings Changed',
+                changeLong: `Someone changed supress warnings from ${previous.supressWarnings} to ${current.supressWarnings}.`,
+            });
         }
         let currentGeoJson = JSON.stringify(current.toGeoJSON()['geometry']);
         let previousGeoJson = JSON.stringify(previous.toGeoJSON()['geometry']);
         if (currentGeoJson != previousGeoJson) {
-            differences.push({ what: 'GeoJson',
-                                changeShort: 'Polygon Changed',
-                                changeLong: `Someone changed the polygon.`
-                            });
+            differences.push({
+                what: 'GeoJson',
+                changeShort: 'Polygon Changed',
+                changeLong: `Someone changed the polygon.`,
+            });
         }
         if (differences.length == 0) {
-            differences.push({ what: 'NoDifference',
-                                changeShort: 'No difference',
-                                changeLong: `No difference detected between revisions.`
-                            });
+            differences.push({
+                what: 'NoDifference',
+                changeShort: 'No difference',
+                changeLong: `No difference detected between revisions.`,
+            });
         }
         return differences;
     }
 
     public async toggleEditMode() {
+        if (!IS_EDITING_POSSIBLE) {
+            this._isEditMode = false;
+            return;
+        }
+
         this._isEditMode = !this._isEditMode;
 
-        if (localStorage.getItem("hasSeenInstructions2") == null)
-        {
-            localStorage.setItem("hasSeenInstructions2", "true");
-
-            // Show instructions when entering edit mode, and wait for the user 
-            // to press a button on that screen before continuing
-            if (this._isEditMode){
-                await this.ShowInstructionsScreenAndWait();
+        // Show instructions when entering edit mode, and wait for the user
+        // to press a button on that screen before continuing
+        if (this._isEditMode) {
+            if (localStorage.getItem('hasSeenEditorInstructions') == null) {
+                showDrawers([
+                    { file: 'entering_edit_mode', position: 'bottom' },
+                    {
+                        file: 'entering_edit_mode_page_two',
+                        position: 'bottom',
+                        onClose: () => {
+                            localStorage.setItem('hasSeenEditorInstructions', 'true');
+                        },
+                    },
+                ]);
             }
         }
 
@@ -1296,57 +1329,9 @@ export class Editor {
         this._map.pm.Toolbar.changeActionsOfControl('Polygon', ['cancel']);
     }
 
-    ShowInstructionsScreenAndWait() {
-        return new Promise((resolve) => {
-            const instructions = document.getElementById("editMsg");
-            const pageOne = document.getElementById("pageOne");
-            const pageTwo = document.getElementById("pageTwo");
-
-            if (instructions != null && pageOne != null && pageTwo != null)
-            {
-                //Inactivate the customButton
-                const customButton = document.querySelector(".placement-btn");
-                customButton?.setAttribute("disabled", "");
-
-                //Show the instructions screen
-                instructions.removeAttribute("hidden");   
-                
-                //Create the content for pageOne
-                const nextButton = document.createElement('button');
-                //Center this button in its div
-                nextButton.style.margin = "auto";
-                nextButton.style.display = "block";
-                nextButton.innerHTML = 'NEXT >';
-                nextButton.onclick = (e) => {
-                    pageOne.setAttribute("hidden", "");
-                    pageTwo.removeAttribute("hidden");
-                };
-                pageOne.appendChild(nextButton);
-
-                //Create the content for pageTwo
-                const okButton = document.createElement('button');
-                //Center this button in its div
-                okButton.style.margin = "auto";
-                okButton.style.display = "block";
-                okButton.innerHTML = 'Let\'s go!';
-                okButton.onclick = (e) => {
-                    instructions.setAttribute("hidden", "");
-                    customButton?.removeAttribute("disabled");
-                    resolve(true);
-                }
-                pageTwo.appendChild(okButton);
-            }
-            else {
-                resolve(true);
-            }
-        });
-        
-    }
-
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        this.loadingScreenShow(true);
-        this.loadingScreenDescription('Load your drawn polygons from da interweb!');
+        showNotification('Loading your drawn polygons from da interweb!');
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
 
@@ -1356,7 +1341,7 @@ export class Editor {
         // Refresh enity with no rulecheck
         this.refreshAllEntities(false);
 
-        // Delayed start of validation 
+        // Delayed start of validation
         setTimeout(() => {
             this.refreshEntitiesSlow();
         }, 100);
@@ -1367,22 +1352,10 @@ export class Editor {
         // }, this._autoRefreshIntervall * 1000);
 
         // Edit button disabled after the event took place
-        // this.addToggleEditButton();
+        this.addToggleEditButton();
 
         // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
-    }
-
-    private consoleLogAllEntitiesAsOneGeoJSONFeatureCollection() {
-        let featureCollection = {
-            type: 'FeatureCollection',
-            features: []
-        };
-        for (const entityid in this._currentRevisions) {
-            let entity = this._currentRevisions[entityid];
-            featureCollection.features.push(entity.toGeoJSON());
-        }
-        console.log(JSON.stringify(featureCollection));
     }
 
     // Atutomatically check for updates every minute or so
@@ -1391,12 +1364,12 @@ export class Editor {
         if (this._isEditMode == false) {
             var now = new Date().getTime() / 1000;
             // If last check was performed too long ago, fetch again
-            if ((now - this._lastEnityFetch) > this._autoRefreshIntervall) {
+            if (now - this._lastEnityFetch > this._autoRefreshIntervall) {
                 this._lastEnityFetch = now;
                 const changes: EntityChanges = await this._repository.reload();
                 // console.log('checkForUpdatedEntities look for changed enities', changes);
-                let changesToQueue:Array<MapEntity> = new Array<MapEntity>;
-                let changesInformative:Array<string> = new Array<string>;
+                let changesToQueue: Array<MapEntity> = new Array<MapEntity>();
+                let changesInformative: Array<string> = new Array<string>();
                 for (const id of changes.refreshedAdded) {
                     let entity = this._repository.getEntityById(id);
                     changesInformative.push(`Add new entity ${entity.id} ${entity.name}`);
@@ -1427,12 +1400,12 @@ export class Editor {
         // Set next automatic check
         setTimeout(() => {
             this.checkForUpdatedEntities();
-        }, 10000)
+        }, 10000);
     }
 
     public gotoEntity(id: string) {
         const entity = this._repository.getEntityById(id);
-        if (entity) { 
+        if (entity) {
             const latlong = entity.layer.getBounds().getCenter();
             this._map.setView(latlong, 19);
             // Update the popup-position
@@ -1442,24 +1415,27 @@ export class Editor {
         }
     }
 
-    public loadingScreenShow(show: boolean) {
-        const loadingOverlay = document.getElementById('loading-box');
-        if (show) {
-            loadingOverlay.removeAttribute("hidden");
+    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
+        if (entity || customMsg) {
+            let tooltipText = '';
+
+            if (customMsg) {
+                tooltipText = customMsg;
+            } else {
+                tooltipText = entity.area + 'm²';
+
+                for (const rule of entity.getAllTriggeredRules()) {
+                    if (rule.severity >= 2) {
+                        tooltipText += '<br>' + rule.shortMessage;
+                    }
+                }
+            }
+
+            this.sqmTooltip.openOn(this._map);
+            this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
+            this.sqmTooltip.setContent(tooltipText);
         } else {
-            loadingOverlay.setAttribute("hidden", "");
+            this.sqmTooltip.close();
         }
-    }
-
-    public loadingScreenHeader(header: string) {
-        const loadingHeader = document.getElementById('loading-overlay-header');
-        // console.log('loadingScreenHeader()', header);
-        loadingHeader.innerText = header;
-    }
-
-    public loadingScreenDescription(description: string) {
-        const loadingDescription = document.getElementById('loading-overlay-decription');
-        // console.log('loadingScreenDescription()', description);
-        loadingDescription.innerHTML = description;
     }
 }

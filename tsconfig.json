@@ -1,5 +1,8 @@
 {
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true
-  }
+    "compilerOptions": {
+        "lib": ["es2020", "dom"],
+        "moduleResolution": "nodenext",
+        "target": "es2020",
+        "allowSyntheticDefaultImports": true
+    }
 }

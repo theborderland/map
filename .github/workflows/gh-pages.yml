@@ -1,32 +1,32 @@
-name: GitHub Pages Rollup Deploy
+name: Deploy commits on 'main' to GitHub Pages
 
 on:
-  push:
-    branches:
-      - main  # Set a branch name to trigger deployment
+    push:
+        branches:
+            - main # Set a branch name to trigger deployment
 # uncomment to do a deploy on every pull request (and changes to it)
 #  pull_request:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-20.04
-    permissions:
-      contents: write
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: main
+    deploy:
+        runs-on: ubuntu-20.04
+        permissions:
+            contents: write
+        concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  ref: main
 
-      - name: Install dependencies
-        run: npm install
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Build
-        run: npm run build
+            - name: Build
+              run: npm run build
 
-      - name: Deploy to Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+            - name: Deploy to Pages
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./public
