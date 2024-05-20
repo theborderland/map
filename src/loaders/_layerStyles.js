@@ -83,6 +83,24 @@ export function getStyleFunction(name) {
                     opacity: 0.5,
                     fillOpacity: 0,
                 };
+            case 'quarter':
+                return {
+                    ...baseStyle,
+                    weight: 5,
+                    dashArray: '10',
+                    color: 'white',
+                    opacity: 0.5,
+                    fillOpacity: 0,
+                };
+                case 'neighbourhood':
+                    return {
+                        ...baseStyle,
+                        weight: 5,
+                        dashArray: '10',
+                        color: 'white',
+                        opacity: 0.5,
+                        fillOpacity: 0,
+                    };
             case 'minorroad':
                 return {
                     ...baseStyle,
