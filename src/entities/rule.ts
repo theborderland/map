@@ -135,6 +135,7 @@ export class Rule {
 /** Utility function to generate a rule generator function to be used with the editor */
 export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
     return () => [
+        isBiggerThanNeeded(),
         isCalculatedAreaTooBig(),
         hasLargeEnergyNeed(),
         hasMissingFields(),
