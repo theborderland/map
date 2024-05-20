@@ -17,7 +17,7 @@ import { Editor } from '../editor';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
-    let visibleLayers = new Set(['Placement', 'Placement_map']);
+    let visibleLayers = new Set(['Placement', 'Placement_map', 'POI']);
 
     // Create map
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false }).setView(
@@ -189,7 +189,13 @@ export const createMap = async () => {
             L.DomEvent.disableClickPropagation(btn);
 
             btn.onclick = () => {
-                showDrawer({ file: 'test/guide', position: 'end' });
+                showDrawer({
+                    file: 'guide-home',
+                    position: 'end',
+                    onClose: () => {
+                        localStorage.setItem('hasSeenPlacementWelcome', 'true');
+                    },
+                });
             };
 
             return btn;

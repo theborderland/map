@@ -1,5 +1,6 @@
 import { hash } from '../utils';
 
+let openedDrawer = null;
 let onCloseResolve = null;
 let onCloseAction = null;
 let onBtnAction = null;
@@ -12,6 +13,9 @@ let drawerLoader = new Promise<any>(async (resolve) => {
     const btn = document.getElementById('drawer-button');
 
     drawerElement.addEventListener('sl-request-close', (event) => {
+        if (drawerElement.placement == 'end') {
+            return;
+        }
         if (event.detail.source === 'overlay') {
             event.preventDefault();
         }
@@ -23,6 +27,9 @@ let drawerLoader = new Promise<any>(async (resolve) => {
         }
         if (onCloseResolve) {
             onCloseResolve();
+        }
+        if (openedDrawer) {
+            openedDrawer = null;
         }
         hash.page = undefined;
     });
@@ -46,21 +53,28 @@ export async function showDrawers(drawerOptions: Array<DrawerOptions>) {
 }
 
 export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: OrderOptions = {}) {
-    return new Promise(async (resolve) => {
+    return new Promise<void>(async (resolve) => {
         onCloseAction = drawerOptions.onClose || null;
         onCloseResolve = resolve;
         onBtnAction = null;
         const drawer = await drawerLoader;
         drawer.placement = drawerOptions.position || 'bottom';
-        const content = drawer.querySelector('.content');
+        const content = drawer.querySelector('.container');
         content.innerHTML = '';
         const res = await fetch(`/drawers/${drawerOptions.file}.html`);
         const html = await res.text();
 
+        // NOTE: a last day hack
+        if (drawerOptions.file.indexOf('home') > -1) {
+            drawerOptions.keepOpen = true;
+        }
+
         // Content
-        const cc = document.createElement('p');
+        const cc = document.createElement('div');
         cc.innerHTML = html;
-        content.appendChild(cc);
+        for (const child of Array.from(cc.children)) {
+            content.appendChild(child);
+        }
 
         // Button
         const btn = document.getElementById('drawer-button');
@@ -68,14 +82,24 @@ export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: Ord
             btn.innerHTML = 'Continue';
             onBtnAction = resolve;
         } else {
-            btn.innerHTML = 'Close';
-            onBtnAction = () => drawer.hide();
+            if (openedDrawer && openedDrawer.keepOpen) {
+                const target = { ...openedDrawer };
+                btn.innerHTML = 'Back';
+                onBtnAction = async () => {
+                    await showDrawer(target);
+                    resolve();
+                };
+            } else {
+                btn.innerHTML = 'Close';
+                onBtnAction = () => drawer.hide();
+            }
         }
         if (drawerOptions.btn) {
             btn.innerHTML = drawerOptions.btn;
         }
 
         hash.page = drawerOptions.file;
+        openedDrawer = drawerOptions;
         drawer.show();
     });
 }
@@ -85,6 +109,7 @@ type DrawerOptions = {
     position: 'end' | 'bottom' | 'start' | 'top';
     onClose?: () => any;
     btn?: string;
+    keepOpen?: boolean;
 };
 
 type OrderOptions = {

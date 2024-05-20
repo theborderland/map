@@ -62,6 +62,7 @@ class HashMetaImplementation {
         // Decode any opened page
         const pageVal = this._hashMeta.find((val) => val.startsWith(PAGE_KEY));
         this._page = pageVal ? pageVal.substring(PAGE_KEY.length) : undefined;
+        showDrawer({ file: this.page, position: 'end' });
     }
 
     constructor() {

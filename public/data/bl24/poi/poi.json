@@ -4,20 +4,20 @@
         {
             "type": "Feature",
             "properties": {
-                "name": "Red Sound Dot",
+                "name": "Western Meadow S",
                 "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
                 "link": "page:soundspot",
                 "category": "sounddot"
             },
             "geometry": {
-                "coordinates": [14.918556142129404, 57.62385367089115],
+                "coordinates": [14.918656142129404, 57.62385367089115],
                 "type": "Point"
             }
         },
         {
             "type": "Feature",
             "properties": {
-                "name": "Red Sound Dot",
+                "name": "Western Meadow N",
                 "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
                 "link": "#page:soundspot",
                 "category": "sounddot"
@@ -30,7 +30,7 @@
         {
             "type": "Feature",
             "properties": {
-                "name": "Red Sound Dot",
+                "name": "The Cleavage",
                 "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
                 "link": "#page:soundspot",
                 "category": "sounddot"
@@ -43,7 +43,7 @@
         {
             "type": "Feature",
             "properties": {
-                "name": "Red Sound Dot",
+                "name": "The Groove",
                 "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
                 "link": "#page:soundspot",
                 "category": "sounddot"
@@ -56,7 +56,7 @@
         {
             "type": "Feature",
             "properties": {
-                "name": "The Church",
+                "name": "The Brewery",
                 "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
                 "link": "#page:soundspot",
                 "category": "sounddot-indoor"

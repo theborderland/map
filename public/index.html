@@ -16,6 +16,9 @@
         <link rel="stylesheet" href="lib/leaflet-search/dist/leaflet-search.min.css" />
         <link rel="stylesheet" href="lib/leaflet-geoman/leaflet-geoman.css" />
 
+        <!-- Simple Grid -->
+        <link rel="stylesheet" href="lib/grid/simple-grid.css" />
+
         <!-- Shoelace -->
         <link
             rel="stylesheet"
@@ -24,10 +27,22 @@
 
         <!-- Site -->
         <link rel="stylesheet" href="index.css" />
+        <link rel="stylesheet" href="drawer.css" />
         <style>
             :root {
-                --sl-z-index-drawer: 10000;
+                --sl-z-index-drawer: 11000;
                 --sl-z-index-toast: 10000;
+                --sl-color-primary-50: #20b2aa;
+                --sl-color-primary-100: #20b2aa;
+                --sl-color-primary-200: #20b2aa;
+                --sl-color-primary-300: #20b2aa;
+                --sl-color-primary-400: #20b2aa;
+                --sl-color-primary-500: #20b2aa;
+                --sl-color-primary-600: #20b2aa;
+                --sl-color-primary-700: #20b2aa;
+                --sl-color-primary-800: #20b2aa;
+                --sl-color-primary-900: #20b2aa;
+                --sl-color-primary-950: #20b2aa;
             }
         </style>
     </head>
@@ -37,7 +52,7 @@
 
         <!-- Instructions and informations drawer -->
         <sl-drawer id="drawer" placement="bottom" class="drawer-placement-bottom" no-header>
-            <div class="content"></div>
+            <div id="drawer-content" class="container"></div>
             <sl-button id="drawer-button" slot="footer" variant="primary">Close</sl-button>
         </sl-drawer>
 

@@ -51,6 +51,7 @@ button:disabled {
 
 html,
 body {
+    font-family: 'Arial', sans-serif;
     height: 100%;
     margin: 0;
 }
@@ -446,7 +447,7 @@ body,
     text-shadow: 1px 1px #000;
 }
 
-@font-face{
-        font-family: "bradleyHand";
-        src: url("./fonts/Bradley Hand ITC TT Bold.woff") format('woff');
+@font-face {
+    font-family: 'bradleyHand';
+    src: url('./fonts/Bradley Hand ITC TT Bold.woff') format('woff');
 }
