@@ -61,7 +61,7 @@ export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: Ord
         drawer.placement = drawerOptions.position || 'bottom';
         const content = drawer.querySelector('.container');
         content.innerHTML = '';
-        const res = await fetch(`/drawers/${drawerOptions.file}.html`);
+        const res = await fetch(`drawers/${drawerOptions.file}.html`);
         const html = await res.text();
 
         // NOTE: a last day hack
