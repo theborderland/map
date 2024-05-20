@@ -126,6 +126,7 @@ export function getStyleFunction(name) {
                     fillOpacity: 0.75,
                     weight: 0,
                 };
+            case 'closetosanctuary':
             case 'greensoundzone':
                 return {
                     ...baseStyle,

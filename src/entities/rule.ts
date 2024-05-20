@@ -206,6 +206,20 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Blocking a path',
             'You are possibly blocking a path for walking around (the black dotted lines). Keep it clean if possible or plan accordingly!',
         ),
+        // Special notification when close to sanctuary
+        isOverlappingOrContained(
+            groups.closetosanctuary,
+            1,
+            'Close to the  sanctuary',
+            'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
+        ),
+        // Special notification when on the western meadow
+        isOverlappingOrContained(
+            groups.redsoundzone,
+            1,
+            'In the western meadow',
+            "You're in the western meadow, please be extra careful of keeping the land in good condition and do not put your overnight camp here unless necessary, public dreams are prefered",
+        ),
     ];
 }
 

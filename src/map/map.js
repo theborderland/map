@@ -74,6 +74,8 @@ export const createMap = async () => {
     // map.removeLayer(map.groups.publicplease);
     // map.groups.oktocamp.addTo(map.groups.mapstuff);
     // map.removeLayer(map.groups.oktocamp);
+    //map.groups.closetosanctuary.addTo(map.groups.mapstuff);
+    //map.removeLayer(map.groups.closetosanctuary);
     map.groups.area.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.area);
     map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
@@ -85,6 +87,8 @@ export const createMap = async () => {
     map.removeLayer(map.groups.parking);
     map.groups.toilet.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.toilet);
+    map.groups.bridge.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.bridge);
 
     // Camp names layer - used by the editor to render names of placement
     map.groups.names = new L.LayerGroup();
@@ -101,7 +105,7 @@ export const createMap = async () => {
     map.groups.orangesoundzone.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.orangesoundzone);
     map.groups.redsoundzone.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.redsoundzone);
+    //map.removeLayer(map.groups.redsoundzone);
 
     // TODO: Its unknown what this does
     map.on('overlayadd', function (eventLayer) {

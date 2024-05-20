@@ -12,7 +12,7 @@ export const loadGeoJsonFeatureCollections = async (map, groupByProperty, filena
     const geojsonData = await response.json();
 
     // Find unique names
-    const uniqueNames = new Set(geojsonData.features.map((feature) => feature.properties[groupByProperty]));
+    const uniqueNames = new Set<string>(geojsonData.features.map((feature) => feature.properties[groupByProperty]));
 
     //Create groups per type
     uniqueNames.forEach((value) => {
