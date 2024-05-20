@@ -1,0 +1,24 @@
+/* The styles applies to things shown in the drawer */
+
+.alert__message {
+    font-family: bradleyHand !important;
+}
+
+#drawer-content {
+    font-family: Arial, sans-serif;
+}
+
+#drawer-content img {
+    max-width: 100%;
+}
+
+#drawer-content li {
+    margin-bottom: 12px;
+}
+
+#drawer-content h1,
+#drawer-content h2,
+#drawer-content h3,
+#drawer-content h4 {
+    font-family: bradleyHand;
+}
