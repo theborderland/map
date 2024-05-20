@@ -1,9 +1,5 @@
 /* The styles applies to things shown in the drawer */
 
-.alert__message {
-    font-family: bradleyHand !important;
-}
-
 #drawer-content {
     font-family: Arial, sans-serif;
 }
