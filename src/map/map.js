@@ -239,9 +239,9 @@ export const createMap = async () => {
     hash.layers = visibleLayers;
 
     // Log the the lat and long to the console when clicking the map or a layer or marker
-    // map.on('click', function (e) {
-    //     console.log(e.latlng);
-    // });
+    map.on('click', function (e) {
+        console.log(e.latlng);
+    });
 
     // Add points of interests to the map
     await addPointsOfInterestsTomap(map.groups.poi);
