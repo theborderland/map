@@ -169,7 +169,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Outside border!',
             'You have placed yourself outside our land, please fix that <3',
         ),
-        isInsideBoundaries(
+        isOverlappingOrContained(
             groups.hiddenforbidden,
             3,
             'Inside forbidden zone!',
