@@ -8,7 +8,7 @@
       },
       "geometry": {
         "coordinates": [
-          14.928950545794436,
+          14.929250545794436,
           57.62656886390215
         ],
         "type": "Point"
@@ -17,11 +17,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Butterflies"
+        "name": "Butterflies",
+        "size":"0.0015",
+        "rotation":24
       },
       "geometry": {
         "coordinates": [
-          14.925892223281949,
+          14.925592223281949,
           57.6262463179813
         ],
         "type": "Point"
@@ -30,7 +32,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Ants"
+        "name": "Ants",
+        "rotation":-15
       },
       "geometry": {
         "coordinates": [
@@ -43,12 +46,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Indigo"
+        "name": "Indigo",
+        "size":0.0004,
+        "rotation":-90
       },
       "geometry": {
         "coordinates": [
-          14.92780753637092,
-          57.6260560972494
+          14.92777753637092,
+          57.6258260972494
         ],
         "type": "Point"
       }
@@ -73,8 +78,22 @@
       },
       "geometry": {
         "coordinates": [
-          14.92973829553327,
-          57.62568392337121
+          14.93000829553327,
+          57.62608392337121
+        ],
+        "type": "Point"
+      }
+    },{
+      "type": "Feature",
+      "properties": {
+        "name": "Amarelo",
+        "rotation":35,
+        "size":0.0012
+      },
+      "geometry": {
+        "coordinates": [
+          14.93080829553327,
+          57.62638392337121
         ],
         "type": "Point"
       }
@@ -82,11 +101,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Saffron"
+        "name": "Saffron",
+        "rotation":53
       },
       "geometry": {
         "coordinates": [
-          14.92888876150198,
+          14.92928876150198,
           57.625501970309614
         ],
         "type": "Point"
@@ -95,11 +115,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Clementime"
+        "name": "Clementime",
+        "rotation":-50
       },
       "geometry": {
         "coordinates": [
-          14.928641624328748,
+          14.928841624328748,
           57.625088437234666
         ],
         "type": "Point"
@@ -108,11 +129,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Avalanche"
+        "name": "Avalanche",
+        "size":0.0015
       },
       "geometry": {
         "coordinates": [
-          14.930479707050694,
+          14.930979707050694,
           57.62515460284314
         ],
         "type": "Point"
@@ -121,11 +143,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Alibi"
+        "name": "Alibi",
+        "size":0.001,
+        "rotation":30
       },
       "geometry": {
         "coordinates": [
-          14.931869853647527,
+          14.932409853647527,
           57.62514633214866
         ],
         "type": "Point"
@@ -134,7 +158,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Haunted"
+        "name": "Haunted",
+        "rotation":-40
       },
       "geometry": {
         "coordinates": [
@@ -147,11 +172,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Possesion"
+        "name": "Possesion",
+        "size":0.0013
       },
       "geometry": {
         "coordinates": [
-          14.930448814905048,
+          14.931008814905048,
           57.62436887846178
         ],
         "type": "Point"
@@ -164,7 +190,7 @@
       },
       "geometry": {
         "coordinates": [
-          14.929166790820915,
+          14.929336790820915,
           57.62431925319373
         ],
         "type": "Point"
@@ -173,12 +199,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Lime"
+        "name": "Lime",
+        "rotation":-15
       },
       "geometry": {
         "coordinates": [
-          14.929398481920742,
-          57.62480723205462
+          14.929598481920742,
+          57.62490723205462
         ],
         "type": "Point"
       }
@@ -199,11 +226,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Tsunami"
+        "name": "Tsunami",
+        "rotation":-30
       },
       "geometry": {
         "coordinates": [
-          14.929645619092867,
+          14.929845619092867,
           57.62372374468566
         ],
         "type": "Point"
@@ -212,11 +240,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Obsession"
+        "name": "Obsession",
+        "rotation":-40
       },
       "geometry": {
         "coordinates": [
-          14.931035765689671,
+          14.930735765689671,
           57.62365757647129
         ],
         "type": "Point"
@@ -225,11 +254,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Twin peaks"
+        "name": "Twin peaks",
+        "size": 0.0012
       },
       "geometry": {
         "coordinates": [
-          14.927653075638034,
+          14.927953075638034,
           57.62326883577663
         ],
         "type": "Point"
@@ -238,12 +268,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Minimal"
+        "name": "Minimal",
+        "rotation":-20,
+        "size":0.0013
       },
       "geometry": {
         "coordinates": [
-          14.928502609669323,
-          57.62270639506815
+          14.928802609669323,
+          57.62295639506815
         ],
         "type": "Point"
       }
@@ -251,7 +283,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "DTC"
+        "name": "DTC",
+        "rotation":-10
       },
       "geometry": {
         "coordinates": [
@@ -264,11 +297,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Druids"
+        "name": "Druids",
+        "rotation":15
       },
       "geometry": {
         "coordinates": [
-          14.930726844223926,
+          14.931026844223926,
           57.622474799304285
         ],
         "type": "Point"
@@ -277,12 +311,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Horny Nuns"
+        "name": "Horny Nuns",
+        "rotation":40,
+        "size":0.0012
       },
       "geometry": {
         "coordinates": [
-          14.931622716475403,
-          57.62205296036936
+          14.932122716475403,
+          57.62185296036936
         ],
         "type": "Point"
       }
@@ -290,12 +326,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Bro"
+        "name": "Bro",
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
-          14.930016324852147,
-          57.6218627176784
+          14.93056324852147,
+          57.6220627176784
         ],
         "type": "Point"
       }
@@ -303,23 +340,24 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Grasshoppers"
+        "name": "Grasshoppers",
+        "rotation":50
       },
       "geometry": {
         "coordinates": [
-          14.926649080872835,
-          57.62477414894926
+          14.926949080872835,
+          57.62479414894926
         ],
         "type": "Point"
       }
     },
     {
       "type": "Feature",
-      "properties": {"name":"Texas"},
+      "properties": {"name":"Texas","rotation":-10,"size":0.0013},
       "geometry": {
         "coordinates": [
-          14.92596945364781,
-          57.62364930543592
+          14.92616945364781,
+          57.62414930543592
         ],
         "type": "Point"
       }
@@ -327,12 +365,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Dragonflies"
+        "name": "Dragonflies",
+        "rotation":-55,
+        "size":0.001
       },
       "geometry": {
         "coordinates": [
           14.9258304389883,
-          57.62469971185158
+          57.62489971185158
         ],
         "type": "Point"
       }
@@ -344,8 +384,8 @@
       },
       "geometry": {
         "coordinates": [
-          14.92518170391017,
-          57.62525385102944
+          14.92538170391017,
+          57.62555385102944
         ],
         "type": "Point"
       }
@@ -357,8 +397,8 @@
       },
       "geometry": {
         "coordinates": [
-          14.924486630611739,
-          57.62401322920746
+          14.924636630611739,
+          57.62406322920746
         ],
         "type": "Point"
       }
@@ -366,12 +406,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Liminal"
+        "name": "Liminal",
+        "size":0.0008,
+        "rotation":-10
       },
       "geometry": {
         "coordinates": [
-          14.925923115428759,
-          57.623095141781334
+          14.926123115428759,
+          57.623295141781334
         ],
         "type": "Point"
       }
@@ -379,12 +421,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Squeeze"
+        "name": "Squeeze",
+        "rotation":-80,
+        "size":0.0005
       },
       "geometry": {
         "coordinates": [
-          14.926726311239804,
-          57.62323575127019
+          14.926806311239804,
+          57.62333575127019
         ],
         "type": "Point"
       }
@@ -392,12 +436,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Bardo"
+        "name": "Bardo",
+        "size":0.0013
       },
       "geometry": {
         "coordinates": [
-          14.926556404433512,
-          57.62252442709226
+          14.926956404433512,
+          57.62265442709226
         ],
         "type": "Point"
       }
@@ -405,12 +450,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Nutcase Central"
+        "name": "Nutcase\nCentral"
       },
       "geometry": {
         "coordinates": [
-          14.927236031658566,
-          57.62189580343559
+          14.927336031658566,
+          57.62199580343559
         ],
         "type": "Point"
       }
@@ -418,12 +463,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Samurai"
+        "name": "Samurai",
+        "rotation":-90,
+        "size":0.0005
       },
       "geometry": {
         "coordinates": [
-          14.92814734998342,
-          57.62167247399162
+          14.92824734998342,
+          57.62177247399162
         ],
         "type": "Point"
       }
@@ -431,11 +478,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Matador"
+        "name": "Matador",
+        "rotation":30,
+        "size":0.0012
       },
       "geometry": {
         "coordinates": [
-          14.929506604433413,
+          14.929706604433413,
           57.62130852677066
         ],
         "type": "Point"
@@ -444,7 +493,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Vampires"
+        "name": "Vampires",
+        "rotation":70,
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
@@ -470,12 +521,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Witches"
+        "name": "Witches",
+        "rotation":-10
       },
       "geometry": {
         "coordinates": [
-          14.932132436894193,
-          57.620994205782466
+          14.932232436894193,
+          57.621194205782466
         ],
         "type": "Point"
       }
@@ -483,11 +535,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Pots & Plates"
+        "name": "Pots & Plates",
+        "rotation":25
       },
       "geometry": {
         "coordinates": [
-          14.930217123805193,
+          14.930537123805193,
           57.620613708316114
         ],
         "type": "Point"
@@ -496,12 +549,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Cloverfield"
+        "name": "Cloverfield",
+        "rotation":-80,
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
           14.931391025375547,
-          57.620051226501346
+          57.620201226501346
         ],
         "type": "Point"
       }
@@ -509,12 +564,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Strike"
+        "name": "Strike",
+        "rotation":45,
+        "size":0.0006
       },
       "geometry": {
         "coordinates": [
           14.932827510192539,
-          57.62015876046283
+          57.62025876046283
         ],
         "type": "Point"
       }
@@ -522,12 +579,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Raspberry"
+        "name": "Raspberry",
+        "rotation":66,
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
-          14.929830971972478,
-          57.619885789016394
+          14.929930971972478,
+          57.620155789016394
         ],
         "type": "Point"
       }
@@ -535,12 +594,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Dear"
+        "name": "Dear",
+        "rotation":45,
+        "size":0.0008
       },
       "geometry": {
         "coordinates": [
-          14.928935099721087,
-          57.620241478678
+          14.929105099721087,
+          57.620441478678
         ],
         "type": "Point"
       }
@@ -548,12 +609,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Pigs"
+        "name": "Pigs",
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
-          14.9291204526007,
-          57.61957145571941
+          14.9294204526007,
+          57.61967145571941
         ],
         "type": "Point"
       }
@@ -561,11 +623,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": ""
+        "name": "Captain's\ncorner",
+        "size":0.001
       },
       "geometry": {
         "coordinates": [
-          14.926278375114634,
+          14.926478375114634,
           57.62039037099095
         ],
         "type": "Point"
@@ -574,12 +637,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": ""
+        "name": "Toxic",
+        "rotation":-10
       },
       "geometry": {
         "coordinates": [
-          14.92683443375239,
-          57.62140778546518
+          14.92735443375239,
+          57.62152778546518
         ],
         "type": "Point"
       }
@@ -587,11 +651,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "The barn"
+        "name": "The\nbarn",
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
-          14.925722316475685,
+          14.926022316475685,
           57.62149050083673
         ],
         "type": "Point"
@@ -613,12 +678,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Sunrise Cult Compound"
+        "name": "Sunrise Cult\nCompound",
+        "rotation":-30
       },
       "geometry": {
         "coordinates": [
-          14.922061597104062,
-          57.6206716103616
+          14.922261597104062,
+          57.6208716103616
         ],
         "type": "Point"
       }
@@ -626,12 +692,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Swampy Lovebugs"
+        "name": "Swampy Lovebugs",
+        "rotation":20,
+        "size":0.0018
       },
       "geometry": {
         "coordinates": [
-          14.923482635847648,
-          57.6199602359778
+          14.923682635847648,
+          57.6201602359778
         ],
         "type": "Point"
       }
@@ -639,12 +707,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Hony Slope South"
+        "name": "Hony Slope South",
+        "rotation":-25,
+        "size":0.0015
       },
       "geometry": {
         "coordinates": [
           14.92433216987888,
-          57.62034901207636
+          57.62074901207636
         ],
         "type": "Point"
       }
@@ -652,7 +722,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Sharks"
+        "name": "Sharks",
+        "rotation":-55
       },
       "geometry": {
         "coordinates": [
@@ -665,12 +736,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Pufferfish"
+        "name": "Pufferfish",
+        "rotation":15,
+        "size":0.0013
       },
       "geometry": {
         "coordinates": [
-          14.91782937301997,
-          57.62407939677436
+          14.91732937301997,
+          57.62367939677436
         ],
         "type": "Point"
       }
@@ -678,12 +751,14 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Dolphins"
+        "name": "Dolphins",
+        "rotation":-45,
+        "size":0.0012
       },
       "geometry": {
         "coordinates": [
-          14.918802475638472,
-          57.62498918859612
+          14.918702475638472,
+          57.62468918859612
         ],
         "type": "Point"
       }
@@ -691,12 +766,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Coral"
+        "name": "Coral",
+        "rotation":-40
       },
       "geometry": {
         "coordinates": [
-          14.91818463270593,
-          57.62528693369828
+          14.91858463270593,
+          57.62558693369828
         ],
         "type": "Point"
       }
@@ -704,7 +780,9 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Oyster"
+        "name": "Oyster",
+        "rotation":-60,
+        "size":0.0008
       },
       "geometry": {
         "coordinates": [
@@ -717,11 +795,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Starfish"
+        "name": "Starfish",
+        "rotation":15
       },
       "geometry": {
         "coordinates": [
-          14.919883700768366,
+          14.919983700768366,
           57.626180154361606
         ],
         "type": "Point"
@@ -730,12 +809,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Candystick"
+        "name": "Candystick",
+        "size":0.0012
       },
       "geometry": {
         "coordinates": [
-          14.927174247364917,
-          57.62082050091186
+          14.927374247364917,
+          57.62102050091186
         ],
         "type": "Point"
       }
@@ -747,8 +827,8 @@
       },
       "geometry": {
         "coordinates": [
-          14.926093022235023,
-          57.62094457590413
+          14.926193022235023,
+          57.62107457590413
         ],
         "type": "Point"
       }
@@ -756,23 +836,24 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Moo"
+        "name": "Moo",
+        "size":0.0007
       },
       "geometry": {
         "coordinates": [
           14.930603275637935,
-          57.61950527994182
+          57.61960527994182
         ],
         "type": "Point"
       }
     },
     {
       "type": "Feature",
-      "properties": {"name":"Edgling Forest"},
+      "properties": {"name":"Edgling Forest","rotation":-45,"size":0.0012},
       "geometry": {
         "coordinates": [
-          14.925876777208543,
-          57.61950527994182
+          14.926076777208543,
+          57.61970527994182
         ],
         "type": "Point"
       }
