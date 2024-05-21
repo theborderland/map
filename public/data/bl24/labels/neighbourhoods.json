@@ -4,12 +4,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "GOGOGO"
+        "name": "GOGOGO",
+        "size":0.003
       },
       "geometry": {
         "coordinates": [
-          14.925897190080775,
-          57.62605718174669
+          14.926897190080775,
+          57.62555718174669
         ],
         "type": "Point"
       }
@@ -17,7 +18,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "VANILLA"
+        "name": "VANILLA",
+        "rotation":-45
       },
       "geometry": {
         "coordinates": [
@@ -30,7 +32,8 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Chaos reigns"
+        "name": "Chaos reigns",
+        "rotation":-45
       },
       "geometry": {
         "coordinates": [
@@ -43,12 +46,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "CITRUS"
+        "name": "CITRUS","rotation":-45
       },
       "geometry": {
         "coordinates": [
-          14.928590705786235,
-          57.62405403837121
+          14.929190705786235,
+          57.62428403837121
         ],
         "type": "Point"
       }
@@ -56,12 +59,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "Eclipse"
+        "name": "Eclipse",
+        "rotation":-15
       },
       "geometry": {
         "coordinates": [
-          14.925627838510678,
-          57.62394185907593
+          14.925927838510678,
+          57.62414185907593
         ],
         "type": "Point"
       }
@@ -69,11 +73,11 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "MELLAN"
+        "name": "MELLAN","size":0.0035
       },
       "geometry": {
         "coordinates": [
-          14.928560777834889,
+          14.928260777834889,
           57.62298030805047
         ],
         "type": "Point"
@@ -82,11 +86,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "GENXXX"
+        "name": "GENXXX","rotation":25,
+        "size":"0.0035"
       },
       "geometry": {
         "coordinates": [
-          14.930536022685288,
+          14.930836022685288,
           57.622034758057
         ],
         "type": "Point"
@@ -95,12 +100,12 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "DOWN TOWN"
+        "name": "DOWN\nTOWN"
       },
       "geometry": {
         "coordinates": [
           14.927513299504739,
-          57.62134561289648
+          57.62164561289648
         ],
         "type": "Point"
       }
@@ -112,7 +117,7 @@
       },
       "geometry": {
         "coordinates": [
-          14.930296599066509,
+          14.930996599066509,
           57.62028782977771
         ],
         "type": "Point"
@@ -121,11 +126,13 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "FOREST CAVE"
+        "name": "FOREST\nCAVE",
+        "rotation":15,
+        "size":0.0025
       },
       "geometry": {
         "coordinates": [
-          14.925897190080775,
+          14.926197190080775,
           57.61987111888152
         ],
         "type": "Point"
@@ -134,11 +141,11 @@
     {
       "type": "Feature",
       "properties": {
-        "name": "SUNNY HILL"
+        "name": "SUNNY\nHILL"
       },
       "geometry": {
         "coordinates": [
-          14.923383242089074,
+          14.923583242089074,
           57.62080069816625
         ],
         "type": "Point"

@@ -63,6 +63,7 @@ export const createMap = async () => {
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/borders.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/roads_and_distances.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/plazas.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/neighbourhoods.geojson');
 
     // Combine the Placement Area layers
     map.groups.propertyborder.addTo(map.groups.mapstuff);
@@ -164,6 +165,8 @@ export const createMap = async () => {
 
     map.groups.plaza.addTo(map.groups.plazas);
     map.removeLayer(map.groups.plaza);
+    map.groups.neighbourhood.addTo(map.groups.neighbourhoods);
+    map.removeLayer(map.groups.neighbourhood);
 
     var availableLayers = {
         Placement_map: map.groups.mapstuff,
