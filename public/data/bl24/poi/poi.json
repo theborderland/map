@@ -22,7 +22,7 @@
                 "category": "electricity"
             },
             "geometry": {
-                "coordinates": [14.927184887301744, 57.62125943289193],
+                "coordinates": [14.924961626529695, 57.62179207268663],
                 "type": "Point"
             }
         },
@@ -227,6 +227,18 @@
             },
             "geometry": {
                 "coordinates": [14.923771053584561, 57.62825166977558],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Fort",
+                "description": "This is the camping location of the Threshold.",
+                "category": "threshold"
+            },
+            "geometry": {
+                "coordinates": [14.925819933414461, 57.62657332725764],
                 "type": "Point"
             }
         },
