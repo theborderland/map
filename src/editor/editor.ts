@@ -744,19 +744,23 @@ export class Editor {
         let latestEntity = entity.revisions[latestKey];
         if (entity.revision != latestEntity.revision) {
             let diff = this.getEntityDifferences(latestEntity, entity);
-            let diffDescription: string = `Description Changed, someone have saved a revision ${latestEntity.revision} since this revision ${entity.revision} opened.\n`;
+            let diffDescription: string = `<b>Someone else edited this shape at the same time as you</b><br/>You have now overwritten their changes, these differences were detected:<ul>`;
             for (let changeid in diff) {
-                diffDescription += `* ${diff[changeid]['changeLong']}\n`;
+                diffDescription += `<li>${diff[changeid]['changeLong']}</li>`;
             }
-            diffDescription +=
-                '\nDescription has changed to this diff. Open version history if unsure what happened. You find ut under Edit info>More>History.';
-            console.log(diffDescription);
-            entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
-            alert(diffDescription);
+            diffDescription += '</ul>';
+            // NOTE : Removed after public availability in may 2024, I think it was only for making changes known to both users, but causes recursive problems
+            // entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
+            showNotification(diffDescription, 'danger', undefined, 3600000);
         }
 
         if (this.isAreaTooBig(entity.toGeoJSON())) {
-            alert('The area of the polygon is waaay to big. It will not be saved, please change it.');
+            showNotification(
+                'The area of the polygon is waaay to big. It will not be saved, please change it.',
+                'danger',
+                undefined,
+                3600000,
+            );
             return;
         }
         // Update the entity with the response from the API
@@ -781,7 +785,12 @@ export class Editor {
         const geoJson = layer.toGeoJSON();
 
         if (this.isAreaTooBig(geoJson)) {
-            alert('The area of the polygon is waaay to big. Draw something smaller.');
+            showNotification(
+                'The area of the polygon is waaay to big. Draw something smaller.',
+                'danger',
+                undefined,
+                3600000,
+            );
             this._map.removeLayer(layer);
             return;
         }
@@ -849,7 +858,12 @@ export class Editor {
 
         entity.layer.on('pm:markerdragend', () => {
             if (this.isAreaTooBig(entity.toGeoJSON())) {
-                alert('The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.');
+                showNotification(
+                    'The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.',
+                    'danger',
+                    undefined,
+                    3600000,
+                );
             }
         });
 
@@ -935,7 +949,7 @@ export class Editor {
         this.validateSlowly();
     }
 
-    // Slowly validate entities in chunks
+    // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
     private validateSlowly() {
         let validated = 0;
         // this.showLoadingMessage(
