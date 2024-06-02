@@ -17,12 +17,12 @@
         {
             "type": "Feature",
             "properties": {
-                "name": "Power Camp",
-                "description": "This is the location of the power camp",
-                "category": "electricity"
+                "name": "S.H.I.T.T. HQ",
+                "description": "This is the place where all supplies will be stored and where the Craptains and Buttlers will meet for their shift.",
+                "category": "hello"
             },
             "geometry": {
-                "coordinates": [14.924961626529695, 57.62179207268663],
+                "coordinates": [14.925786405801775, 57.62167501095056],
                 "type": "Point"
             }
         },
