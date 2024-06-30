@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
+import 'leaflet-copy-coordinates-control';
 import '@geoman-io/leaflet-geoman-free';
 import { addPointsOfInterestsTomap } from './_addPOI';
 import { addQuarterLabelsToMap, addNeighbourhoodLabelsToMap, addPlazaLabelsToMap } from './_addLabels';
@@ -215,6 +216,17 @@ export const createMap = async () => {
     let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });
     polylineMeasure.addTo(map);
 
+    // Add the coordinates tool
+    let coordinatesControl = new L.Control.Coordinates({
+        position: 'topright',
+        latitudeText: 'lat',
+        longitudeText: 'lng',
+        promptText: 'Current Coordinaes:',
+        precision: 10,
+    });
+    coordinatesControl.addTo(map);
+    console.log(coordinatesControl);
+
     // Make all layers in the URL hash visible on load
     map.on('hashmetainit', function (initState) {
         hash.decode(initState.meta);
@@ -245,6 +257,7 @@ export const createMap = async () => {
     // Log the the lat and long to the console when clicking the map or a layer or marker
     map.on('click', function (e) {
         console.log(e.latlng);
+        coordinatesControl.setCoordinates(e);
     });
 
     // Add points of interests to the map

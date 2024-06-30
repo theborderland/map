@@ -27,6 +27,7 @@
         "cheap-ruler": "^3.0.2",
         "dompurify": "^3.0.2",
         "leaflet": "^1.9.0",
+        "leaflet-copy-coordinates-control": "^0.1.6",
         "leaflet-search": "^3.0.9",
         "leaflet.locatecontrol": "^0.76.1",
         "leaflet.path.drag": "^0.0.6",
