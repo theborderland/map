@@ -26,12 +26,14 @@
         "@turf/turf": "^6.5.0",
         "cheap-ruler": "^3.0.2",
         "dompurify": "^3.0.2",
+        "exceljs": "^4.4.0",
         "leaflet": "^1.9.0",
         "leaflet-copy-coordinates-control": "^0.1.6",
         "leaflet-search": "^3.0.9",
         "leaflet.locatecontrol": "^0.76.1",
         "leaflet.path.drag": "^0.0.6",
-        "leaflet.polylinemeasure": "^3.0.0"
+        "leaflet.polylinemeasure": "^3.0.0",
+        "tabulator-tables": "^6.2.1"
     },
     "devDependencies": {
         "@types/dompurify": "^3.0.2",

@@ -1,7 +1,9 @@
 import { createMap } from './map';
+import { createStats } from './stats';
 import { showDrawer } from './messages';
 
-async function main() {
+/** Main method for index.html */
+async function index() {
     // Create the map
     try {
         await createMap();
@@ -20,4 +22,10 @@ async function main() {
         });
     }
 }
-main();
+window.indexMain = index;
+
+/** Main method for stats.html */
+async function stats() {
+    await createStats();
+}
+window.statsMain = stats;
