@@ -4,17 +4,10 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <title>Borderland Placement Map</title>
+        <title>Borderland Placement Map Statistics</title>
 
         <!-- Favicon -->
         <link rel="shortcut icon" type="image/x-icon" href="favicon/favicon.ico" />
-
-        <!-- Leaflet -->
-        <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
-        <link rel="stylesheet" href="lib/leaflet-locatecontrol/dist/L.Control.Locate.min.css" />
-        <link rel="stylesheet" href="lib/leaflet-polylinemeasure/Leaflet.PolylineMeasure.css" />
-        <link rel="stylesheet" href="lib/leaflet-search/dist/leaflet-search.min.css" />
-        <link rel="stylesheet" href="lib/leaflet-geoman/leaflet-geoman.css" />
 
         <!-- Simple Grid -->
         <link rel="stylesheet" href="lib/grid/simple-grid.css" />
@@ -24,6 +17,9 @@
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.15.0/cdn/themes/light.css"
         />
+
+        <!-- Tabulator -->
+        <link href="lib/tabulator/css/tabulator.min.css" rel="stylesheet" />
 
         <!-- Site -->
         <link rel="stylesheet" href="index.css" />
@@ -47,14 +43,11 @@
         </style>
     </head>
     <body>
-        <!-- Map -->
-        <div id="map"></div>
-
-        <!-- Instructions and informations drawer -->
-        <sl-drawer id="drawer" placement="bottom" class="drawer-placement-bottom" no-header>
-            <div id="drawer-content" class="container"></div>
-            <sl-button id="drawer-button" slot="footer" variant="primary">Close</sl-button>
-        </sl-drawer>
+        <div id="header"></div>
+        <div id="stats">
+            <h1>Calling the Placement Bureau...</h1>
+            <sl-progress-bar indeterminate></sl-progress-bar>
+        </div>
 
         <!-- Shoelace Scripts-->
         <script
@@ -65,10 +58,7 @@
         <!-- Src -->
         <script src="bundle.js"></script>
         <script>
-            indexMain();
+            statsMain();
         </script>
-
-        <!-- Leaflet Scripts-->
-        <script src="lib/leaflet-hash-plus/leaflet-hash-plus.js"></script>
     </body>
 </html>
