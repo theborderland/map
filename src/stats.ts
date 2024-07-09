@@ -15,9 +15,11 @@ export const createStats = async () => {
 
     const rows = [];
     const totalNrOfEntries = entries.length;
-    let totalNrOfPeople = 0;
-    let totalNrOfVechiles = 0;
-    let totalPowerNeed = 0;
+    const stats = {
+        totalNrOfPeople: 0,
+        totalNrOfVechiles: 0,
+        totalPowerNeed: 0,
+    };
 
     for (const entry of entries) {
         const { properties } = JSON.parse(entry.geoJson);
@@ -37,18 +39,12 @@ export const createStats = async () => {
             revision: Number(entry.revision),
             //supressWarnings: Number(properties.supressWarnings),
         };
-        totalNrOfPeople += +row.nrOfPeople;
-        totalNrOfVechiles += row.nrOfVechiles;
-        totalPowerNeed += row.powerNeed;
+        stats.totalNrOfPeople += +row.nrOfPeople;
+        stats.totalNrOfVechiles += row.nrOfVechiles;
+        stats.totalPowerNeed += row.powerNeed;
         //console.log(row);
         rows.push(row);
     }
-    console.log({
-        totalNrOfEntries,
-        totalNrOfPeople,
-        totalNrOfVechiles,
-        totalPowerNeed,
-    });
 
     // Create Tabulator view
     new Tabulator('#stats', {
@@ -74,12 +70,28 @@ export const createStats = async () => {
     ];
     rows.forEach((row) => worksheet.addRow(row));
 
-    // Create download button
+    // Create header title
+    const title = document.createElement('h1');
+    title.innerHTML = 'All camps and statistics';
+    document.querySelector('#header').appendChild(title);
+
+    // Create statistics list
+    const list = document.createElement('ul');
+    for (const [name, stat] of Object.entries(stats)) {
+        const entry = document.createElement('li');
+        entry.innerHTML = `${name}: ${stat}`;
+        list.appendChild(entry);
+    }
+    document.querySelector('#header').appendChild(list);
+
+    // Create excel download button
     const buffer = await workbook.xlsx.writeBuffer();
     const url = URL.createObjectURL(new Blob([buffer], { type: 'application/xlsx' }));
-    const button = document.createElement('a');
-    button.classList.add('button');
-    button.innerHTML = 'Download XLSX File';
-    button.href = url;
-    document.querySelector('#header').appendChild(button);
+    const link = document.createElement('a');
+    link.href = url;
+    const btn = document.createElement('sl-button');
+    btn.innerHTML = 'Download XLSX File';
+    btn.setAttribute('variant', 'primary');
+    link.appendChild(btn);
+    document.querySelector('#header').appendChild(link);
 };
