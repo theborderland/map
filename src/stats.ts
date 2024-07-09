@@ -16,9 +16,9 @@ export const createStats = async () => {
     const rows = [];
     const totalNrOfEntries = entries.length;
     const stats = {
-        totalNrOfPeople: 0,
-        totalNrOfVechiles: 0,
-        totalPowerNeed: 0,
+        totalNrOfPeople: { value: 0, title: 'total nr. of campers', unit: 'persons' },
+        totalNrOfVechiles: { value: 0, title: 'total nr. of vechiles', unit: 'automobiles' },
+        totalPowerNeed: { value: 0, title: 'total power need of all camps', unit: 'watts' },
     };
 
     for (const entry of entries) {
@@ -39,9 +39,9 @@ export const createStats = async () => {
             revision: Number(entry.revision),
             //supressWarnings: Number(properties.supressWarnings),
         };
-        stats.totalNrOfPeople += +row.nrOfPeople;
-        stats.totalNrOfVechiles += row.nrOfVechiles;
-        stats.totalPowerNeed += row.powerNeed;
+        stats.totalNrOfPeople.value += +row.nrOfPeople;
+        stats.totalNrOfVechiles.value += row.nrOfVechiles;
+        stats.totalPowerNeed.value += row.powerNeed;
         //console.log(row);
         rows.push(row);
     }
@@ -77,9 +77,9 @@ export const createStats = async () => {
 
     // Create statistics list
     const list = document.createElement('ul');
-    for (const [name, stat] of Object.entries(stats)) {
+    for (const { value, title, unit } of Object.values(stats)) {
         const entry = document.createElement('li');
-        entry.innerHTML = `${name}: ${stat}`;
+        entry.innerHTML = `${title}: ${value} ${unit}`;
         list.appendChild(entry);
     }
     document.querySelector('#header').appendChild(list);
