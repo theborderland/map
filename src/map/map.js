@@ -3,6 +3,7 @@ import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import 'leaflet-copy-coordinates-control';
 import '@geoman-io/leaflet-geoman-free';
+import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
 import { addQuarterLabelsToMap, addNeighbourhoodLabelsToMap, addPlazaLabelsToMap } from './_addLabels';
 import { addLegends } from './_addLegends';
@@ -34,6 +35,7 @@ export const createMap = async () => {
         quarters: new L.LayerGroup(),
         plazas: new L.LayerGroup(),
         poi: new L.LayerGroup(),
+        powergrid: new L.LayerGroup(),
         soundspots: new L.LayerGroup(),
     };
 
@@ -172,6 +174,7 @@ export const createMap = async () => {
     var availableLayers = {
         Placement_map: map.groups.mapstuff,
         POI: map.groups.poi,
+        PowerGrid: map.groups.powergrid,
         Soundguide: map.groups.soundguide,
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
@@ -262,6 +265,9 @@ export const createMap = async () => {
 
     // Add points of interests to the map
     await addPointsOfInterestsTomap('poi.json', map.groups.poi);
+
+    // Add the power grid to the map
+    await addPowerGridTomap(map.groups.powergrid);
 
     // Add soundspots and add it to the soundguide layer
     await addPointsOfInterestsTomap('soundspots.json', map.groups.soundspots);
