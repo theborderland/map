@@ -228,7 +228,6 @@ export const createMap = async () => {
         precision: 10,
     });
     coordinatesControl.addTo(map);
-    console.log(coordinatesControl);
 
     // Make all layers in the URL hash visible on load
     map.on('hashmetainit', function (initState) {

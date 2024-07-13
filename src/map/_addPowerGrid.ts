@@ -19,7 +19,6 @@ export const addPowerGridTomap = async (layerGroup: L.LayerGroup) => {
 
         for (let feature of json['features']) {
             if (feature.geometry.type != 'Point') {
-                console.log(feature);
                 continue;
             }
             let name = feature.properties['Name'];
