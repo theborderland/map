@@ -7,6 +7,9 @@ const ENTITIES_URL = 'https://placement.freaks.se/api/v1/mapentities';
 /** Total memberships sold for 2024 */
 const TOTAL_MEMBERSHIPS_SOLD = 4114;
 
+/** Any ID selected in the URL as search parameter */
+const ID = new URLSearchParams(window.location.search).get('id');
+
 /** Columns visible on the /stats url and in the excel export */
 const COLUMNS: Array<{ title: String; field: keyof Entity; [key: string]: any }> = [
     {
@@ -27,7 +30,6 @@ const COLUMNS: Array<{ title: String; field: keyof Entity; [key: string]: any }>
     { title: 'Additional Square meters (m2)', field: 'additionalSqm' },
     { title: 'Amplified Sound (watts)', field: 'amplifiedSound' },
     { title: 'Power need (watts)', field: 'powerNeed' },
-    { title: 'Revision', field: 'revision' },
     {
         title: 'Description',
         field: 'description',
@@ -43,6 +45,7 @@ type Entity = {
     name: string;
     timeStamp: Date;
     isDeleted: boolean;
+    deleteReason: string;
     additionalSqm: number;
     amplifiedSound: number;
     color: string;
@@ -65,8 +68,23 @@ const createRowFromEntity = (row: Entity) => {
 
 /** Initializes the statistics page */
 export const createStats = async () => {
+    /// Add columns visible only when a id is selected
+    if (ID) {
+        COLUMNS.push({ title: 'Revision', field: 'revision' });
+        COLUMNS.push({ title: 'Timestamp', field: 'timeStamp' });
+        COLUMNS.push({
+            title: 'Deleted',
+            formatter: 'tickCross',
+            field: 'isDeleted',
+        });
+        COLUMNS.push({
+            title: 'Deleted because',
+            field: 'deleteReason',
+        });
+    }
+
     // Fetch the data
-    const resp = await fetch(ENTITIES_URL);
+    const resp = await fetch(ENTITIES_URL + (ID ? '/' + ID : ''));
     const entries = await resp.json();
 
     const parsedEntries = [];
@@ -85,6 +103,7 @@ export const createStats = async () => {
             name: String(properties.name),
             timeStamp: new Date(entry.timeStamp),
             isDeleted: Boolean(entry.isDeleted),
+            deleteReason: String(entry.deleteReason),
             additionalSqm: Number(properties.additionalSqm),
             amplifiedSound: Number(properties.amplifiedSound),
             color: String(properties.color),
@@ -117,7 +136,7 @@ export const createStats = async () => {
 
     // Create header title
     const title = document.createElement('h1');
-    title.innerHTML = 'All camps and statistics';
+    title.innerHTML = ID ? 'History for shape with id ' + ID : 'All camps and statistics';
     document.querySelector('#header').appendChild(title);
 
     // Create statistics list
