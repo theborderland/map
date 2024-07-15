@@ -133,7 +133,7 @@ export const createMap = async () => {
     // Load and add the hand drawn layer
     map.groups.drawn = await loadImageOverlay(map, './data/drawn.jpg', [
         [57.6306870895, 14.9142416425],
-        [57.6178044724, 14.9377186881],
+        [57.6178189445, 14.9386124973],
     ]);
 
     // Load and add the height map layer
