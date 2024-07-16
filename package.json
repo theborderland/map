@@ -23,6 +23,7 @@
     "homepage": "https://github.com/theborderland/map#readme",
     "dependencies": {
         "@geoman-io/leaflet-geoman-free": "^2.14.2",
+        "@maphubs/tokml": "^0.6.1",
         "@turf/turf": "^6.5.0",
         "cheap-ruler": "^3.0.2",
         "dompurify": "^3.0.2",
