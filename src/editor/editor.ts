@@ -3,7 +3,7 @@ import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
 import { generateRulesForEditor } from '../entities/rule';
-import { showNotification, showDrawers } from '../messages';
+import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
 import * as Buttons from './buttonsFactory';
 import * as Turf from '@turf/turf';
@@ -441,24 +441,20 @@ export class Editor {
             content.appendChild(document.createElement('p'));
 
             if (this._isEditMode) {
-                const saveInfoButton = document.createElement('button');
-                saveInfoButton.innerHTML = 'Ok!';
-                saveInfoButton.style.width = '200px';
-                saveInfoButton.onclick = async (e) => {
+                const saveInfoButton = Buttons.simple('Ok!', async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setMode('blur');
-                };
+                });
+                saveInfoButton.style.width = '200px';
                 content.appendChild(saveInfoButton);
 
-                const moreButton = document.createElement('button');
-                moreButton.innerHTML = 'More...';
-                moreButton.style.marginRight = '0';
-                moreButton.onclick = async (e) => {
+                const moreButton = Buttons.simple('More...', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setPopup('more', entity);
-                };
+                });
+                moreButton.style.marginRight = '0';
                 content.appendChild(moreButton);
             }
 
@@ -736,16 +732,10 @@ export class Editor {
             diffDescription += '</ul>';
             // NOTE : Removed after public availability in may 2024, I think it was only for making changes known to both users, but causes recursive problems
             // entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
-            showNotification(diffDescription, 'danger', undefined, 3600000);
+            Messages.showNotification(diffDescription, 'danger', undefined, 3600000);
         }
 
         if (this.isAreaTooBig(entity.toGeoJSON())) {
-            showNotification(
-                'The area of the polygon is waaay to big. It will not be saved, please change it.',
-                'danger',
-                undefined,
-                3600000,
-            );
             return;
         }
         // Update the entity with the response from the API
@@ -756,7 +746,7 @@ export class Editor {
             // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
             this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
-            showNotification('Saved!', 'success');
+            Messages.showNotification('Saved!', 'success');
         }
     }
 
@@ -770,12 +760,6 @@ export class Editor {
         const geoJson = layer.toGeoJSON();
 
         if (this.isAreaTooBig(geoJson)) {
-            showNotification(
-                'The area of the polygon is waaay to big. Draw something smaller.',
-                'danger',
-                undefined,
-                3600000,
-            );
             this._map.removeLayer(layer);
             return;
         }
@@ -793,7 +777,7 @@ export class Editor {
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
             this.setMode('editing-info', entityInResponse);
-            showNotification('Saved!', 'success');
+            Messages.showNotification('Saved!', 'success');
         }
     }
 
@@ -842,14 +826,7 @@ export class Editor {
         });
 
         entity.layer.on('pm:markerdragend', () => {
-            if (this.isAreaTooBig(entity.toGeoJSON())) {
-                showNotification(
-                    'The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.',
-                    'danger',
-                    undefined,
-                    3600000,
-                );
-            }
+            this.isAreaTooBig(entity.toGeoJSON());
         });
 
         entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
@@ -923,7 +900,7 @@ export class Editor {
     }
 
     private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity> | null = null) {
-        showNotification('Validating...');
+        Messages.showNotification('Validating...');
         if (entitysToRefresh) {
             this._validateEntitiesQueue = entitysToRefresh;
         } else {
@@ -948,7 +925,7 @@ export class Editor {
 
         // At end of validation cycle, check if done or to continue
         if (this._validateEntitiesQueue.length == 0) {
-            showNotification('Validation done', 'success');
+            Messages.showNotification('Validation done', 'success');
         } else {
             // Let the UI redraw by resting a while, then continue until validated
             setTimeout(() => {
@@ -966,7 +943,15 @@ export class Editor {
     private isAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
 
-        if (area > 5000) return true;
+        if (area > 5000) {
+            Messages.showNotification(
+                'The area of the polygon is waaay to big. It will not be saved, please change it.',
+                'danger',
+                undefined,
+                3600000,
+            );
+            return true;
+        }
         return false;
     }
 
@@ -1141,15 +1126,7 @@ export class Editor {
             }));
         }
         if (NOTE_ABOUT_EDITING) {
-            const msg = L.Control.extend({
-                options: { position: 'bottomleft' },
-                onAdd: () => {
-                    var div = L.DomUtil.create('p', 'btn btn-gradient1 button-shake-animate');
-                    div.innerHTML += NOTE_ABOUT_EDITING;
-                    return div;
-                },
-            });
-            this._map.addControl(new msg());
+            this._map.addControl(Messages.editing(NOTE_ABOUT_EDITING));
         }
     }
 
@@ -1285,7 +1262,7 @@ export class Editor {
         // to press a button on that screen before continuing
         if (this._isEditMode) {
             if (localStorage.getItem('hasSeenEditorInstructions') == null) {
-                showDrawers([
+                Messages.showDrawers([
                     { file: 'entering_edit_mode', position: 'bottom' },
                     {
                         file: 'entering_edit_mode_page_two',
@@ -1316,7 +1293,7 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        showNotification('Loading your drawn polygons from da interweb!');
+        Messages.showNotification('Loading your drawn polygons from da interweb!');
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
 
