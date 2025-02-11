@@ -1,16 +1,24 @@
 import * as Turf from '@turf/turf';
 import type { MapEntity } from './entity';
+import { 
+    MAX_CLUSTER_SIZE, 
+    MAX_POWER_NEED,
+    MAX_POINTS_BEFORE_WARNING,
+    FIRE_BUFFER_IN_METER
+ } from '../../SETTINGS';
 import { Geometry } from 'geojson';
 import { GeoJSON } from 'leaflet';
 import * as L from 'leaflet';
 import CheapRuler from 'cheap-ruler';
-const MAX_CLUSTER_SIZE: number = 1250;
-const MAX_POWER_NEED: number = 8000;
-const MAX_POINTS_BEFORE_WARNING: number = 10;
-const FIRE_BUFFER_IN_METER: number = 5;
 const CHEAP_RULER_BUFFER: number = FIRE_BUFFER_IN_METER + 1; // We add a little extra to the buffer, to compensate for usign the approximation method from cheapruler
 
 const ruler = new CheapRuler(57.5, 'meters');
+enum Severity {
+    None = 0,
+    Low = 1,
+    Medium = 2,
+    High = 3
+}
 
 class ClusterCache {
     // Class to cache overlap and area calculations of entities.
@@ -99,16 +107,17 @@ class ClusterCache {
     }
 }
 const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
+
 export class Rule {
-    private _severity: 0 | 1 | 2 | 3;
+    private _severity: Severity;
     private _triggered: boolean;
     private _callback: (entity: MapEntity) => { triggered: boolean; shortMessage?: string; message?: string };
 
     public message: string;
     public shortMessage: string;
 
-    public get severity(): number {
-        return this._triggered ? this._severity : 0;
+    public get severity(): Severity {
+        return this._triggered ? this._severity : Severity.None;
     }
 
     public get triggered(): boolean {
@@ -122,7 +131,7 @@ export class Rule {
         if (result.message) this.message = result.message;
     }
 
-    constructor(severity: Rule['_severity'], shortMessage: string, message: string, callback: Rule['_callback']) {
+    constructor(severity: Severity, shortMessage: string, message: string, callback: Rule['_callback']) {
         this._severity = severity;
         this._triggered = false;
         this._callback = callback;
@@ -321,12 +330,12 @@ const isSmallerThanNeeded = () =>
         },
     );
 
-const isOverlapping = (layerGroup: any, severity: Rule['_severity'], shortMsg: string, message: string) =>
+const isOverlapping = (layerGroup: any, severity: Severity, shortMsg: string, message: string) =>
     new Rule(severity, shortMsg, message, (entity) => {
         return { triggered: _isLayerOverlappingOrContained(entity.layer, layerGroup) };
     });
 
-const isOverlappingOrContained = (layerGroup: any, severity: Rule['_severity'], shortMsg: string, message: string) =>
+const isOverlappingOrContained = (layerGroup: any, severity: Severity, shortMsg: string, message: string) =>
     new Rule(severity, shortMsg, message, (entity) => {
         let geoJson = entity.toGeoJSON();
         let overlap = false;
@@ -358,15 +367,15 @@ const isOverlappingOrContained = (layerGroup: any, severity: Rule['_severity'], 
         return { triggered: overlap };
     });
 
-const isInsideBoundaries = (layerGroup: any, severity: Rule['_severity'], shortMsg: string, message: string) =>
+const isInsideBoundaries = (layerGroup: any, severity: Severity, shortMsg: string, message: string) =>
     checkEntityBoundaries(layerGroup, severity, shortMsg, message, true);
 
-const isNotInsideBoundaries = (layerGroup: any, severity: Rule['_severity'], shortMsg: string, message: string) =>
+const isNotInsideBoundaries = (layerGroup: any, severity: Severity, shortMsg: string, message: string) =>
     checkEntityBoundaries(layerGroup, severity, shortMsg, message, false);
 
 const checkEntityBoundaries = (
     layerGroup: any,
-    severity: Rule['_severity'],
+    severity: Severity,
     shortMsg: string,
     message: string,
     shouldBeInside: boolean,
@@ -460,7 +469,7 @@ function _isLayerOverlappingOrContained(layer: L.Layer, layerGroup: L.GeoJSON): 
 
 const isBufferOverlappingRecursive = (
     layerGroup: any,
-    severity: Rule['_severity'],
+    severity: Severity,
     shortMsg: string,
     message: string,
 ) =>
@@ -475,7 +484,7 @@ const isBufferOverlappingRecursive = (
         const checkedOverlappingLayers = new Set<string>();
         let totalArea = _getTotalAreaOfOverlappingEntities(entity.layer, layerGroup, checkedOverlappingLayers);
         if (totalArea > MAX_CLUSTER_SIZE) {
-            return { triggered: true, severity: 3, shortMessage: `We need some space between these camps` };
+            return { triggered: true, severity: Severity.High, shortMessage: `We need some space between these camps` };
         }
         return { triggered: false };
     });
@@ -630,7 +639,7 @@ function _compareLayers(layer1: L.Layer, layer2: L.Layer): boolean {
     return layer1._leaflet_id === layer2._leaflet_id;
 }
 
-const isBreakingSoundLimit = (layerGroup: any, severity: Rule['_severity'], shortMsg: string, message: string) =>
+const isBreakingSoundLimit = (layerGroup: any, severity: Severity, shortMsg: string, message: string) =>
     new Rule(severity, shortMsg, message, (entity) => {
         if (entity.amplifiedSound === undefined) return { triggered: false };
 

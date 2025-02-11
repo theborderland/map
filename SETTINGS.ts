@@ -8,3 +8,9 @@ export const NOTE_ABOUT_EDITING: string = undefined; // 'THE MAP IS RESETTING TU
 
 // Repository
 export const REPOSITORY_URL: string = 'https://placement.freaks.se/api/v1/mapentities';
+
+// Rules
+export const MAX_CLUSTER_SIZE: number = 1250;
+export const MAX_POWER_NEED: number = 8000;
+export const MAX_POINTS_BEFORE_WARNING: number = 10;
+export const FIRE_BUFFER_IN_METER: number = 5;
