@@ -1,6 +1,6 @@
 import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
-import { REPOSITORY_URL } from '../../SETTINGS';
+import { REPOSITORY_URL } from '../SETTINGS';
 
 /** The URL to the API */
 const ENTITIES_URL = REPOSITORY_URL + 'api/v1/mapentities';
