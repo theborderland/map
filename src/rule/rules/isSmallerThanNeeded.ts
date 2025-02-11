@@ -1,4 +1,4 @@
-import { Rule } from '../rule';
+import { Rule } from '../index';
 
 export const isSmallerThanNeeded = () => new Rule(
     1,

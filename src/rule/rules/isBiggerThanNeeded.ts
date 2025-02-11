@@ -1,7 +1,7 @@
 import {
     MAX_CLUSTER_SIZE
 } from '../../../SETTINGS';
-import { Rule } from '../rule';
+import { Rule } from '../index';
 
 export const isBiggerThanNeeded = () => new Rule(
     2,

@@ -1,5 +1,5 @@
 import { MapEntity, EntityDTO } from './entity';
-import type { Rule } from './rule';
+import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
 import { REPOSITORY_URL } from '../../SETTINGS';
 

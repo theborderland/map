@@ -1,8 +1,8 @@
 import * as Turf from '@turf/turf';
-import type { MapEntity } from './entity';
 import * as L from 'leaflet';
 import CheapRuler from 'cheap-ruler';
-import { ClusterCache } from './ClusterCache';
+import type { MapEntity } from '../entities/entity';
+import { ClusterCache } from '../entities/ClusterCache';
 import * as Rules from './rules';
 
 export const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters

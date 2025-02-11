@@ -2,7 +2,7 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
-import { generateRulesForEditor } from '../entities/rule';
+import { generateRulesForEditor } from '../rule';
 import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
 import * as Buttons from './buttonsFactory';
@@ -10,6 +10,7 @@ import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
 import 'leaflet.path.drag';
 import 'leaflet-search';
+import { EntityDifferences } from '../entities/entity';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -1020,11 +1021,11 @@ export class Editor {
         map.on('zoomend', function () {
             var zoom = map.getZoom();
         
-                bufferLayers.getLayers().forEach(function (layer) {
+            bufferLayers.getLayers().forEach(function (layer) {
                 if (zoom >= 19) {
                     //@ts-ignore
                     layer.setStyle({ opacity: 1 });
-            } else {
+                } else {
                     //@ts-ignore
                     layer.setStyle({ opacity: 0 });
                 }
@@ -1036,10 +1037,10 @@ export class Editor {
                     layer._tooltip.setOpacity(1);
                 } else {
                     layer._tooltip.setOpacity(0);
-            }
+                }
             });
         });
-
+        
         // Generate rules that the entities must follow
         const rules = generateRulesForEditor(this._groups, this._placementLayers);
 
@@ -1119,7 +1120,7 @@ export class Editor {
     private addToggleEditButton() {
         if (IS_EDITING_POSSIBLE) {
             this._map.addControl(Buttons.edit(this._isEditMode, () => { 
-                        this.toggleEditMode();
+                this.toggleEditMode();
             }));
         }
         if (NOTE_ABOUT_EDITING) {
@@ -1291,6 +1292,7 @@ export class Editor {
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
         Messages.showNotification('Loading your drawn polygons from da interweb!');
+        //const entities = [];//await this._repository.entities();
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
 

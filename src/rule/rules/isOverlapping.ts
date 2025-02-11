@@ -1,6 +1,6 @@
 import * as Turf from '@turf/turf';
 import * as L from 'leaflet';
-import { Severity, Rule } from '../rule';
+import { Severity, Rule } from '../index';
 import { compareLayers, getBBoxForCoords, fastIsOverlap } from './utils';
 
 export const isOverlapping = (

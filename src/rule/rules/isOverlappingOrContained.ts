@@ -1,5 +1,5 @@
 import * as Turf from '@turf/turf';
-import { Severity, Rule } from '../rule';
+import { Severity, Rule } from '../index';
 
 export const isOverlappingOrContained = (
     layerGroup: any, 

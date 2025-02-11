@@ -1,7 +1,7 @@
 import {
     MAX_POINTS_BEFORE_WARNING
 } from '../../../SETTINGS';
-import { Rule } from '../rule';
+import { Rule } from '../index';
 
 export const hasManyCoordinates = () => new Rule(
     1,

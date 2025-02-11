@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import * as Turf from '@turf/turf';
-import { Rule } from './rule';
+import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
 
 /** The representation of a Map Entity in the API */

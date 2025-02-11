@@ -4,7 +4,7 @@ import {
     MAX_CLUSTER_SIZE,
     FIRE_BUFFER_IN_METER
 } from '../../../SETTINGS';
-import { Severity, Rule, clusterCache, ruler } from '../rule';
+import { Severity, Rule, clusterCache, ruler } from '../index';
 import { compareLayers, getBBoxForCoords, fastIsOverlap } from './utils';
 
 const CHEAP_RULER_BUFFER: number = FIRE_BUFFER_IN_METER + 1; // We add a little extra to the buffer, to compensate for usign the approximation method from cheapruler
