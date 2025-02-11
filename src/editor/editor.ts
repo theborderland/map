@@ -1018,17 +1018,26 @@ export class Editor {
         //Hide buffers when zoomed out
         var bufferLayers = this._placementBufferLayers;
         map.on('zoomend', function () {
-            if (map.getZoom() >= 19) {
+            var zoom = map.getZoom();
+        
                 bufferLayers.getLayers().forEach(function (layer) {
+                if (zoom >= 19) {
                     //@ts-ignore
                     layer.setStyle({ opacity: 1 });
-                });
             } else {
-                bufferLayers.getLayers().forEach(function (layer) {
                     //@ts-ignore
                     layer.setStyle({ opacity: 0 });
-                });
+                }
+            });
+
+            // Hide name tooltips when zoomed out
+            this.groups['names'].getLayers().forEach(function (layer: any) {
+                if (zoom >= 19) {
+                    layer._tooltip.setOpacity(1);
+                } else {
+                    layer._tooltip.setOpacity(0);
             }
+            });
         });
 
         // Generate rules that the entities must follow
@@ -1091,18 +1100,6 @@ export class Editor {
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
         this._nameTooltips = {};
-
-        // Hide name tooltips when zoomed out
-        map.on('zoomend', function () {
-            var zoom = map.getZoom();
-            this.groups['names'].getLayers().forEach(function (layer: any) {
-                if (zoom >= 19) {
-                    layer._tooltip.setOpacity(1);
-                } else {
-                    layer._tooltip.setOpacity(0);
-                }
-            });
-        });
 
         document.onkeydown = (evt: Event) => {
             this.keyEscapeListener(evt);
