@@ -5,6 +5,7 @@ import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
 import { generateRulesForEditor } from '../entities/rule';
 import { showNotification, showDrawers } from '../messages';
 import { EntityChanges } from '../entities/repository';
+import * as Buttons from './buttonsFactory';
 import * as Turf from '@turf/turf';
 import DOMPurify from 'dompurify';
 import 'leaflet.path.drag';
@@ -244,33 +245,25 @@ export class Editor {
             }
 
             if (this._isEditMode) {
-                const editShapeButton = document.createElement('button');
-                editShapeButton.innerHTML = 'Edit shape';
-                editShapeButton.onclick = (e) => {
+                const editShapeButton = Buttons.simple('Edit shape', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setMode('editing-shape', entity);
-                };
-
+                });
                 content.appendChild(editShapeButton);
 
-                const moveShapeButton = document.createElement('button');
-                moveShapeButton.innerHTML = 'Move';
-                moveShapeButton.onclick = (e) => {
+                const moveShapeButton = Buttons.simple('Move', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setMode('moving-shape', entity);
-                };
-
+                });
                 content.appendChild(moveShapeButton);
 
-                const editInfoButton = document.createElement('button');
-                editInfoButton.innerHTML = 'Edit info';
-                editInfoButton.onclick = (e) => {
+                const editInfoButton = Buttons.simple('Edit info', (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     this.setMode('editing-info', entity);
-                };
+                });
                 content.appendChild(editInfoButton);
             }
 
@@ -537,11 +530,7 @@ export class Editor {
 
             content.appendChild(document.createElement('p'));
 
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('delete-button');
-            deleteButton.innerHTML = 'Delete';
-            deleteButton.style.width = '100%';
-            deleteButton.onclick = async (e) => {
+            const deleteButton = Buttons.simple('Delete', async (e) => {
                 let deleteReason = prompt('Are you really sure you should delete this area? Answer why.', '');
                 if (deleteReason == null || deleteReason == '') {
                     console.log('Delete nope, deleteReason', deleteReason);
@@ -552,17 +541,17 @@ export class Editor {
                 e.stopPropagation();
                 e.preventDefault();
                 this.deleteAndRemoveEntity(entity, deleteReason);
-            };
+            });
+            deleteButton.classList.add('delete-button');
+            deleteButton.style.width = '100%';
             content.appendChild(deleteButton);
 
-            const historyButton = document.createElement('button');
-            historyButton.innerHTML = 'History';
-            historyButton.style.marginRight = '0';
-            historyButton.onclick = async (e) => {
+            const historyButton = Buttons.simple('History', async (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 this.setPopup('history', entity);
-            };
+            });
+            historyButton.style.marginRight = '0';
             content.appendChild(historyButton);
 
             let deleteInfo = content.appendChild(document.createElement('div'));
@@ -570,14 +559,12 @@ export class Editor {
 
             content.appendChild(document.createElement('br'));
 
-            const backButton = document.createElement('button');
-            backButton.innerHTML = 'Back';
-            backButton.style.width = '200px';
-            backButton.onclick = async (e) => {
+            const backButton = Buttons.simple('Back', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 this.setMode('blur');
-            };
+            });
+            backButton.style.width = '200px';
             content.appendChild(backButton);
 
             this._popup.setContent(content).openOn(this._map);
@@ -706,14 +693,12 @@ export class Editor {
                     tbody.append(row);
                 });
 
-            const backButton = document.createElement('button');
-            backButton.innerHTML = 'Back';
-            backButton.style.width = '200px';
-            backButton.onclick = async (e) => {
+            const backButton = Buttons.simple('Back', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 this.setMode('blur');
-            };
+            });
+            backButton.style.width = '200px';
             content.appendChild(backButton);
             this._popup.setContent(content).openOn(this._map);
             return;
@@ -1151,25 +1136,9 @@ export class Editor {
     }
     private addToggleEditButton() {
         if (IS_EDITING_POSSIBLE) {
-            const customButton = L.Control.extend({
-                options: { position: 'bottomleft' },
-
-                onAdd: () => {
-                    let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
-                    btn.title = 'Edit';
-                    btn.textContent = 'Edit';
-                    L.DomEvent.disableClickPropagation(btn);
-
-                    btn.onclick = () => {
+            this._map.addControl(Buttons.edit(this._isEditMode, () => { 
                         this.toggleEditMode();
-                        btn.textContent = this._isEditMode ? 'Done' : 'Edit';
-                        btn.title = this._isEditMode ? 'Done' : 'Edit';
-                    };
-
-                    return btn;
-                },
-            });
-            this._map.addControl(new customButton());
+            }));
         }
         if (NOTE_ABOUT_EDITING) {
             const msg = L.Control.extend({
@@ -1303,6 +1272,8 @@ export class Editor {
     }
 
     public async toggleEditMode() {
+        // This function is called from addToggleEditButton() which already checks if editing is possible.
+        // So could we remove this if statement below?
         if (!IS_EDITING_POSSIBLE) {
             this._isEditMode = false;
             return;
