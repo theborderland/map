@@ -1,8 +1,9 @@
 import { MapEntity, EntityDTO } from './entity';
 import type { Rule } from './rule';
 import DOMPurify from 'dompurify';
+import { REPOSITORY_URL } from '../../SETTINGS';
 
-const ENTITY_API_ADDRESS = 'https://placement.freaks.se/api/v1/mapentities';
+const ENTITY_API_ADDRESS = REPOSITORY_URL + 'api/v1/mapentities';
 
 export interface EntityChanges {
     refreshedDeleted: Array<number>;
