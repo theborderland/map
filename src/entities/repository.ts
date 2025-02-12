@@ -3,7 +3,7 @@ import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
 import { REPOSITORY_URL } from '../../SETTINGS';
 
-const ENTITY_API_ADDRESS = REPOSITORY_URL + 'api/v1/mapentities';
+const ENTITY_API_ADDRESS = REPOSITORY_URL + '/api/v1/mapentities';
 
 export interface EntityChanges {
     refreshedDeleted: Array<number>;
@@ -122,7 +122,7 @@ export class MapEntityRepository {
     }
 
     /** Returns a single entity */
-    public getEntityById(id: string) {
+    public getEntityById(id: number): MapEntity | undefined {
         return this._latestRevisions[id];
     }
 
