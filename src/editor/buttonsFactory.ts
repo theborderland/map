@@ -27,7 +27,7 @@ export function edit(isEditMode: boolean, onClickCallback: () => void): L.Contro
     return new button;
 }
 
-export function simple (title: string, onClickCallback: () => void) {
+export function simple (title: string, onClickCallback: (e: any) => void) {
     let button = document.createElement('button');
     button.innerHTML = title;
     button.onclick = onClickCallback;

@@ -76,9 +76,9 @@ export class MapEntity implements EntityDTO {
     public name: string;
     public description: string;
     public contactInfo: string;
-    public nrOfPeople: string;
-    public nrOfVehicles: string;
-    public additionalSqm: string;
+    public nrOfPeople: number;
+    public nrOfVehicles: number;
+    public additionalSqm: number;
     public powerNeed: number;
     public amplifiedSound: number;
     public color: string;
@@ -90,13 +90,13 @@ export class MapEntity implements EntityDTO {
             let calculatedareaneed = 0;
 
             if (this.nrOfPeople) {
-                calculatedareaneed += Number(this.nrOfPeople) * this._sqmPerPerson;
+                calculatedareaneed += this.nrOfPeople * this._sqmPerPerson;
             }
             if (this.nrOfVehicles) {
-                calculatedareaneed += Number(this.nrOfVehicles) * this._sqmPerVehicle;
+                calculatedareaneed += this.nrOfVehicles * this._sqmPerVehicle;
             }
             if (this.additionalSqm) {
-                calculatedareaneed += Number(this.additionalSqm);
+                calculatedareaneed += this.additionalSqm;
             }
 
             return calculatedareaneed;
@@ -171,9 +171,9 @@ export class MapEntity implements EntityDTO {
         this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
-        this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
-        this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
-        this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
+        this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
+        this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? 0;
+        this.additionalSqm = geoJson.properties.additionalSqm ?? 0;
         if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
             this.powerNeed = -1;
         } else {

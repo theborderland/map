@@ -356,7 +356,7 @@ export const createMap = async () => {
 
     // Access the query string and zoom to entity if id is present
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
+    const id = Number(urlParams.get('id'));
     if (id) {
         editor.gotoEntity(id);
     }
