@@ -2,13 +2,15 @@ import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
 import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
-import { generateRulesForEditor } from '../entities/rule';
-import { showNotification, showDrawers } from '../messages';
+import { generateRulesForEditor } from '../rule';
+import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
+import * as Buttons from './buttonsFactory';
 import * as Turf from '@turf/turf';
-import DOMPurify from 'dompurify';
 import 'leaflet.path.drag';
 import 'leaflet-search';
+import { EntityDifferences } from '../entities/entity';
+import { PopupContentFactory } from './popupContentFactory';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -21,7 +23,7 @@ export class Editor {
     private _map: L.Map;
     /** A Leaflet popup used to display information and choices for individual editable layers */
     private _popup: L.Popup;
-
+    private _popupContentFactory: PopupContentFactory;
     /** If the editor should be active or not */
     private _isEditMode: boolean = false;
 
@@ -65,8 +67,12 @@ export class Editor {
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
             if (
-                (prevMode == 'editing-shape' || prevMode == 'moving-shape' || prevMode == 'editing-info') &&
-                prevEntity
+                (
+                    prevMode == 'editing-shape' 
+                    || prevMode == 'moving-shape' 
+                    || prevMode == 'editing-info'
+                ) 
+                && prevEntity
             ) {
                 nextMode = 'selected';
                 nextEntity = nextEntity || prevEntity;
@@ -168,314 +174,21 @@ export class Editor {
 
         // Show information popup for the entity
         if (display == 'info') {
-            const content = document.createElement('div');
-
-            const personText = entity.nrOfPeople === '1' ? ' person,' : ' people,';
-            const vehicleText = entity.nrOfVehicles === '1' ? '> vehicle,' : ' vehicles,';
-            const entityName = entity.name ? entity.name : 'No name yet';
-            const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
-            const entityContactInfo = entity.contactInfo
-                ? entity.contactInfo
-                : 'Please add contact info! Without it, your area might be removed.';
-            const entityPowerNeed =
-                entity.powerNeed != -1
-                    ? `${entity.powerNeed} Watts`
-                    : 'Please state your power need! Set to 0 if you will not use electricity.';
-            const entitySoundAmp =
-                entity.amplifiedSound != -1
-                    ? `${entity.amplifiedSound} Watts`
-                    : 'Please set sound amplification! Set to 0 if you wont have speakers.';
-
-            let descriptionSanitized = DOMPurify.sanitize(entityDescription);
-            // URLs starting with http://, https://, or ftp://
-            let replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
-            let descriptionWithLinks = descriptionSanitized.replace(
-                replacePattern1,
-                '<a href="$1" target="_blank">$1</a>',
-            );
-
-            content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
-                                <p class="scrollable">${descriptionWithLinks}</p>
-                                <p style="font-size:14px; margin-top:0px !important; margin-bottom:0px !important">
-                                <b>Contact:</b> ${DOMPurify.sanitize(entityContactInfo)}   
-                                </br>
-                                <b style="text-align:right;">Power:</b> ${entityPowerNeed}
-                                </br>
-                                <b style="text-align:right;">Sound:</b> ${entitySoundAmp}
-                                </p> 
-
-                                <div style="font-size: 14px; color:#5c5c5c; margin-bottom: 10px !important">
-                                    <b>${entity.area}</b> m² - 
-                                    ${entity.nrOfPeople > 0 ? '<b>' + entity.nrOfPeople + '</b>' + personText : ''} 
-                                    ${
-                                        entity.nrOfVehicles > 0
-                                            ? '<b>' + entity.nrOfVehicles + '</b>' + vehicleText
-                                            : ''
-                                    } 
-                                    ${entity.additionalSqm > 0 ? '<b>' + entity.additionalSqm + '</b> m² other' : ''}
-                                </div>
-                                `;
-
-            const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
-
-            if (sortedRules.length > 0) {
-                if (!entity.supressWarnings)
-                    content.innerHTML += `<p style="margin-bottom: 0px !important"><b>${sortedRules.length}</b> issues found:</p> `;
-
-                //A div that will hold all the rule messages
-                const ruleMessages = document.createElement('div');
-                // ruleMessages.style.marginTop = '10px';
-                ruleMessages.style.maxHeight = '200px';
-                ruleMessages.style.overflowY = 'auto';
-                ruleMessages.style.marginBottom = '10px';
-                content.appendChild(ruleMessages);
-
-                for (const rule of sortedRules) {
-                    if (rule.severity >= 3) {
-                        ruleMessages.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
-                    } else if (!entity.supressWarnings) {
-                        if (rule.severity >= 2) {
-                            ruleMessages.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
-                        } else {
-                            ruleMessages.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
-                        }
-                    }
-                }
-            }
-
-            if (this._isEditMode) {
-                const editShapeButton = document.createElement('button');
-                editShapeButton.innerHTML = 'Edit shape';
-                editShapeButton.onclick = (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setMode('editing-shape', entity);
-                };
-
-                content.appendChild(editShapeButton);
-
-                const moveShapeButton = document.createElement('button');
-                moveShapeButton.innerHTML = 'Move';
-                moveShapeButton.onclick = (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setMode('moving-shape', entity);
-                };
-
-                content.appendChild(moveShapeButton);
-
-                const editInfoButton = document.createElement('button');
-                editInfoButton.innerHTML = 'Edit info';
-                editInfoButton.onclick = (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setMode('editing-info', entity);
-                };
-                content.appendChild(editInfoButton);
-            }
-
+            const content = this._popupContentFactory.CreateInfoPopup(entity, this._isEditMode, this.setMode.bind(this));
             this._popup.setContent(content).openOn(this._map);
             return;
         }
 
         // Show fields to edit the entity information
         if (display == 'edit-info') {
-            const content = document.createElement('div');
-            content.innerHTML = ``;
-
-            content.appendChild(document.createElement('label')).innerHTML = 'Name of camp/dream';
-
-            const nameField = document.createElement('input');
-            nameField.type = 'text';
-            nameField.value = entity.name;
-            nameField.maxLength = 100;
-            nameField.placeholder = 'Enter camp name here..';
-            nameField.oninput = () => {
-                entity.name = nameField.value;
-                this.refreshEntity(entity);
-            };
-            content.appendChild(nameField);
-
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('label')).innerHTML = 'Description';
-
-            const descriptionField = document.createElement('textarea');
-            descriptionField.value = entity.description;
-            descriptionField.maxLength = 300;
-            descriptionField.placeholder =
-                'Describe your camp/dream here as much as you want. Remember that this information is public. 300 characters max.';
-            descriptionField.style.height = '100px';
-            descriptionField.oninput = () => {
-                entity.description = descriptionField.value;
-                this.refreshEntity(entity);
-                this.UpdateOnScreenDisplay(entity);
-            };
-            content.appendChild(descriptionField);
-
-            content.appendChild(document.createElement('label')).innerHTML = 'Contact info';
-            const contactField = document.createElement('input');
-            contactField.type = 'text';
-            contactField.value = entity.contactInfo;
-            contactField.placeholder = 'Email, phone, discord name etc';
-            contactField.oninput = () => {
-                entity.contactInfo = contactField.value;
-                this.refreshEntity(entity);
-                this.UpdateOnScreenDisplay(entity);
-            };
-            content.appendChild(contactField);
-
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'People';
-
-            const peopleField = document.createElement('input');
-            peopleField.title = '10m² per person';
-            peopleField.style.width = '3em';
-            peopleField.style.marginBottom = '7px';
-            peopleField.style.marginLeft = '5px';
-            peopleField.type = 'number';
-            peopleField.value = String(entity.nrOfPeople);
-            peopleField.min = '0';
-            peopleField.oninput = () => {
-                entity.nrOfPeople = peopleField.value;
-                updateTextAboutNeededSpace(entity);
-            };
-            content.appendChild(peopleField);
-
-            const personText = document.createElement('span');
-            personText.innerHTML = ' x 10m²';
-            personText.style.fontSize = '12px';
-            personText.style.marginRight = '25px';
-            content.appendChild(personText);
-
-            content.appendChild(document.createElement('b')).innerHTML = ' Vehicles ';
-            const vehiclesField = document.createElement('input');
-            vehiclesField.title = '70m² per vehicle';
-            vehiclesField.style.width = '3em';
-            vehiclesField.style.marginLeft = '5px';
-            vehiclesField.type = 'number';
-            vehiclesField.value = String(entity.nrOfVehicles);
-            vehiclesField.min = '0';
-            vehiclesField.oninput = () => {
-                entity.nrOfVehicles = vehiclesField.value;
-                updateTextAboutNeededSpace(entity);
-            };
-            content.appendChild(vehiclesField);
-
-            const vehicleText = document.createElement('span');
-            vehicleText.innerHTML = ' x 70m²';
-            vehicleText.style.fontSize = '12px';
-            content.appendChild(vehicleText);
-
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Other stuff in m²';
-            const otherSqm = document.createElement('input');
-            otherSqm.title = 'Area needed for kitchen, storage, workshop tents etc.';
-            otherSqm.style.width = '6.2em';
-            otherSqm.style.marginLeft = '116px';
-            otherSqm.type = 'number';
-            otherSqm.value = String(entity.additionalSqm);
-            otherSqm.min = '0';
-            otherSqm.oninput = () => {
-                entity.additionalSqm = otherSqm.value;
-                updateTextAboutNeededSpace(entity);
-            };
-            content.appendChild(otherSqm);
-
-            let updateTextAboutNeededSpace = (entity: MapEntity, div: HTMLElement = null) => {
-                this.refreshEntity(entity);
-                this.UpdateOnScreenDisplay(entity);
-                let areaInfo = document.getElementById('areaInfo');
-                if (!areaInfo) {
-                    areaInfo = div;
-                }
-                areaInfo.innerHTML =
-                    'With this amount of people, vehicles and extra m² such as art, kitchen tents and structures, a suggested camp size is <b>' +
-                    entity?.calculatedAreaNeeded +
-                    'm²</b>. Currently the area is <b>' +
-                    entity?.area +
-                    'm².</b>';
-            };
-
-            let areaInfo = content.appendChild(document.createElement('div'));
-            areaInfo.id = 'areaInfo';
-            areaInfo.style.marginTop = '10px';
-            areaInfo.style.marginBottom = '5px';
-            areaInfo.style.fontSize = '12px';
-            updateTextAboutNeededSpace(entity, areaInfo);
-
-            content.appendChild(document.createElement('b')).innerHTML = 'Power need (Watts) ';
-
-            const powerField = document.createElement('input');
-            powerField.title =
-                'A water boiler is about 2000W, a fridge is about 100W,\na laptop is about 50W, a phone charger is about 10W.';
-            powerField.style.width = '5em';
-            powerField.style.marginTop = '7px';
-            powerField.style.marginBottom = '7px';
-            powerField.style.marginLeft = '110px';
-            powerField.type = 'number';
-            powerField.value = String(entity.powerNeed);
-            powerField.placeholder = '?';
-            powerField.min = '0';
-            powerField.oninput = () => {
-                //@ts-ignore
-                entity.powerNeed = powerField.value;
-                this.refreshEntity(entity);
-                this.UpdateOnScreenDisplay(entity);
-            };
-            content.appendChild(powerField);
-
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Sound amplification (Watts) ';
-
-            const soundField = document.createElement('input');
-            soundField.style.width = '5em';
-            soundField.title =
-                'If over 100W then you are considered a sound camp.\nPlease get in contact with the sound lead.';
-            soundField.style.marginBottom = '7px';
-            soundField.style.marginLeft = '58px';
-            soundField.type = 'number';
-            soundField.value = String(entity.amplifiedSound);
-            soundField.min = '0';
-            soundField.placeholder = '?';
-            soundField.oninput = () => {
-                //@ts-ignore
-                entity.amplifiedSound = soundField.value;
-                this.refreshEntity(entity);
-                this.UpdateOnScreenDisplay(entity);
-            };
-            content.appendChild(soundField);
-
-            content.appendChild(document.createElement('p'));
-
-            if (this._isEditMode) {
-                const saveInfoButton = document.createElement('button');
-                saveInfoButton.innerHTML = 'Ok!';
-                saveInfoButton.style.width = '200px';
-                saveInfoButton.onclick = async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setMode('blur');
-                };
-                content.appendChild(saveInfoButton);
-
-                const moreButton = document.createElement('button');
-                moreButton.innerHTML = 'More...';
-                moreButton.style.marginRight = '0';
-                moreButton.onclick = async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    this.setPopup('more', entity);
-                };
-                content.appendChild(moreButton);
-            }
-
-            content.onkeydown = (evt: Event) => {
-                // console.log('onkeydown', evt);
-                if ('key' in evt && evt.key === 'Enter' && 'ctrlKey' in evt && evt.ctrlKey == true) {
-                    // console.log('Ctrl + Enter');
-                    this.setMode('blur');
-                }
-            };
+            const content = this._popupContentFactory.CreateEditPopup(
+                entity,
+                this._isEditMode,
+                this.setMode.bind(this),
+                this.setPopup.bind(this),
+                this.refreshEntity.bind(this),
+                this.UpdateOnScreenDisplay.bind(this),
+            );
 
             this._popup.setContent(content).openOn(this._map);
             return;
@@ -483,238 +196,31 @@ export class Editor {
 
         // Show fields to edit the entity information
         if (display == 'more') {
-            const content = document.createElement('div');
-            content.innerHTML = ``;
-
-            content.appendChild(document.createElement('h2')).innerHTML = 'More stuff';
-
-            let formattedDate = this.formatDate(entity.timeStamp);
-
-            let entityInfo = content.appendChild(document.createElement('div'));
-            entityInfo.innerHTML =
-                `<b>Entity Id: </b> ${entity.id}` +
-                `<br><b>Revisions: </b> ${entity.revision}` +
-                `<br><b>Last edited:</b> ${formattedDate}`;
-            content.appendChild(document.createElement('br'));
-
-            //A link that when pressed will copy "entity.id" to the clipboard
-            let copyLink = content.appendChild(document.createElement('a'));
-            copyLink.innerHTML = 'Click here to copy a link to this entity';
-            copyLink.href = '?id=' + entity.id;
-            copyLink.onclick = (e) => {
-                console.log('Copy to clipboard', copyLink.href);
-                e.stopPropagation();
-                e.preventDefault();
-                navigator.clipboard.writeText(copyLink.href);
-                return false;
-            };
-
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Supress yellow warnings';
-            const supressWarnings = document.createElement('input');
-            supressWarnings.type = 'checkbox';
-            supressWarnings.style.marginLeft = '10px';
-            supressWarnings.checked = entity.supressWarnings;
-            supressWarnings.onchange = () => {
-                entity.supressWarnings = supressWarnings.checked;
-                this.refreshEntity(entity);
-            };
-            content.appendChild(supressWarnings);
-
-            content.appendChild(document.createElement('br'));
-            content.appendChild(document.createElement('b')).innerHTML = 'Custom color ';
-            const colorPicker = document.createElement('input');
-            colorPicker.type = 'color';
-            colorPicker.style.width = '66px';
-            colorPicker.style.marginLeft = '146px';
-            colorPicker.value = entity.color;
-            colorPicker.onchange = () => {
-                entity.color = colorPicker.value;
-                this.refreshEntity(entity);
-            };
-            content.appendChild(colorPicker);
-
-            content.appendChild(document.createElement('p'));
-
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('delete-button');
-            deleteButton.innerHTML = 'Delete';
-            deleteButton.style.width = '100%';
-            deleteButton.onclick = async (e) => {
-                let deleteReason = prompt('Are you really sure you should delete this area? Answer why.', '');
-                if (deleteReason == null || deleteReason == '') {
-                    console.log('Delete nope, deleteReason', deleteReason);
-                    return;
-                }
-                console.log('Delete yes, deleteReason', deleteReason);
-
-                e.stopPropagation();
-                e.preventDefault();
-                this.deleteAndRemoveEntity(entity, deleteReason);
-            };
-            content.appendChild(deleteButton);
-
-            const historyButton = document.createElement('button');
-            historyButton.innerHTML = 'History';
-            historyButton.style.marginRight = '0';
-            historyButton.onclick = async (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setPopup('history', entity);
-            };
-            content.appendChild(historyButton);
-
-            let deleteInfo = content.appendChild(document.createElement('div'));
-            deleteInfo.innerHTML = `Use delete with caution! Only delete things you know is ok. Undelete can only be performed by using black magic.`;
-
-            content.appendChild(document.createElement('br'));
-
-            const backButton = document.createElement('button');
-            backButton.innerHTML = 'Back';
-            backButton.style.width = '200px';
-            backButton.onclick = async (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('blur');
-            };
-            content.appendChild(backButton);
-
+            const content = this._popupContentFactory.CreateMoreInfoPopup(
+                entity, 
+                this.setMode.bind(this),
+                this.setPopup.bind(this),
+                this.refreshEntity.bind(this),
+                this.deleteAndRemoveEntity.bind(this)
+            );
+                
             this._popup.setContent(content).openOn(this._map);
             return;
         }
 
         // Show edit-history for the entity
         if (display == 'history') {
-            const content = document.createElement('div');
-            content.innerHTML = ``;
+            const content = await this._popupContentFactory.CreateHistoryPopup(
+                entity,
+                this._repository,
+                this._ghostLayers,
+                this.setMode.bind(this),
+                this.getEntityDifferences.bind(this),
+                this.removeEntityNameTooltip.bind(this),
+                this.removeEntityFromLayers.bind(this),
+                this.addEntityToMap.bind(this),
+            );
 
-            content.appendChild(document.createElement('h2')).innerHTML = 'Edit-History';
-
-            let formattedDate = this.formatDate(entity.timeStamp);
-
-            let entityInfo = content.appendChild(document.createElement('div'));
-            entityInfo.innerHTML =
-                `<b>Entity Id: </b> ${entity.id}<br>` +
-                `<b>Name: </b> ${entity.name}<br>` +
-                `<b>Revisions: </b> ${entity.revision}<br>` +
-                `<b>Last edited:</b> ${formattedDate}`;
-            content.appendChild(document.createElement('br'));
-
-            // Prepare table for showing revisions
-            const divtable = document.createElement('div');
-            const divdescriptionframe = document.createElement('div');
-            const divdescription = document.createElement('div');
-            const divdescriptionheader = document.createElement('h3');
-            divdescriptionheader.innerText = 'Description';
-            divdescriptionframe.append(divdescriptionheader);
-            divdescriptionframe.append(divdescription);
-            divtable.id = 'history-table';
-            content.appendChild(divtable);
-            divdescription.id = 'change-description';
-            content.appendChild(divdescriptionframe);
-            const table: HTMLTableElement = document.createElement('table');
-            divtable.appendChild(table);
-            const thead = table.createTHead();
-            const theadrow: HTMLTableRowElement = thead.insertRow();
-            theadrow.insertCell().innerText = 'Revision';
-            theadrow.insertCell().innerText = 'Timestamp';
-            theadrow.insertCell().innerText = 'What Changed';
-            const tbody = table.createTBody();
-
-            // Get revisions and create tale rows for each revision
-            await this._repository.getRevisionsForEntity(entity);
-            // console.log('result from getRevisionsForEntity', entity.revisions);
-            let rowsToAdd: Array<HTMLTableRowElement> = [];
-            let entityCurrent = null;
-            let entityPrevious = null;
-            const GhostLayerStyle: L.PathOptions = {
-                color: '#ff0000',
-                fillColor: '#000000',
-                fillOpacity: 0.5,
-                weight: 5,
-            };
-            for (let revisionentity in entity.revisions) {
-                // Prepare list with individual changes for revision
-                let ulChanges = document.createElement('ul');
-                const row: HTMLTableRowElement = document.createElement('tr');
-                entityCurrent = entity.revisions[revisionentity];
-                row.insertCell().innerText = entityCurrent.revision;
-                row.insertCell().innerText = this.formatDate(entityCurrent.timeStamp, 'short', 'medium');
-                row.insertCell().append(ulChanges);
-                let diff = this.getEntityDifferences(entityCurrent, entityPrevious);
-                // console.log('Differences', diff);
-                for (let changeid in diff) {
-                    let change = diff[changeid];
-                    let li = document.createElement('li');
-                    li.innerText = change['changeShort'];
-                    let a = document.createElement('a');
-                    a.href = '#';
-                    a.innerText = ' Show';
-                    a.title = 'Show a detailed description about this change.';
-                    a.onclick = () => {
-                        let entityRevSelected = entity.revisions[revisionentity];
-                        divdescriptionheader.innerText = `Description of revision ${revisionentity}`;
-                        divdescription.innerText = `${change['changeLong']}\n\n`;
-                        // Restore buttons
-                        let btnRestoreDetails = L.DomUtil.create('button', 'history-button');
-                        btnRestoreDetails.title = `Restores detailes from revision ${revisionentity}.`;
-                        btnRestoreDetails.textContent = '⚠ Restore Details';
-                        btnRestoreDetails.onclick = () => {
-                            console.log(`Restores detailes from revision ${revisionentity}.`);
-                            entity.name = entity.revisions[revisionentity].name;
-                            entity.description = entity.revisions[revisionentity].description;
-                            entity.contactInfo = entity.revisions[revisionentity].contactInfo;
-                            entity.nrOfPeople = entity.revisions[revisionentity].nrOfPeople;
-                            entity.nrOfVehicles = entity.revisions[revisionentity].nrOfVehicles;
-                            entity.additionalSqm = entity.revisions[revisionentity].additionalSqm;
-                            entity.powerNeed = entity.revisions[revisionentity].powerNeed;
-                            entity.amplifiedSound = entity.revisions[revisionentity].amplifiedSound;
-                            entity.color = entity.revisions[revisionentity].color;
-                            entity.supressWarnings = entity.revisions[revisionentity].supressWarnings;
-                        };
-                        divdescription.append(btnRestoreDetails);
-                        let btnRestoreShape = L.DomUtil.create('button', 'history-button');
-                        btnRestoreShape.title = `Restores shape from revision ${revisionentity}.`;
-                        btnRestoreShape.textContent = '⚠ Restore Shape';
-                        btnRestoreShape.onclick = () => {
-                            console.log(`Restores shape from revision ${revisionentity}.`);
-                            // First remove currently drawn shape to avoid duplicates
-                            this.removeEntityNameTooltip(entity);
-                            this.removeEntityFromLayers(entity);
-                            entity.layer = entity.revisions[revisionentity].layer;
-                            this.addEntityToMap(entity);
-                        };
-                        divdescription.append(btnRestoreShape);
-                        // Draw ghosted shape of selected revision
-                        this._ghostLayers.clearLayers();
-                        entityRevSelected.layer.setStyle(GhostLayerStyle);
-                        this._ghostLayers.addLayer(entityRevSelected.layer);
-                    };
-                    li.append(a);
-                    ulChanges.append(li);
-                }
-                rowsToAdd.push(row);
-                entityPrevious = entityCurrent;
-            }
-
-            // Add all history-rows backwards
-            rowsToAdd
-                .slice()
-                .reverse()
-                .forEach(function (row) {
-                    tbody.append(row);
-                });
-
-            const backButton = document.createElement('button');
-            backButton.innerHTML = 'Back';
-            backButton.style.width = '200px';
-            backButton.onclick = async (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                this.setMode('blur');
-            };
-            content.appendChild(backButton);
             this._popup.setContent(content).openOn(this._map);
             return;
         }
@@ -751,16 +257,10 @@ export class Editor {
             diffDescription += '</ul>';
             // NOTE : Removed after public availability in may 2024, I think it was only for making changes known to both users, but causes recursive problems
             // entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
-            showNotification(diffDescription, 'danger', undefined, 3600000);
+            Messages.showNotification(diffDescription, 'danger', undefined, 3600000);
         }
 
         if (this.isAreaTooBig(entity.toGeoJSON())) {
-            showNotification(
-                'The area of the polygon is waaay to big. It will not be saved, please change it.',
-                'danger',
-                undefined,
-                3600000,
-            );
             return;
         }
         // Update the entity with the response from the API
@@ -771,7 +271,7 @@ export class Editor {
             // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
             this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
-            showNotification('Saved!', 'success');
+            Messages.showNotification('Saved!', 'success');
         }
     }
 
@@ -785,12 +285,6 @@ export class Editor {
         const geoJson = layer.toGeoJSON();
 
         if (this.isAreaTooBig(geoJson)) {
-            showNotification(
-                'The area of the polygon is waaay to big. Draw something smaller.',
-                'danger',
-                undefined,
-                3600000,
-            );
             this._map.removeLayer(layer);
             return;
         }
@@ -808,7 +302,7 @@ export class Editor {
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
             this.setMode('editing-info', entityInResponse);
-            showNotification('Saved!', 'success');
+            Messages.showNotification('Saved!', 'success');
         }
     }
 
@@ -857,14 +351,7 @@ export class Editor {
         });
 
         entity.layer.on('pm:markerdragend', () => {
-            if (this.isAreaTooBig(entity.toGeoJSON())) {
-                showNotification(
-                    'The area of the polygon is waaay to big. Draw something smaller, this wont be saved anyways.',
-                    'danger',
-                    undefined,
-                    3600000,
-                );
-            }
+            this.isAreaTooBig(entity.toGeoJSON());
         });
 
         entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
@@ -938,7 +425,7 @@ export class Editor {
     }
 
     private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity> | null = null) {
-        showNotification('Validating...');
+        Messages.showNotification('Validating...');
         if (entitysToRefresh) {
             this._validateEntitiesQueue = entitysToRefresh;
         } else {
@@ -963,7 +450,7 @@ export class Editor {
 
         // At end of validation cycle, check if done or to continue
         if (this._validateEntitiesQueue.length == 0) {
-            showNotification('Validation done', 'success');
+            Messages.showNotification('Validation done', 'success');
         } else {
             // Let the UI redraw by resting a while, then continue until validated
             setTimeout(() => {
@@ -981,7 +468,15 @@ export class Editor {
     private isAreaTooBig(geoJson: any) {
         const area = Turf.area(geoJson);
 
-        if (area > 5000) return true;
+        if (area > 5000) {
+            Messages.showNotification(
+                'The area of the polygon is waaay to big. It will not be saved, please change it.',
+                'danger',
+                undefined,
+                3600000,
+            );
+            return true;
+        }
         return false;
     }
 
@@ -1024,7 +519,7 @@ export class Editor {
     constructor(map: L.Map, groups: L.FeatureGroup) {
         // Keep track of the map
         this._map = map;
-
+        this._popupContentFactory = new PopupContentFactory();
         this._groups = groups;
 
         //Create two separate layersgroups, so that we can use them to check overlaps separately
@@ -1048,19 +543,28 @@ export class Editor {
         //Hide buffers when zoomed out
         var bufferLayers = this._placementBufferLayers;
         map.on('zoomend', function () {
-            if (map.getZoom() >= 19) {
-                bufferLayers.getLayers().forEach(function (layer) {
+            var zoom = map.getZoom();
+        
+            bufferLayers.getLayers().forEach(function (layer) {
+                if (zoom >= 19) {
                     //@ts-ignore
                     layer.setStyle({ opacity: 1 });
-                });
-            } else {
-                bufferLayers.getLayers().forEach(function (layer) {
+                } else {
                     //@ts-ignore
                     layer.setStyle({ opacity: 0 });
-                });
-            }
-        });
+                }
+            });
 
+            // Hide name tooltips when zoomed out
+            this.groups['names'].getLayers().forEach(function (layer: any) {
+                if (zoom >= 19) {
+                    layer._tooltip.setOpacity(1);
+                } else {
+                    layer._tooltip.setOpacity(0);
+                }
+            });
+        });
+        
         // Generate rules that the entities must follow
         const rules = generateRulesForEditor(this._groups, this._placementLayers);
 
@@ -1122,18 +626,6 @@ export class Editor {
         this.sqmTooltip.closeTooltip();
         this._nameTooltips = {};
 
-        // Hide name tooltips when zoomed out
-        map.on('zoomend', function () {
-            var zoom = map.getZoom();
-            this.groups['names'].getLayers().forEach(function (layer: any) {
-                if (zoom >= 19) {
-                    layer._tooltip.setOpacity(1);
-                } else {
-                    layer._tooltip.setOpacity(0);
-                }
-            });
-        });
-
         document.onkeydown = (evt: Event) => {
             this.keyEscapeListener(evt);
         };
@@ -1151,36 +643,12 @@ export class Editor {
     }
     private addToggleEditButton() {
         if (IS_EDITING_POSSIBLE) {
-            const customButton = L.Control.extend({
-                options: { position: 'bottomleft' },
-
-                onAdd: () => {
-                    let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
-                    btn.title = 'Edit';
-                    btn.textContent = 'Edit';
-                    L.DomEvent.disableClickPropagation(btn);
-
-                    btn.onclick = () => {
-                        this.toggleEditMode();
-                        btn.textContent = this._isEditMode ? 'Done' : 'Edit';
-                        btn.title = this._isEditMode ? 'Done' : 'Edit';
-                    };
-
-                    return btn;
-                },
-            });
-            this._map.addControl(new customButton());
+            this._map.addControl(Buttons.edit(this._isEditMode, () => { 
+                this.toggleEditMode();
+            }));
         }
         if (NOTE_ABOUT_EDITING) {
-            const msg = L.Control.extend({
-                options: { position: 'bottomleft' },
-                onAdd: () => {
-                    var div = L.DomUtil.create('p', 'btn btn-gradient1 button-shake-animate');
-                    div.innerHTML += NOTE_ABOUT_EDITING;
-                    return div;
-                },
-            });
-            this._map.addControl(new msg());
+            this._map.addControl(Messages.editing(NOTE_ABOUT_EDITING));
         }
     }
 
@@ -1303,6 +771,8 @@ export class Editor {
     }
 
     public async toggleEditMode() {
+        // This function is called from addToggleEditButton() which already checks if editing is possible.
+        // So could we remove this if statement below?
         if (!IS_EDITING_POSSIBLE) {
             this._isEditMode = false;
             return;
@@ -1314,7 +784,7 @@ export class Editor {
         // to press a button on that screen before continuing
         if (this._isEditMode) {
             if (localStorage.getItem('hasSeenEditorInstructions') == null) {
-                showDrawers([
+                Messages.showDrawers([
                     { file: 'entering_edit_mode', position: 'bottom' },
                     {
                         file: 'entering_edit_mode_page_two',
@@ -1345,7 +815,8 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        showNotification('Loading your drawn polygons from da interweb!');
+        Messages.showNotification('Loading your drawn polygons from da interweb!');
+        //const entities = [];//await this._repository.entities();
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
 
@@ -1417,7 +888,7 @@ export class Editor {
         }, 10000);
     }
 
-    public gotoEntity(id: string) {
+    public gotoEntity(id: number) {
         const entity = this._repository.getEntityById(id);
         if (entity) {
             const latlong = entity.layer.getBounds().getCenter();

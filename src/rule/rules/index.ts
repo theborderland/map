@@ -1,0 +1,11 @@
+export { hasLargeEnergyNeed } from './hasLargeEnergyNeed';
+export { hasManyCoordinates } from './hasManyCoordinates';
+export { hasMissingFields } from './hasMissingFields';
+export { isBiggerThanNeeded } from './isBiggerThanNeeded';
+export { isBreakingSoundLimit } from './isBreakingSoundLimit';
+export { isCalculatedAreaTooBig } from './isCalculatedAreaTooBig';
+export { isInsideBoundaries, isNotInsideBoundaries } from './isInsideOrNotInsideBoundaries';
+export { isOverlapping } from './isOverlapping';
+export { isOverlappingOrContained } from './isOverlappingOrContained';
+export { isSmallerThanNeeded } from './isSmallerThanNeeded';
+export { isBufferOverlappingRecursive } from './isBufferOverlappingRecursive';

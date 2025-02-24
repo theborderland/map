@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import * as Turf from '@turf/turf';
-import { Rule } from './rule';
+import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
 
 /** The representation of a Map Entity in the API */
@@ -19,8 +19,16 @@ export interface EntityDifferences {
     changeShort: string;
     changeLong: string;
 }
+export enum Colors {
+    Green ='#00FF40',
+    ElectricBlue = '#7AE9FF',
+    Yellow = '#FFBB00',
+    Red = '#FF0000',
+    LightGrey = '#D1D1D1',
+    Orange = '#FFA200',
+}
 
-export const DefaultColor = '#7ae9ff';
+export const DefaultColor = Colors.ElectricBlue
 /** Returns the default style to use for map entities on the map */
 export const DefaultLayerStyle: L.PathOptions = {
     color: DefaultColor,
@@ -30,20 +38,18 @@ export const DefaultLayerStyle: L.PathOptions = {
 };
 
 export const WarningLayerStyle: L.PathOptions = {
-    color: '#ffbb00',
-    fillColor: '#ffbb00',
+    color: Colors.Yellow,
+    fillColor: Colors.Yellow,
     fillOpacity: 0.75,
     weight: 3,
 };
 
 export const DangerLayerStyle: L.PathOptions = {
-    color: '#ff0000',
-    fillColor: '#ff0000',
+    color: Colors.Red,
+    fillColor: Colors.Red,
     fillOpacity: 0.95,
     weight: 5,
 };
-
-export const GreenColor = '#00FF40';
 
 /**
  * Represents the fields and data for single Map Entity and includes
@@ -70,9 +76,9 @@ export class MapEntity implements EntityDTO {
     public name: string;
     public description: string;
     public contactInfo: string;
-    public nrOfPeople: string;
-    public nrOfVehicles: string;
-    public additionalSqm: string;
+    public nrOfPeople: number;
+    public nrOfVehicles: number;
+    public additionalSqm: number;
     public powerNeed: number;
     public amplifiedSound: number;
     public color: string;
@@ -84,13 +90,13 @@ export class MapEntity implements EntityDTO {
             let calculatedareaneed = 0;
 
             if (this.nrOfPeople) {
-                calculatedareaneed += Number(this.nrOfPeople) * this._sqmPerPerson;
+                calculatedareaneed += this.nrOfPeople * this._sqmPerPerson;
             }
             if (this.nrOfVehicles) {
-                calculatedareaneed += Number(this.nrOfVehicles) * this._sqmPerVehicle;
+                calculatedareaneed += this.nrOfVehicles * this._sqmPerVehicle;
             }
             if (this.additionalSqm) {
-                calculatedareaneed += Number(this.additionalSqm);
+                calculatedareaneed += this.additionalSqm;
             }
 
             return calculatedareaneed;
@@ -165,10 +171,9 @@ export class MapEntity implements EntityDTO {
         this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
-        this.nrOfPeople = geoJson.properties.nrOfPeople ?? '0';
-        this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? '0';
-        this.additionalSqm = geoJson.properties.additionalSqm ?? '0';
-        this.powerNeed = geoJson.properties.powerNeed ?? undefined;
+        this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
+        this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? 0;
+        this.additionalSqm = geoJson.properties.additionalSqm ?? 0;
         if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
             this.powerNeed = -1;
         } else {
@@ -187,7 +192,7 @@ export class MapEntity implements EntityDTO {
     private GetDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
         let colorToSet = this.color;
         if (cleancolors) {
-            colorToSet = GreenColor;
+            colorToSet = Colors.Green;
         }
         return { color: colorToSet, fillColor: colorToSet, fillOpacity: 0.3, weight: 1 };
     }
@@ -212,17 +217,17 @@ export class MapEntity implements EntityDTO {
                 this.layer.setStyle(this.GetDefaultLayerStyle(mode == 'cleancolors'));
             }
         } else if (mode == 'power') {
-            let color = GreenColor;
-            if (!this.powerNeed) color = '#D1D1D1';
-            else if (this.powerNeed > 9000) color = '#FF0000';
-            else if (this.powerNeed > 1000) color = '#FFA200';
+            let color = Colors.Green;
+            if (!this.powerNeed) color = Colors.LightGrey;
+            else if (this.powerNeed > 9000) color = Colors.Red;
+            else if (this.powerNeed > 1000) color = Colors.Orange;
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         } else if (mode == 'sound') {
-            let color = GreenColor;
-            if (!this.amplifiedSound) color = '#D1D1D1';
-            else if (this.amplifiedSound > 2000) color = '#FF0000';
-            else if (this.amplifiedSound > 120) color = '#FFA200';
+            let color = Colors.Green;
+            if (!this.amplifiedSound) color = Colors.LightGrey;
+            else if (this.amplifiedSound > 2000) color = Colors.Red;
+            else if (this.amplifiedSound > 120) color = Colors.Orange;
             //@ts-ignore
             this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         }

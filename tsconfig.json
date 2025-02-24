@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
         "lib": ["es2020", "dom"],
+        "module": "NodeNext",
         "moduleResolution": "nodenext",
         "target": "es2020",
         "allowSyntheticDefaultImports": true

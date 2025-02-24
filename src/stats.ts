@@ -1,8 +1,9 @@
 import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
+import { REPOSITORY_URL } from '../SETTINGS';
 
 /** The URL to the API */
-const ENTITIES_URL = 'https://placement.freaks.se/api/v1/mapentities';
+const ENTITIES_URL = REPOSITORY_URL + '/api/v1/mapentities';
 
 /** Total memberships sold for 2024 */
 const TOTAL_MEMBERSHIPS_SOLD = 4114;
