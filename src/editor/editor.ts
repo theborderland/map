@@ -389,7 +389,6 @@ export class Editor {
         }
 
         // Update the entities name marker
-        let a: L.Marker = entity.nameMarker;
         let posMarker = entity.nameMarker.getLatLng();
         let posEntity = entity.layer.getBounds().getCenter();
 
@@ -435,7 +434,7 @@ export class Editor {
         }
         this.validateSlowly();
     }
-
+    
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
     private validateSlowly() {
         const chunkSize = 50;
@@ -444,12 +443,12 @@ export class Editor {
         for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
             const chunk = this._validateEntitiesQueue.slice(i, i + chunkSize);
             arrayOfPromises.push(new Promise(function(resolve, reject) {
-            setTimeout(() => {
+                setTimeout(() => {
                     for (let i = 0; i < chunk.length; i++) {
                         this.refreshEntity(chunk[i], true);
                     }
                     resolve(chunk.length);
-            }, 50);
+                }, 50);
             }.bind(this)));
         }
         
@@ -653,19 +652,6 @@ export class Editor {
         }
     }
 
-    private formatDate(
-        timeStamp: any,
-        styleDate: 'full' | 'long' | 'medium' | 'short' = 'short',
-        styleTime: 'full' | 'long' | 'medium' | 'short' = 'short',
-    ): string {
-        // let date = new Date(Date.parse(timeStamp + ' UTC'));
-        let date = new Date(Date.parse(timeStamp));
-        // console.log('date', date);
-        let formatted: string = date.toLocaleString('sv', { dateStyle: styleDate, timeStyle: styleTime });
-        // console.log('formatted', formatted);
-        return formatted;
-    }
-
     private getEntityDifferences(current: MapEntity, previous: MapEntity): Array<EntityDifferences> {
         let differences: Array<EntityDifferences> = [];
         // If previous entity is null it must be the first revision
@@ -675,6 +661,30 @@ export class Editor {
         }
 
         // Go through all relevant properties and look for differences, list them verbosly under differences
+        let basicPropertiesToCheck = [
+            'name', 
+            'description', 
+            'contactInfo', 
+            'nrOfPeople', 
+            'nrOfVehicles', 
+            'additionalSqm', 
+            'powerNeed', 
+            'amplifiedSound', 
+            'color', 
+            'supressWarnings'
+        ];
+
+        basicPropertiesToCheck.forEach(prop => {
+            if (current[prop] != previous[prop]) {
+                differences.push({
+                    what: prop,
+                    changeShort: `${prop} Changed`,
+                    changeLong: `Someone changed ${prop} from ${previous[prop]} to ${current[prop]}.`,
+                });
+            }
+        });
+
+        // Handle specific properties
         if (current.isDeleted != previous.isDeleted) {
             differences.push({
                 what: 'Deleted',
@@ -682,76 +692,7 @@ export class Editor {
                 changeLong: `Is Deleted due to ${current.deleteReason}.`,
             });
         }
-        if (current.name != previous.name) {
-            differences.push({
-                what: 'Name',
-                changeShort: 'Name Changed',
-                changeLong: `Someone changed the name from ${previous.name} to ${current.name}.`,
-            });
-        }
-        if (current.description != previous.description) {
-            differences.push({
-                what: 'Description',
-                changeShort: 'Description Changed',
-                changeLong: `Someone changed the description from ${previous.description} to ${current.description}.`,
-            });
-        }
-        if (current.contactInfo != previous.contactInfo) {
-            differences.push({
-                what: 'Contact Info',
-                changeShort: 'Contact Info Changed',
-                changeLong: `Someone changed the contact info from ${previous.contactInfo} to ${current.contactInfo}.`,
-            });
-        }
-        if (current.nrOfPeople != previous.nrOfPeople) {
-            differences.push({
-                what: 'NrOfPeople',
-                changeShort: 'NrOfPeople Changed',
-                changeLong: `Someone changed the number of people from ${previous.nrOfPeople} to ${current.nrOfPeople}.`,
-            });
-        }
-        if (current.nrOfVehicles != previous.nrOfVehicles) {
-            differences.push({
-                what: 'NrOfVehicles',
-                changeShort: 'NrOfVehicles Changed',
-                changeLong: `Someone changed the number of vehicles from ${previous.nrOfVehicles} to ${current.nrOfVehicles}.`,
-            });
-        }
-        if (current.additionalSqm != previous.additionalSqm) {
-            differences.push({
-                what: 'AdditionalSqm',
-                changeShort: 'AdditionalSqm Changed',
-                changeLong: `Someone changed additional Sqm from ${previous.additionalSqm} to ${current.additionalSqm}.`,
-            });
-        }
-        if (current.powerNeed != previous.powerNeed) {
-            differences.push({
-                what: 'PowerNeed',
-                changeShort: 'PowerNeed Changed',
-                changeLong: `Someone changed power need from ${previous.powerNeed} to ${current.powerNeed}.`,
-            });
-        }
-        if (current.amplifiedSound != previous.amplifiedSound) {
-            differences.push({
-                what: 'AmplifiedSound',
-                changeShort: 'AmplifiedSound Changed',
-                changeLong: `Someone changed amplified sound from ${previous.amplifiedSound} to ${current.amplifiedSound}.`,
-            });
-        }
-        if (current.color != previous.color) {
-            differences.push({
-                what: 'Color',
-                changeShort: 'Color Changed',
-                changeLong: `Someone changed color from ${previous.color} to ${current.color}.`,
-            });
-        }
-        if (current.supressWarnings != previous.supressWarnings) {
-            differences.push({
-                what: 'SupressWarnings',
-                changeShort: 'SupressWarnings Changed',
-                changeLong: `Someone changed supress warnings from ${previous.supressWarnings} to ${current.supressWarnings}.`,
-            });
-        }
+
         let currentGeoJson = JSON.stringify(current.toGeoJSON()['geometry']);
         let previousGeoJson = JSON.stringify(previous.toGeoJSON()['geometry']);
         if (currentGeoJson != previousGeoJson) {
@@ -816,11 +757,10 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        Messages.showNotification('Loading your drawn polygons from da interweb!');
-        //const entities = [];//await this._repository.entities();
+        await Messages.showNotification('Loading your drawn polygons from da interweb!');
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
-
+        
         for (const entity of entities) {
             this.addEntityToMap(entity, false);
         }
@@ -839,7 +779,7 @@ export class Editor {
 
         // Edit button disabled after the event took place
         this.addToggleEditButton();
-
+        
         // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
     }
