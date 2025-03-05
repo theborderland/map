@@ -438,25 +438,26 @@ export class Editor {
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
     private validateSlowly() {
-        let validated = 0;
-        // this.showLoadingMessage(
-        //     `<img src="img/hermes.png" height="48px" /> ${this._validateEntitiesQueue.length} entities left for validation by small bureaucrats.`,
-        // );
-        while (this._validateEntitiesQueue.length > 0 && validated < 50) {
-            let entity = this._validateEntitiesQueue.pop();
-            validated = validated + 1;
-            this.refreshEntity(entity, true);
-        }
-
-        // At end of validation cycle, check if done or to continue
-        if (this._validateEntitiesQueue.length == 0) {
-            Messages.showNotification('Validation done', 'success');
-        } else {
-            // Let the UI redraw by resting a while, then continue until validated
+        const chunkSize = 50;
+        var arrayOfPromises: Array<Promise<any>> = [];
+        
+        for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
+            const chunk = this._validateEntitiesQueue.slice(i, i + chunkSize);
+            arrayOfPromises.push(new Promise(function(resolve, reject) {
             setTimeout(() => {
-                this.validateSlowly();
+                    for (let i = 0; i < chunk.length; i++) {
+                        this.refreshEntity(chunk[i], true);
+                    }
+                    resolve(chunk.length);
             }, 50);
+            }.bind(this)));
         }
+        
+        Promise.all(arrayOfPromises).then((res) => {
+            Messages.showNotification('Validation done', 'success');
+        }, (err) => {
+            console.log(err);
+          }); 
     }
 
     public setLayerFilter(filter: 'severity' | 'sound' | 'power', checkRules: boolean = true) {
