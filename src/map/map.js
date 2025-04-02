@@ -38,6 +38,8 @@ export const createMap = async () => {
         poi: new L.LayerGroup(),
         powergrid: new L.LayerGroup(),
         soundspots: new L.LayerGroup(),
+        soundguide: new L.LayerGroup(),
+        names: new L.LayerGroup(),
     };
 
     // Add the Google Satellite layer
@@ -96,12 +98,7 @@ export const createMap = async () => {
     map.groups.bridge.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.bridge);
 
-    // Camp names layer - used by the editor to render names of placement
-    map.groups.names = new L.LayerGroup();
-    map.groups.names.addTo(map);
-
     // Combine and add sound guide
-    map.groups.soundguide = new L.LayerGroup();
     map.groups.bluesoundzone.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.bluesoundzone);
     map.groups.greensoundzone.addTo(map.groups.soundguide);
@@ -111,9 +108,9 @@ export const createMap = async () => {
     map.groups.orangesoundzone.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.orangesoundzone);
     map.groups.redsoundzone.addTo(map.groups.soundguide);
-    //map.removeLayer(map.groups.redsoundzone);
+    map.removeLayer(map.groups.redsoundzone);
 
-    // TODO: Its unknown what this does
+    // Bring the sound guide layer to the back when it is added so the placement and POI is "on top"
     map.on('overlayadd', function (eventLayer) {
         map.groups.names.setZIndex(101);
         if (eventLayer.name === 'Soundguide') {
@@ -350,9 +347,11 @@ export const createMap = async () => {
     // Add layer control and legends
     await addLegends(map, availableLayers, visibleLayers);
 
+    // To speed up the loading time, remove camp name layer while loading entities
+    map.removeLayer(availableLayers['Names']);
     // Load all entities from the API
     await editor.addAPIEntities();
-    map.groups.placement.addTo(map);
+    map.addLayer(availableLayers['Names']);
 
     // Access the query string and zoom to entity if id is present
     const urlParams = new URLSearchParams(window.location.search);
@@ -362,5 +361,5 @@ export const createMap = async () => {
     }
 
     // Done!
-    showNotification('Loaded everything!', 'success');
+    await showNotification('Loaded everything!', 'success');
 };
