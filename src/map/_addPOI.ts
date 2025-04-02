@@ -26,7 +26,7 @@ export const addPointsOfInterestsTomap = async (filename: string, layerGroup: L.
         // Add links
         if (link && description) {
             const props = link[0] != '#' ? `target="_blank` : ``;
-            description = `<a href="${link}" ${props}">${description}</a>`;
+            description = `${description}<br><a href="${link}" ${props}">Read more here</a>`;
         }
 
         // Add the marker
