@@ -65,11 +65,11 @@ export const createMap = async () => {
     //         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
     //     });
 
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/placement_areas.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/roads_and_distances.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/plazas.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl24/neighbourhoods.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/roads_and_distances.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/plazas.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
 
     // Combine the Placement Area layers
     map.groups.propertyborder.addTo(map.groups.mapstuff);

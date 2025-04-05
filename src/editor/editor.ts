@@ -443,12 +443,13 @@ export class Editor {
         for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
             const chunk = this._validateEntitiesQueue.slice(i, i + chunkSize);
             arrayOfPromises.push(new Promise(function(resolve, reject) {
+                // Let the UI redraw by resting a while, then continue until validated
                 setTimeout(() => {
                     for (let i = 0; i < chunk.length; i++) {
                         this.refreshEntity(chunk[i], true);
                     }
                     resolve(chunk.length);
-                }, 50);
+            }, 50);
             }.bind(this)));
         }
         

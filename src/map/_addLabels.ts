@@ -1,17 +1,17 @@
 import * as L from 'leaflet';
 
 export const addQuarterLabelsToMap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl24/labels/quarters.json')).json();
+    let json = await (await fetch('./data/bl25/labels/quarters.json')).json();
     addLabelOverlayToMap(json, layerGroup, 'white', 0.001);
 };
 export const addPlazaLabelsToMap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl24/labels/plazas.json')).json();
+    let json = await (await fetch('./data/bl25/labels/plazas.json')).json();
     addLabelOverlayToMap(json, layerGroup, 'white', 0.0015);
 };
 export const addNeighbourhoodLabelsToMap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl24/labels/neighbourhoods.json')).json();
+    let json = await (await fetch('./data/bl25/labels/neighbourhoods.json')).json();
     addLabelOverlayToMap(json, layerGroup, 'white', 0.003);
-    let jsonNonCamp = await (await fetch('./data/bl24/labels/non-camp-neighbourhoods.json')).json();
+    let jsonNonCamp = await (await fetch('./data/bl25/labels/non-camp-neighbourhoods.json')).json();
     addLabelOverlayToMap(jsonNonCamp, layerGroup, 'white', 0.003);
 };
 

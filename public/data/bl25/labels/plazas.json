@@ -1,0 +1,55 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "ECLAIRE"
+            },
+            "geometry": {
+                "coordinates": [14.928990128285676, 57.626162397724585],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "THE LEMON"
+            },
+            "geometry": {
+                "coordinates": [14.928474706545842, 57.62459054038919],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "MELLOW"
+            },
+            "geometry": {
+                "coordinates": [14.927268048485956, 57.62300234611382],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "THE HEX"
+            },
+            "geometry": {
+                "coordinates": [14.926346665970584, 57.62546221991144],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "THE BAY"
+            },
+            "geometry": {
+                "coordinates": [14.929312931577527, 57.62076701800734],
+                "type": "Point"
+            }
+        }
+    ]
+}
