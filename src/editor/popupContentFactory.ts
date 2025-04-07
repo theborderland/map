@@ -3,6 +3,7 @@ import { MapEntity, MapEntityRepository } from "../entities";
 import * as Buttons from './buttonsFactory';
 import { EntityDifferences } from "../entities/entity";
 import L from "leaflet";
+import { formatDate } from "../utils";
 
 export class PopupContentFactory {
     private _formatDate(
@@ -330,7 +331,7 @@ export class PopupContentFactory {
 
         content.appendChild(document.createElement('h2')).innerHTML = 'More stuff';
 
-        let formattedDate = this._formatDate(entity.timeStamp);
+        let formattedDate = formatDate(entity.timeStamp);
 
         let entityInfo = content.appendChild(document.createElement('div'));
         entityInfo.innerHTML =
@@ -434,7 +435,7 @@ export class PopupContentFactory {
 
         content.appendChild(document.createElement('h2')).innerHTML = 'Edit-History';
 
-        let formattedDate = this._formatDate(entity.timeStamp);
+        let formattedDate = formatDate(entity.timeStamp);
 
         let entityInfo = content.appendChild(document.createElement('div'));
         entityInfo.innerHTML =
@@ -488,7 +489,7 @@ export class PopupContentFactory {
             const row: HTMLTableRowElement = document.createElement('tr');
             entityCurrent = entity.revisions[revisionentity];
             row.insertCell().innerText = entityCurrent.revision;
-            row.insertCell().innerText = this._formatDate(entityCurrent.timeStamp, 'short', 'medium');
+            row.insertCell().innerText = formatDate(entityCurrent.timeStamp, 'short', 'medium');
             row.insertCell().append(ulChanges);
             let diff = getEntityDifferences(entityCurrent, entityPrevious);
             // console.log('Differences', diff);

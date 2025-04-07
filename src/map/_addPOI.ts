@@ -11,7 +11,7 @@ const centeredIcon: any = L.Icon.extend({
 });
 
 export const addPointsOfInterestsTomap = async (filename: string, layerGroup: L.LayerGroup) => {
-    let json = await (await fetch(`./data/bl24/poi/${filename}`)).json();
+    let json = await (await fetch(`./data/bl25/poi/${filename}`)).json();
     let iconDict = {};
 
     for (let place of json['features']) {
@@ -26,7 +26,7 @@ export const addPointsOfInterestsTomap = async (filename: string, layerGroup: L.
         // Add links
         if (link && description) {
             const props = link[0] != '#' ? `target="_blank` : ``;
-            description = `<a href="${link}" ${props}">${description}</a>`;
+            description = `${description}<br><a href="${link}" ${props}">Read more here</a>`;
         }
 
         // Add the marker
