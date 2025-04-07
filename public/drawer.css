@@ -2,6 +2,7 @@
 
 #drawer-content {
     font-family: Arial, sans-serif;
+    height: 100%;
 }
 
 #drawer-content img {
@@ -17,4 +18,40 @@
 #drawer-content h3,
 #drawer-content h4 {
     font-family: bradleyHand;
+}
+
+/* Used in the entity editor tabs */
+sl-tab-group::part(base),
+sl-tab-group::part(body),
+sl-tab-group,
+sl-tab-panel::part(base),
+sl-tab-panel::part(body),
+sl-tab-panel,
+.tab-pannel-inner {
+  height: 100%;
+}
+
+sl-tab-group::part(nav) {
+    display: flex;
+    justify-content: center;
+    margin: auto;
+}
+
+/* Entity editor specific styles */
+
+#drawer-content section {
+    margin-bottom: 10px;
+}
+
+#entity-description {
+    height: 150px;
+    vertical-align: top; /* to get rid of inconsistent margin bottom */
+}
+
+.short-input {
+    width: 3.5rem;
+}
+
+.long-input {
+    width: 6rem;
 }

@@ -62,7 +62,8 @@ class HashMetaImplementation {
         // Decode any opened page
         const pageVal = this._hashMeta.find((val) => val.startsWith(PAGE_KEY));
         this._page = pageVal ? pageVal.substring(PAGE_KEY.length) : undefined;
-        if (this._page) {
+        // Do not open the edit-entity drawer here because we cannot give it an entity to populate the fields.
+        if (this._page && this._page !== 'edit-entity') {
             showDrawer({ file: this.page, position: 'end' });
         }
     }

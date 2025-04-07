@@ -76,6 +76,7 @@ export class MapEntity implements EntityDTO {
     public name: string;
     public description: string;
     public contactInfo: string;
+    public powerContactInfo: string;
     public nrOfPeople: number;
     public nrOfVehicles: number;
     public additionalSqm: number;
@@ -170,6 +171,7 @@ export class MapEntity implements EntityDTO {
         // Extract information fields from the geoJson
         this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
+        this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.powerContactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? 0;
@@ -274,6 +276,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.name = DOMPurify.sanitize(this.name).substring(0, 100);
         geoJson.properties.description = DOMPurify.sanitize(this.description).substring(0, 1000);
         geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
+        geoJson.properties.powerContactInfo = DOMPurify.sanitize(this.powerContactInfo);
         geoJson.properties.nrOfPeople = this.nrOfPeople;
         geoJson.properties.nrOfVechiles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;

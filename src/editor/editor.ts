@@ -98,6 +98,7 @@ export class Editor {
 
         // Deselect and stop editing
         if (this._mode == 'none') {
+            // TODO : When we remove old edit UI in popoup, also remove the saving when a popup is closed
             this.setSelected(null, prevEntity);
             this.setPopup('none');
             return;
@@ -172,9 +173,41 @@ export class Editor {
             return;
         }
 
+        let editEntityCallback = (action: string, entity?: MapEntity, extraInfo?: string) => {
+            switch (action) {
+                case "delete":
+                    this.deleteAndRemoveEntity(entity, extraInfo);
+                    this._popup.close();
+                    break;
+
+                case "save":
+                    // will eventually call setSelected - onLayerDoneEditing - save the entity.
+                    this.setMode('none');
+                    break;
+
+                case "restore":
+                    // First remove currently drawn shape to avoid duplicates
+                    this.removeEntityNameTooltip(entity);
+                    this.removeEntityFromLayers(entity);
+                    entity.layer = entity.revisions[extraInfo].layer;
+                    this.addEntityToMap(entity);
+
+                default:
+                    console.log('Unknown action', action);
+                    break;
+            }
+        };
+
         // Show information popup for the entity
         if (display == 'info') {
-            const content = this._popupContentFactory.CreateInfoPopup(entity, this._isEditMode, this.setMode.bind(this));
+            const content = this._popupContentFactory.CreateInfoPopup(
+                entity,
+                this._isEditMode, 
+                this.setMode.bind(this),
+                this._repository,
+                this._ghostLayers,
+                editEntityCallback.bind(this),
+            );
             this._popup.setContent(content).openOn(this._map);
             return;
         }
@@ -236,10 +269,14 @@ export class Editor {
     /** Event handler for when an editable map entity has been edited */
     private async onLayerDoneEditing(entity: MapEntity) {
         console.log('[Editor]', 'onLayerDoneEditing!', { selected: this._selected });
+        
+        if (this.isAreaTooBig(entity.toGeoJSON())) {
+            return;
+        }
         // Stop editing
         entity.layer.pm.disable();
 
-        this.UpdateOnScreenDisplay(null);
+        this.UpdateOnScreenDisplay(null); // null hides tooltip text
 
         // Check if there is any later revision since editor opened
         await this._repository.getRevisionsForEntity(entity);
@@ -250,7 +287,9 @@ export class Editor {
         let latestEntity = entity.revisions[latestKey];
         if (entity.revision != latestEntity.revision) {
             let diff = this.getEntityDifferences(latestEntity, entity);
-            let diffDescription: string = `<b>Someone else edited this shape at the same time as you</b><br/>You have now overwritten their changes, these differences were detected:<ul>`;
+            let diffDescription: string = 
+            `<b>Someone else edited this shape at the same time as you</b><br/>
+            You have now overwritten their changes, these differences were detected:<ul>`;
             for (let changeid in diff) {
                 diffDescription += `<li>${diff[changeid]['changeLong']}</li>`;
             }
@@ -260,13 +299,11 @@ export class Editor {
             Messages.showNotification(diffDescription, 'danger', undefined, 3600000);
         }
 
-        if (this.isAreaTooBig(entity.toGeoJSON())) {
-            return;
-        }
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
-        // Redraw shape efter a successful update
+        // Redraw shape efter a successful update.
+        // Because the repository updates the revision by 1, otherwise we'll get diff warnings when trying to edit it further
         if (entityInResponse) {
             // Remove old shape, but don't remove from repository, it's already replaced in updateEntity
             this.removeEntity(entity, false);
@@ -276,6 +313,7 @@ export class Editor {
     }
 
     /** Event handler for when an new layer is created */
+    // Should perhaps be renamed to onNewAreaCreated? Because we use the term layer for soundguide, slope, terrain etc
     private async onNewLayerCreated(createEvent: { layer: L.Layer }) {
         console.log('[Editor]', 'Create event fired', { createEvent });
 
@@ -449,7 +487,7 @@ export class Editor {
                         this.refreshEntity(chunk[i], true);
                     }
                     resolve(chunk.length);
-            }, 50);
+                }, 50);
             }.bind(this)));
         }
         
@@ -460,6 +498,7 @@ export class Editor {
           }); 
     }
 
+    // This method is never called. can be removed? Robin 2025-03-28
     public setLayerFilter(filter: 'severity' | 'sound' | 'power', checkRules: boolean = true) {
         this._currentLayerFilterStyle = filter;
         this.refreshAllEntities(checkRules);
@@ -482,7 +521,7 @@ export class Editor {
     }
 
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
-        this._selected = null;
+        this._selected = null; // Dont think this is needed for setMode function to work with 'none' (not fully tested this scenario though)
         this.setMode('none');
         this.removeEntity(entity);
         this._repository.deleteEntity(entity, deleteReason);
@@ -612,6 +651,7 @@ export class Editor {
 
         // Add a click event to the map to reset the editor status.
         this._map.on('click', (mouseEvent) => {
+            // TODO : Remove the saving when a popup is closed, because save when the user clicks in the new side drawer.
             console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
             this.setMode('blur');
         });
@@ -653,6 +693,8 @@ export class Editor {
         }
     }
 
+    // TODO : Can be removed when we remove the old edit UI in popup
+    // and start using the new editing UI (function has been moved to EntityInfoEditor.ts)
     private getEntityDifferences(current: MapEntity, previous: MapEntity): Array<EntityDifferences> {
         let differences: Array<EntityDifferences> = [];
         // If previous entity is null it must be the first revision

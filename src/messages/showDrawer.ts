@@ -52,7 +52,11 @@ export async function showDrawers(drawerOptions: Array<DrawerOptions>) {
     }
 }
 
-export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: OrderOptions = {}) {
+export async function showDrawer(
+    drawerOptions: DrawerOptions, 
+    orderOptions: OrderOptions = {}, 
+    onLoadedCallback: () => any = () => {}
+) {
     return new Promise<void>(async (resolve) => {
         onCloseAction = drawerOptions.onClose || null;
         onCloseResolve = resolve;
@@ -79,36 +83,41 @@ export async function showDrawer(drawerOptions: DrawerOptions, orderOptions: Ord
         // Button
         const btn = document.getElementById('drawer-button');
         if (orderOptions.keepOpen) {
-            btn.innerHTML = 'Continue';
+            btn.innerText = 'Continue';
             onBtnAction = resolve;
         } else {
             if (openedDrawer && openedDrawer.keepOpen) {
                 const target = { ...openedDrawer };
-                btn.innerHTML = 'Back';
+                btn.innerText = 'Back';
                 onBtnAction = async () => {
                     await showDrawer(target);
                     resolve();
                 };
             } else {
-                btn.innerHTML = 'Close';
+                btn.innerText = drawerOptions.btnText || 'Close';
                 onBtnAction = () => drawer.hide();
             }
         }
-        if (drawerOptions.btn) {
-            btn.innerHTML = drawerOptions.btn;
+        if (drawerOptions.onBtnAction) {
+            onBtnAction = () => {
+                drawer.hide();
+                drawerOptions.onBtnAction(); 
+            };
         }
 
         hash.page = drawerOptions.file;
         openedDrawer = drawerOptions;
         drawer.show();
+        onLoadedCallback();
     });
 }
 
 type DrawerOptions = {
     file: string;
-    position: 'end' | 'bottom' | 'start' | 'top';
+    position: 'end' | 'bottom' | 'start' | 'top'; // end = right, start = left
+    onBtnAction?: () => any;
     onClose?: () => any;
-    btn?: string;
+    btnText?: string;
     keepOpen?: boolean;
 };
 

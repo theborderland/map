@@ -3,35 +3,27 @@ import { MapEntity, MapEntityRepository } from "../entities";
 import * as Buttons from './buttonsFactory';
 import { EntityDifferences } from "../entities/entity";
 import L from "leaflet";
+import { EntityInfoEditor } from "./entityInfoEditor";
 import { formatDate } from "../utils";
 
 export class PopupContentFactory {
-    private _formatDate(
-        timeStamp: any,
-        styleDate: 'full' | 'long' | 'medium' | 'short' = 'short',
-        styleTime: 'full' | 'long' | 'medium' | 'short' = 'short',
-    ): string {
-        // let date = new Date(Date.parse(timeStamp + ' UTC'));
-        let date = new Date(Date.parse(timeStamp));
-        // console.log('date', date);
-        let formatted: string = date.toLocaleString('sv', { dateStyle: styleDate, timeStyle: styleTime });
-        // console.log('formatted', formatted);
-        return formatted;
-    }
-
     public CreateInfoPopup(
         entity: MapEntity,
         isEditMode: boolean,
-        setMode: (nextMode: string, nextEntity?: MapEntity) => void): HTMLElement {
+        setMode: (nextMode: string, nextEntity?: MapEntity) => void,
+        repository: MapEntityRepository,
+        ghostLayers: L.LayerGroup<any>,
+        editEntityCallback: (...args: any[]) => void
+    ): HTMLElement {
         const content = document.createElement('div');
 
         const personText = entity.nrOfPeople === 1 ? ' person,' : ' people,';
-        const vehicleText = entity.nrOfVehicles === 1 ? '> vehicle,' : ' vehicles,';
-        const entityName = entity.name ? entity.name : 'No name yet';
-        const entityDescription = entity.description ? entity.description : 'No description yet, please add one!';
+        const vehicleText = entity.nrOfVehicles === 1 ? ' vehicle,' : ' vehicles,';
+        const entityName = entity.name ? entity.name : '<i>No name yet</i>';
+        const entityDescription = entity.description ? entity.description : '<i>No description yet</i>';
         const entityContactInfo = entity.contactInfo
             ? entity.contactInfo
-            : 'Please add contact info! Without it, your area might be removed.';
+            : 'Please add contact info! Areas without it might be removed.';
         const entityPowerNeed = entity.powerNeed != -1
             ? `${entity.powerNeed} Watts`
             : 'Please state your power need! Set to 0 if you will not use electricity.';
@@ -46,51 +38,65 @@ export class PopupContentFactory {
             replacePattern1,
             '<a href="$1" target="_blank">$1</a>'
         );
-
-        content.innerHTML = `<h2 style="margin-bottom: 0">${DOMPurify.sanitize(entityName)}</h2>
-                                    <p class="scrollable">${descriptionWithLinks}</p>
-                                    <p style="font-size:14px; margin-top:0px !important; margin-bottom:0px !important">
-                                    <b>Contact:</b> ${DOMPurify.sanitize(entityContactInfo)}   
-                                    </br>
-                                    <b style="text-align:right;">Power:</b> ${entityPowerNeed}
-                                    </br>
-                                    <b style="text-align:right;">Sound:</b> ${entitySoundAmp}
-                                    </p> 
-                                    <div style="font-size: 14px; color:#5c5c5c; margin-bottom: 10px !important">
-                                        <b>${entity.area}</b> m² - 
-                                        ${entity.nrOfPeople > 0 ? '<b>' + entity.nrOfPeople + '</b>' + personText : ''} 
-                                        ${entity.nrOfVehicles > 0 ? '<b>' + entity.nrOfVehicles + '</b>' + vehicleText : ''} 
-                                        ${entity.additionalSqm > 0 ? '<b>' + entity.additionalSqm + '</b> m² other' : ''}
+        
+        content.innerHTML += `<div class="flex-column" style="margin-bottom: 10px;">
+                                <header class="flex-row">
+                                    <h3 style="margin: 0px;">${DOMPurify.sanitize(entityName)}</h3>
+                                    <a href="?id=${entity.id}" style="margin: 5px;">
+                                        <sl-icon name="share" title="Direct link to this area (right click & copy)" style="font-size: 18px;"></sl-icon>
+                                    </a>
+                                </header>
+                                <p class="scrollable" style="margin: 0;">${descriptionWithLinks}</p>
+                                <div class="flex-column" style="font-weight:200; margin:10px 0 5px 0;">
+                                    <div>
+                                        <b>Contact:</b> ${DOMPurify.sanitize(entityContactInfo)}   
                                     </div>
-                                    `;
+                                    <div>
+                                        <b>Power:</b> ${entityPowerNeed}
+                                    </div>
+                                    <div>
+                                        <b>Sound:</b> ${entitySoundAmp}
+                                    </div>
+                                </div> 
+                                <div style="font-size: 14px; color:#5c5c5c; margin: 0;">
+                                    <b>${entity.area}</b> m² - 
+                                    ${entity.nrOfPeople > 0 ? '<b>' + entity.nrOfPeople + '</b>' + personText : ''} 
+                                    ${entity.nrOfVehicles > 0 ? '<b>' + entity.nrOfVehicles + '</b>' + vehicleText : ''} 
+                                    ${entity.additionalSqm > 0 ? '<b>' + entity.additionalSqm + '</b> m² other' : ''}
+                                </div>
+                            </div>`;
 
         const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
 
         if (sortedRules.length > 0) {
             if (!entity.supressWarnings)
-                content.innerHTML += `<p style="margin-bottom: 0px !important"><b>${sortedRules.length}</b> issues found:</p> `;
+                content.innerHTML += `<p style="margin: 10px 0 0 0"><b>${sortedRules.length}</b> issues found:</p> `;
 
             const ruleMessages = document.createElement('div');
-            // ruleMessages.style.marginTop = '10px';
             ruleMessages.style.maxHeight = '200px';
             ruleMessages.style.overflowY = 'auto';
-            ruleMessages.style.marginBottom = '10px';
             content.appendChild(ruleMessages);
 
             for (const rule of sortedRules) {
                 if (rule.severity >= 3) {
-                    ruleMessages.innerHTML += `<p class="error">${' ' + rule.message}</p>`;
+                    ruleMessages.innerHTML += `<div class="error">${' ' + rule.message}</div>`;
                 } else if (!entity.supressWarnings) {
                     if (rule.severity >= 2) {
-                        ruleMessages.innerHTML += `<p class="warning">${' ' + rule.message}</p>`;
+                        ruleMessages.innerHTML += `<div class="warning">${' ' + rule.message}</div>`;
                     } else {
-                        ruleMessages.innerHTML += `<p class="info">${' ' + rule.message}</p>`;
+                        ruleMessages.innerHTML += `<div class="info">${' ' + rule.message}</div>`;
                     }
                 }
             }
         }
 
         if (isEditMode) {
+            const entityInfoEditor = new EntityInfoEditor(
+                entity,
+                repository,
+                ghostLayers,
+                editEntityCallback);
+
             const editShapeButton = Buttons.simple('Edit shape', (e) => {
                 e.stopPropagation();
                 e.preventDefault();
@@ -111,6 +117,13 @@ export class PopupContentFactory {
                 setMode('editing-info', entity);
             });
             content.appendChild(editInfoButton);
+
+            const editInfoButtonNew = Buttons.simple('Edit info [new]', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                entityInfoEditor.render();
+                });
+            content.appendChild(editInfoButtonNew);
         }
         return content;
     }
