@@ -39,7 +39,7 @@ button {
     background-color: #20b2aa;
     box-shadow: 2px 2px 8px 2px rgba(0, 0, 0, 0.2);
     color: #fff;
-    font-size: large;
+    font-size: medium;
     font-weight: 600;
     margin-right: 15px;
     width: auto;
@@ -68,17 +68,28 @@ button {
 }
 
 input[type='text'],
+/* input[type='number'], */
 textarea,
 select,
 button {
     border: 1px solid #aaa;
     border-radius: 10px;
     font-family: Arial, Helvetica, sans-serif;
-    font-size: medium;
     font-weight: 500;
     margin: 0 0 10px;
     padding: 5px;
+    /* TODO : Remove width and merge with input number below when we delete old entity editor UI 
+    */
     width: 100%;
+}
+
+input[type='number']{
+    border: 1px solid #aaa;
+    border-radius: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 500;
+    margin: 0 0 10px;
+    padding: 5px;
 }
 
 label {
@@ -192,7 +203,7 @@ textarea {
     opacity: 1;
     text-shadow: 1px 1px #000;
 }
-
+/* TODO : Delete  below class when we delete old entity editor UI */
 .delete-button {
     background-color: red;
 }
@@ -317,7 +328,8 @@ textarea {
 }
 
 .scrollable {
-    max-height: 200px;
+    /* 6.5 lines of current font size in area description, so you'll see that you need to scroll */
+    max-height: 188px; 
     overflow-y: auto;
 }
 
@@ -400,11 +412,31 @@ textarea {
 }
 
 #history-table ul {
-    padding: 0 0 0 10px;
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+#history-table ul li {
+    margin: 0 0 2px 0;
+}
+
+#history-table table {
+    width: 100%;
+}
+
+#history-table thead {
+    position: sticky;
+    top: 0;
+    background-color: white;
+}
+
+#history-table tbody {
+    font-size: small;
 }
 
 #history-table {
-    max-height: 500px;
+    max-height: 400px;
     overflow: scroll;
 }
 
@@ -467,4 +499,32 @@ body,
 
 .leaflet-control-coordinates-lng {
     padding-left: 5px;
+}
+
+/* some flex stuff for area popup and area editor (drawer) */
+.flex-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.flex-fill {
+    flex-grow: 1;
+}
+
+.flex-row input,
+.flex-column input,
+.flex-column textarea {
+    margin-bottom: 5px;
+}
+
+.flex-row *:last-child,
+.flex-column *:last-child {
+    margin-bottom: 0px !important;
 }
