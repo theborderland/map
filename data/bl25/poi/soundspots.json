@@ -1,0 +1,96 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Western Meadow S",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.918656142129404, 57.62385367089115],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Western Meadow N",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.920225043013971, 57.625793730397305],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Cleavage",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.923218293313937, 57.621490554619356],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Groove",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot"
+            },
+            "geometry": {
+                "coordinates": [14.926106929779055, 57.620111518352026],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Brewery",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot-indoor"
+            },
+            "geometry": {
+                "coordinates": [14.926054439595987, 57.620946421129474],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Barn",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot-indoor"
+            },
+            "geometry": {
+                "coordinates": [14.925810132345134, 57.621796639173624],
+                "type": "Point"
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Machinehall",
+                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
+                "link": "#page:soundspot",
+                "category": "sounddot-indoor"
+            },
+            "geometry": {
+                "coordinates": [14.926687251186621, 57.62204469970172],
+                "type": "Point"
+            }
+        }
+    ]
+}
