@@ -1,0 +1,113 @@
+<sl-tab-group>
+    <sl-tab slot="nav" panel="area">Area</sl-tab>
+    <sl-tab slot="nav" panel="power">Power</sl-tab>
+    <sl-tab slot="nav" panel="history">History</sl-tab>
+    <sl-tab slot="nav" panel="advanced">Advanced</sl-tab>
+  
+    <sl-tab-panel name="area">
+        <div class="tab-pannel-inner flex-column">
+            <section class="flex-column">
+                <label>Name of camp/dream</label>
+                <input id="entity-name" type="text" maxlength="100" placeholder="Enter camp name here..">
+                <label>Description</label>
+                <textarea id="entity-description" maxlength="300"
+                    placeholder="Describe your camp/dream here as much as you want. Remember that this information is public. 300 characters max."></textarea>
+                <label>Contact info</label>
+                <input id="entity-contact" type="text" placeholder="Email, phone, @discord-name etc">
+            </section>
+            <section class="flex-column">
+                <div class="flex-row">
+                    <b>People</b>
+                    <div title="10m² per person">
+                        <input id="entity-people" class="short-input" type="number" min="0">
+                        <span style="font-size: 12px;"> x 10m²</span>
+                    </div>
+                </div>
+                <div class="flex-row">
+                    <b>Vehicles</b>
+                    <div title="70m² per vehicle">
+                        <input id="entity-vehicles" class="short-input" type="number" min="0">
+                        <span style="font-size: 12px;"> x 70m²</span>
+                    </div>
+                </div>
+                <div class="flex-row">
+                    <b>Other stuff in m²</b>
+                    <input id="entity-other-sqm" class="long-input" type="number" min="0"
+                        title="Area needed for kitchen, storage, workshop tents etc.">
+                </div>
+                <div id="entity-area-info" style="font-size: 13px;"></div>
+            </section>
+            <br>
+            <section class="flex-column">
+                <div class="flex-row">
+                    <b>Sound amplification (Watts)</b>
+                    <input id="entity-sound" class="long-input" type="number" placeholder="?" min="0"
+                        title="If over 100W then you are considered a sound camp.\nPlease get in contact with the sound lead.">
+                </div>
+            </section>
+        </div>
+    </sl-tab-panel>
+    <sl-tab-panel name="power">
+        <div class="tab-pannel-inner flex-column">
+            <section class="flex-column">
+                <label>Power lead contact info</label>
+                <input id="entity-power-lead" type="text" placeholder="Email, phone, @discord-name etc">
+            </section>
+            <section class="flex-column">
+                <div class="flex-row">
+                    <b>Power need (Watts)</b>
+                    <input id="entity-power-need" class="long-input" type="number" placeholder="?" min="0"
+                        title="A water boiler is about 2000W, a fridge is about 100W,\na laptop is about 50W, a phone charger is about 10W.">
+                </div>
+            </section>
+        </div>
+    </sl-tab-panel>
+    <sl-tab-panel name="history">
+        <div class="tab-pannel-inner flex-column">
+            <section class="flex-column">
+                <div class="flex-row">
+                    <b>Entity Id:</b>
+                    <span id="entity-id"></span>
+                </div>
+                <div class="flex-row">
+                    <b>Revisions:</b>
+                    <span id="entity-revisions"></span>
+                </div>
+                <div class="flex-row">
+                    <b>Last edited:</b>
+                    <span id="entity-last-edited"></span>
+                </div>
+            </section>
+            <section id="history-table">
+            </section>
+            <section id="history-detail">
+                <span id="history-description-header" style="font-size: large; font-weight: bold;"></span>
+            </section>
+        </div>
+    </sl-tab-panel>
+    <sl-tab-panel name="advanced">
+        <div class="tab-pannel-inner flex-column">
+            <section class="flex-row">
+                <a class="entity-link" href="">Right click here to copy a link to this entity</a>
+                <a class="entity-link" href="">
+                    <sl-icon name="share" title="Direct link to this area (right click & copy)" style="font-size: 18px; margin-right: 10px;"></sl-icon>
+                </a>
+            </section>
+            <section class="flex-row">
+                <b>Supress yellow warnings</b>
+                <sl-checkbox id="entity-supress-warnings" checked></sl-checkbox>
+            </section>
+            <section class="flex-row">
+                <b>Custom color</b>
+                <sl-color-picker id="entity-color" label="Select a color"></sl-color-picker>
+            </section>
+            <section class="flex-fill"></section>
+            <section class="flex-column">
+                <div>Use delete with caution! Only delete things you know is ok. Undelete can only be performed by using
+                    black magic.
+                </div>
+                <sl-button id="entity-delete" variant="danger" style="width: 25%; align-self: flex-end;">Delete area</sl-button>
+            </section>
+        </div>
+    </sl-tab-panel>
+</sl-tab-group>
