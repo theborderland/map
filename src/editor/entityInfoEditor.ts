@@ -51,7 +51,7 @@ export class EntityInfoEditor {
     private checkIfLargeCamp() {
         // Requirement came from power realities team
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
-        
+
         if (this._entity.nrOfPeople >= this._largeCampPeopleLimit ||
             this._entity.powerNeed >= this._largeCampPowerConsumtionLimit) {
             powerImage.parentElement.style.display = "block";
@@ -159,6 +159,7 @@ export class EntityInfoEditor {
             this.updateEntityWithAddedAppliances();
             this.calculateTotalPower();
             powerForm.reset();
+            applianceInput.focus();
         };
 
         // Add existing entity appliances to table
