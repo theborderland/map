@@ -51,6 +51,12 @@ export const DangerLayerStyle: L.PathOptions = {
     weight: 5,
 };
 
+export interface Appliance {
+    name: string,
+    amount: number,
+    watt: number
+}
+
 /**
  * Represents the fields and data for single Map Entity and includes
  * methods both for persisting and updating it, and representing it on a map
@@ -72,18 +78,23 @@ export class MapEntity implements EntityDTO {
     public revisions: Record<number, MapEntity>;
     public nameMarker: L.Marker;
 
-    // Information fields
+    // Information fields.
+    // Don't forget to update the restore getEntityDifferences function when you add/rename/delete fields here
     public name: string;
     public description: string;
     public contactInfo: string;
-    public powerContactInfo: string;
     public nrOfPeople: number;
     public nrOfVehicles: number;
     public additionalSqm: number;
-    public powerNeed: number;
     public amplifiedSound: number;
     public color: string;
     public supressWarnings: boolean = false;
+    public powerContactInfo: string;
+    public powerPlugType: string;
+    public powerDescription: string;
+    public powerImageUrl: string;
+    public powerNeed: number;
+    public powerAppliances: Array<Appliance>;
 
     /** Calculated area needed for this map entity from the given information */
     public get calculatedAreaNeeded(): number {
@@ -171,16 +182,10 @@ export class MapEntity implements EntityDTO {
         // Extract information fields from the geoJson
         this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
-        this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.powerContactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
         this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? 0;
         this.additionalSqm = geoJson.properties.additionalSqm ?? 0;
-        if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
-            this.powerNeed = -1;
-        } else {
-            this.powerNeed = Number(geoJson.properties.powerNeed);
-        }
         if (Number.isNaN(Number(geoJson.properties.amplifiedSound))) {
             this.amplifiedSound = -1;
         } else {
@@ -188,6 +193,17 @@ export class MapEntity implements EntityDTO {
         }
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
+        
+        this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.techContactInfo) ?? '';
+        this.powerPlugType = DOMPurify.sanitize(geoJson.properties.powerPlugType) ?? '';
+        this.powerDescription = DOMPurify.sanitize(geoJson.properties.powerDescription) ?? '';
+        this.powerImageUrl = DOMPurify.sanitize(geoJson.properties.powerImage) ?? '';
+        if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
+            this.powerNeed = -1;
+        } else {
+            this.powerNeed = Number(geoJson.properties.powerNeed);
+        }
+        this.powerAppliances = geoJson.properties.powerAppliances ?? [];
 
         this.updateBufferedLayer();
     }
@@ -276,14 +292,19 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.name = DOMPurify.sanitize(this.name).substring(0, 100);
         geoJson.properties.description = DOMPurify.sanitize(this.description).substring(0, 1000);
         geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
-        geoJson.properties.powerContactInfo = DOMPurify.sanitize(this.powerContactInfo);
         geoJson.properties.nrOfPeople = this.nrOfPeople;
         geoJson.properties.nrOfVechiles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;
-        geoJson.properties.powerNeed = this.powerNeed;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.color = this.color;
         geoJson.properties.supressWarnings = this.supressWarnings;
+        
+        geoJson.properties.techContactInfo = DOMPurify.sanitize(this.powerContactInfo);
+        geoJson.properties.powerPlugType = DOMPurify.sanitize(this.powerPlugType);
+        geoJson.properties.powerDescription = DOMPurify.sanitize(this.powerDescription);
+        geoJson.properties.powerImage = DOMPurify.sanitize(this.powerImageUrl);
+        geoJson.properties.powerNeed = this.powerNeed;
+        geoJson.properties.powerAppliances = this.powerAppliances;
 
         return geoJson;
     }
