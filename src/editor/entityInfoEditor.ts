@@ -9,7 +9,6 @@ export class EntityInfoEditor {
     private _editEntityCallback: (action: string, entity?: MapEntity, extraInfo?: string) => void;
     private _repository: MapEntityRepository;
     private _ghostLayers: L.LayerGroup<any>;
-    private _largeCamp: boolean = false;
     private _largeCampPeopleLimit: number = 25;
     private _largeCampPowerConsumtionLimit: number = 5000;
 
@@ -51,12 +50,15 @@ export class EntityInfoEditor {
         
     private checkIfLargeCamp() {
         // Requirement came from power realities team
+        const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
+        
         if (this._entity.nrOfPeople >= this._largeCampPeopleLimit ||
             this._entity.powerNeed >= this._largeCampPowerConsumtionLimit) {
-            this._largeCamp = true;
+            powerImage.parentElement.style.display = "block";
         } else {
-            this._largeCamp = false;
+            powerImage.parentElement.style.display = "none";
         }
+
     }
 
     private populateEditTab() {
@@ -136,7 +138,10 @@ export class EntityInfoEditor {
         };
 
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
-        powerImage.parentElement.style.display = this._largeCamp ? "block" : "none";
+        powerImage.value = this._entity.powerImageUrl;
+        powerImage.oninput = () => {
+            this._entity.powerImageUrl = powerImage.value;
+        }
 
         const powerForm = document.getElementById('power-form') as HTMLFormElement;
         powerForm.onsubmit = (event: Event) => {
