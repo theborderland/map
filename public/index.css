@@ -523,8 +523,3 @@ body,
 .flex-column textarea {
     margin-bottom: 5px;
 }
-
-.flex-row *:last-child,
-.flex-column *:last-child {
-    margin-bottom: 0px !important;
-}
