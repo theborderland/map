@@ -169,10 +169,6 @@ textarea {
     width: 100px;
 }
 
-.btn-gradient1 {
-    background-image: linear-gradient(toright, #fbc2eb0%, #a6c1ee51%, #fbc2eb100%);
-}
-
 .btn:hover {
     background-position: right center;
 }
@@ -523,8 +519,14 @@ body,
 .flex-column textarea {
     margin-bottom: 5px;
 }
+/* END some flex stuff */
 
-.flex-row *:last-child,
-.flex-column *:last-child {
-    margin-bottom: 0px !important;
+.note-about-editing {
+    background-color: white;
+    border-radius: 10px;
+    border: 5px red solid;
+    padding: 2px;
+    font-size: 13px;
+    font-weight: bold;
+    width: 200px;
 }
