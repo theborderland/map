@@ -30,7 +30,7 @@ export class EntityInfoEditor {
                 file: "edit-entity",
                 position: "end",
                 btnText: "Save",
-                onBtnAction: () => { this._editEntityCallback("save"); }
+                onBtnAction: () => { this._editEntityCallback("save", this._entity); }
             },
             {},
             () => this.populate());

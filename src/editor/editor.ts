@@ -9,7 +9,6 @@ import * as Buttons from './buttonsFactory';
 import * as Turf from '@turf/turf';
 import 'leaflet.path.drag';
 import 'leaflet-search';
-import { EntityDifferences } from '../entities/entity';
 import { PopupContentFactory } from './popupContentFactory';
 
 /**
@@ -28,7 +27,7 @@ export class Editor {
     private _isEditMode: boolean = false;
 
     /** The current status of the editor */
-    private _mode: 'none' | 'selected' | 'editing-shape' | 'editing-info' | 'moving-shape' = 'none';
+    private _mode: 'none' | 'selected' | 'editing-shape' | 'moving-shape' = 'none';
 
     private _currentLayerFilterStyle: 'severity' | 'sound' | 'power' = 'severity';
 
@@ -70,7 +69,6 @@ export class Editor {
                 (
                     prevMode == 'editing-shape' 
                     || prevMode == 'moving-shape' 
-                    || prevMode == 'editing-info'
                 ) 
                 && prevEntity
             ) {
@@ -98,7 +96,6 @@ export class Editor {
 
         // Deselect and stop editing
         if (this._mode == 'none') {
-            // TODO : When we remove old edit UI in popoup, also remove the saving when a popup is closed
             this.setSelected(null, prevEntity);
             this.setPopup('none');
             return;
@@ -132,21 +129,10 @@ export class Editor {
             nextEntity.layer._layers[nextEntity.layer._leaflet_id - 1].dragging.enable();
             return;
         }
-        // Edit the information of the entity
-        if (this._mode == 'editing-info' && nextEntity) {
-            this.setSelected(nextEntity, prevEntity);
-            this.setPopup('edit-info', nextEntity);
-            return;
-        }
     }
 
     /** Updates the currently selected map entity  */
     private async setSelected(nextEntity: MapEntity | null, prevEntity: MapEntity | null) {
-        // When a map entity is unselected, save it to the database if it has changes
-        if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
-            await this.onLayerDoneEditing(prevEntity);
-        }
-
         if (this._isEditMode) {
             this.UpdateOnScreenDisplay(nextEntity);
         }
@@ -173,7 +159,7 @@ export class Editor {
             return;
         }
 
-        let editEntityCallback = (action: string, entity?: MapEntity, extraInfo?: string) => {
+        let editEntityCallback = async (action: string, entity?: MapEntity, extraInfo?: string) => {
             switch (action) {
                 case "delete":
                     this.deleteAndRemoveEntity(entity, extraInfo);
@@ -181,8 +167,12 @@ export class Editor {
                     break;
 
                 case "save":
-                    // will eventually call setSelected - onLayerDoneEditing - save the entity.
-                    this.setMode('none');
+                    // close popup displaying old data, save entity, reopen popup with new data
+                    this.setSelected(entity, null);
+                    this._popup.close();
+                    this.UpdateOnScreenDisplay(entity, "Saving...");
+                    let entityInResponse = await this.saveEntity(entity);
+                    this.setPopup('info', entityInResponse);
                     break;
 
                 case "restore":
@@ -211,52 +201,6 @@ export class Editor {
             this._popup.setContent(content).openOn(this._map);
             return;
         }
-
-        // Show fields to edit the entity information
-        if (display == 'edit-info') {
-            const content = this._popupContentFactory.CreateEditPopup(
-                entity,
-                this._isEditMode,
-                this.setMode.bind(this),
-                this.setPopup.bind(this),
-                this.refreshEntity.bind(this),
-                this.UpdateOnScreenDisplay.bind(this),
-            );
-
-            this._popup.setContent(content).openOn(this._map);
-            return;
-        }
-
-        // Show fields to edit the entity information
-        if (display == 'more') {
-            const content = this._popupContentFactory.CreateMoreInfoPopup(
-                entity, 
-                this.setMode.bind(this),
-                this.setPopup.bind(this),
-                this.refreshEntity.bind(this),
-                this.deleteAndRemoveEntity.bind(this)
-            );
-                
-            this._popup.setContent(content).openOn(this._map);
-            return;
-        }
-
-        // Show edit-history for the entity
-        if (display == 'history') {
-            const content = await this._popupContentFactory.CreateHistoryPopup(
-                entity,
-                this._repository,
-                this._ghostLayers,
-                this.setMode.bind(this),
-                this.getEntityDifferences.bind(this),
-                this.removeEntityNameTooltip.bind(this),
-                this.removeEntityFromLayers.bind(this),
-                this.addEntityToMap.bind(this),
-            );
-
-            this._popup.setContent(content).openOn(this._map);
-            return;
-        }
     }
 
     /** Event handler for when an editable map entity is clicked */
@@ -267,16 +211,15 @@ export class Editor {
     }
 
     /** Event handler for when an editable map entity has been edited */
-    private async onLayerDoneEditing(entity: MapEntity) {
-        console.log('[Editor]', 'onLayerDoneEditing!', { selected: this._selected });
+    private async saveEntity(entity: MapEntity) : Promise<MapEntity | null> {
+        console.log('[Editor]', 'saveEntity!', { selected: this._selected });
         
         if (this.isAreaTooBig(entity.toGeoJSON())) {
+            this.setMode('blur');
             return;
         }
         // Stop editing
         entity.layer.pm.disable();
-
-        this.UpdateOnScreenDisplay(null); // null hides tooltip text
 
         // Check if there is any later revision since editor opened
         await this._repository.getRevisionsForEntity(entity);
@@ -286,21 +229,16 @@ export class Editor {
         }
         let latestEntity = entity.revisions[latestKey];
         if (entity.revision != latestEntity.revision) {
-            let diff = this.getEntityDifferences(latestEntity, entity);
             let diffDescription: string = 
             `<b>Someone else edited this shape at the same time as you</b><br/>
-            You have now overwritten their changes, these differences were detected:<ul>`;
-            for (let changeid in diff) {
-                diffDescription += `<li>${diff[changeid]['changeLong']}</li>`;
-            }
-            diffDescription += '</ul>';
-            // NOTE : Removed after public availability in may 2024, I think it was only for making changes known to both users, but causes recursive problems
-            // entity.description = `${diffDescription}\n\nOriginal description:\n${entity.description}`;
+            You have now overwritten their changes, see the differences in the history tab.`;
             Messages.showNotification(diffDescription, 'danger', undefined, 3600000);
         }
 
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
+
+        this.UpdateOnScreenDisplay(null); // null hides tooltip text
 
         // Redraw shape efter a successful update.
         // Because the repository updates the revision by 1, otherwise we'll get diff warnings when trying to edit it further
@@ -309,6 +247,7 @@ export class Editor {
             this.removeEntity(entity, false);
             this.addEntityToMap(entityInResponse);
             Messages.showNotification('Saved!', 'success');
+            return entityInResponse;
         }
     }
 
@@ -339,7 +278,7 @@ export class Editor {
             const bounds = entityInResponse.layer.getBounds();
             const latlng = bounds.getCenter();
             this._popup.setLatLng(latlng);
-            this.setMode('editing-info', entityInResponse);
+            this.setMode('selected', entityInResponse);
             Messages.showNotification('Saved!', 'success');
         }
     }
@@ -651,7 +590,6 @@ export class Editor {
 
         // Add a click event to the map to reset the editor status.
         this._map.on('click', (mouseEvent) => {
-            // TODO : Remove the saving when a popup is closed, because save when the user clicks in the new side drawer.
             console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
             this.setMode('blur');
         });
@@ -691,68 +629,6 @@ export class Editor {
         if (NOTE_ABOUT_EDITING) {
             this._map.addControl(Messages.editing(NOTE_ABOUT_EDITING));
         }
-    }
-
-    // TODO : Can be removed when we remove the old edit UI in popup
-    // and start using the new editing UI (function has been moved to EntityInfoEditor.ts)
-    private getEntityDifferences(current: MapEntity, previous: MapEntity): Array<EntityDifferences> {
-        let differences: Array<EntityDifferences> = [];
-        // If previous entity is null it must be the first revision
-        if (previous == null) {
-            differences.push({ what: 'Created', changeShort: 'Created', changeLong: `Someone created this entity.` });
-            return differences;
-        }
-
-        // Go through all relevant properties and look for differences, list them verbosly under differences
-        let basicPropertiesToCheck = [
-            'name', 
-            'description', 
-            'contactInfo', 
-            'nrOfPeople', 
-            'nrOfVehicles', 
-            'additionalSqm', 
-            'powerNeed', 
-            'amplifiedSound', 
-            'color', 
-            'supressWarnings'
-        ];
-
-        basicPropertiesToCheck.forEach(prop => {
-            if (current[prop] != previous[prop]) {
-                differences.push({
-                    what: prop,
-                    changeShort: `${prop} Changed`,
-                    changeLong: `Someone changed ${prop} from ${previous[prop]} to ${current[prop]}.`,
-                });
-            }
-        });
-
-        // Handle specific properties
-        if (current.isDeleted != previous.isDeleted) {
-            differences.push({
-                what: 'Deleted',
-                changeShort: 'Is Deleted',
-                changeLong: `Is Deleted due to ${current.deleteReason}.`,
-            });
-        }
-
-        let currentGeoJson = JSON.stringify(current.toGeoJSON()['geometry']);
-        let previousGeoJson = JSON.stringify(previous.toGeoJSON()['geometry']);
-        if (currentGeoJson != previousGeoJson) {
-            differences.push({
-                what: 'GeoJson',
-                changeShort: 'Polygon Changed',
-                changeLong: `Someone changed the polygon.`,
-            });
-        }
-        if (differences.length == 0) {
-            differences.push({
-                what: 'NoDifference',
-                changeShort: 'No difference',
-                changeLong: `No difference detected between revisions.`,
-            });
-        }
-        return differences;
     }
 
     public async toggleEditMode() {
