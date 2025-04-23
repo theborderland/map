@@ -6,7 +6,7 @@ export function edit(isEditMode: boolean, onClickCallback: () => void): L.Contro
         options: { position: 'bottomleft' },
 
         onAdd: () => {
-            let btn = L.DomUtil.create('button', 'btn btn-gradient1 button-shake-animate');
+            let btn = L.DomUtil.create('button', 'btn button-shake-animate');
             btn.title = 'Edit';
             btn.textContent = 'Edit';
             L.DomEvent.disableClickPropagation(btn);
