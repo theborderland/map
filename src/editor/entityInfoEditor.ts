@@ -328,6 +328,7 @@ export class EntityInfoEditor {
                 return;
             }
             console.log('Delete yes, deleteReason', deleteReason);
+            Messages.hideDrawer();
             this._editEntityCallback("delete", this._entity, deleteReason);
         }
 

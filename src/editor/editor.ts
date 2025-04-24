@@ -163,6 +163,7 @@ export class Editor {
             switch (action) {
                 case "delete":
                     this.deleteAndRemoveEntity(entity, extraInfo);
+                    Messages.showNotification("Deleted", 'success');
                     this._popup.close();
                     break;
 

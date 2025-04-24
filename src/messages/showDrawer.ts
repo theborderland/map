@@ -112,6 +112,12 @@ export async function showDrawer(
     });
 }
 
+export async function hideDrawer() {
+    const drawer = await drawerLoader;
+    drawer.hide();
+}
+
+
 type DrawerOptions = {
     file: string;
     position: 'end' | 'bottom' | 'start' | 'top'; // end = right, start = left

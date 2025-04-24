@@ -1,5 +1,3 @@
-const container = document.querySelector('.alert-toast-wrapper');
-
 export async function showNotification(
     message: string,
     variant: 'primary' | 'success' | 'neutral' | 'warning' | 'danger' = 'primary',
