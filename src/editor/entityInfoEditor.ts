@@ -316,10 +316,10 @@ export class EntityInfoEditor {
 
         const colorPicker = document.getElementById('entity-color') as HTMLInputElement;
         colorPicker.value = this._entity.color;
-        colorPicker.onchange = () => {
+        colorPicker.addEventListener('sl-change', () => {
             this._entity.color = colorPicker.value;
             this._entity.setLayerStyle();
-        };
+        });
 
         const deleteButton = document.getElementById('entity-delete') as HTMLButtonElement;
         deleteButton.onclick = () => {
