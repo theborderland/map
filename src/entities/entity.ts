@@ -91,7 +91,7 @@ export class MapEntity implements EntityDTO {
     public supressWarnings: boolean = false;
     public powerContactInfo: string;
     public powerPlugType: string;
-    public powerDescription: string;
+    public powerExtraInfo: string;
     public powerImageUrl: string;
     public powerNeed: number;
     public powerAppliances: Array<Appliance>;
@@ -196,7 +196,7 @@ export class MapEntity implements EntityDTO {
         
         this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.techContactInfo) ?? '';
         this.powerPlugType = DOMPurify.sanitize(geoJson.properties.powerPlugType) ?? '';
-        this.powerDescription = DOMPurify.sanitize(geoJson.properties.powerDescription) ?? '';
+        this.powerExtraInfo = DOMPurify.sanitize(geoJson.properties.powerExtraInfo) ?? '';
         this.powerImageUrl = DOMPurify.sanitize(geoJson.properties.powerImage) ?? '';
         if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
             this.powerNeed = -1;
@@ -301,7 +301,7 @@ export class MapEntity implements EntityDTO {
         
         geoJson.properties.techContactInfo = DOMPurify.sanitize(this.powerContactInfo);
         geoJson.properties.powerPlugType = DOMPurify.sanitize(this.powerPlugType);
-        geoJson.properties.powerDescription = DOMPurify.sanitize(this.powerDescription);
+        geoJson.properties.powerExtraInfo = DOMPurify.sanitize(this.powerExtraInfo);
         geoJson.properties.powerImage = DOMPurify.sanitize(this.powerImageUrl);
         geoJson.properties.powerNeed = this.powerNeed;
         geoJson.properties.powerAppliances = this.powerAppliances;

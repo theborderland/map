@@ -131,10 +131,10 @@ export class EntityInfoEditor {
             this._entity.powerPlugType = powerPlugType.value;
         });
 
-        const powerDescription = document.getElementById('power-description') as HTMLInputElement;
-        powerDescription.value = this._entity.powerDescription;
-        powerDescription.oninput = () => {
-            this._entity.powerDescription = powerDescription.value;
+        const powerExtraInfo = document.getElementById('power-extra-info') as HTMLInputElement;
+        powerExtraInfo.value = this._entity.powerExtraInfo;
+        powerExtraInfo.oninput = () => {
+            this._entity.powerExtraInfo = powerExtraInfo.value;
         };
 
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
@@ -256,7 +256,7 @@ export class EntityInfoEditor {
                         this._entity.supressWarnings = this._entity.revisions[revisionentity].supressWarnings;
                         this._entity.powerContactInfo = this._entity.revisions[revisionentity].powerContactInfo;
                         this._entity.powerPlugType = this._entity.revisions[revisionentity].powerPlugType;
-                        this._entity.powerDescription = this._entity.revisions[revisionentity].powerDescription;
+                        this._entity.powerExtraInfo = this._entity.revisions[revisionentity].powerExtraInfo;
                         this._entity.powerImageUrl = this._entity.revisions[revisionentity].powerImageUrl;
                         this._entity.powerNeed = this._entity.revisions[revisionentity].powerNeed;
                         this._entity.powerAppliances = this._entity.revisions[revisionentity].powerAppliances;
@@ -355,7 +355,7 @@ export class EntityInfoEditor {
             'supressWarnings',
             'powerContactInfo',
             'powerPlugType',
-            'powerDescription',
+            'powerExtraInfo',
             'powerImageUrl',
             'powerNeed'
         ];
