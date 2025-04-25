@@ -28,7 +28,7 @@ sl-tab-panel::part(base),
 sl-tab-panel::part(body),
 sl-tab-panel,
 .tab-pannel-inner {
-  height: 100%;
+    height: 100%;
 }
 
 sl-tab-group::part(nav) {
@@ -39,7 +39,7 @@ sl-tab-group::part(nav) {
 
 /* Entity editor specific styles */
 
-#drawer-content section ~ section {
+#drawer-content section~section {
     margin-top: 10px;
 }
 
@@ -62,4 +62,67 @@ sl-select::part(form-control-label) {
     top: 0;
     background-color: white;
     z-index: 1;
+}
+
+details>summary {
+    cursor: pointer;
+    list-style: none;
+    text-align: center;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+
+summary::-webkit-details-marker {
+    display: none
+}
+
+summary::after {
+    content: '(click to show)';
+    float: right;
+    font-size: x-small;
+    margin-top: 5px;
+}
+
+details[open] summary:after {
+    content: "(click to hide) ";
+}
+
+/* fancy-ass border */
+details {
+    font-size: small;
+    --border-width: 2px;
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    width: 98%;
+    margin: 0 auto;
+    padding: 5px;
+    
+    &::after {
+        position: absolute;
+        content: "";
+        top: calc(-1 * var(--border-width));
+        left: calc(-1 * var(--border-width));
+        z-index: -1;
+        width: calc(100% + var(--border-width) * 2);
+        height: calc(100% + var(--border-width) * 2);
+        background: linear-gradient(60deg,
+                hsl(224, 85%, 66%),
+                hsl(269, 85%, 66%),
+                hsl(314, 85%, 66%),
+                hsl(359, 85%, 66%),
+                hsl(44, 85%, 66%),
+                hsl(89, 85%, 66%),
+                hsl(134, 85%, 66%),
+                hsl(179, 85%, 66%));
+        background-size: 300% 300%;
+        background-position: 0 50%;
+        border-radius: 10px;
+        animation: moveGradient 4s alternate infinite;
+    }
+}
+
+@keyframes moveGradient {
+    50% {
+        background-position: 100% 50%;
+    }
 }

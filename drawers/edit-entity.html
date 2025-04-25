@@ -52,6 +52,24 @@
     <sl-tab-panel name="power">
         <div class="tab-pannel-inner flex-column">
             <section>
+                <details>
+                    <summary>
+                        <b>Information from The Department of Energy & Transport [DoET]</b>
+                    </summary>
+                    Dear Borderling<br>
+                    We can provide you with electricity during Borderland 2025.
+                    But our supply is FINITE and we share 200kW in each area (Valley + North) and the space centered around the barn, 
+                    so please be accurate when you fill out this form.<br>
+                    If too many members give us wrong information, it will affect the stability of the grid.<br>
+                    If you can avoid using electricity for something that is high consumption, we prefer you do that.
+                    Cooking with gas instead of induction heaters is a good example of this.
+                </details>
+            </section>
+            <section>
+                <div style="font-size: small;">
+                    The Technical Lead of your camp has responsibility for your internal powergrid,
+                    read about this in the <a href="https://coda.io/d/_ddTvwEwgvJw/Preparing_suY3b6XL#_lu934W2x" target="_blank">Survival Guide</a>.
+                </div>
                 <sl-input size="small" label="Technical lead contact info" id="entity-tech-lead" placeholder="Email, phone, @discord-name etc"></sl-input>
                 <sl-select id="power-plug-type" label="Connection type needed" placeholder="Connection type needed" value="1p_schuko" size="small">
                     <sl-option value="1p_schuko">Schuko (standard Swedish)</sl-option>
@@ -60,7 +78,7 @@
                     <sl-option value="3p_16">CEE 3-Phase 16A</sl-option>
                     <sl-option value="3p_32">CEE 3-Phase 32A</sl-option>
                   </sl-select>
-                <sl-input id="power-description" size="small" label="Describe your plan for using power during Borderland"></sl-input>
+                <sl-input id="power-extra-info" size="small" label="What type of cables/powerstrips will the camp use?" placeholder="3G1,5/2,5/CEE - IPxx - flaps?"></sl-input>
             </section>
             <section style="display: none;">
                 <sl-input id="power-image-url" size="small" placeholder="URL to picture">
