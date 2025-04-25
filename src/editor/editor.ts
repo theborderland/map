@@ -67,9 +67,9 @@ export class Editor {
         if (nextMode == 'blur') {
             if (
                 (
-                    prevMode == 'editing-shape' 
-                    || prevMode == 'moving-shape' 
-                ) 
+                    prevMode == 'editing-shape'
+                    || prevMode == 'moving-shape'
+                )
                 && prevEntity
             ) {
                 nextMode = 'selected';
@@ -193,7 +193,7 @@ export class Editor {
         if (display == 'info') {
             const content = this._popupContentFactory.CreateInfoPopup(
                 entity,
-                this._isEditMode, 
+                this._isEditMode,
                 this.setMode.bind(this),
                 this._repository,
                 this._ghostLayers,
@@ -212,9 +212,9 @@ export class Editor {
     }
 
     /** Event handler for when an editable map entity has been edited */
-    private async saveEntity(entity: MapEntity) : Promise<MapEntity | null> {
+    private async saveEntity(entity: MapEntity): Promise<MapEntity | null> {
         console.log('[Editor]', 'saveEntity!', { selected: this._selected });
-        
+
         if (this.isAreaTooBig(entity.toGeoJSON())) {
             this.setMode('blur');
             return;
@@ -230,8 +230,8 @@ export class Editor {
         }
         let latestEntity = entity.revisions[latestKey];
         if (entity.revision != latestEntity.revision) {
-            let diffDescription: string = 
-            `<b>Someone else edited this shape at the same time as you</b><br/>
+            let diffDescription: string =
+                `<b>Someone else edited this shape at the same time as you</b><br/>
             You have now overwritten their changes, see the differences in the history tab.`;
             Messages.showNotification(diffDescription, 'danger', undefined, 3600000);
         }
@@ -412,15 +412,15 @@ export class Editor {
         }
         this.validateSlowly();
     }
-    
+
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
     private validateSlowly() {
         const chunkSize = 50;
         var arrayOfPromises: Array<Promise<any>> = [];
-        
+
         for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
             const chunk = this._validateEntitiesQueue.slice(i, i + chunkSize);
-            arrayOfPromises.push(new Promise(function(resolve, reject) {
+            arrayOfPromises.push(new Promise(function (resolve, reject) {
                 // Let the UI redraw by resting a while, then continue until validated
                 setTimeout(() => {
                     for (let i = 0; i < chunk.length; i++) {
@@ -430,12 +430,12 @@ export class Editor {
                 }, 50);
             }.bind(this)));
         }
-        
+
         Promise.all(arrayOfPromises).then((res) => {
             Messages.showNotification('Validation done', 'success');
         }, (err) => {
             console.log(err);
-          }); 
+        });
     }
 
     // This method is never called. can be removed? Robin 2025-03-28
@@ -512,39 +512,11 @@ export class Editor {
         this._placementLayers.addTo(groups.placement);
         //@ts-ignore
         this._placementBufferLayers.addTo(groups.placement);
-
         this._validateEntitiesQueue = new Array<MapEntity>();
-
         this._lastEnityFetch = 0;
         this._autoRefreshIntervall = 90; // Seconds
-
         this._currentRevisions = {};
 
-        //Hide buffers when zoomed out
-        var bufferLayers = this._placementBufferLayers;
-        map.on('zoomend', function () {
-            var zoom = map.getZoom();
-        
-            bufferLayers.getLayers().forEach(function (layer) {
-                if (zoom >= 19) {
-                    //@ts-ignore
-                    layer.setStyle({ opacity: 1 });
-                } else {
-                    //@ts-ignore
-                    layer.setStyle({ opacity: 0 });
-                }
-            });
-
-            // Hide name tooltips when zoomed out
-            this.groups['names'].getLayers().forEach(function (layer: any) {
-                if (zoom >= 19) {
-                    layer._tooltip.setOpacity(1);
-                } else {
-                    layer._tooltip.setOpacity(0);
-                }
-            });
-        });
-        
         // Generate rules that the entities must follow
         const rules = generateRulesForEditor(this._groups, this._placementLayers);
 
@@ -557,6 +529,7 @@ export class Editor {
             closeButton: false,
             closeOnClick: false,
             closeOnEscapeKey: false,
+            maxWidth: 350,
         });
 
         // Disable edit mode on all layers by default
@@ -586,14 +559,7 @@ export class Editor {
             draggable: true,
         });
 
-        // Add the event handler for newly created layers
-        this._map.on('pm:create', this.onNewLayerCreated.bind(this));
-
-        // Add a click event to the map to reset the editor status.
-        this._map.on('click', (mouseEvent) => {
-            console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
-            this.setMode('blur');
-        });
+        this.setupMapEvents(this._map);
 
         this.sqmTooltip = new L.Tooltip({
             permanent: true,
@@ -621,9 +587,10 @@ export class Editor {
         });
         map.addControl(searchControl);
     }
+
     private addToggleEditButton() {
         if (IS_EDITING_POSSIBLE) {
-            this._map.addControl(Buttons.edit(this._isEditMode, () => { 
+            this._map.addControl(Buttons.edit(this._isEditMode, () => {
                 this.toggleEditMode();
             }));
         }
@@ -680,7 +647,7 @@ export class Editor {
         await Messages.showNotification('Loading your drawn polygons from da interweb!');
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
-        
+
         for (const entity of entities) {
             this.addEntityToMap(entity, false);
         }
@@ -699,7 +666,7 @@ export class Editor {
 
         // Edit button disabled after the event took place
         this.addToggleEditButton();
-        
+
         // This was used as a fast way to export everything as a geojson collection
         // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
     }
@@ -783,5 +750,67 @@ export class Editor {
         } else {
             this.sqmTooltip.close();
         }
+    }
+
+    private setupMapEvents(map: L.Map) {
+        // Copy popup content to be shown in fullscreen
+        // if the screen width is less than whatever is decided on the "@media max-width query"
+        // A hack for mobile where the popup took up almost the whole screen
+        // but some buttons could not be scrolled into view
+        // and map controls where overlayed ontop of popup
+        map.on('popupopen', function (ev) {
+            var el = document.getElementById("fullScreenPopup");
+            const content = ev.popup.getContent();
+            if (typeof content === "string") {
+                el.innerHTML = content;
+            } else if (content instanceof HTMLElement) {
+                el.innerHTML = content.outerHTML;
+            } else {
+                return; // Fallback for unsupported content types
+            }
+            el.classList.add('visible');
+            // Add a close button to the popup
+            let closeButton = document.createElement("sl-icon");
+            closeButton.style.margin = "5px";
+            closeButton.setAttribute("name", "x-lg"); // sets the icon
+            closeButton.onclick = () => {
+                this._popup.close();
+            };
+            let header = el.querySelector("header");
+            header.appendChild(closeButton);
+        });
+
+        // When popup is closed, remove the fullscreen popup too.
+        // It's a bit backwards but this makes the real popup close when we close the fullscreen too. 
+        map.on('popupclose', function () {
+            var el = document.getElementById("fullScreenPopup");
+            el.classList.remove("visible");
+        });
+
+        //Hide buffers when zoomed out
+        var bufferLayers = this._placementBufferLayers;
+        map.on('zoomend', function () {
+            var zoom = map.getZoom();
+
+            bufferLayers.getLayers().forEach(function (layer) {
+                //@ts-ignore
+                layer.setStyle({ opacity: zoom >= 19 ? 1 : 0 });
+            });
+
+            // Hide name tooltips when zoomed out
+            this.groups['names'].getLayers().forEach(function (layer: any) {
+                layer._tooltip.setOpacity(zoom >= 19 ? 1 : 0);
+            });
+        });
+
+        // Add the event handler for newly created layers
+        map.on('pm:create', this.onNewLayerCreated.bind(this));
+
+        // Add a click event to the map to reset the editor status.
+        map.on('click', (mouseEvent) => {
+            console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
+            this.setMode('blur');
+        });
+
     }
 }

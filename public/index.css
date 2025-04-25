@@ -1,4 +1,5 @@
 @keyframes shake {
+
     10%,
     90% {
         transform: translate3d(0, -1px, 0);
@@ -316,7 +317,7 @@ textarea {
 
 .scrollable {
     /* 6.5 lines of current font size in area description, so you'll see that you need to scroll */
-    max-height: 188px; 
+    max-height: 188px;
     overflow-y: auto;
 }
 
@@ -510,6 +511,7 @@ body,
 .flex-column textarea {
     margin-bottom: 5px;
 }
+
 /* END some flex stuff */
 
 .note-about-editing {
@@ -520,4 +522,20 @@ body,
     font-size: 13px;
     font-weight: bold;
     width: 200px;
+}
+
+#fullScreenPopup {
+    display: none;
+}
+ /* mobile */
+@media (max-width: 480px) {
+    #fullScreenPopup.visible {
+        display: block;
+        z-index: 9999;
+        background-color: white;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        padding: 10px;
+    }
 }
