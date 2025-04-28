@@ -182,6 +182,7 @@ export class Editor {
                     this.removeEntityFromLayers(entity);
                     entity.layer = entity.revisions[extraInfo].layer;
                     this.addEntityToMap(entity);
+                    break;
 
                 default:
                     console.log('Unknown action', action);
@@ -199,7 +200,34 @@ export class Editor {
                 this._ghostLayers,
                 editEntityCallback.bind(this),
             );
-            this._popup.setContent(content).openOn(this._map);
+            this._popup.setContent(content).openOn(this._map);      
+
+            // Make a fullscreen popup that is shown if the screen width is less than
+            // whatever is decided on the "@media max-width query".
+            // A hack for mobile where the popup took up almost the whole screen
+            // and some popup buttons could not be scrolled into view
+            // and map controls where overlayed ontop of popup.
+            const contentFullScreenPopup = this._popupContentFactory.CreateInfoPopup(
+                entity,
+                this._isEditMode,
+                this.setMode.bind(this),
+                this._repository,
+                this._ghostLayers,
+                editEntityCallback.bind(this),
+            );
+            var fullScreenPopup = document.getElementById("fullScreenPopup");
+            fullScreenPopup.appendChild(contentFullScreenPopup);
+            fullScreenPopup.classList.remove('hidden');
+            // Add a close button to the fullScreenPopup
+            let closeButton = document.createElement("sl-icon");
+            closeButton.style.margin = "5px";
+            closeButton.setAttribute("name", "x-lg"); // sets the icon
+            closeButton.onclick = () => {
+                this.setMode("none");
+            };
+            let header = fullScreenPopup.querySelector("header");
+            header.appendChild(closeButton);
+   
             return;
         }
     }
@@ -753,38 +781,12 @@ export class Editor {
     }
 
     private setupMapEvents(map: L.Map) {
-        // Copy popup content to be shown in fullscreen
-        // if the screen width is less than whatever is decided on the "@media max-width query"
-        // A hack for mobile where the popup took up almost the whole screen
-        // but some buttons could not be scrolled into view
-        // and map controls where overlayed ontop of popup
-        map.on('popupopen', function (ev) {
-            var el = document.getElementById("fullScreenPopup");
-            const content = ev.popup.getContent();
-            if (typeof content === "string") {
-                el.innerHTML = content;
-            } else if (content instanceof HTMLElement) {
-                el.innerHTML = content.outerHTML;
-            } else {
-                return; // Fallback for unsupported content types
-            }
-            el.classList.add('visible');
-            // Add a close button to the popup
-            let closeButton = document.createElement("sl-icon");
-            closeButton.style.margin = "5px";
-            closeButton.setAttribute("name", "x-lg"); // sets the icon
-            closeButton.onclick = () => {
-                this._popup.close();
-            };
-            let header = el.querySelector("header");
-            header.appendChild(closeButton);
-        });
-
         // When popup is closed, remove the fullscreen popup too.
         // It's a bit backwards but this makes the real popup close when we close the fullscreen too. 
         map.on('popupclose', function () {
-            var el = document.getElementById("fullScreenPopup");
-            el.classList.remove("visible");
+            var fullScreenPopup = document.getElementById("fullScreenPopup");
+            fullScreenPopup.innerHTML = "";
+            fullScreenPopup.classList.add("hidden");
         });
 
         //Hide buffers when zoomed out
