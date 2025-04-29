@@ -3,14 +3,17 @@ import { hash } from '../utils';
 let openedDrawer = null;
 let onCloseResolve = null;
 let onCloseAction = null;
-let onBtnAction = null;
+
+const DEFAULT_BUTTON : Button = {
+    text: "Close",
+    variant: "primary"
+}; 
 
 let drawerLoader = new Promise<any>(async (resolve) => {
     // Wait for custom elements to be defined
     await Promise.allSettled([customElements.whenDefined('sl-drawer')]);
 
     const drawerElement: any = document.getElementById('drawer');
-    const btn = document.getElementById('drawer-button');
 
     drawerElement.addEventListener('sl-request-close', (event) => {
         if (drawerElement.placement == 'end') {
@@ -32,11 +35,6 @@ let drawerLoader = new Promise<any>(async (resolve) => {
             openedDrawer = null;
         }
         hash.page = undefined;
-    });
-    btn.addEventListener('click', () => {
-        if (onBtnAction) {
-            onBtnAction();
-        }
     });
     resolve(drawerElement);
 });
@@ -60,7 +58,6 @@ export async function showDrawer(
     return new Promise<void>(async (resolve) => {
         onCloseAction = drawerOptions.onClose || null;
         onCloseResolve = resolve;
-        onBtnAction = null;
         const drawer = await drawerLoader;
         drawer.placement = drawerOptions.position || 'bottom';
         const content = drawer.querySelector('.container');
@@ -80,30 +77,43 @@ export async function showDrawer(
             content.appendChild(child);
         }
 
-        // Button
-        const btn = document.getElementById('drawer-button');
-        if (orderOptions.keepOpen) {
-            btn.innerText = 'Continue';
-            onBtnAction = resolve;
-        } else {
-            if (openedDrawer && openedDrawer.keepOpen) {
-                const target = { ...openedDrawer };
-                btn.innerText = 'Back';
-                onBtnAction = async () => {
-                    await showDrawer(target);
-                    resolve();
-                };
+        const buttonsContainer = document.getElementById("buttons-container");
+        buttonsContainer.innerHTML = ''; // Clear existing buttons
+        
+        // Add default button if no other buttons explicitly specified.
+        if (!drawerOptions.buttons || drawerOptions.buttons.length === 0) {
+            drawerOptions.buttons = [];
+            drawerOptions.buttons.push({text:DEFAULT_BUTTON.text, variant:DEFAULT_BUTTON.variant});
+        }
+
+        // Now with support for multiple buttons
+        drawerOptions.buttons.forEach(button => {
+            if (orderOptions.keepOpen) {
+                button.onClickAction = resolve;
             } else {
-                btn.innerText = drawerOptions.btnText || 'Close';
-                onBtnAction = () => drawer.hide();
+                // When we click on links that changes the hash, for example href="#page:guide-terms" in the guide.
+                // we should store away the last opened drawer and set the button to go back to it.
+                if (openedDrawer && openedDrawer.keepOpen) {
+                    const target = { ...openedDrawer };
+                    button.text = 'Back';
+                    button.onClickAction = async () => {
+                        await showDrawer(target);
+                        resolve();
+                    };
+                } else {
+                    // Default action
+                    button.onClickAction = () => drawer.hide();
+                }
             }
-        }
-        if (drawerOptions.onBtnAction) {
-            onBtnAction = () => {
-                drawer.hide();
-                drawerOptions.onBtnAction(); 
-            };
-        }
+
+            const btn = document.createElement('sl-button');
+            btn.innerText = button.text || DEFAULT_BUTTON.text;
+            btn.setAttribute('variant', button.variant || DEFAULT_BUTTON.variant);
+            btn.addEventListener('click', () => {
+                    button.onClickAction();
+            });
+            buttonsContainer.appendChild(btn);
+        });
 
         hash.page = drawerOptions.file;
         openedDrawer = drawerOptions;
@@ -121,12 +131,18 @@ export async function hideDrawer() {
 type DrawerOptions = {
     file: string;
     position: 'end' | 'bottom' | 'start' | 'top'; // end = right, start = left
-    onBtnAction?: () => any;
     onClose?: () => any;
-    btnText?: string;
+    buttons?: Array<Button>;
     keepOpen?: boolean;
+
 };
 
 type OrderOptions = {
     keepOpen?: boolean;
+};
+
+type Button = {
+    text: string;
+    onClickAction?: () => any;
+    variant?: 'primary' | 'success' | 'danger' | 'warning' | 'neutral';
 };

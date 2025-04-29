@@ -642,13 +642,18 @@ export class Editor {
         if (this._isEditMode) {
             if (localStorage.getItem('hasSeenEditorInstructions') == null) {
                 Messages.showDrawers([
-                    { file: 'entering_edit_mode', position: 'bottom' },
+                    { 
+                        file: 'entering_edit_mode', 
+                        position: 'bottom',
+                        buttons: [{text: 'Continue'}],
+                    },
                     {
                         file: 'entering_edit_mode_page_two',
                         position: 'bottom',
                         onClose: () => {
                             localStorage.setItem('hasSeenEditorInstructions', 'true');
                         },
+                        buttons: [{text: 'Close'}],
                     },
                 ]);
             }

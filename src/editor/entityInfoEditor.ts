@@ -29,8 +29,17 @@ export class EntityInfoEditor {
             {
                 file: "edit-entity",
                 position: "end",
-                btnText: "Save",
-                onBtnAction: () => { this._editEntityCallback("save", this._entity); }
+                buttons: [
+                    {
+                        text: 'Close',
+                        variant: 'neutral',
+                    },
+                    {
+                        text: 'Save',
+                        onClickAction: () => { this._editEntityCallback("save", this._entity); },
+                        variant: 'primary'
+                    }
+                ],
             },
             {},
             () => this.populate());
@@ -47,14 +56,14 @@ export class EntityInfoEditor {
     private preChecks() {
         this.checkIfLargeCamp();
     }
-        
+
     private checkIfLargeCamp() {
         // Requirement came from power realities team
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
 
         if (this._entity.nrOfPeople >= this._largeCampPeopleLimit ||
             this._entity.powerNeed >= this._largeCampPowerConsumtionLimit) {
-            powerImage.parentElement.style.display = "block";
+            powerImage.parentElement.style.display = "block"; // parent is the section element
         } else {
             powerImage.parentElement.style.display = "none";
         }
@@ -260,12 +269,12 @@ export class EntityInfoEditor {
                         this._entity.powerImageUrl = this._entity.revisions[revisionentity].powerImageUrl;
                         this._entity.powerNeed = this._entity.revisions[revisionentity].powerNeed;
                         this._entity.powerAppliances = this._entity.revisions[revisionentity].powerAppliances;
-                        
+
                         // clear a few elements before populating again
                         historyTable.textContent = '';
                         divdescriptionheader.textContent = '';
                         divdescription.remove();
-                        
+
                         this.populate();
                     };
                     divdescription.append(btnRestoreDetails);
