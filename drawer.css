@@ -38,6 +38,9 @@ sl-tab-group::part(nav) {
 }
 
 /* Entity editor specific styles */
+#buttons-container sl-button:not(:last-child) {
+    margin-right: 10px;
+}
 
 #drawer-content section~section {
     margin-top: 10px;
@@ -85,10 +88,11 @@ summary::after {
 details[open] summary:after {
     content: "(click to hide) ";
 }
-
-/* fancy-ass border */
-details {
+.power-info-details {
     font-size: small;
+}
+/* fancy-ass border */
+.fancy-ass-border {
     --border-width: 2px;
     position: relative;
     background: #fff;
