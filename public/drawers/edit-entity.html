@@ -52,7 +52,7 @@
     <sl-tab-panel name="power">
         <div class="tab-pannel-inner flex-column">
             <section>
-                <details>
+                <details class="power-info-details fancy-ass-border">
                     <summary>
                         <b>Information from The Department of Energy & Transport [DoET]</b>
                     </summary>
@@ -79,13 +79,6 @@
                     <sl-option value="3p_32">CEE 3-Phase 32A</sl-option>
                   </sl-select>
                 <sl-input id="power-extra-info" size="small" label="What type of cables/powerstrips will the camp use?" placeholder="3G1,5/2,5/CEE - IPxx - flaps?"></sl-input>
-            </section>
-            <section style="display: none;">
-                <sl-input id="power-image-url" size="small" placeholder="URL to picture">
-                    <span slot="label">Your camp's power consumption/participants is larger than average. Please share a link to a drawing of your plans for your camp's power grid</span>    
-                    <sl-icon style="color: red;" name="exclamation-octagon" slot="prefix"></sl-icon>
-                    <sl-icon style="color: red;" name="exclamation-octagon" slot="suffix"></sl-icon>
-                </sl-input>
             </section>
             <section style="overflow: scroll;">
                 <table id="power-table" style="table-layout: fixed; width: 100%;">
@@ -132,6 +125,13 @@
                 <div>
                     <span id="entity-power-need">123</span><span> W</span>
                 </div>
+            </section>
+            <section style="display: none;">
+                <sl-input id="power-image-url" size="small" placeholder="URL to picture">
+                    <span slot="label">Your camp's power consumption/participants is larger than average. Please share a link to a drawing of your plans for your camp's power grid</span>    
+                    <sl-icon style="color: red;" name="exclamation-octagon" slot="prefix"></sl-icon>
+                    <sl-icon style="color: red;" name="exclamation-octagon" slot="suffix"></sl-icon>
+                </sl-input>
             </section>
         </div>
     </sl-tab-panel>

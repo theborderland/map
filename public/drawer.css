@@ -88,10 +88,11 @@ summary::after {
 details[open] summary:after {
     content: "(click to hide) ";
 }
-
-/* fancy-ass border */
-details {
+.power-info-details {
     font-size: small;
+}
+/* fancy-ass border */
+.fancy-ass-border {
     --border-width: 2px;
     position: relative;
     background: #fff;
