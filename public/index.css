@@ -525,8 +525,14 @@ body,
 }
 
  /* mobile */
-@media (max-width: 480px) {
-    #fullScreenPopup.visible {
+@media (min-device-width: 480px) {
+    /* Never display the full screen popup when not on mobile */
+    #fullScreenPopup {
+        display: none;
+    }
+}
+@media (max-device-width: 480px) {
+    #fullScreenPopup:not(.hidden) {
         display: block;
         z-index: 9999;
         background-color: white;
