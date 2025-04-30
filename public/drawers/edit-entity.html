@@ -63,13 +63,13 @@
                     If too many members give us wrong information, it will affect the stability of the grid.<br>
                     If you can avoid using electricity for something that is high consumption, we prefer you do that.
                     Cooking with gas instead of induction heaters is a good example of this.
+                    <br/><br/>
+                    The Technical Lead of your camp has responsibility for your internal powergrid,
+                    read about this in the <a href="https://coda.io/d/_ddTvwEwgvJw/Preparing_suY3b6XL#_lu934W2x" target="_blank">Survival Guide</a>.
                 </details>
             </section>
             <section>
-                <div style="font-size: small;">
-                    The Technical Lead of your camp has responsibility for your internal powergrid,
-                    read about this in the <a href="https://coda.io/d/_ddTvwEwgvJw/Preparing_suY3b6XL#_lu934W2x" target="_blank">Survival Guide</a>.
-                </div>
+                
                 <sl-input size="small" label="Technical lead contact info" id="entity-tech-lead" placeholder="Email, phone, @discord-name etc"></sl-input>
                 <sl-select id="power-plug-type" label="Connection type needed" placeholder="Connection type needed" value="1p_schuko" size="small">
                     <sl-option value="1p_schuko">Schuko (standard Swedish)</sl-option>
@@ -80,45 +80,27 @@
                   </sl-select>
                 <sl-input id="power-extra-info" size="small" label="What type of cables/powerstrips will the camp use?" placeholder="3G1,5/2,5/CEE - IPxx - flaps?"></sl-input>
             </section>
-            <section style="overflow: scroll;">
-                <table id="power-table" style="table-layout: fixed; width: 100%;">
-                    <thead>
-                        <tr>    
-                            <th>Appliance</th>
-                            <th class="short-input">No.</th>
-                            <th class="long-input">Power, W</th>
-                            <th style="width: 2rem;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <form id="power-form" onsubmit="return false;">
-                                <sl-tooltip content="Name that item">
-                                    <sl-input id="appliance" size="small" placeholder="e.g. lights or kitchen" required></sl-input>
-                                </sl-tooltip>
-                                </form>
-                            </td>
-                            <td>
-                                <sl-tooltip content="How many of this item?">
-                                    <sl-input form="power-form" id="amount" type="number" size="small" min="0" no-spin-buttons required></sl-input>
-                                </sl-tooltip> 
-                            </td>
-                            <td>
-                                <sl-tooltip content="Watt per item">
-                                    <sl-input form="power-form" id="watt" type="number" size="small" min="0" no-spin-buttons required></sl-input>
-                                </sl-tooltip> 
-                            </td>
-                            <td>
-                                <sl-tooltip content="Add">
-                                    <sl-button variant="success" size="small" form="power-form" type="submit" outline>
-                                        <sl-icon slot="prefix" name="plus-lg"></sl-icon>
-                                    </sl-button>
-                                </sl-tooltip>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <section>
+                <div class="flex-row" style="font-weight: bold; font-size: 0.9rem; text-align: center;">    
+                    <div style="flex-grow: 1;">Appliance</div>
+                    <div class="short-input">No.</div>
+                    <div class="long-input">Power, W</div>
+                    <div style="width: 2rem;"></div>
+                </div>
+                <form id="power-form" onsubmit="return false;" class="flex-row power-item">
+                    <sl-input id="appliance" size="small" placeholder="e.g. lights or kitchen" required></sl-input>
+                    <sl-tooltip content="How many of this item?">
+                        <sl-input form="power-form" id="amount" type="number" size="small" min="0" no-spin-buttons required></sl-input>
+                    </sl-tooltip> 
+                    <sl-tooltip content="Watt per item">
+                        <sl-input form="power-form" id="watt" type="number" size="small" min="0" no-spin-buttons required></sl-input>
+                    </sl-tooltip> 
+                    <sl-button variant="success" size="small" form="power-form" type="submit" outline>
+                        <sl-icon slot="prefix" name="plus-lg"></sl-icon>
+                    </sl-button>
+                </form>
+                <hr>
+                <div id="power-items-container"></div>
             </section>
             <section class="flex-row">
                 <b>Total power:</b>
@@ -126,7 +108,7 @@
                     <span id="entity-power-need">123</span><span> W</span>
                 </div>
             </section>
-            <section style="display: none;">
+            <section style="display: none; margin-top: auto;">
                 <sl-input id="power-image-url" size="small" placeholder="URL to picture">
                     <span slot="label">Your camp's power consumption/participants is larger than average. Please share a link to a drawing of your plans for your camp's power grid</span>    
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="prefix"></sl-icon>

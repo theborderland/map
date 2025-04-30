@@ -60,18 +60,26 @@ sl-select::part(form-control-label) {
     font-weight: bold;
 }
 
-#power-table thead {
-    position: sticky;
-    top: 0;
-    background-color: white;
-    z-index: 1;
+/* amount */
+.power-item > sl-input:nth-child(2),
+.power-item > sl-tooltip:nth-child(2) > sl-input {
+    width: 3.5rem;
+}
+/* watt */
+.power-item > sl-input:nth-child(3),
+.power-item > sl-tooltip:nth-child(3) > sl-input {
+    width: 6rem;
+}
+/* Add/delete button */
+.power-item sl-button {
+    width: 2rem;
 }
 
 details>summary {
     cursor: pointer;
     list-style: none;
     text-align: center;
-    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-family: monospace
 }
 
 summary::-webkit-details-marker {

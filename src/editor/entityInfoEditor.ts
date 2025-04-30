@@ -159,23 +159,23 @@ export class EntityInfoEditor {
             let applianceInput = document.getElementById("appliance") as HTMLInputElement;
             let amountInput = document.getElementById("amount") as HTMLInputElement;
             let wattInput = document.getElementById("watt") as HTMLInputElement;
-            let appliance = applianceInput.value;
+            let name = applianceInput.value;
             let amount = Number(amountInput.value);
             let watt = Number(wattInput.value);
-            if (!appliance || amount < 1 || watt < 1) {
+            if (!name || amount < 1 || watt < 1) {
                 return;
             }
-            this.addRowToTable(appliance, amount, watt);
+            this.addApplianceToContainer([name, amount, watt]);
             this.updateEntityWithAddedAppliances();
             this.calculateTotalPower();
             powerForm.reset();
             applianceInput.focus();
         };
 
-        // Add existing entity appliances to table
-        for (let i = 0; i < this._entity.powerAppliances.length; i++) {
+        // Add existing entity appliances (loop backwards since we want the last added item on top.)
+        for (var i=this._entity.powerAppliances.length; i--; ){
             const item = this._entity.powerAppliances[i];
-            this.addRowToTable(item.name, item.amount, item.watt);
+            this.addApplianceToContainer(Object.values(item));
         }
 
         const totalPowerField = document.getElementById('entity-power-need') as HTMLSpanElement;
@@ -416,16 +416,21 @@ export class EntityInfoEditor {
         return differences;
     }
 
-    private addRowToTable(appliance: string, amount: Number, watt: Number) {
-        let table = document.getElementById("power-table") as HTMLTableElement;
-        let row = table.insertRow(2); // row 1 is the initial input boxes
-        let values = [appliance, amount, watt];
+    /**
+     * @param values Should be [name, amount, watt]
+     */
+    private addApplianceToContainer(values: Array<any>) {
+        let container = document.getElementById("power-items-container") as HTMLDivElement;
+        let row = document.createElement("div");
+        row.classList.add("power-item");
+        row.classList.add("flex-row");
         let types = ["text", "number", "number"]
 
         for (let i = 0; i < 3; i++) {
             const input = document.createElement("sl-input") as HTMLInputElement;
             input.setAttribute("size", "small");
             input.setAttribute("no-spin-buttons", "");
+            input.style.minWidth = "0";
             input.type = types[i];
             // @ts-ignore
             input.value = values[i];
@@ -434,19 +439,16 @@ export class EntityInfoEditor {
                 this.calculateTotalPower();
             }
 
-            let cell = row.insertCell();
-            cell.appendChild(input);
+            row.appendChild(input);
         }
-        let deleteCell = row.insertCell();
-        this.addDeleteRowButton(deleteCell);
+        this.addDeleteButton(row);
+        container.prepend(row); // Add item on top of the list
     }
 
-    private addDeleteRowButton(cell: HTMLTableCellElement) {
-        let tooltip = document.createElement("sl-tooltip");
+    private addDeleteButton(cell: HTMLElement) {
         let button = document.createElement("sl-button");
         let icon = document.createElement("sl-icon");
 
-        tooltip.setAttribute("content", "Delete");
         button.setAttribute("variant", "danger");
         button.setAttribute("size", "small");
         button.setAttribute("outline", "");
@@ -454,17 +456,16 @@ export class EntityInfoEditor {
         icon.setAttribute("name", "x-lg");
 
         button.onclick = (e) => {
-            let tr = e.target.closest("tr");
-            if (tr) {
-                tr.remove();
+            let row = e.target.closest(".power-item");
+            if (row) {
+                row.remove();
                 this.updateEntityWithAddedAppliances();
                 this.calculateTotalPower();
             }
         };
 
         button.appendChild(icon);
-        tooltip.appendChild(button);
-        cell.appendChild(tooltip);
+        cell.appendChild(button);
     }
 
     private calculateTotalPower() {
@@ -493,16 +494,14 @@ export class EntityInfoEditor {
 
     private getAppliancesFromUi(): Array<Appliance> {
         let appliances: Array<Appliance> = [];
-        let table = document.getElementById("power-table") as HTMLTableElement;
-        let allAddedAppliancesRows = table.querySelectorAll('tbody tr:not(:first-child)'); // // row 1 is the initial input boxes
+        let listOfItems = document.querySelectorAll("#power-items-container .power-item") as NodeListOf<HTMLDivElement>;
 
-        for (let i = 0; i < allAddedAppliancesRows.length; i++) {
-            const row = allAddedAppliancesRows[i];
-            // DOM structure is tr-td-input
+        for (let i = 0; i < listOfItems.length; i++) {
+            const row = listOfItems[i];
             appliances.push({
-                name: row.childNodes[0].firstChild.value,
-                amount: row.childNodes[1].firstChild.value,
-                watt: row.childNodes[2].firstChild.value,
+                name: row.childNodes[0].value,
+                amount: row.childNodes[1].value,
+                watt: row.childNodes[2].value,
             });
         }
 
