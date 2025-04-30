@@ -102,7 +102,7 @@ export async function showDrawer(
                     };
                 } else {
                     // Default action
-                    button.onClickAction = () => drawer.hide();
+                    button.onClickAction = button.onClickAction || (() => drawer.hide());
                 }
             }
 
