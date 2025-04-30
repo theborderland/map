@@ -59,6 +59,9 @@ sl-textarea::part(form-control-label),
 sl-select::part(form-control-label) {
     font-weight: bold;
 }
+.power-item sl-input {
+    min-width: 0;
+}
 
 /* amount */
 .power-item > sl-input:nth-child(2),
