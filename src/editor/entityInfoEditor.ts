@@ -123,6 +123,12 @@ export class EntityInfoEditor {
         soundField.value = String(this._entity.amplifiedSound);
         soundField.oninput = () => {
             this._entity.amplifiedSound = Number(soundField.value);
+            let soundGuideLink = document.getElementById('sound-guide-link') as HTMLDivElement;
+            if (this._entity.amplifiedSound > 0) {
+                soundGuideLink.classList.remove('hidden');
+            } else {
+                soundGuideLink.classList.add('hidden');
+            }
         };
 
         updateTextAboutNeededSpace();
