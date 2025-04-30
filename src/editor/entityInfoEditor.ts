@@ -147,11 +147,27 @@ export class EntityInfoEditor {
             this._entity.powerExtraInfo = powerExtraInfo.value;
         };
 
+        let validatePowerImageUrl = (powerImage: HTMLInputElement, initialLoad: boolean = false) => {
+            let icons = powerImage.querySelectorAll("sl-icon");
+            let validUrl = powerImage.value.match(/\.(jpeg|jpg|gif|png)$/) != null;
+            icons.forEach((icon) => {
+                validUrl ? icon.classList.add("hidden") : icon.classList.remove("hidden");
+            });
+            if (typeof powerImage.setCustomValidity === "function"
+                && !initialLoad // the sl element has not yet been loaded onto the DOM
+            ) {
+                powerImage.setCustomValidity(validUrl ? "" : "Please enter a valid image URL.");
+                powerImage.reportValidity();
+            }
+        };
+
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
         powerImage.value = this._entity.powerImageUrl;
         powerImage.oninput = () => {
+            validatePowerImageUrl(powerImage);
             this._entity.powerImageUrl = powerImage.value;
         }
+        validatePowerImageUrl(powerImage, true);
 
         const powerForm = document.getElementById('power-form') as HTMLFormElement;
         powerForm.onsubmit = (event: Event) => {
@@ -173,7 +189,7 @@ export class EntityInfoEditor {
         };
 
         // Add existing entity appliances (loop backwards since we want the last added item on top.)
-        for (var i=this._entity.powerAppliances.length; i--; ){
+        for (var i = this._entity.powerAppliances.length; i--;) {
             const item = this._entity.powerAppliances[i];
             this.addApplianceToContainer(Object.values(item));
         }
@@ -289,6 +305,7 @@ export class EntityInfoEditor {
                     divdescription.append(btnRestoreShape);
                     // Draw ghosted shape of selected revision
                     this._ghostLayers.clearLayers();
+                    //@ts-ignore
                     entityRevSelected.layer.setStyle(GhostLayerStyle);
                     this._ghostLayers.addLayer(entityRevSelected.layer);
                 };
@@ -424,7 +441,7 @@ export class EntityInfoEditor {
         let row = document.createElement("div");
         row.classList.add("power-item");
         row.classList.add("flex-row");
-        let types = ["text", "number", "number"]
+        let types = ["text", "number", "number"];
 
         for (let i = 0; i < 3; i++) {
             const input = document.createElement("sl-input") as HTMLInputElement;
@@ -455,7 +472,7 @@ export class EntityInfoEditor {
         icon.setAttribute("name", "x-lg");
 
         button.onclick = (e) => {
-            let row = e.target.closest(".power-item");
+            let row = (e.target as Element).closest(".power-item");
             if (row) {
                 row.remove();
                 this.updateEntityWithAddedAppliances();
@@ -498,8 +515,11 @@ export class EntityInfoEditor {
         for (let i = 0; i < listOfItems.length; i++) {
             const row = listOfItems[i];
             appliances.push({
+                //@ts-ignore
                 name: row.childNodes[0].value,
+                //@ts-ignore
                 amount: row.childNodes[1].value,
+                //@ts-ignore
                 watt: row.childNodes[2].value,
             });
         }

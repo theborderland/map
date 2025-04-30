@@ -69,7 +69,6 @@
                 </details>
             </section>
             <section>
-                
                 <sl-input size="small" label="Technical lead contact info" id="entity-tech-lead" placeholder="Email, phone, @discord-name etc"></sl-input>
                 <sl-select id="power-plug-type" label="Connection type needed" placeholder="Connection type needed" value="1p_schuko" size="small">
                     <sl-option value="1p_schuko">Schuko (standard Swedish)</sl-option>
@@ -109,8 +108,8 @@
                 </div>
             </section>
             <section style="display: none; margin-top: auto;">
-                <sl-input id="power-image-url" size="small" placeholder="URL to picture">
-                    <span slot="label">Your camp's power consumption/participants is larger than average. Please share a link to a drawing of your plans for your camp's power grid</span>    
+                <sl-input id="power-image-url" size="small" placeholder="URL (ending in .png, .jpg, .jpeg, .gif)">
+                    <span slot="label">Your camp's power consumption/participants is larger than average. Please share a link to a drawing of your plans for your camp's power grid. <a href="https://www.google.com/search?q=upload+picture" target="_blank">Find uploading site here</a></span>    
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="prefix"></sl-icon>
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="suffix"></sl-icon>
                 </sl-input>
