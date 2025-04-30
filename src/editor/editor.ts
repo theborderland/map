@@ -216,6 +216,7 @@ export class Editor {
                 editEntityCallback.bind(this),
             );
             var fullScreenPopup = document.getElementById("fullScreenPopup");
+            fullScreenPopup.innerHTML = ""; // Need to remove the old info
             fullScreenPopup.appendChild(contentFullScreenPopup);
             fullScreenPopup.classList.remove('hidden');
             // Add a close button to the fullScreenPopup
@@ -787,10 +788,9 @@ export class Editor {
 
     private setupMapEvents(map: L.Map) {
         // When popup is closed, remove the fullscreen popup too.
-        // It's a bit backwards but this makes the real popup close when we close the fullscreen too. 
+        // It's a bit backwards but since the close button on the fullscreen actually closes the popup, this makes it close the fullscreen too. 
         map.on('popupclose', function () {
             var fullScreenPopup = document.getElementById("fullScreenPopup");
-            fullScreenPopup.innerHTML = "";
             fullScreenPopup.classList.add("hidden");
         });
 

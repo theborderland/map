@@ -430,7 +430,6 @@ export class EntityInfoEditor {
             const input = document.createElement("sl-input") as HTMLInputElement;
             input.setAttribute("size", "small");
             input.setAttribute("no-spin-buttons", "");
-            input.style.minWidth = "0";
             input.type = types[i];
             // @ts-ignore
             input.value = values[i];
