@@ -6,7 +6,8 @@ let onCloseAction = null;
 
 const DEFAULT_BUTTON : Button = {
     text: "Close",
-    variant: "primary"
+    variant: "primary",
+    shouldCloseDrawer: false
 }; 
 
 let drawerLoader = new Promise<any>(async (resolve) => {
@@ -83,7 +84,10 @@ export async function showDrawer(
         // Add default button if no other buttons explicitly specified.
         if (!drawerOptions.buttons || drawerOptions.buttons.length === 0) {
             drawerOptions.buttons = [];
-            drawerOptions.buttons.push({text:DEFAULT_BUTTON.text, variant:DEFAULT_BUTTON.variant});
+            drawerOptions.buttons.push({
+                text: DEFAULT_BUTTON.text, 
+                variant: DEFAULT_BUTTON.variant
+            });
         }
 
         // Now with support for multiple buttons
@@ -92,17 +96,15 @@ export async function showDrawer(
                 button.onClickAction = resolve;
             } else {
                 // When we click on links that changes the hash, for example href="#page:guide-terms" in the guide.
-                // we should store away the last opened drawer and set the button to go back to it.
+                // we should store the last opened drawer and set the button to go back to it.
                 if (openedDrawer && openedDrawer.keepOpen) {
                     const target = { ...openedDrawer };
                     button.text = 'Back';
+                    button.shouldCloseDrawer = false;
                     button.onClickAction = async () => {
                         await showDrawer(target);
                         resolve();
                     };
-                } else {
-                    // Default action
-                    button.onClickAction = button.onClickAction || (() => drawer.hide());
                 }
             }
 
@@ -110,7 +112,14 @@ export async function showDrawer(
             btn.innerText = button.text || DEFAULT_BUTTON.text;
             btn.setAttribute('variant', button.variant || DEFAULT_BUTTON.variant);
             btn.addEventListener('click', () => {
+                if (button.onClickAction) {
                     button.onClickAction();
+                    if (button.shouldCloseDrawer) {
+                        drawer.hide();
+                    }
+                } else {
+                    drawer.hide();
+                }
             });
             buttonsContainer.appendChild(btn);
         });
@@ -134,7 +143,6 @@ type DrawerOptions = {
     onClose?: () => any;
     buttons?: Array<Button>;
     keepOpen?: boolean;
-
 };
 
 type OrderOptions = {
@@ -143,6 +151,11 @@ type OrderOptions = {
 
 type Button = {
     text: string;
+    /**
+     * If there is an onClickAction, the button will not close the drawer (otherwise it will).
+     * To do so, you need to explicitly set the shouldCloseDrawer to true.
+     */
     onClickAction?: () => any;
     variant?: 'primary' | 'success' | 'danger' | 'warning' | 'neutral';
+    shouldCloseDrawer?: boolean;
 };

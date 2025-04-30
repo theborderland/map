@@ -37,6 +37,7 @@ export class EntityInfoEditor {
                     {
                         text: 'Save',
                         onClickAction: () => { this._editEntityCallback("save", this._entity); },
+                        shouldCloseDrawer: true,
                         variant: 'primary'
                     }
                 ],
