@@ -618,6 +618,7 @@ export class Editor {
     }
 
     private addToggleEditButton() {
+        // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
         if (IS_EDITING_POSSIBLE) {
             this._map.addControl(Buttons.edit(this._isEditMode, () => {
                 this.toggleEditMode();

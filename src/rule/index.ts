@@ -4,6 +4,9 @@ import CheapRuler from 'cheap-ruler';
 import type { MapEntity } from '../entities/entity';
 import { ClusterCache } from '../entities/ClusterCache';
 import * as Rules from './rules';
+import {
+    FIRE_BUFFER_IN_METER
+} from '../../SETTINGS';
 
 export const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
 export const ruler = new CheapRuler(57.5, 'meters');
@@ -62,43 +65,43 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         // ),
         Rules.isOverlapping(
             placementLayers,
-            2,
+            Severity.Medium,
             'Overlapping other area!',
             'Your area is overlapping someone elses, plz fix <3',
         ),
         Rules.isOverlappingOrContained(
             groups.slope,
-            1,
+            Severity.Low,
             'Slope warning!',
             'Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)',
         ),
         Rules.isOverlappingOrContained(
             groups.fireroad,
-            3,
+            Severity.High,
             'Touching fireroad!',
             'Plz move this area away from the fire road!',
         ),
         Rules.isNotInsideBoundaries(
             groups.propertyborder,
-            3,
+            Severity.High,
             'Outside border!',
             'You have placed yourself outside our land, please fix that <3',
         ),
         Rules.isOverlappingOrContained(
             groups.hiddenforbidden,
-            3,
+            Severity.High,
             'Inside forbidden zone!',
             'You are inside a zone that can not be used this year.',
         ),
         Rules.isBufferOverlappingRecursive(
             placementLayers,
-            3,
+            Severity.High,
             'Too large/close to others!',
-            'For fire safety, we need to add a bit of open space (5m2) between these camps (or if not next to any camps, this camp simply to big)',
+            'For fire safety, we need to add a bit of open space (' + FIRE_BUFFER_IN_METER + 'm2) between these camps (or if not next to any camps, this camp simply too big)',
         ),
         Rules.isNotInsideBoundaries(
             groups.area,
-            2,
+            Severity.Medium,
             'Outside placement areas.',
             'You are outside the main placement area (yellow border). Make sure you know what you are doing.',
         ),
@@ -111,27 +114,27 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         // ),
         Rules.isOverlappingOrContained(
             groups.publicplease,
-            1,
+            Severity.Low,
             'Close to fire road',
             'You are adjucant to a fire road, please use this space for public offerings and not just for sleeping',
         ),
         Rules.isOverlappingOrContained(
             groups.minorroad,
-            2,
+            Severity.Medium,
             'Blocking a path',
             'You are possibly blocking a path for walking around (the black dotted lines). Keep it clean if possible or plan accordingly!',
         ),
         // Special notification when close to sanctuary
         Rules.isOverlappingOrContained(
             groups.closetosanctuary,
-            1,
+            Severity.Low,
             'Close to the  sanctuary',
             'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
         ),
         // Special notification when on the western meadow
         Rules.isOverlappingOrContained(
             groups.redsoundzone,
-            1,
+            Severity.Low,
             'In the western meadow',
             "You're in the western meadow, please be extra careful of keeping the land in good condition and do not put your overnight camp here unless necessary, public dreams are prefered",
         ),

@@ -4,7 +4,8 @@
 
 // Editor
 export const IS_EDITING_POSSIBLE: boolean = false;
-export const NOTE_ABOUT_EDITING: string = `Map has not yet been updated for 2025. <br>
+export const NOTE_ABOUT_EDITING: string = `MAP IS UNDER CONSTRUCTION <br>
+It's being updated for 2025. <br>
 Placement opens May 22`; // 'THE MAP IS RESETTING TUESDAY 10.00 AM CET';
 
 // Repository
