@@ -1,4 +1,5 @@
 import * as L from 'leaflet';
+import { EDITING_PASSWORD } from '../../SETTINGS';
 
 export function edit(isEditMode: boolean, onClickCallback: () => void): L.Control {
 
@@ -14,6 +15,10 @@ export function edit(isEditMode: boolean, onClickCallback: () => void): L.Contro
             let _isEditMode = isEditMode;
 
             btn.onclick = () => {
+                if (!_isEditMode) {
+                    let pw = prompt('Do some magic here 🪄');
+                    if (pw !== EDITING_PASSWORD) return;
+                }
                 onClickCallback();
                 _isEditMode = !_isEditMode;
                 btn.textContent = _isEditMode ? 'Done' : 'Edit';

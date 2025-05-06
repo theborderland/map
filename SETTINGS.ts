@@ -3,10 +3,11 @@
  */
 
 // Editor
-export const IS_EDITING_POSSIBLE: boolean = false;
+export const IS_EDITING_POSSIBLE: boolean = true;
+export const EDITING_PASSWORD: string = "NotASecret";
 export const NOTE_ABOUT_EDITING: string = `MAP IS UNDER CONSTRUCTION <br>
-It's being updated for 2025. <br>
-Placement opens May 22`; // 'THE MAP IS RESETTING TUESDAY 10.00 AM CET';
+Pre-placement opens May 15th.<br>
+General placement opens May 22nd.`; // 'THE MAP IS RESETTING TUESDAY 10.00 AM CET';
 
 // Repository
 export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
