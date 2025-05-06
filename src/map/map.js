@@ -28,6 +28,11 @@ export const createMap = async () => {
         16,
     );
 
+    map.setMaxBounds([
+        [57.3, 14.6],
+        [58, 15.2],
+    ]);
+
     // Create map groups
     map.groups = {
         placement: new L.LayerGroup(),
@@ -152,8 +157,16 @@ export const createMap = async () => {
         tms: false,
     });
 
+    map.groups.aftermath24 = L.tileLayer('./data/bl24/aftermath/{z}/{x}/{y}.png', {
+        minZoom: 0,
+        maxZoom: 21,
+        minNativeZoom: 0,
+        maxNativeZoom: 19,
+        tms: false,
+    });
+
     // Load and add the after match layer for borderland 23
-    map.groups.aftermath = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', {
+    map.groups.aftermath23 = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', {
         minZoom: 0,
         maxZoom: 21,
         minNativeZoom: 0,
@@ -190,7 +203,8 @@ export const createMap = async () => {
         Neighbourhoods: map.groups.neighbourhoods,
         Quarters: map.groups.quarters,
         Aftermath22: map.groups.aftermath22,
-        Aftermath23: map.groups.aftermath,
+        Aftermath23: map.groups.aftermath23,
+        Aftermath24: map.groups.aftermath24,
     };
 
     // Initialize the editor
