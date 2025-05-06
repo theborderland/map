@@ -28,6 +28,11 @@ export const createMap = async () => {
         16,
     );
 
+    map.setMaxBounds([
+        [57.3, 14.6],
+        [58, 15.2],
+    ]);
+
     // Create map groups
     map.groups = {
         placement: new L.LayerGroup(),
