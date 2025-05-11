@@ -133,12 +133,6 @@ export const createMap = async () => {
         [57.6291230394961715, 14.9362178462290363],
     ]);
 
-    // Load and add the hand drawn layer
-    map.groups.drawn = await loadImageOverlay(map, './data/drawn.jpg', [
-        [57.6306870895, 14.9142416425],
-        [57.6178189445, 14.9386124973],
-    ]);
-
     // Load and add the height map layer
     map.groups.heightmap = L.tileLayer('./data/analysis/height/{z}/{x}/{y}.jpg', {
         minZoom: 13,
@@ -196,7 +190,6 @@ export const createMap = async () => {
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
-        Handdrawn: map.groups.drawn,
         Plazas: map.groups.plazas,
         Placement: map.groups.placement,
         Names: map.groups.names,
