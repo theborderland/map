@@ -117,15 +117,6 @@ export class MapEntity implements EntityDTO {
         }
     }
 
-    public get calculatedFireExtinguisherNeeded(): number {
-        try {
-            let calculatedFireExtinguisherNeeded = 1; //TODO: Set the correct values for the calculations
-            return calculatedFireExtinguisherNeeded;
-        } catch {
-            return NaN;
-        }
-    }
-
     public get severityOfRulesBroken(): number {
         return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
     }
