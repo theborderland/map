@@ -63,7 +63,7 @@
                     Cooking with gas instead of induction heaters is good.
                     Be accurate when you fill out this form, all questions are explained in the <a href="https://coda.io/d/_ddTvwEwgvJw/Preparing_suY3b6XL#_lu934W2x" target="_blank">Survival Guide</a>.
                     If you don't know what to bring, simulate it and specifiy later. 
-                    Last edit to the power budget is July 1st.
+                    <b>Last edit to the power budget is July 1st.</b>
                     <br/><br/>
                     Get a Technical Lead in your camp, we insist.
                     <br/>
@@ -83,19 +83,16 @@
                 <sl-input id="power-extra-info" size="small" label="What type of cables/powerstrips will the camp use?" placeholder="3G1,5/2,5/CEE - IPxx - flaps?"></sl-input>
             </section>
             <section>
-                <div class="flex-row" style="font-weight: bold; font-size: 0.9rem; text-align: center;">    
-                    <div style="flex-grow: 1;">Appliance</div>
-                    <div class="short-input">No.</div>
-                    <div class="long-input">Power, W</div>
-                    <div style="width: 2rem;"></div>
+                <div style="font-weight: bold; font-size: 0.9rem; text-align: center;">    
+                    Add your appliances
                 </div>
                 <form id="power-form" onsubmit="return false;" class="flex-row power-item">
                     <sl-input id="appliance" size="small" placeholder="e.g. lights or kitchen" required></sl-input>
                     <sl-tooltip content="How many of this item?">
-                        <sl-input form="power-form" id="amount" type="number" size="small" min="0" no-spin-buttons required></sl-input>
+                        <sl-input form="power-form" id="amount" type="number" size="small" placeholder="No." min="0" no-spin-buttons required></sl-input>
                     </sl-tooltip> 
                     <sl-tooltip content="Watt per item">
-                        <sl-input form="power-form" id="watt" type="number" size="small" min="0" no-spin-buttons required></sl-input>
+                        <sl-input form="power-form" id="watt" type="number" size="small" placeholder="Power, W" min="0" no-spin-buttons required></sl-input>
                     </sl-tooltip> 
                     <sl-button variant="success" size="small" form="power-form" type="submit" outline>
                         <sl-icon slot="prefix" name="plus-lg"></sl-icon>
@@ -163,7 +160,7 @@
                 <div>Use delete with caution! Only delete things you know is ok. Undelete can only be performed by using
                     black magic.
                 </div>
-                <sl-button id="entity-delete" variant="danger" style="width: 25%; align-self: flex-end;">Delete area</sl-button>
+                <sl-button id="entity-delete" variant="danger" style="align-self: flex-end;">Delete area</sl-button>
             </section>
         </div>
     </sl-tab-panel>

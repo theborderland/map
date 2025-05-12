@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap');
+
 @keyframes shake {
 
     10%,
@@ -34,6 +36,10 @@
 
 .hidden {
     display: none;
+}
+
+b {
+    font-weight: bold;
 }
 
 button {
@@ -285,7 +291,7 @@ textarea {
 }
 
 .scrollable {
-    /* 6.5 lines of current font size in area description, so you'll see that you need to scroll */
+    /* 6.5 lines of current font size in area description of the popup, so you'll see that you need to scroll */
     max-height: 188px;
     overflow-y: auto;
 }
@@ -315,43 +321,6 @@ textarea {
     text-shadow: 2px 2px #000;
 }
 
-#history-table tbody td {
-    padding: 0;
-}
-
-#history-table tbody tr:nth-child(odd) {
-    background-color: #f6f6f6;
-}
-
-#history-table ul {
-    padding: 0;
-    margin: 0;
-    list-style-type: none;
-}
-
-#history-table ul li {
-    margin: 0 0 2px 0;
-}
-
-#history-table table {
-    width: 100%;
-}
-
-#history-table thead {
-    position: sticky;
-    top: 0;
-    background-color: white;
-}
-
-#history-table tbody {
-    font-size: small;
-}
-
-#history-table {
-    max-height: 400px;
-    overflow: scroll;
-}
-
 #map {
     height: 100%;
     width: 100vw;
@@ -363,8 +332,7 @@ body,
     padding: 0;
 }
 
-.camps-list-tooltip h3,
-#history-table thead td {
+.camps-list-tooltip h3 {
     font-weight: 700;
 }
 
