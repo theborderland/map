@@ -69,9 +69,8 @@ export const createMap = async () => {
 
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 2.5);
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Bluepaths_BL25_export.geojson', 2);
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/roads_and_distances.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/plazas.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
 
     // Combine the Placement Area layers
