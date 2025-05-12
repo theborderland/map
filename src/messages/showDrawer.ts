@@ -25,6 +25,10 @@ let drawerLoader = new Promise<any>(async (resolve) => {
     });
 
     drawerElement.addEventListener('sl-after-hide', (event) => {
+        if (event.target !== drawerElement) {
+            return;
+        }
+        
         if (onCloseAction) {
             onCloseAction();
         }

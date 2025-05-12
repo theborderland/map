@@ -17,7 +17,7 @@ import { Editor } from '../editor';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
-    let visibleLayers = new Set(['Placement', 'Placement_map', 'POI']);
+    let visibleLayers = new Set(["Placement", "Placement_map", "POI", "Soundguide", "Neighbourhoods", "Plazas", "Names"]);
 
     // Create map
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false }).setView(

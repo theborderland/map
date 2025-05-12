@@ -149,9 +149,12 @@
 }
 
 /* Guide FAQ icon */
-#drawer-content sl-details.custom-icons::part(summary-icon) {
+#drawer-content sl-details::part(summary-icon) {
     /* Disable the expand/collapse animation */
     rotate: none;
+}
+#drawer-content sl-details::part(summary) {
+    font-weight: bold;
 }
 
 #history-table tbody td {
