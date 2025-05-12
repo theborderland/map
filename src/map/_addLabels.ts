@@ -1,5 +1,5 @@
 import * as L from 'leaflet';
-
+import * as Turf from '@turf/turf';
 export const addQuarterLabelsToMap = async (layerGroup: L.LayerGroup) => {
     let json = await (await fetch('./data/bl25/labels/quarters.json')).json();
     addLabelOverlayToMap(json, layerGroup, 'white', 0.001);
@@ -45,26 +45,29 @@ export const addPolygonFeatureLabelOverlayToMap = (
         let thisSize = feature.properties.size || size;
         let rotation = feature.properties.rotation || 0;
 
-        // Calculate the centroid of the polygon
+        // Calculate the centroid of the polygon using Turf
         let centroid: [number, number];
 
         if (feature.geometry.type === 'Polygon') {
-            centroid = calculatePolygonCentroid(feature.geometry.coordinates[0]);
+            const turfPolygon = Turf.polygon(feature.geometry.coordinates);
+            const turfCentroid = Turf.centroid(turfPolygon);
+            centroid = turfCentroid.geometry.coordinates as [number, number];
         } else {
-            // MultiPolygon
-            // For MultiPolygon, use the centroid of the largest polygon
-            let largestPolygon = feature.geometry.coordinates[0];
-            let maxArea = calculatePolygonArea(largestPolygon);
+            // MultiPolygon - find the largest polygon by area
+            const polygons = feature.geometry.coordinates.map((coords) => Turf.polygon(coords));
+            let largestPolygon = polygons[0];
+            let maxArea = Turf.area(largestPolygon);
 
-            for (let i = 1; i < feature.geometry.coordinates.length; i++) {
-                const area = calculatePolygonArea(feature.geometry.coordinates[i]);
+            for (let i = 1; i < polygons.length; i++) {
+                const area = Turf.area(polygons[i]);
                 if (area > maxArea) {
                     maxArea = area;
-                    largestPolygon = feature.geometry.coordinates[i];
+                    largestPolygon = polygons[i];
                 }
             }
 
-            centroid = calculatePolygonCentroid(largestPolygon[0]);
+            const turfCentroid = Turf.centroid(largestPolygon);
+            centroid = turfCentroid.geometry.coordinates as [number, number];
         }
 
         const [lng, lat] = centroid;
@@ -85,33 +88,6 @@ export const addPolygonFeatureLabelOverlayToMap = (
         }).addTo(layerGroup);
     }
 };
-
-/**
- * Calculates the centroid of a polygon
- * @param coordinates Array of [lng, lat] coordinates forming a polygon
- * @returns [lng, lat] centroid coordinates
- */
-function calculatePolygonCentroid(coordinates: number[][]): [number, number] {
-    let sumX = 0;
-    let sumY = 0;
-
-    for (let i = 0; i < coordinates.length; i++) {
-        sumX += coordinates[i][0];
-        sumY += coordinates[i][1];
-    }
-
-    return [sumX / coordinates.length, sumY / coordinates.length];
-}
-
-/**
- * Calculates the approximate area of a polygon
- * @param coordinates Array of coordinates forming a polygon
- * @returns Approximate area value
- */
-function calculatePolygonArea(coordinates: number[][][]): number {
-    // Simple approximation of area by counting points
-    return coordinates[0].length;
-}
 
 const addLabelOverlayToMap = (json: JSON, layerGroup: L.LayerGroup, color: string, size: number) => {
     // load overlay data from json and adds it to layergroup
