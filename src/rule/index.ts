@@ -4,9 +4,7 @@ import CheapRuler from 'cheap-ruler';
 import type { MapEntity } from '../entities/entity';
 import { ClusterCache } from '../entities/ClusterCache';
 import * as Rules from './rules';
-import {
-    FIRE_BUFFER_IN_METER
-} from '../../SETTINGS';
+import { FIRE_BUFFER_IN_METER } from '../../SETTINGS';
 
 export const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
 export const ruler = new CheapRuler(57.5, 'meters');
@@ -14,14 +12,17 @@ export enum Severity {
     None = 0,
     Low = 1,
     Medium = 2,
-    High = 3
+    High = 3,
 }
 
 export class Rule {
     private _severity: Severity;
     private _triggered: boolean;
-    private _callback: (entity: MapEntity) => { triggered: boolean; shortMessage?: string; message?: string };
-    
+    private _callback: (
+        entity: MapEntity,
+        ruleMessage: string,
+    ) => { triggered: boolean; shortMessage?: string; message?: string };
+
     public message: string;
     public shortMessage: string;
 
@@ -34,7 +35,7 @@ export class Rule {
     }
 
     public checkRule(entity: MapEntity) {
-        const result = this._callback(entity);
+        const result = this._callback(entity, this.message);
         this._triggered = result.triggered;
         if (result.shortMessage) this.shortMessage = result.shortMessage;
         if (result.message) this.message = result.message;
@@ -97,7 +98,9 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             placementLayers,
             Severity.High,
             'Too large/close to others!',
-            'For fire safety, we need to add a bit of open space (' + FIRE_BUFFER_IN_METER + 'm2) between these camps (or if not next to any camps, this camp simply too big)',
+            'For fire safety, we need to add a bit of open space (' +
+                FIRE_BUFFER_IN_METER +
+                'm2) between these camps (or if not next to any camps, this camp simply too big)',
         ),
         Rules.isNotInsideBoundaries(
             groups.area,
@@ -130,13 +133,6 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             Severity.Low,
             'Close to the  sanctuary',
             'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
-        ),
-        // Special notification when on the western meadow
-        Rules.isOverlappingOrContained(
-            groups.redsoundzone,
-            Severity.Low,
-            'In the western meadow',
-            "You're in the western meadow, please be extra careful of keeping the land in good condition and do not put your overnight camp here unless necessary, public dreams are prefered",
         ),
     ];
 }
