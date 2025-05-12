@@ -13,11 +13,19 @@ import { loadImageOverlay } from '../loaders/loadImageOverlay';
 import { hash, ButtonsFactory } from '../utils';
 import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
-
+import { filterFeatures } from './filterFeatures';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
-    let visibleLayers = new Set(["Placement", "Placement_map", "POI", "Soundguide", "Neighbourhoods", "Plazas", "Names"]);
+    let visibleLayers = new Set([
+        'Placement',
+        'Placement_map',
+        'POI',
+        'Soundguide',
+        'Neighbourhoods',
+        'Plazas',
+        'Names',
+    ]);
 
     // Create map
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false }).setView(
@@ -81,37 +89,18 @@ export const createMap = async () => {
     map.removeLayer(map.groups.minorroad);
     map.groups.fireroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.fireroad);
-    // map.groups.publicplease.addTo(map.groups.mapstuff);
-    // map.removeLayer(map.groups.publicplease);
-    // map.groups.oktocamp.addTo(map.groups.mapstuff);
-    // map.removeLayer(map.groups.oktocamp);
-    //map.groups.closetosanctuary.addTo(map.groups.mapstuff);
-    //map.removeLayer(map.groups.closetosanctuary);
-    map.groups.area.addTo(map.groups.mapstuff);
-    map.removeLayer(map.groups.area);
-    map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
-
     // Add known objects
-    map.groups.container.addTo(map.groups.mapstuff);
-    map.removeLayer(map.groups.container);
+    // Objects have no rules, they just draw small guiding shapes on the map
     map.groups.parking.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.parking);
-    map.groups.toilet.addTo(map.groups.mapstuff);
-    map.removeLayer(map.groups.toilet);
     map.groups.bridge.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.bridge);
 
-    // Combine and add sound guide
-    map.groups.bluesoundzone.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.bluesoundzone);
-    map.groups.greensoundzone.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.greensoundzone);
-    map.groups.yellowsoundzone.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.yellowsoundzone);
-    map.groups.orangesoundzone.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.orangesoundzone);
-    map.groups.redsoundzone.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.redsoundzone);
+    //Create a layer group for areas where camping is not allowed
+    map.groups.hiddenforbidden = filterFeatures(
+        map.groups.neighbourhood,
+        (feature) => feature.properties && feature.properties.camping_allowed === false,
+    );
 
     // Bring the sound guide layer to the back when it is added so the placement and POI is "on top"
     map.on('overlayadd', function (eventLayer) {
@@ -202,63 +191,67 @@ export const createMap = async () => {
     const editor = new Editor(map, map.groups);
 
     // Add the guide button
-    map.addControl(ButtonsFactory.guide(() => {
-        showDrawer({
-            file: 'guide-home',
-            position: 'end',
-            onClose: () => {
-                localStorage.setItem('hasSeenPlacementWelcome', 'true');
-            },
-        });
-    }));
+    map.addControl(
+        ButtonsFactory.guide(() => {
+            showDrawer({
+                file: 'guide-home',
+                position: 'end',
+                onClose: () => {
+                    localStorage.setItem('hasSeenPlacementWelcome', 'true');
+                },
+            });
+        }),
+    );
 
     // Add the download button
-    map.addControl(ButtonsFactory.download(async () => {
-        const quit = !confirm(
-            'This will download all the current map information as several KML and GeoJSON files, are you sure?',
-        );
-        if (quit) {
-            return;
-        }
-        const exportableLayers = [
-            ['mapstuff'],
-            ['poi'],
-            ['powergrid'],
-            ['soundguide'],
-            ['plazas'],
-            ['names'],
-            ['neighbourhoods'],
-            ['placement'],
-        ];
-        showNotification('Downloading map data...');
-        for (const [groupName] of exportableLayers) {
-            try {
-                const layer = map.groups[groupName];
-                const geojson = layer.toGeoJSON();
-                var kml = ToKML(geojson, {
-                    documentName: groupName,
-                    name: 'name',
-                    description: 'description',
-                });
-                for (const [data, filetype] of [
-                    [kml, '.kml'],
-                    [JSON.stringify(geojson), '.geojson'],
-                ]) {
-                    const link = document.createElement('a');
-                    const uri = 'data:text/kml;charset=utf-8,' + encodeURIComponent(data);
-                    link.download = groupName + filetype;
-                    link.target = '_blank';
-                    link.href = uri;
-                    link.click();
-                    console.log('Downloading map data from layergroup ' + groupName);
-                    await new Promise((r) => setTimeout(r, 500));
-                }
-            } catch (err) {
-                console.error(err);
-                console.warn('Failed to download map data from layergroup ' + groupName);
+    map.addControl(
+        ButtonsFactory.download(async () => {
+            const quit = !confirm(
+                'This will download all the current map information as several KML and GeoJSON files, are you sure?',
+            );
+            if (quit) {
+                return;
             }
-        }
-    }));
+            const exportableLayers = [
+                ['mapstuff'],
+                ['poi'],
+                ['powergrid'],
+                ['soundguide'],
+                ['plazas'],
+                ['names'],
+                ['neighbourhoods'],
+                ['placement'],
+            ];
+            showNotification('Downloading map data...');
+            for (const [groupName] of exportableLayers) {
+                try {
+                    const layer = map.groups[groupName];
+                    const geojson = layer.toGeoJSON();
+                    var kml = ToKML(geojson, {
+                        documentName: groupName,
+                        name: 'name',
+                        description: 'description',
+                    });
+                    for (const [data, filetype] of [
+                        [kml, '.kml'],
+                        [JSON.stringify(geojson), '.geojson'],
+                    ]) {
+                        const link = document.createElement('a');
+                        const uri = 'data:text/kml;charset=utf-8,' + encodeURIComponent(data);
+                        link.download = groupName + filetype;
+                        link.target = '_blank';
+                        link.href = uri;
+                        link.click();
+                        console.log('Downloading map data from layergroup ' + groupName);
+                        await new Promise((r) => setTimeout(r, 500));
+                    }
+                } catch (err) {
+                    console.error(err);
+                    console.warn('Failed to download map data from layergroup ' + groupName);
+                }
+            }
+        }),
+    );
 
     // Add the measure tool
     let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });
