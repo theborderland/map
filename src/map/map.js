@@ -8,12 +8,9 @@ import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
 import { addQuarterLabelsToMap, addNeighbourhoodLabelsToMap, addPlazaLabelsToMap } from './_addLabels';
 import { addLegends } from './_addLegends';
-
 import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureCollections';
-
 import { loadImageOverlay } from '../loaders/loadImageOverlay';
-
-import { hash } from '../utils';
+import { hash, ButtonsFactory } from '../utils';
 import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
 
@@ -204,89 +201,63 @@ export const createMap = async () => {
     const editor = new Editor(map, map.groups);
 
     // Add the guide button
-    const guideButton = L.Control.extend({
-        options: { position: 'topleft' },
-        onAdd: () => {
-            let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
-            btn.title = 'Guide to the placement process';
-            btn.textContent = '⛑️';
-            L.DomEvent.disableClickPropagation(btn);
-
-            btn.onclick = () => {
-                showDrawer({
-                    file: 'guide-home',
-                    position: 'end',
-                    onClose: () => {
-                        localStorage.setItem('hasSeenPlacementWelcome', 'true');
-                    },
-                });
-            };
-
-            return btn;
-        },
-    });
-    map.addControl(new guideButton());
+    map.addControl(ButtonsFactory.guide(() => {
+        showDrawer({
+            file: 'guide-home',
+            position: 'end',
+            onClose: () => {
+                localStorage.setItem('hasSeenPlacementWelcome', 'true');
+            },
+        });
+    }));
 
     // Add the download button
-    const downloadButton = L.Control.extend({
-        options: { position: 'topleft' },
-        onAdd: () => {
-            let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
-            btn.title = 'Save everything';
-            btn.textContent = '💾';
-            L.DomEvent.disableClickPropagation(btn);
-
-            btn.onclick = async () => {
-                const quit = !confirm(
-                    'This will download all the current map information as several KML and GeoJSON files, are you sure?',
-                );
-                if (quit) {
-                    return;
+    map.addControl(ButtonsFactory.download(async () => {
+        const quit = !confirm(
+            'This will download all the current map information as several KML and GeoJSON files, are you sure?',
+        );
+        if (quit) {
+            return;
+        }
+        const exportableLayers = [
+            ['mapstuff'],
+            ['poi'],
+            ['powergrid'],
+            ['soundguide'],
+            ['plazas'],
+            ['names'],
+            ['neighbourhoods'],
+            ['placement'],
+        ];
+        showNotification('Downloading map data...');
+        for (const [groupName] of exportableLayers) {
+            try {
+                const layer = map.groups[groupName];
+                const geojson = layer.toGeoJSON();
+                var kml = ToKML(geojson, {
+                    documentName: groupName,
+                    name: 'name',
+                    description: 'description',
+                });
+                for (const [data, filetype] of [
+                    [kml, '.kml'],
+                    [JSON.stringify(geojson), '.geojson'],
+                ]) {
+                    const link = document.createElement('a');
+                    const uri = 'data:text/kml;charset=utf-8,' + encodeURIComponent(data);
+                    link.download = groupName + filetype;
+                    link.target = '_blank';
+                    link.href = uri;
+                    link.click();
+                    console.log('Downloading map data from layergroup ' + groupName);
+                    await new Promise((r) => setTimeout(r, 500));
                 }
-                const exportableLayers = [
-                    ['mapstuff'],
-                    ['poi'],
-                    ['powergrid'],
-                    ['soundguide'],
-                    ['plazas'],
-                    ['names'],
-                    ['neighbourhoods'],
-                    ['placement'],
-                ];
-                showNotification('Downloading map data...');
-                for (const [groupName] of exportableLayers) {
-                    try {
-                        const layer = map.groups[groupName];
-                        const geojson = layer.toGeoJSON();
-                        var kml = ToKML(geojson, {
-                            documentName: groupName,
-                            name: 'name',
-                            description: 'description',
-                        });
-                        for (const [data, filetype] of [
-                            [kml, '.kml'],
-                            [JSON.stringify(geojson), '.geojson'],
-                        ]) {
-                            const link = document.createElement('a');
-                            const uri = 'data:text/kml;charset=utf-8,' + encodeURIComponent(data);
-                            link.download = groupName + filetype;
-                            link.target = '_blank';
-                            link.href = uri;
-                            link.click();
-                            console.log('Downloading map data from layergroup ' + groupName);
-                            await new Promise((r) => setTimeout(r, 500));
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        console.warn('Failed to download map data from layergroup ' + groupName);
-                    }
-                }
-            };
-
-            return btn;
-        },
-    });
-    map.addControl(new downloadButton());
+            } catch (err) {
+                console.error(err);
+                console.warn('Failed to download map data from layergroup ' + groupName);
+            }
+        }
+    }));
 
     // Add the measure tool
     let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });

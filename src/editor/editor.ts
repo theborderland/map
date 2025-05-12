@@ -5,7 +5,7 @@ import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
 import { generateRulesForEditor } from '../rule';
 import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
-import * as Buttons from './buttonsFactory';
+import { ButtonsFactory } from '../utils';
 import * as Turf from '@turf/turf';
 import 'leaflet.path.drag';
 import 'leaflet-search';
@@ -620,7 +620,7 @@ export class Editor {
     private addToggleEditButton() {
         // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
         if (IS_EDITING_POSSIBLE) {
-            this._map.addControl(Buttons.edit(this._isEditMode, () => {
+            this._map.addControl(ButtonsFactory.edit(this._isEditMode, () => {
                 this.toggleEditMode();
             }));
         }

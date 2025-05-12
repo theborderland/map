@@ -1,10 +1,7 @@
 import DOMPurify from "dompurify";
 import { MapEntity, MapEntityRepository } from "../entities";
-import * as Buttons from './buttonsFactory';
-import { EntityDifferences } from "../entities/entity";
 import L from "leaflet";
 import { EntityInfoEditor } from "./entityInfoEditor";
-import { formatDate } from "../utils";
 
 export class PopupContentFactory {
     public CreateInfoPopup(
@@ -97,26 +94,32 @@ export class PopupContentFactory {
                 ghostLayers,
                 editEntityCallback);
 
-            const editShapeButton = Buttons.simple('Edit shape', (e) => {
+            const editShapeButton = document.createElement('button');
+            editShapeButton.innerHTML = "Edit shape";
+            editShapeButton.onclick = (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 setMode('editing-shape', entity);
-            });
+            };
             content.appendChild(editShapeButton);
 
-            const moveShapeButton = Buttons.simple('Move shape', (e) => {
+            const moveShapeButton = document.createElement('button');
+            moveShapeButton.innerHTML = "Move shape"
+            moveShapeButton.onclick = (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 setMode('moving-shape', entity);
-            });
+            };
             content.appendChild(moveShapeButton);
 
-            const editInfoButtonNew = Buttons.simple('Edit info', (e) => {
+            const editInfoButton = document.createElement('button');
+            editInfoButton.innerHTML = "Edit info"
+            editInfoButton.onclick = (e) => {
                 e.stopPropagation();
                 e.preventDefault();
                 entityInfoEditor.render();
-                });
-            content.appendChild(editInfoButtonNew);
+            };
+            content.appendChild(editInfoButton);
         }
         return content;
     }
