@@ -6,7 +6,7 @@ import { Appliance, EntityDifferences } from "../entities/entity";
 
 export class EntityInfoEditor {
     private _entity: MapEntity;
-    private _editEntityCallback: (action: string, entity?: MapEntity, extraInfo?: string) => void;
+    private _editEntityCallback: (action: string, extraInfo?: string) => void;
     private _repository: MapEntityRepository;
     private _ghostLayers: L.LayerGroup<any>;
     private _largeCampPeopleLimit: number = 25;
@@ -36,7 +36,7 @@ export class EntityInfoEditor {
                     },
                     {
                         text: 'Save',
-                        onClickAction: () => { this._editEntityCallback("save", this._entity); },
+                        onClickAction: () => { this._editEntityCallback("save"); },
                         shouldCloseDrawer: true,
                         variant: 'primary'
                     }
@@ -306,7 +306,7 @@ export class EntityInfoEditor {
                     btnRestoreShape.textContent = '⚠ Restore Shape';
                     btnRestoreShape.onclick = () => {
                         console.log(`Restores shape from revision ${revisionentity}.`);
-                        this._editEntityCallback("restore", this._entity, revisionentity);
+                        this._editEntityCallback("restore", revisionentity);
                     };
                     divdescription.append(btnRestoreShape);
                     // Draw ghosted shape of selected revision
@@ -362,7 +362,7 @@ export class EntityInfoEditor {
             }
             console.log('Delete yes, deleteReason', deleteReason);
             Messages.hideDrawer();
-            this._editEntityCallback("delete", this._entity, deleteReason);
+            this._editEntityCallback("delete", deleteReason);
         }
 
     }

@@ -159,29 +159,29 @@ export class Editor {
             return;
         }
 
-        let editEntityCallback = async (action: string, entity?: MapEntity, extraInfo?: string) => {
+        let editEntityCallback = async (action: string, extraInfo?: string) => {
             switch (action) {
                 case "delete":
-                    this.deleteAndRemoveEntity(entity, extraInfo);
+                    this.deleteAndRemoveEntity(this._selected, extraInfo);
                     Messages.showNotification("Deleted", 'success');
                     this._popup.close();
                     break;
 
                 case "save":
                     // close popup displaying old data, save entity, reopen popup with new data
-                    this.setSelected(entity, null);
                     this._popup.close();
-                    this.UpdateOnScreenDisplay(entity, "Saving...");
-                    let entityInResponse = await this.saveEntity(entity);
-                    this.setPopup('info', entityInResponse);
+                    this.UpdateOnScreenDisplay(this._selected, "Saving...");
+                    let entityInResponse = await this.saveEntity(this._selected);
+                    this.setSelected(entityInResponse, null);
+                    this.setPopup('info', entityInResponse);                    
                     break;
 
                 case "restore":
                     // First remove currently drawn shape to avoid duplicates
-                    this.removeEntityNameTooltip(entity);
-                    this.removeEntityFromLayers(entity);
-                    entity.layer = entity.revisions[extraInfo].layer;
-                    this.addEntityToMap(entity);
+                    this.removeEntityNameTooltip(this._selected);
+                    this.removeEntityFromLayers(this._selected);
+                    this._selected.layer = this._selected.revisions[extraInfo].layer;
+                    this.addEntityToMap(this._selected);
                     break;
 
                 default:
