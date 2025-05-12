@@ -16,13 +16,13 @@ async function index() {
         showDrawers([{
             file: 'welcome',
             position: 'bottom',
-            onClose: () => {
-                localStorage.setItem('hasSeenPlacementWelcome', 'true');
-            },
             buttons: [{text: 'Continue'}]
         },{
             file: 'preplacement',
-            position: 'bottom'
+            position: 'bottom',
+            onClose: () => {
+                localStorage.setItem('hasSeenPlacementWelcome', 'true');
+            },
         }]);
     }
 }

@@ -6,8 +6,7 @@ let onCloseAction = null;
 
 const DEFAULT_BUTTON : Button = {
     text: "Close",
-    variant: "primary",
-    shouldCloseDrawer: false
+    variant: "primary"
 }; 
 
 let drawerLoader = new Promise<any>(async (resolve) => {
@@ -140,6 +139,7 @@ export async function hideDrawer() {
 type DrawerOptions = {
     file: string;
     position: 'end' | 'bottom' | 'start' | 'top'; // end = right, start = left
+    /** Will only work on the last drawer if you're sending in multiple drawers. */
     onClose?: () => any;
     buttons?: Array<Button>;
     keepOpen?: boolean;
