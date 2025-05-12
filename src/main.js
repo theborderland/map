@@ -1,6 +1,6 @@
 import { createMap } from './map';
 import { createStats } from './stats';
-import { showDrawer } from './messages';
+import { showDrawers } from './messages';
 
 /** Main method for index.html */
 async function index() {
@@ -13,13 +13,17 @@ async function index() {
 
     // Only show message if user has not seen the welcome message yet
     if (!localStorage.getItem('hasSeenPlacementWelcome')) {
-        showDrawer({
+        showDrawers([{
             file: 'welcome',
             position: 'bottom',
             onClose: () => {
                 localStorage.setItem('hasSeenPlacementWelcome', 'true');
             },
-        });
+            buttons: [{text: 'Continue'}]
+        },{
+            file: 'preplacement',
+            position: 'bottom'
+        }]);
     }
 }
 window.indexMain = index;
