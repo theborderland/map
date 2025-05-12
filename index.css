@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap');
+
 @keyframes shake {
 
     10%,
@@ -34,6 +36,10 @@
 
 .hidden {
     display: none;
+}
+
+b {
+    font-weight: bold;
 }
 
 button {
@@ -111,17 +117,6 @@ textarea {
     resize: none;
 }
 
-.add-todo-btn-animated {
-    animation-delay: 0;
-    animation-direction: alternate;
-    animation-duration: 1s;
-    animation-fill-mode: none;
-    animation-iteration-count: infinite;
-    animation-name: stretch;
-    animation-play-state: running;
-    animation-timing-function: ease-out;
-}
-
 .borderland-marker h1 {
     color: #fa6;
     font-size: 2rem;
@@ -196,15 +191,6 @@ textarea {
     text-shadow: 1px 1px #000;
 }
 
-.desc-button {
-    border: 2px solid rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    font-size: 1em;
-    height: 34px;
-    padding: 3px;
-    text-align: center;
-    width: 34px;
-}
 
 .description {
     background-color: hsla(0, 0%, 100%, 0.8);
@@ -304,19 +290,8 @@ textarea {
     width: 100px;
 }
 
-.placement-btn {
-    background-color: #07cf25;
-    border-width: 0;
-    box-shadow: 3px 5px 5px #000;
-    color: #fff;
-    height: 35px !important;
-    margin-bottom: 15px !important;
-    text-shadow: 2px 2px 3px #000;
-    width: 100px;
-}
-
 .scrollable {
-    /* 6.5 lines of current font size in area description, so you'll see that you need to scroll */
+    /* 6.5 lines of current font size in area description of the popup, so you'll see that you need to scroll */
     max-height: 188px;
     overflow-y: auto;
 }
@@ -327,51 +302,6 @@ textarea {
     font-size: 14px;
     line-height: 0;
     text-transform: uppercase;
-}
-
-.todo-highprio {
-    background-color: #cd2718;
-}
-
-.todo-icon {
-    -moz-box-shadow: 3px 3px rgba(0, 0, 0, 0.3);
-    -o-box-shadow: 3px 3px rgba(0, 0, 0, 0.3);
-    -webkit-box-shadow: 3px 3px rgba(0, 0, 0, 0.3);
-    background-color: #eed;
-    border: solid 2px #212121;
-    border-radius: 150px;
-    box-shadow: 3px 3px rgba(0, 0, 0, 0.3);
-    height: 100px;
-    width: 100px;
-}
-
-.todo-lowprio {
-    background-color: #41a233;
-}
-
-.todo-mysticalprio {
-    animation-delay: 0;
-    animation-direction: alternate;
-    animation-duration: 1s;
-    animation-fill-mode: none;
-    animation-iteration-count: infinite;
-    animation-name: borderColorFade;
-    animation-play-state: running;
-    animation-timing-function: ease-out;
-    background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cGF0aCBkPSJNLTIgMTBMMTAgLTJaTTEwIDZMNiAxMFpNLTIgMkwyIC0yIiBzdHJva2U9InB1cnBsZSIgc3Ryb2tlLXdpZHRoPSIzLjUiPjwvcGF0aD4KPC9zdmc+'),
-        url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPgo8bGluZWFyR3JhZGllbnQgaWQ9ImYiIHgyPSIiIHkyPSIxIj4KPHN0b3Agc3RvcC1jb2xvcj0iI0YxOSI+PC9zdG9wPgo8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwQ0YiPjwvc3RvcD4KPC9saW5lYXJHcmFkaWVudD4KPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNmKSI+PC9yZWN0Pgo8L3N2Zz4=');
-    background-color: #8814bd;
-    background-repeat: repeat;
-    border-style: dotted;
-}
-
-.todo-normalprio {
-    background-color: #e2cc22;
-}
-
-.todo-unsaved {
-    border: dotted 2px #fff;
-    opacity: 0.4;
 }
 
 .warning::before {
@@ -391,43 +321,6 @@ textarea {
     text-shadow: 2px 2px #000;
 }
 
-#history-table tbody td {
-    padding: 0;
-}
-
-#history-table tbody tr:nth-child(odd) {
-    background-color: #f6f6f6;
-}
-
-#history-table ul {
-    padding: 0;
-    margin: 0;
-    list-style-type: none;
-}
-
-#history-table ul li {
-    margin: 0 0 2px 0;
-}
-
-#history-table table {
-    width: 100%;
-}
-
-#history-table thead {
-    position: sticky;
-    top: 0;
-    background-color: white;
-}
-
-#history-table tbody {
-    font-size: small;
-}
-
-#history-table {
-    max-height: 400px;
-    overflow: scroll;
-}
-
 #map {
     height: 100%;
     width: 100vw;
@@ -439,8 +332,7 @@ body,
     padding: 0;
 }
 
-.camps-list-tooltip h3,
-#history-table thead td {
+.camps-list-tooltip h3 {
     font-weight: 700;
 }
 

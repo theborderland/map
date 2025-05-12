@@ -2,7 +2,6 @@
 
 #drawer-content {
     font-family: Arial, sans-serif;
-    height: 100%;
 }
 
 #drawer-content img {
@@ -10,35 +9,35 @@
 }
 
 #drawer-content li {
-    margin-bottom: 12px;
+    margin-bottom: 0.5rem;
 }
 
 #drawer-content h1,
 #drawer-content h2,
 #drawer-content h3,
 #drawer-content h4 {
-    font-family: bradleyHand;
+    font-family: "Caveat", cursive;
 }
 
 /* Used in the entity editor tabs */
-sl-tab-group::part(base),
-sl-tab-group::part(body),
-sl-tab-group,
-sl-tab-panel::part(base),
-sl-tab-panel::part(body),
-sl-tab-panel,
-.tab-pannel-inner {
+#drawer-content sl-tab-group::part(base),
+#drawer-content sl-tab-group::part(body),
+#drawer-content sl-tab-group,
+#drawer-content sl-tab-panel::part(base),
+#drawer-content sl-tab-panel::part(body),
+#drawer-content sl-tab-panel,
+#drawer-content .tab-pannel-inner {
     height: 100%;
 }
 
-sl-tab-group::part(nav) {
+#drawer-content sl-tab-group::part(nav) {
     display: flex;
     justify-content: center;
     margin: auto;
 }
 
 /* Entity editor specific styles */
-#buttons-container sl-button:not(:last-child) {
+#drawer-content #buttons-container sl-button:not(:last-child) {
     margin-right: 10px;
 }
 
@@ -46,64 +45,71 @@ sl-tab-group::part(nav) {
     margin-top: 10px;
 }
 
-.short-input {
+#drawer-content .short-input {
     width: 3.5rem;
 }
 
-.long-input {
+#drawer-content .long-input {
     width: 6rem;
 }
 
-sl-input::part(form-control-label),
-sl-textarea::part(form-control-label),
-sl-select::part(form-control-label) {
+#drawer-content sl-input::part(form-control-label),
+#drawer-content sl-textarea::part(form-control-label),
+#drawer-content sl-select::part(form-control-label) {
     font-weight: bold;
 }
-.power-item sl-input {
+#drawer-content .power-item sl-input {
     min-width: 0;
 }
 
+/* Appliance name */
+#drawer-content .power-item > :first-child {
+    flex-grow: 1;
+}
+
 /* amount */
-.power-item > sl-input:nth-child(2),
-.power-item > sl-tooltip:nth-child(2) > sl-input {
+#drawer-content .power-item > sl-input:nth-child(2),
+#drawer-content .power-item > sl-tooltip:nth-child(2) > sl-input {
     width: 3.5rem;
 }
 /* watt */
-.power-item > sl-input:nth-child(3),
-.power-item > sl-tooltip:nth-child(3) > sl-input {
+#drawer-content .power-item > sl-input:nth-child(3),
+#drawer-content .power-item > sl-tooltip:nth-child(3) > sl-input {
     width: 6rem;
 }
 /* Add/delete button */
-.power-item sl-button {
+#drawer-content .power-item sl-button {
     width: 2rem;
 }
 
-details>summary {
+#drawer-content .power-info-details > summary {
     cursor: pointer;
     list-style: none;
     text-align: center;
     font-family: monospace
 }
 
-summary::-webkit-details-marker {
+#drawer-content .power-info-details > summary::-webkit-details-marker {
     display: none
 }
 
-summary::after {
+#drawer-content .power-info-details > summary::after {
     content: '(click to show)';
     float: right;
     font-size: x-small;
     margin-top: 5px;
 }
 
-details[open] summary:after {
+#drawer-content .power-info-details[open] summary:after {
     content: "(click to hide) ";
 }
-.power-info-details {
+
+#drawer-content .power-info-details {
     font-size: small;
 }
+
 /* fancy-ass border */
-.fancy-ass-border {
+#drawer-content .fancy-ass-border {
     --border-width: 2px;
     position: relative;
     background: #fff;
@@ -140,4 +146,51 @@ details[open] summary:after {
     50% {
         background-position: 100% 50%;
     }
+}
+
+/* Guide FAQ icon */
+#drawer-content sl-details.custom-icons::part(summary-icon) {
+    /* Disable the expand/collapse animation */
+    rotate: none;
+}
+
+#history-table tbody td {
+    padding: 0;
+}
+
+#history-table tbody tr:nth-child(odd) {
+    background-color: #f6f6f6;
+}
+
+#history-table ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+#history-table ul li {
+    margin: 0 0 2px 0;
+}
+
+#history-table table {
+    width: 100%;
+}
+
+#history-table thead {
+    position: sticky;
+    top: 0;
+    background-color: white;
+}
+
+#history-table thead td {
+    font-weight: 700;
+}
+
+#history-table tbody {
+    font-size: small;
+}
+
+#history-table {
+    max-height: 400px;
+    overflow: auto;
 }
