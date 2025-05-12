@@ -4,9 +4,7 @@ import CheapRuler from 'cheap-ruler';
 import type { MapEntity } from '../entities/entity';
 import { ClusterCache } from '../entities/ClusterCache';
 import * as Rules from './rules';
-import {
-    FIRE_BUFFER_IN_METER
-} from '../../SETTINGS';
+import { FIRE_BUFFER_IN_METER } from '../../SETTINGS';
 
 export const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
 export const ruler = new CheapRuler(57.5, 'meters');
@@ -14,14 +12,14 @@ export enum Severity {
     None = 0,
     Low = 1,
     Medium = 2,
-    High = 3
+    High = 3,
 }
 
 export class Rule {
     private _severity: Severity;
     private _triggered: boolean;
     private _callback: (entity: MapEntity) => { triggered: boolean; shortMessage?: string; message?: string };
-    
+
     public message: string;
     public shortMessage: string;
 
@@ -97,10 +95,12 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             placementLayers,
             Severity.High,
             'Too large/close to others!',
-            'For fire safety, we need to add a bit of open space (' + FIRE_BUFFER_IN_METER + 'm2) between these camps (or if not next to any camps, this camp simply too big)',
+            'For fire safety, we need to add a bit of open space (' +
+                FIRE_BUFFER_IN_METER +
+                'm2) between these camps (or if not next to any camps, this camp simply too big)',
         ),
         Rules.isNotInsideBoundaries(
-            groups.area,
+            groups.neighbourhood,
             Severity.Medium,
             'Outside placement areas.',
             'You are outside the main placement area (yellow border). Make sure you know what you are doing.',
