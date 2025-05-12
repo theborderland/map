@@ -37,7 +37,7 @@
 }
 
 /* Entity editor specific styles */
-#drawer-content #buttons-container sl-button:not(:last-child) {
+#buttons-container sl-button:not(:last-child) {
     margin-right: 10px;
 }
 
