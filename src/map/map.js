@@ -14,6 +14,7 @@ import { hash, ButtonsFactory } from '../utils';
 import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
+import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
@@ -168,6 +169,8 @@ export const createMap = async () => {
     map.removeLayer(map.groups.plaza);
     map.groups.neighbourhood.addTo(map.groups.neighbourhoods);
     map.removeLayer(map.groups.neighbourhood);
+    // Add labels to each neighborhood polygon
+    addPolygonFeatureLabelOverlayToMap(map.groups.neighbourhood, map.groups.neighbourhoods, 'white', 0.003);
 
     var availableLayers = {
         Placement_map: map.groups.mapstuff,
@@ -312,9 +315,9 @@ export const createMap = async () => {
     map.removeLayer(map.groups.soundspots);
 
     // Add text labels to the map
-    addQuarterLabelsToMap(map.groups.quarters);
-    addPlazaLabelsToMap(map.groups.plazas);
-    addNeighbourhoodLabelsToMap(map.groups.neighbourhoods);
+    //addQuarterLabelsToMap(map.groups.quarters);
+    //addPlazaLabelsToMap(map.groups.plazas);
+    //addNeighbourhoodLabelsToMap(map.groups.neighbourhoods);
 
     // Add layer control and legends
     await addLegends(map, availableLayers, visibleLayers);
