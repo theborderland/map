@@ -10,10 +10,10 @@ export const isOverlappingOrContained = (
     let geoJson = entity.toGeoJSON();
     let overlap = false;
 
-    layerGroup.eachLayer((layer) => {
+    layerGroup?.eachLayer((layer) => {
         //@ts-ignore
         let otherGeoJson = layer.toGeoJSON();
-
+        
         //Loop through all features if it is a feature collection
         if (otherGeoJson.features) {
             for (let i = 0; i < otherGeoJson.features.length; i++) {

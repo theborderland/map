@@ -4,13 +4,13 @@ const POWER_GRID_GEOJSON_URL = 'https://bl.skookum.cc/data/bl24/power_grid.geojs
 const LOCAL_POWER_GRID_GEOJSON_URL = './data/bl24/labels/power_grid.geojson';
 
 async function fetchPowerGrid() {
-    try {
-        return await (await fetch(POWER_GRID_GEOJSON_URL)).json();
-    } catch (err) {
-        console.error(err);
-        console.warn('Failed to fetch from', POWER_GRID_GEOJSON_URL, 'trying', LOCAL_POWER_GRID_GEOJSON_URL);
+    // try {
+    //     return await (await fetch(POWER_GRID_GEOJSON_URL)).json();
+    // } catch (err) {
+    //     console.error(err);
+    //     console.warn('Failed to fetch from', POWER_GRID_GEOJSON_URL, 'trying', LOCAL_POWER_GRID_GEOJSON_URL);
         return await (await fetch(LOCAL_POWER_GRID_GEOJSON_URL)).json();
-    }
+    // }
 }
 
 export const addPowerGridTomap = async (layerGroup: L.LayerGroup) => {

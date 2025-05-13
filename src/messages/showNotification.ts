@@ -15,9 +15,12 @@ export async function showNotification(
     });
 
     document.body.append(alert);
-
+    // TODO : why does it not continue after this promise when no internet connection and sl-alert will not be devined?
+    // It is awaitened so it should, right?
     // Wait for custom elements to be defined
-    await Promise.allSettled([customElements.whenDefined('sl-alert')]);
+    const timeout = new Promise(() => setTimeout(() => console.log('Timeout'), 1000));
+
+    await Promise.race([customElements.whenDefined('sl-alert'), timeout]);
 
     alert.toast();
     return alert;

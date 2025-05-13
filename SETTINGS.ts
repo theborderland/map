@@ -10,7 +10,8 @@ Pre-placement opens May 15th.<br>
 General placement opens May 22nd.`; // 'THE MAP IS RESETTING TUESDAY 10.00 AM CET';
 
 // Repository
-export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
+//export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
+export const REPOSITORY_URL: string = 'https://localhost:7076';
 
 // Rules
 export const MAX_CLUSTER_SIZE: number = 1250;

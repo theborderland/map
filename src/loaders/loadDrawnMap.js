@@ -1,4 +1,9 @@
 import L from 'leaflet';
+/*
+USAGE: 
+await loadDrawnMap(map);
+map.addLayer(map.groups.drawnmap);
+*/
 
 export const loadDrawnMap = async (map) => 
 {

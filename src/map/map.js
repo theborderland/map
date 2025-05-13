@@ -13,6 +13,7 @@ import { loadImageOverlay } from '../loaders/loadImageOverlay';
 import { hash, ButtonsFactory } from '../utils';
 import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
+import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
@@ -44,12 +45,18 @@ export const createMap = async () => {
         names: new L.LayerGroup(),
     };
 
-    // Add the Google Satellite layer
-    map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        maxZoom: 21,
-        maxNativeZoom: 20,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-    }).addTo(map);
+    // Add the Google Satellite layer if online, otherwise load the drawn map
+    if (!window.navigator.onLine) {
+        console.log("offline, loading local drawn map");
+        await loadDrawnMap(map);
+        map.addLayer(map.groups.drawnmap);
+    } else{
+        map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 21,
+            maxNativeZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        }).addTo(map);
+    }
 
     // Load contours
     fetch('./data/analysis/contours.geojson')
@@ -69,8 +76,10 @@ export const createMap = async () => {
 
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/roads_and_distances.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/plazas.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 2.5);
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Bluepaths_BL25_export.geojson', 2);
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
+    // await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/plazas.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
 
     // Combine the Placement Area layers
