@@ -1,30 +1,19 @@
 import * as L from 'leaflet';
 import * as Turf from '@turf/turf';
-export const addQuarterLabelsToMap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl25/labels/quarters.json')).json();
-    addLabelOverlayToMap(json, layerGroup, 'white', 0.001);
-};
-export const addPlazaLabelsToMap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl25/labels/plazas.json')).json();
-    addLabelOverlayToMap(json, layerGroup, 'white', 0.0015);
-};
-export const addNeighbourhoodLabelsToMap = async (layerGroup: L.LayerGroup) => {
-    let json = await (await fetch('./data/bl25/labels/neighbourhoods.json')).json();
-    addLabelOverlayToMap(json, layerGroup, 'white', 0.003);
-    let jsonNonCamp = await (await fetch('./data/bl25/labels/non-camp-neighbourhoods.json')).json();
-    addLabelOverlayToMap(jsonNonCamp, layerGroup, 'white', 0.003);
-};
 
 /**
- * Adds labels to polygon features at their centroids
- * @param json GeoJSON with polygon features
+ * Adds labels to polygon features at their centroids.
+ *
+ * Expects the features to have a `name` property and an optional `tagline` property.
+ *
  * @param layerGroup The layer group to add the labels to
+ * @param json GeoJSON with polygon features
  * @param color Text color
  * @param size Text size
  */
 export const addPolygonFeatureLabelOverlayToMap = (
-    json: L.GeoJSON,
     layerGroup: L.LayerGroup,
+    json: L.GeoJSON,
     color: string,
     size: number,
 ) => {
@@ -37,47 +26,40 @@ export const addPolygonFeatureLabelOverlayToMap = (
         }
         let name = feature.properties.name;
         if (!name) continue; // Skip features without names
-
-        const centre = Turf.centerOfMass(feature.geometry);
-        const [lng, lat] = centre.geometry.coordinates;
-
         let rotation = feature.properties.rotation || 0;
-
-        var latLngBounds = L.latLngBounds([
-            [lat - size * 0.5, lng - size * 0.5 * name.length],
-            [lat + size * 0.5, lng + size * 0.5 * name.length],
-        ]);
-        const elem = createSVGTextElement(name, 'bradleyHand', color, rotation);
-        L.svgOverlay(elem, latLngBounds, {
-            opacity: 1,
-            interactive: false,
-        }).addTo(layerGroup);
+        addLabelToFeature(layerGroup, feature, name, color, size, rotation);
+        let tagline = feature.properties.tagline;
+        if (!tagline) continue; // Skip features without taglines
+        const offset = [0, -1.25];
+        addLabelToFeature(layerGroup, feature, tagline, color, size * 0.25, rotation, offset);
     }
 };
 
-const addLabelOverlayToMap = (json: JSON, layerGroup: L.LayerGroup, color: string, size: number) => {
-    // load overlay data from json and adds it to layergroup
-
-    for (let place of json['features']) {
-        // go through each marker in the file
-        let thisSize = place.properties.size || size; // grab size from json if present. Else default to function argument.
-        let rotation = place.properties.rotation || 0;
-        let name = place.properties.name;
-        const lng = place.geometry.coordinates[0];
-        const lat = place.geometry.coordinates[1];
-        // Draw svg with bounds, and translating svg so that it centers on marker.
-        var latLngBounds = L.latLngBounds([
-            [lat - thisSize * 0.5, lng - thisSize * 0.5],
-            [lat + thisSize * 0.5, lng + thisSize * 0.5],
-        ]);
-        const elem = createSVGTextElement(name, 'bradleyHand', color, rotation);
-        // add svg text to map
-        L.svgOverlay(elem, latLngBounds, {
-            opacity: 1,
-            interactive: false,
-        }).addTo(layerGroup);
+function addLabelToFeature(
+    layerGroup: L.LayerGroup,
+    feature: any,
+    label: string,
+    color: string,
+    size: number,
+    rotation?: number,
+    offset?: number[],
+) {
+    const centre = Turf.centerOfMass(feature.geometry);
+    let [lng, lat] = centre.geometry.coordinates;
+    if (offset) {
+        lng += offset[0] * size;
+        lat += offset[1] * size;
     }
-};
+    var latLngBounds = L.latLngBounds([
+        [lat - size * 0.5, lng - size * 0.5 * label.length],
+        [lat + size * 0.5, lng + size * 0.5 * label.length],
+    ]);
+    const elem = createSVGTextElement(label, 'bradleyHand', color, rotation);
+    L.svgOverlay(elem, latLngBounds, {
+        opacity: 1,
+        interactive: false,
+    }).addTo(layerGroup);
+}
 
 function createSVGTextElement(text: string, font: string, color: string, rotation: number) {
     // creates and returns svg element

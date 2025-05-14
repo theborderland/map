@@ -6,7 +6,6 @@ import '@geoman-io/leaflet-geoman-free';
 import ToKML from '@maphubs/tokml';
 import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
-import { addQuarterLabelsToMap, addNeighbourhoodLabelsToMap, addPlazaLabelsToMap } from './_addLabels';
 import { addLegends } from './_addLegends';
 import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureCollections';
 import { loadImageOverlay } from '../loaders/loadImageOverlay';
@@ -173,7 +172,7 @@ export const createMap = async () => {
     map.groups.neighbourhood.addTo(map.groups.neighbourhoods);
     map.removeLayer(map.groups.neighbourhood);
     // Add labels to each neighborhood polygon
-    addPolygonFeatureLabelOverlayToMap(map.groups.neighbourhood, map.groups.neighbourhoods, 'white', 1);
+    addPolygonFeatureLabelOverlayToMap(map.groups.neighbourhoods, map.groups.neighbourhood, 'white', 1);
 
     var availableLayers = {
         Placement_map: map.groups.mapstuff,
