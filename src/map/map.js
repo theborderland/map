@@ -15,30 +15,7 @@ import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { getSoundStyle } from '../loaders/_layerStyles';
-
-const directionMap = {
-    N: 'North',
-    NE: 'North East',
-    E: 'East',
-    SE: 'South East',
-    S: 'South',
-    SW: 'South West',
-    W: 'West',
-    NW: 'North West',
-};
-
-const getSoundspotDescription = (properties) => {
-    let baseDescription = `If you want to host a music/rave camp this is a recommended spot, read more in the sound guide`;
-
-    if (properties.class) {
-        baseDescription += `<br>Sound class: <b>${properties.class}</b>`;
-    }
-
-    if (properties.preferred_direction) {
-        baseDescription += `<br>Speaker direction: <b>${directionMap[properties.preferred_direction]}</b>`;
-    }
-    return baseDescription;
-};
+import { getSoundspotDescription } from '../utils/soundData';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
@@ -103,13 +80,11 @@ export const createMap = async () => {
 
     // Loads: "slope", "parking", "closetosanctuary"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
-
     // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
 
     // Loads "fireroad"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', { buffer: 2.5 });
-
     // Loads "publicplease", "oktocamp"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', {
         buffer: 3.5,
@@ -122,17 +97,28 @@ export const createMap = async () => {
 
     // Loads "minorroad"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', { buffer: 1 });
-
     // Loads "plaza"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
-
     // Loads "neighbourhood"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
 
-    // Loads "C", "D", "E", renames to sound_c, sound_d, sound_e
+
+    // Loads sound_c, sound_d, sound_e
     await loadGeoJsonFeatureCollections(map, 'soundlevel', './data/bl25/soundguide.geojson', {
         styleFn: getSoundStyle,
     });
+    // Add soundspots and add it to the soundguide layer
+    await addPointsOfInterestsTomap('./data/bl25/poi/soundspots.json', map.groups.soundspots, {
+        description: getSoundspotDescription,
+        link: '#page:soundspot',
+    });
+    map.groups.soundspots.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.soundspots);
+    // Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
+    await loadGeoJsonFeatureCollections(map, null, './data/bl25/poi/soundspots.json', {propertyRenameFn: () => 'soundspotfeature'});
+    map.groups.soundspotfeature.addTo(map.groups.soundguide);
+    map.removeLayer(map.groups.soundspotfeature);
+
 
     // Combine the Placement Area layers
     map.groups.propertyborder.addTo(map.groups.mapstuff);
@@ -359,18 +345,10 @@ export const createMap = async () => {
     });
 
     // Add points of interests to the map
-    await addPointsOfInterestsTomap('poi.json', map.groups.poi);
+    await addPointsOfInterestsTomap('./data/bl25/poi/poi.json', map.groups.poi);
 
     // Add the power grid to the map
     await addPowerGridTomap(map.groups.powergrid);
-
-    // Add soundspots and add it to the soundguide layer
-    await addPointsOfInterestsTomap('soundspots.json', map.groups.soundspots, {
-        description: getSoundspotDescription,
-        link: '#page:soundspot',
-    });
-    map.groups.soundspots.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundspots);
 
     // Add layer control and legends
     await addLegends(map, availableLayers, visibleLayers);

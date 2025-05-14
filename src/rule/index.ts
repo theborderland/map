@@ -61,6 +61,12 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Making too much noise?',
             'Seems like you wanna play louder than your neighbors might expect? Check the sound guide layer!',
         ),
+        Rules.isOnSoundSpot(
+            groups.soundguide,
+            Severity.Medium,
+            'On a sound spot!',
+            'You are on a recommended sound spot, but do not seem to be a sound camp.',
+        ),
         Rules.isOverlapping(
             placementLayers,
             Severity.Medium,
