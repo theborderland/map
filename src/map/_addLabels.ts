@@ -28,60 +28,26 @@ export const addPolygonFeatureLabelOverlayToMap = (
     color: string,
     size: number,
 ) => {
-    // Process each polygon feature in the GeoJSON
-    const geoJson = json.toGeoJSON();
-    console.log(geoJson);
+    size = size / 3000;
 
+    const geoJson = json.toGeoJSON();
     for (let feature of geoJson['features']) {
         if (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon') {
             continue; // Skip non-polygon features
         }
-
-        // Get the name property from the feature
         let name = feature.properties.name;
         if (!name) continue; // Skip features without names
 
-        // Get size and rotation from properties or use defaults
-        let thisSize = feature.properties.size || size;
+        const centre = Turf.centerOfMass(feature.geometry);
+        const [lng, lat] = centre.geometry.coordinates;
+
         let rotation = feature.properties.rotation || 0;
 
-        // Calculate the centroid of the polygon using Turf
-        let centroid: [number, number];
-
-        if (feature.geometry.type === 'Polygon') {
-            const turfPolygon = Turf.polygon(feature.geometry.coordinates);
-            const turfCentroid = Turf.centroid(turfPolygon);
-            centroid = turfCentroid.geometry.coordinates as [number, number];
-        } else {
-            // MultiPolygon - find the largest polygon by area
-            const polygons = feature.geometry.coordinates.map((coords) => Turf.polygon(coords));
-            let largestPolygon = polygons[0];
-            let maxArea = Turf.area(largestPolygon);
-
-            for (let i = 1; i < polygons.length; i++) {
-                const area = Turf.area(polygons[i]);
-                if (area > maxArea) {
-                    maxArea = area;
-                    largestPolygon = polygons[i];
-                }
-            }
-
-            const turfCentroid = Turf.centroid(largestPolygon);
-            centroid = turfCentroid.geometry.coordinates as [number, number];
-        }
-
-        const [lng, lat] = centroid;
-
-        // Create bounds for the SVG overlay
         var latLngBounds = L.latLngBounds([
-            [lat - thisSize * 0.5, lng - thisSize * 0.5],
-            [lat + thisSize * 0.5, lng + thisSize * 0.5],
+            [lat - size * 0.5, lng - size * 0.5 * name.length],
+            [lat + size * 0.5, lng + size * 0.5 * name.length],
         ]);
-
-        // Create the SVG text element
         const elem = createSVGTextElement(name, 'bradleyHand', color, rotation);
-
-        // Add SVG text to map
         L.svgOverlay(elem, latLngBounds, {
             opacity: 1,
             interactive: false,
