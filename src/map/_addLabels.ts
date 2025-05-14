@@ -27,12 +27,18 @@ export const addPolygonFeatureLabelOverlayToMap = (
         let name = feature.properties.name;
         if (!name) continue; // Skip features without names
         let rotation = feature.properties.rotation || 0;
-        addLabelToFeature(layerGroup, feature, name, color, size, rotation);
+        addLabelToFeature(layerGroup, feature, name, { color, size, rotation });
         let tagline = feature.properties.tagline;
 
         if (!tagline) continue;
         const offset = [0, -1.25];
-        addLabelToFeature(layerGroup, feature, tagline, color, size * 0.25, rotation, offset);
+        addLabelToFeature(layerGroup, feature, tagline, {
+            color,
+            size: size * 0.25,
+            rotation,
+            offset,
+            font: 'Verdana',
+        });
     }
 };
 
@@ -40,11 +46,16 @@ function addLabelToFeature(
     layerGroup: L.LayerGroup,
     feature: any,
     label: string,
-    color: string,
-    size: number,
-    rotation?: number,
-    offset?: number[],
+    textOptions: {
+        color: string;
+        size: number;
+        rotation?: number;
+        offset?: number[];
+        font?: string;
+    },
 ) {
+    let { color, size, rotation, offset, font } = textOptions;
+    font = font ?? 'bradleyHand';
     const centre = Turf.centerOfMass(feature.geometry);
     let [lng, lat] = centre.geometry.coordinates;
     if (offset) {
@@ -55,7 +66,7 @@ function addLabelToFeature(
         [lat - size * 0.5, lng - size * 0.5 * label.length],
         [lat + size * 0.5, lng + size * 0.5 * label.length],
     ]);
-    const elem = createSVGTextElement(label, 'bradleyHand', color, rotation);
+    const elem = createSVGTextElement(label, font, color, rotation);
     L.svgOverlay(elem, latLngBounds, {
         opacity: 1,
         interactive: false,
@@ -73,7 +84,7 @@ function createSVGTextElement(text: string, font: string, color: string, rotatio
     let innerText: string = '';
     const splitString = text.split('\n');
     for (let split of splitString) {
-        innerText += `<tspan x="0" dy=".6em">${split}</tspan>`; // a line of text
+        innerText += `<tspan x="0" dy=".8em">${split}</tspan>`; // a line of text
     }
     elem.innerHTML = `<text transform="rotate(${rotation})" id="text" fill="${color}"font-family="${font}" x="0" y="0" fill="white" text-anchor="middle">${innerText}</text>`;
 
