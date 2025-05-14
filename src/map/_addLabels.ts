@@ -86,7 +86,7 @@ function createSVGTextElement(text: string, font: string, color: string, rotatio
     for (let split of splitString) {
         innerText += `<tspan x="0" dy=".8em">${split}</tspan>`; // a line of text
     }
-    elem.innerHTML = `<text transform="rotate(${rotation})" id="text" fill="${color}"font-family="${font}" x="0" y="0" fill="white" text-anchor="middle">${innerText}</text>`;
+    elem.innerHTML = `<text transform="rotate(${rotation})" id="text" fill="${color}"font-family="${font}" x="0" y="0" text-anchor="middle" fill="white" >${innerText}</text>`;
 
     // we need to calculate the bounding box of the text in order to set viewbox of the svg. We need to calculate this or we might set viewbox too small or too big.
     // The bounding box cannot be calculated before element is added to dom so we do that:
