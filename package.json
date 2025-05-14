@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "esbuild src/main.js --minify --format=iife --bundle --outfile=public/bundle.js",
-        "watch": "esbuild src/main.js --sourcemap --format=iife --bundle --outfile=public/bundle.js --watch",
+        "watch": "esbuild src/main.js --sourcemap --format=iife --bundle --outfile=public/bundle.js --watch --servedir=public --serve=127.0.0.1:3000",
         "serve": "esbuild src/main.js --sourcemap --format=iife --bundle --outfile=public/bundle.js --servedir=public --serve=127.0.0.1:3000"
     },
     "repository": {
