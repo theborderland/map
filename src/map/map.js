@@ -83,6 +83,10 @@ export const createMap = async () => {
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', 2);
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/soundguide.geojson', 0, 'soundguide');
+
+    console.log({ groups: map.groups });
+    console.log(map.groups.soundguide);
 
     // Combine the Placement Area layers
     map.groups.propertyborder.addTo(map.groups.mapstuff);
@@ -316,11 +320,6 @@ export const createMap = async () => {
     await addPointsOfInterestsTomap('soundspots.json', map.groups.soundspots);
     map.groups.soundspots.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundspots);
-
-    // Add text labels to the map
-    //addQuarterLabelsToMap(map.groups.quarters);
-    //addPlazaLabelsToMap(map.groups.plazas);
-    //addNeighbourhoodLabelsToMap(map.groups.neighbourhoods);
 
     // Add layer control and legends
     await addLegends(map, availableLayers, visibleLayers);
