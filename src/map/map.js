@@ -14,6 +14,7 @@ import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
+import { getSoundStyle } from '../loaders/_layerStyles';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
@@ -75,18 +76,39 @@ export const createMap = async () => {
     //         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
     //     });
 
+    // Loads: "slope", "parking", "closetosanctuary"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 2.5);
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 3.5, 'publicplease');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 52.5, 'oktocamp');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', 2);
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/soundguide.geojson', 0, 'soundguide');
 
-    console.log({ groups: map.groups });
-    console.log(map.groups.soundguide);
+    // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
+
+    // Loads "fireroad"
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', { buffer: 2.5 });
+
+    // Loads "publicplease", "oktocamp"
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', {
+        buffer: 3.5,
+        propertyRenameFn: () => 'publicplease',
+    });
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', {
+        buffer: 52.5,
+        propertyRenameFn: () => 'oktocamp',
+    });
+
+    // Loads "minorroad"
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', { buffer: 2 });
+
+    // Loads "plaza"
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
+
+    // Loads "neighbourhood"
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
+
+    // Loads "C", "D", "E", renames to sound_c, sound_d, sound_e
+    await loadGeoJsonFeatureCollections(map, 'soundlevel', './data/bl25/soundguide.geojson', {
+        propertyRenameFn: (value) => `sound_${value.toLowerCase()}`,
+        styleFn: getSoundStyle,
+    });
 
     // Combine the Placement Area layers
     map.groups.propertyborder.addTo(map.groups.mapstuff);
@@ -113,12 +135,14 @@ export const createMap = async () => {
     map.on('overlayadd', function (eventLayer) {
         map.groups.names.setZIndex(101);
         if (eventLayer.name === 'Soundguide') {
-            map.groups.bluesoundzone.bringToBack();
-            map.groups.greensoundzone.bringToBack();
-            map.groups.yellowsoundzone.bringToBack();
-            map.groups.orangesoundzone.bringToBack();
-            map.groups.redsoundzone.bringToBack();
+            soundLayers.forEach((layer) => {
+                map.groups[layer].bringToBack();
+            });
         }
+    });
+    const soundLayers = ['sound_e', 'sound_d', 'sound_c'];
+    soundLayers.forEach((layer) => {
+        map.groups[layer].addTo(map.groups.soundguide);
     });
 
     // Load and add the terrain layer
