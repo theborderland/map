@@ -55,12 +55,12 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         Rules.hasLargeEnergyNeed(),
         Rules.hasMissingFields(),
         // Rules.hasManyCoordinates(),
-        // Rules.isBreakingSoundLimit(
-        //     groups.soundguide,
-        //     2,
-        //     'Making too much noise?',
-        //     'Seems like you wanna play louder than your neighbors might expect? Check the sound guider layer!',
-        // ),
+        Rules.isBreakingSoundLimit(
+            groups.soundguide,
+            Severity.Medium,
+            'Making too much noise?',
+            'Seems like you wanna play louder than your neighbors might expect? Check the sound guide layer!',
+        ),
         Rules.isOverlapping(
             placementLayers,
             Severity.Medium,
@@ -123,13 +123,6 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             Severity.Low,
             'Close to the  sanctuary',
             'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
-        ),
-        // Special notification when on the western meadow
-        Rules.isOverlappingOrContained(
-            groups.redsoundzone,
-            Severity.Low,
-            'In the western meadow',
-            "You're in the western meadow, please be extra careful of keeping the land in good condition and do not put your overnight camp here unless necessary, public dreams are prefered",
         ),
     ];
 }

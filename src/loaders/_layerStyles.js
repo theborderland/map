@@ -6,7 +6,6 @@ const baseStyle = {
 };
 
 export function getSoundStyle(value) {
-    console.log(value);
     switch (value) {
         case 'sound_e':
             return {
@@ -142,9 +141,9 @@ export function getStyle(name) {
                 ...baseStyle,
                 weight: 1,
                 dashArray: '20',
-                color: 'cyan',
-                opacity: 0.2,
-                fillOpacity: 0.05,
+                color: 'darkgoldenrod',
+                opacity: 0.4,
+                fillOpacity: 0.4,
             };
         case 'area':
             return {

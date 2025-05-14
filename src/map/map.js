@@ -121,7 +121,7 @@ export const createMap = async () => {
     });
 
     // Loads "minorroad"
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', { buffer: 2 });
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', { buffer: 1 });
 
     // Loads "plaza"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
@@ -131,7 +131,6 @@ export const createMap = async () => {
 
     // Loads "C", "D", "E", renames to sound_c, sound_d, sound_e
     await loadGeoJsonFeatureCollections(map, 'soundlevel', './data/bl25/soundguide.geojson', {
-        propertyRenameFn: (value) => `sound_${value.toLowerCase()}`,
         styleFn: getSoundStyle,
     });
 
