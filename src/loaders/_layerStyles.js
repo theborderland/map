@@ -53,6 +53,10 @@ export function getStyleFunction(name) {
                     fillOpacity: 1,
                 };
             case 'oktocamp':
+                return {
+                    fillOpacity: 0,
+                    opacity: 0,
+                };
             case 'publicplease':
             case 'parking':
                 return {
@@ -92,15 +96,15 @@ export function getStyleFunction(name) {
                     opacity: 0.5,
                     fillOpacity: 0,
                 };
-                case 'neighbourhood':
-                    return {
-                        ...baseStyle,
-                        weight: 5,
-                        dashArray: '10',
-                        color: 'white',
-                        opacity: 0.5,
-                        fillOpacity: 0,
-                    };
+            case 'neighbourhood':
+                return {
+                    ...baseStyle,
+                    weight: 5,
+                    dashArray: '10',
+                    color: 'white',
+                    opacity: 0.5,
+                    fillOpacity: 0,
+                };
             case 'minorroad':
                 return {
                     ...baseStyle,
@@ -113,7 +117,7 @@ export function getStyleFunction(name) {
             case 'area':
                 return {
                     dashArray: '5',
-                    color: '#e7e309',
+                    color: 'yellow',
                     fillOpacity: 0,
                     weight: 2,
                 };

@@ -69,8 +69,11 @@ export const createMap = async () => {
 
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/roads_and_distances.geojson');
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/plazas.geojson');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 2.5);
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 3.5, "publicplease");
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 52.5, "oktocamp");
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', 2);
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
 
     // Combine the Placement Area layers
@@ -80,10 +83,10 @@ export const createMap = async () => {
     map.removeLayer(map.groups.minorroad);
     map.groups.fireroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.fireroad);
-    // map.groups.publicplease.addTo(map.groups.mapstuff);
-    // map.removeLayer(map.groups.publicplease);
-    // map.groups.oktocamp.addTo(map.groups.mapstuff);
-    // map.removeLayer(map.groups.oktocamp);
+    map.groups.publicplease.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.publicplease);
+    map.groups.oktocamp.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.oktocamp);
     //map.groups.closetosanctuary.addTo(map.groups.mapstuff);
     //map.removeLayer(map.groups.closetosanctuary);
     map.groups.area.addTo(map.groups.mapstuff);

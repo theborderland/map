@@ -3,7 +3,7 @@
  */
 
 // Editor
-export const IS_EDITING_POSSIBLE: boolean = true;
+export const IS_EDITING_POSSIBLE: boolean = false;
 export const EDITING_PASSWORD: string = "NotASecret";
 export const NOTE_ABOUT_EDITING: string = `MAP IS UNDER CONSTRUCTION <br>
 Pre-placement opens May 15th.<br>
