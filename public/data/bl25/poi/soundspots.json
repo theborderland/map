@@ -1,96 +1,24 @@
 {
-    "type": "FeatureCollection",
-    "features": [
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "Western Meadow S",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "page:soundspot",
-                "category": "sounddot"
-            },
-            "geometry": {
-                "coordinates": [14.918656142129404, 57.62385367089115],
-                "type": "Point"
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "Western Meadow N",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "#page:soundspot",
-                "category": "sounddot"
-            },
-            "geometry": {
-                "coordinates": [14.920225043013971, 57.625793730397305],
-                "type": "Point"
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "The Cleavage",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "#page:soundspot",
-                "category": "sounddot"
-            },
-            "geometry": {
-                "coordinates": [14.923218293313937, 57.621490554619356],
-                "type": "Point"
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "The Groove",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "#page:soundspot",
-                "category": "sounddot"
-            },
-            "geometry": {
-                "coordinates": [14.926106929779055, 57.620111518352026],
-                "type": "Point"
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "The Brewery",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "#page:soundspot",
-                "category": "sounddot-indoor"
-            },
-            "geometry": {
-                "coordinates": [14.926054439595987, 57.620946421129474],
-                "type": "Point"
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "The Barn",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "#page:soundspot",
-                "category": "sounddot-indoor"
-            },
-            "geometry": {
-                "coordinates": [14.925810132345134, 57.621796639173624],
-                "type": "Point"
-            }
-        },
-        {
-            "type": "Feature",
-            "properties": {
-                "name": "The Machinehall",
-                "description": "If you want to host a music/rave camp this is a recommended spot, read more in the sound guide",
-                "link": "#page:soundspot",
-                "category": "sounddot-indoor"
-            },
-            "geometry": {
-                "coordinates": [14.926687251186621, 57.62204469970172],
-                "type": "Point"
-            }
-        }
-    ]
+"type": "FeatureCollection",
+"name": "soundspots",
+"features": [
+    { "type": "Feature", "properties": { "class": "B", "name": "Little Mu", "category": "sounddot", "preferred_direction": "SE", "id": 1 }, "geometry": { "type": "Point", "coordinates": [ 14.920255200584391, 57.62579866140473 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "Cosmonova", "category": "sounddot", "preferred_direction": "SE", "id": 2 }, "geometry": { "type": "Point", "coordinates": [ 14.919302146402316, 57.623933451107177 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "South Valley", "category": "sounddot", "preferred_direction": "SE", "id": 3 }, "geometry": { "type": "Point", "coordinates": [ 14.918235332355238, 57.623115131024534 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "Kingdom Far Away N", "category": "sounddot", "preferred_direction": "W", "id": 4 }, "geometry": { "type": "Point", "coordinates": [ 14.916087108443106, 57.623841618066798 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "Kingdom Far Away S", "category": "sounddot", "preferred_direction": "W", "id": 5 }, "geometry": { "type": "Point", "coordinates": [ 14.916476413398986, 57.624270635477465 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "Sex on the Field", "category": "sounddot", "preferred_direction": "NW", "id": 6 }, "geometry": { "type": "Point", "coordinates": [ 14.918832123321829, 57.626351154882876 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "The Moss", "category": "sounddot", "preferred_direction": "E", "id": 8 }, "geometry": { "type": "Point", "coordinates": [ 14.923393772808554, 57.622569947789401 ] } },
+    { "type": "Feature", "properties": { "class": "A", "name": "The Cleavage", "category": "sounddot", "preferred_direction": "N", "id": 9 }, "geometry": { "type": "Point", "coordinates": [ 14.923201154447897, 57.621375784823847 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "B2B", "category": "sounddot", "preferred_direction": "SW", "id": 10 }, "geometry": { "type": "Point", "coordinates": [ 14.924581021431496, 57.621371629806255 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "Hill & Creek", "category": "sounddot", "preferred_direction": "NE", "id": 12 }, "geometry": { "type": "Point", "coordinates": [ 14.925191822244926, 57.620312556981929 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "New Foxhole", "category": "sounddot", "preferred_direction": "N", "id": 13 }, "geometry": { "type": "Point", "coordinates": [ 14.925828983804248, 57.619978898476816 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "The Swamp", "category": "sounddot", "preferred_direction": "SE", "id": 14 }, "geometry": { "type": "Point", "coordinates": [ 14.933504241187094, 57.622313926019004 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "Clint Eastwood", "category": "sounddot", "preferred_direction": "E", "id": 15 }, "geometry": { "type": "Point", "coordinates": [ 14.932633634228889, 57.620767935787917 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "Scott Eastwood", "category": "sounddot", "preferred_direction": "E", "id": 16 }, "geometry": { "type": "Point", "coordinates": [ 14.932895151338641, 57.620037687436685 ] } },
+    { "type": "Feature", "properties": { "class": "C", "name": "Deep Forest Shore", "category": "sounddot", "preferred_direction": "NE", "id": 18 }, "geometry": { "type": "Point", "coordinates": [ 14.920366565784859, 57.621620817582063 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "Machine Hall", "category": "sounddot-indoor", "preferred_direction": null, "id": 20 }, "geometry": { "type": "Point", "coordinates": [ 14.926693667992568, 57.622006040777123 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "The Barn", "category": "sounddot-indoor", "preferred_direction": null, "id": 21 }, "geometry": { "type": "Point", "coordinates": [ 14.9257226307358, 57.622010459674485 ] } },
+    { "type": "Feature", "properties": { "class": "B", "name": "The Brewery", "category": "sounddot-indoor", "preferred_direction": null, "id": 22 }, "geometry": { "type": "Point", "coordinates": [ 14.925988546058907, 57.62147466587313 ] } }
+]
 }

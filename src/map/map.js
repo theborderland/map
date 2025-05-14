@@ -15,6 +15,31 @@ import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { getSoundStyle } from '../loaders/_layerStyles';
+
+const directionMap = {
+    N: 'North',
+    NE: 'North East',
+    E: 'East',
+    SE: 'South East',
+    S: 'South',
+    SW: 'South West',
+    W: 'West',
+    NW: 'North West',
+};
+
+const getSoundspotDescription = (properties) => {
+    let baseDescription = `If you want to host a music/rave camp this is a recommended spot, read more in the sound guide`;
+
+    if (properties.class) {
+        baseDescription += `<br>Sound class: <b>${properties.class}</b>`;
+    }
+
+    if (properties.preferred_direction) {
+        baseDescription += `<br>Speaker direction: <b>${directionMap[properties.preferred_direction]}</b>`;
+    }
+    return baseDescription;
+};
+
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
@@ -341,7 +366,10 @@ export const createMap = async () => {
     await addPowerGridTomap(map.groups.powergrid);
 
     // Add soundspots and add it to the soundguide layer
-    await addPointsOfInterestsTomap('soundspots.json', map.groups.soundspots);
+    await addPointsOfInterestsTomap('soundspots.json', map.groups.soundspots, {
+        description: getSoundspotDescription,
+        link: '#page:soundspot',
+    });
     map.groups.soundspots.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundspots);
 

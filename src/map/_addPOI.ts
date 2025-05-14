@@ -10,12 +10,25 @@ const centeredIcon: any = L.Icon.extend({
     },
 });
 
-export const addPointsOfInterestsTomap = async (filename: string, layerGroup: L.LayerGroup) => {
+export const addPointsOfInterestsTomap = async (
+    filename: string,
+    layerGroup: L.LayerGroup,
+    propertyOverrides: {
+        description?: (properties: any) => string | string;
+        link?: (properties: any) => string | string;
+    } = {},
+) => {
     let json = await (await fetch(`./data/bl25/poi/${filename}`)).json();
     let iconDict = {};
 
     for (let place of json['features']) {
         let { name, description, category, link } = place.properties;
+        const descriptionOverride =
+            typeof propertyOverrides.description === 'function'
+                ? propertyOverrides.description(place.properties)
+                : propertyOverrides.description;
+        description = descriptionOverride || description;
+        link = propertyOverrides.link || link;
 
         const lng = place.geometry.coordinates[0];
         const lat = place.geometry.coordinates[1];
