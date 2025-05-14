@@ -46,7 +46,6 @@ export const createMap = async () => {
         placement: new L.LayerGroup(),
         mapstuff: new L.LayerGroup(),
         neighbourhoods: new L.LayerGroup(),
-        quarters: new L.LayerGroup(),
         plazas: new L.LayerGroup(),
         poi: new L.LayerGroup(),
         powergrid: new L.LayerGroup(),
@@ -115,7 +114,7 @@ export const createMap = async () => {
     map.groups.soundspots.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundspots);
     // Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
-    await loadGeoJsonFeatureCollections(map, null, './data/bl25/poi/soundspots.json', {propertyRenameFn: () => 'soundspotfeature'});
+    await loadGeoJsonFeatureCollections(map, null, './data/bl25/poi/soundspots.json', {propertyRenameFn: () => 'soundspotfeature', styleFn: () => ({opacity: 0})});
     map.groups.soundspotfeature.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundspotfeature);
 
@@ -127,6 +126,7 @@ export const createMap = async () => {
     map.removeLayer(map.groups.minorroad);
     map.groups.fireroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.fireroad);
+    map.groups.publicplease.addTo(map.groups.mapstuff);
 
     // Add known objects
     // Objects have no rules, they just draw small guiding shapes on the map
@@ -225,7 +225,6 @@ export const createMap = async () => {
         Placement: map.groups.placement,
         Names: map.groups.names,
         Neighbourhoods: map.groups.neighbourhoods,
-        Quarters: map.groups.quarters,
         Aftermath22: map.groups.aftermath22,
         Aftermath23: map.groups.aftermath23,
         Aftermath24: map.groups.aftermath24,

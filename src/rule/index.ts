@@ -109,7 +109,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             groups.neighbourhood,
             Severity.Medium,
             'Outside placement areas.',
-            'You are outside the main placement area (yellow border). Make sure you know what you are doing.',
+            'You are outside the main placement area. Make sure you know what you are doing.',
         ),
         Rules.isOverlappingOrContained(
             groups.publicplease,
