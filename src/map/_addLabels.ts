@@ -29,7 +29,8 @@ export const addPolygonFeatureLabelOverlayToMap = (
         let rotation = feature.properties.rotation || 0;
         addLabelToFeature(layerGroup, feature, name, color, size, rotation);
         let tagline = feature.properties.tagline;
-        if (!tagline) continue; // Skip features without taglines
+
+        if (!tagline) continue;
         const offset = [0, -1.25];
         addLabelToFeature(layerGroup, feature, tagline, color, size * 0.25, rotation, offset);
     }

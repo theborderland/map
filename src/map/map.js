@@ -173,6 +173,7 @@ export const createMap = async () => {
     map.removeLayer(map.groups.neighbourhood);
     // Add labels to each neighborhood polygon
     addPolygonFeatureLabelOverlayToMap(map.groups.neighbourhoods, map.groups.neighbourhood, 'white', 1);
+    addPolygonFeatureLabelOverlayToMap(map.groups.plazas, map.groups.plaza, 'white', 0.2);
 
     var availableLayers = {
         Placement_map: map.groups.mapstuff,
