@@ -79,7 +79,9 @@ export const createMap = async () => {
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 2.5);
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Bluepaths_BL25_export.geojson', 2);
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 3.5, 'publicplease');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', 52.5, 'oktocamp');
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', 2);
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
 
@@ -90,6 +92,7 @@ export const createMap = async () => {
     map.removeLayer(map.groups.minorroad);
     map.groups.fireroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.fireroad);
+
     // Add known objects
     // Objects have no rules, they just draw small guiding shapes on the map
     map.groups.parking.addTo(map.groups.mapstuff);

@@ -14,7 +14,13 @@ import * as Turf from '@turf/turf';
  * @param {number} buffer - (Optional) Buffer radius to add around the features
  * @returns {Promise<void>}
  */
-export const loadGeoJsonFeatureCollections = async (map, groupByProperty, filename, buffer = 0) => {
+export const loadGeoJsonFeatureCollections = async (
+    map,
+    groupByProperty,
+    filename,
+    buffer = 0,
+    newType = undefined,
+) => {
     const response = await fetch(filename);
     const geojsonData = await response.json();
 
@@ -30,7 +36,12 @@ export const loadGeoJsonFeatureCollections = async (map, groupByProperty, filena
             });
         }
     }
-
+    if (newType) {
+        geojsonData.features.forEach((feature) => {
+            feature.properties.type = newType;
+        });
+    }
+    // Find unique names
     const uniqueNames = new Set<string>(geojsonData.features.map((feature) => feature.properties[groupByProperty]));
 
     //Create groups per type
@@ -46,6 +57,6 @@ export const loadGeoJsonFeatureCollections = async (map, groupByProperty, filena
 
 function filterByProperty(property, value) {
     return function (feature) {
-        return feature.properties[property] === value;
+        return feature.properties[property] === value && feature.geometry.coordinates.length > 0; // needs to have coordinates to be added.
     };
 }

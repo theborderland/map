@@ -105,13 +105,6 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Outside placement areas.',
             'You are outside the main placement area (yellow border). Make sure you know what you are doing.',
         ),
-        // NOT NEEDED: Better to use the inside bounderies of groups.area
-        // Rules.isNotInsideBoundaries(
-        //     groups.oktocamp,
-        //     2,
-        //     'Far from a fire road.',
-        //     'You are right now more than 50 meters away from a fire road. Make sure you know what you are doing.',
-        // ),
         Rules.isOverlappingOrContained(
             groups.publicplease,
             Severity.Low,
