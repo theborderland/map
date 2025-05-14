@@ -127,6 +127,14 @@ export const createMap = async () => {
     map.groups.fireroad.addTo(map.groups.mapstuff);
     map.removeLayer(map.groups.fireroad);
     map.groups.publicplease.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.publicplease);
+    map.groups.oktocamp.addTo(map.groups.mapstuff);
+    map.removeLayer(map.groups.oktocamp);
+    //map.groups.closetosanctuary.addTo(map.groups.mapstuff);
+    //map.removeLayer(map.groups.closetosanctuary);
+    // map.groups.area.addTo(map.groups.mapstuff);
+    // map.removeLayer(map.groups.area);
+    // map.groups.hiddenforbidden.addTo(map.groups.mapstuff);
 
     // Add known objects
     // Objects have no rules, they just draw small guiding shapes on the map
