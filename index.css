@@ -211,10 +211,15 @@ textarea {
 }
 
 .error::before {
-    background-color: red;
-    color: #f9f9f9;
-    content: 'NOT ALLOWED:';
-    font-weight: 700;
+    background-image: url('./img/icons/forbidden.png');
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    color: transparent;
+    content: '';
 }
 
 .help-button {
@@ -233,10 +238,15 @@ textarea {
 }
 
 .info::before {
-    background-color: #141414;
-    color: #f9f9f9;
-    content: 'INFO:';
-    font-weight: 700;
+    background-image: url('./img/icons/notice.png');
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    color: transparent;
+    content: '';
 }
 
 .leaflet-bar a {
@@ -305,10 +315,15 @@ textarea {
 }
 
 .warning::before {
-    background-color: #ff8400;
-    color: #f9f9f9;
-    content: 'OOPS!:';
-    font-weight: 700;
+    background-image: url('./img/icons/warning.png');
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    color: transparent;
+    content: '';
 }
 
 .zone-tooltip h3 {
