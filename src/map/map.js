@@ -115,7 +115,7 @@ export const createMap = async () => {
     // Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
     await loadGeoJsonFeatureCollections(map, "type", './data/bl25/poi/soundspots.json', {
         propertyRenameFn: () => soundSpotType,
-        buffer: 20,
+        buffer: 10,
         styleFn: getSoundStyle,
     });
     map.groups[soundSpotType].addTo(map.groups.soundguide);
