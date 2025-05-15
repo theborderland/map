@@ -24,7 +24,6 @@ export const createMap = async () => {
         'Placement',
         'Placement_map',
         'POI',
-        'Soundguide',
         'Neighbourhoods',
         'Plazas',
         'Names',

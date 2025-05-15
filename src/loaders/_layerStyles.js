@@ -89,6 +89,12 @@ export function getStyle(name) {
                 opacity: 0,
             };
         case 'publicplease':
+            return {
+                ...baseStyle,
+                color: 'lightblue',
+                opacity: 0,
+                fillOpacity: 0,
+            };
         case 'parking':
             return {
                 ...baseStyle,
