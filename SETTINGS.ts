@@ -7,7 +7,7 @@ export const IS_EDITING_POSSIBLE: boolean = true;
 export const EDITING_PASSWORD: string = 'NotASecret';
 export const NOTE_ABOUT_EDITING: string = `Pre-placement is open!<br>
 Report bugs in the 
-<a target="_blank" href="https://discord.com/channels/932714386286575736/1072462304391725107">#🚩placement-forum</a> on Discord. <br>
+<a target="_blank" href="https://discord.com/channels/932714386286575736/1372483870976512032">🚩placement-forum</a> on Discord. <br>
 General placement opens May 22nd.
 <br><br>
 Camps that do not have a contact info will be <u>deleted every Monday morning at 08:00 CEST</u>`;
