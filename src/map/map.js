@@ -118,8 +118,8 @@ export const createMap = async () => {
         buffer: 20,
         styleFn: getSoundStyle,
     });
-    map.groups.soundspotfeature.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundspotfeature);
+    map.groups[soundSpotType].addTo(map.groups.soundguide);
+    map.removeLayer(map.groups[soundSpotType]);
 
 
     // Combine the Placement Area layers
