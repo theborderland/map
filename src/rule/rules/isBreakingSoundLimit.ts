@@ -1,15 +1,15 @@
 import * as Turf from '@turf/turf';
 import { Severity, Rule } from '../index';
 import { MapEntity } from '../../entities';
-import { soundLimits, soundPropertyKey } from '../../utils/soundData';
+import { soundLimits, soundPropertyKey, soundSpotType } from '../../utils/soundData';
 
 function breaksSoundRule(entity: MapEntity, entityFeature, otherFeature) {
     if(otherFeature.geometry.type === "Point"){
-        if(!(Object.keys(otherFeature.properties).length > 0)){
-            // We're looking at a Marker, not a Feature
-            return;
-        }
-        if(Turf.booleanPointInPolygon(otherFeature, entityFeature)){
+        return;
+    }
+
+    if(otherFeature.properties.type === soundSpotType){
+        if(Turf.booleanOverlap(otherFeature, entityFeature)  || Turf.booleanContains(otherFeature, entityFeature)){
             for(const [key, value] of Object.entries(soundLimits)){
                 if(otherFeature.properties[soundPropertyKey] == key){
                     return {point: entity.amplifiedSound > value};
@@ -43,26 +43,31 @@ export const isBreakingSoundLimit = (
     if (entity.amplifiedSound === undefined) return { triggered: false };
 
     let entityGeoJson = entity.toGeoJSON();
-    let {point, zone} = {point: undefined, zone: false};
+    let { point, zone } = { point: undefined, zone: false };
     layerGroup.eachLayer((layer) => {
-        let layerGeoJson = layer.toGeoJSON();        
+        let layerGeoJson = layer.toGeoJSON();
         if (layerGeoJson.features) {
             for (let i = 0; i < layerGeoJson.features.length; i++) {
                 const feature = layerGeoJson.features[i];
                 let result = breaksSoundRule(entity, entityGeoJson, feature);
                 if (result) {
-                    if(result.point !== undefined) point = result.point;
-                    if(result.zone !== undefined) zone = result.zone;
+                    if (result.point !== undefined) point = result.point;
+                    if (result.zone !== undefined) zone = result.zone;
                 }
             }
-        } else{
+        } else {
             let result = breaksSoundRule(entity, entityGeoJson, layerGeoJson);
             if (result) {
-                if(result.point !== undefined) point = result.point;
-                if(result.zone !== undefined) zone = result.zone;
+                if (result.point !== undefined) point = result.point;
+                if (result.zone !== undefined) zone = result.zone;
             }
         }
     });
 
-    return { triggered: point ?? zone };
+    if (point !== undefined) {
+        // Sound spot takes precedence over zone
+        return { triggered: point };
+    } else {
+        return { triggered: zone };
+    }
 });
