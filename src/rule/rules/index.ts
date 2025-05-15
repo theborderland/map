@@ -9,3 +9,4 @@ export { isOverlapping } from './isOverlapping';
 export { isOverlappingOrContained } from './isOverlappingOrContained';
 export { isSmallerThanNeeded } from './isSmallerThanNeeded';
 export { isBufferOverlappingRecursive } from './isBufferOverlappingRecursive';
+export { isOnSoundSpot } from './isOnSoundSpot';

@@ -3,11 +3,14 @@
  */
 
 // Editor
-export const IS_EDITING_POSSIBLE: boolean = false;
-export const EDITING_PASSWORD: string = "NotASecret";
-export const NOTE_ABOUT_EDITING: string = `MAP IS UNDER CONSTRUCTION <br>
-Pre-placement opens May 15th.<br>
-General placement opens May 22nd.`; // 'THE MAP IS RESETTING TUESDAY 10.00 AM CET';
+export const IS_EDITING_POSSIBLE: boolean = true;
+export const EDITING_PASSWORD: string = 'NotASecret';
+export const NOTE_ABOUT_EDITING: string = `Pre-placement is open!<br>
+Report bugs in the 
+<a target="_blank" href="https://discord.com/channels/932714386286575736/1072462304391725107">#🚩placement-forum</a> on Discord. <br>
+General placement opens May 22nd.
+<br><br>
+Camps that do not have a contact info will be <u>deleted every Monday morning at 08:00 CEST</u>`;
 
 // Repository
 export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
