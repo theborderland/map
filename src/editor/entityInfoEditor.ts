@@ -29,18 +29,7 @@ export class EntityInfoEditor {
             {
                 file: "edit-entity",
                 position: "end",
-                buttons: [
-                    {
-                        text: 'Close',
-                        variant: 'neutral',
-                    },
-                    {
-                        text: 'Save',
-                        onClickAction: () => { this._editEntityCallback("save"); },
-                        shouldCloseDrawer: true,
-                        variant: 'primary'
-                    }
-                ],
+                onClose: () => { this._editEntityCallback("save"); },
             },
             {},
             () => this.populate());

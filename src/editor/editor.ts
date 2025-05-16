@@ -133,6 +133,10 @@ export class Editor {
 
     /** Updates the currently selected map entity  */
     private async setSelected(nextEntity: MapEntity | null, prevEntity: MapEntity | null) {
+        // When a map entity is unselected, save it to the database if it has changes
+        if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
+            await this.saveEntity(prevEntity);
+        }
         if (this._isEditMode) {
             this.UpdateOnScreenDisplay(nextEntity);
         }
@@ -168,6 +172,9 @@ export class Editor {
                     break;
 
                 case "save":
+                    if(!this._selected.hasChanges()) {
+                        break;
+                    }
                     // close popup displaying old data, save entity, reopen popup with new data
                     this._popup.close();
                     this.UpdateOnScreenDisplay(this._selected, "Saving...");
