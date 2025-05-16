@@ -23,8 +23,12 @@ export const addLegends = async (map, toggableLayers, visibleLayers) => {
     let soundLegend = L.control({ position: 'bottomright' });
     soundLegend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'legend');
+        div.style.backgroundColor = 'white';
         div.innerHTML +=
-            `<a target="blank" href="${SOUND_GUIDE_URL}"><img src="./img/soundlegend.png" alt="legend" width="250"></a>`;
+            `<a target="blank" href="${SOUND_GUIDE_URL}" title="Click to open the soundguide">
+            <img src="./img/soundlegend.png" alt="legend" width="250">
+            <center>Click to open the soundguide</center>
+            </a>`;
         return div;
     };
 
