@@ -197,3 +197,24 @@
     max-height: 400px;
     overflow: auto;
 }
+
+#drawer-content sl-checkbox[align-right] {
+    width: 100%;
+}
+
+#drawer-content sl-checkbox[align-right]::part(base) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#drawer-content sl-checkbox[align-right]::part(label) {
+    display: contents;
+    order: 2;
+    font-weight: bold;
+}
+
+#drawer-content sl-checkbox[align-right]::part(control) {
+    order: 1;
+    margin-left:auto
+}

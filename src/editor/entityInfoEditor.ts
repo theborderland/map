@@ -331,10 +331,9 @@ export class EntityInfoEditor {
 
         const supressWarnings = document.getElementById('entity-supress-warnings') as HTMLInputElement;
         supressWarnings.checked = this._entity.supressWarnings;
-        supressWarnings.onchange = () => {
+        supressWarnings.addEventListener('sl-input', () => {
             this._entity.supressWarnings = supressWarnings.checked;
-            //refreshEntity(entity);
-        };
+        });
 
         const colorPicker = document.getElementById('entity-color') as HTMLInputElement;
         colorPicker.value = this._entity.color;
@@ -353,7 +352,6 @@ export class EntityInfoEditor {
             Messages.hideDrawer();
             this._editEntityCallback("delete", deleteReason);
         }
-
     }
 
     private getEntityDifferences(current: MapEntity, previous: MapEntity): Array<EntityDifferences> {
