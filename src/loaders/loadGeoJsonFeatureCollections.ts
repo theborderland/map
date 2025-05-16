@@ -24,7 +24,7 @@ export const loadGeoJsonFeatureCollections = async (
     operations: {
         buffer?: number;
         propertyRenameFn?: (value: string) => string;
-        styleFn?: (value: string) => L.PathOptions;
+        styleFn?: (value: string, feature: any) => L.PathOptions;
     } = {},
 ) => {
     const response = await fetch(filename);
@@ -54,7 +54,7 @@ export const loadGeoJsonFeatureCollections = async (
     uniqueNames.forEach((value) => {
         const geojsonLayer = L.geoJSON(geojsonData, {
             filter: filterByProperty(groupByProperty, value),
-            style: operations.styleFn ? () => operations.styleFn(value) : () => getStyle(value),
+            style: operations.styleFn ? (feature) => operations.styleFn(value, feature) : () => getStyle(value),
         });
 
         map.groups[value] = geojsonLayer;

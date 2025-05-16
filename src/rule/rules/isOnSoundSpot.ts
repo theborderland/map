@@ -1,15 +1,14 @@
 import * as Turf from '@turf/turf';
 import { Severity, Rule } from '../index';
 import { MapEntity } from '../../entities';
-import { soundLimits, soundPropertyKey } from '../../utils/soundData';
+import { soundLimits, soundPropertyKey, soundSpotType } from '../../utils/soundData';
 
 function checkIsOnSoundSpot(entity: MapEntity, entityFeature, otherFeature) {
     if(otherFeature.geometry.type === "Point"){
-        if(!(Object.keys(otherFeature.properties).length > 0)){
-            // We're looking at a Marker, not a Feature
-            return;
-        }
-        if(Turf.booleanPointInPolygon(otherFeature, entityFeature)){
+        return;
+    }
+    if(otherFeature.properties.type === soundSpotType){
+        if(Turf.booleanOverlap(otherFeature, entityFeature) || Turf.booleanContains(otherFeature, entityFeature)){
             for(const [key, value] of Object.entries(soundLimits)){
                 if(otherFeature.properties[soundPropertyKey] == key){
                     return entity.amplifiedSound < value * 0.1;
@@ -26,8 +25,6 @@ export const isOnSoundSpot = (
     shortMsg: string, 
     message: string
 ) => new Rule(severity, shortMsg, message, (entity) => {
-    if (entity.amplifiedSound > 0) return { triggered: false };
-
     let entityGeoJson = entity.toGeoJSON();
     let triggered = false;
     layerGroup.eachLayer((layer) => {

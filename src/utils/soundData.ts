@@ -18,6 +18,8 @@ export const soundLimits = {
     "sound_e": 120
 }
 
+export const soundSpotType = "soundspotfeature";
+
 export const soundPropertyKey = "soundlevel";
 
 export const getSoundspotDescription = (properties) => {

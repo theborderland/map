@@ -5,8 +5,8 @@ const baseStyle = {
     dashArray: '5',
 };
 
-export function getSoundStyle(value) {
-    switch (value) {
+export function getSoundStyle(value, feature) {
+    switch (feature.properties.soundlevel) {
         case 'sound_e':
             return {
                 ...baseStyle,
@@ -25,7 +25,21 @@ export function getSoundStyle(value) {
         case 'sound_c':
             return {
                 ...baseStyle,
-                color: '#ff6f16',
+                color: '#ff8b16',
+                fillOpacity: 0.75,
+                weight: 0,
+            };
+        case 'sound_b':
+            return {
+                ...baseStyle,
+                color: '#eb6359',
+                fillOpacity: 0.75,
+                weight: 0,
+            };
+        case 'sound_a':
+            return {
+                ...baseStyle,
+                color: '#ad3f37',
                 fillOpacity: 0.75,
                 weight: 0,
             };

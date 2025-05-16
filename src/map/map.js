@@ -15,7 +15,7 @@ import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { getSoundStyle } from '../loaders/_layerStyles';
-import { getSoundspotDescription } from '../utils/soundData';
+import { getSoundspotDescription, soundSpotType } from '../utils/soundData';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
@@ -113,9 +113,13 @@ export const createMap = async () => {
     map.groups.soundspots.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundspots);
     // Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
-    await loadGeoJsonFeatureCollections(map, null, './data/bl25/poi/soundspots.json', {propertyRenameFn: () => 'soundspotfeature', styleFn: () => ({opacity: 0})});
-    map.groups.soundspotfeature.addTo(map.groups.soundguide);
-    map.removeLayer(map.groups.soundspotfeature);
+    await loadGeoJsonFeatureCollections(map, "type", './data/bl25/poi/soundspots.json', {
+        propertyRenameFn: () => soundSpotType,
+        buffer: 10,
+        styleFn: getSoundStyle,
+    });
+    map.groups[soundSpotType].addTo(map.groups.soundguide);
+    map.removeLayer(map.groups[soundSpotType]);
 
 
     // Combine the Placement Area layers

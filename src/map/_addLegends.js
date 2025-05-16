@@ -1,5 +1,7 @@
 import L from 'leaflet';
 
+const SOUND_GUIDE_URL = "https://docs.google.com/document/d/1aDBv3UWOxngdjWd_z4N34Wcm7r7GvD-gINGwQIr4ti8";
+
 export const addLegends = async (map, toggableLayers, visibleLayers) => {
     // Create the slope legend
     let slopeLegend = L.control({ position: 'bottomright' });
@@ -22,7 +24,7 @@ export const addLegends = async (map, toggableLayers, visibleLayers) => {
     soundLegend.onAdd = function (map) {
         var div = L.DomUtil.create('div', 'legend');
         div.innerHTML +=
-            '<a target="blank" href="https://docs.google.com/document/d/1JjJArPpIsX-F82Xmcr2Y2dSPHtu2TjGTeYbP4ASkOWY"><img src="./img/soundlegend.png" alt="legend" width="150" height="165"></a>';
+            `<a target="blank" href="${SOUND_GUIDE_URL}"><img src="./img/soundlegend.png" alt="legend" width="250"></a>`;
         return div;
     };
 
