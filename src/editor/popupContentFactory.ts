@@ -21,9 +21,7 @@ export class PopupContentFactory {
         const entityContactInfo = entity.contactInfo
             ? entity.contactInfo
             : 'Please add contact info! Areas without it might be removed.';
-        const entityPowerNeed = entity.powerNeed != -1
-            ? `${entity.powerNeed} Watts`
-            : 'Please state your power need! Set to 0 if you will not use electricity.';
+        const entityPowerNeed = `${entity.powerNeed} Watts`;
         const entitySoundAmp = entity.amplifiedSound != -1
             ? `${entity.amplifiedSound} Watts`
             : 'Please set sound amplification! Set to 0 if you wont have speakers.';

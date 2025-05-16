@@ -190,7 +190,7 @@ export class MapEntity implements EntityDTO {
         this.powerExtraInfo = DOMPurify.sanitize(geoJson.properties.powerExtraInfo) ?? '';
         this.powerImageUrl = DOMPurify.sanitize(geoJson.properties.powerImage) ?? '';
         if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
-            this.powerNeed = -1;
+            this.powerNeed = 0;
         } else {
             this.powerNeed = Number(geoJson.properties.powerNeed);
         }
