@@ -227,14 +227,18 @@ export class Editor {
             fullScreenPopup.appendChild(contentFullScreenPopup);
             fullScreenPopup.classList.remove('hidden');
             // Add a close button to the fullScreenPopup
+            let span = document.createElement("span");
             let closeButton = document.createElement("sl-icon");
+            closeButton.style.margin = "5px 5px 5px 10px";
+            closeButton.style.fontSize = "20px";
             closeButton.style.margin = "5px";
             closeButton.setAttribute("name", "x-lg"); // sets the icon
             closeButton.onclick = () => {
                 this.setMode("none");
             };
             let header = fullScreenPopup.querySelector("header");
-            header.appendChild(closeButton);
+            span.appendChild(closeButton);
+            header.appendChild(span);
    
             return;
         }

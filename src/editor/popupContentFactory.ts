@@ -36,7 +36,7 @@ export class PopupContentFactory {
         
         content.innerHTML += `<div class="flex-column" style="margin-bottom: 10px;">
                                 <header class="flex-row">
-                                    <h3 style="margin: 0px;">${DOMPurify.sanitize(entityName)}</h3>
+                                    <h3 class="flex-fill" style="margin: 0px; overflow-wrap:anywhere">${DOMPurify.sanitize(entityName)}</h3>
                                     <a href="?id=${entity.id}" style="margin: 5px;">
                                         <sl-icon name="share" title="Direct link to this area (right click & copy)" style="font-size: 18px;"></sl-icon>
                                     </a>
