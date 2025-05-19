@@ -121,7 +121,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             groups.minorroad,
             Severity.Medium,
             'Blocking a path',
-            'You are possibly blocking a path for walking around (the black dotted lines). Keep it clean if possible or plan accordingly!',
+            'You are possibly blocking a path for walking around (the thin yellow lines). Keep it clean if possible or plan accordingly!',
         ),
         // Special notification when close to sanctuary
         Rules.isOverlappingOrContained(

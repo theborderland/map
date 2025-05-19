@@ -231,7 +231,6 @@ export class Editor {
             let closeButton = document.createElement("sl-icon");
             closeButton.style.margin = "5px 5px 5px 10px";
             closeButton.style.fontSize = "20px";
-            closeButton.style.margin = "5px";
             closeButton.setAttribute("name", "x-lg"); // sets the icon
             closeButton.onclick = () => {
                 this.setMode("none");
