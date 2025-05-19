@@ -16,17 +16,18 @@ import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { getSoundStyle } from '../loaders/_layerStyles';
 import { getSoundspotDescription, soundSpotType } from '../utils/soundData';
+import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
     // Define the default visible map layers
     let visibleLayers = new Set([
-        'Placement',
+        // 'Placement',
         'Placement_map',
-        'POI',
-        'Neighbourhoods',
-        'Plazas',
-        'Names',
+        // 'POI',
+        // 'Neighbourhoods',
+        // 'Plazas',
+        // 'Names',
     ]);
 
     // Create map
@@ -53,12 +54,18 @@ export const createMap = async () => {
         names: new L.LayerGroup(),
     };
 
-    // Add the Google Satellite layer
-    map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        maxZoom: 21,
-        maxNativeZoom: 20,
-        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-    }).addTo(map);
+    // Add the Google Satellite layer if online, otherwise load the drawn map
+    if (!window.navigator.onLine) {
+        console.log("offline, loading local drawn map");
+        await loadDrawnMap(map);
+        map.addLayer(map.groups.drawnmap);
+    } else{
+        map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 21,
+            maxNativeZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        }).addTo(map);
+    }
 
     // Load contours
     fetch('./data/analysis/contours.geojson')
@@ -358,7 +365,7 @@ export const createMap = async () => {
     await addPointsOfInterestsTomap('./data/bl25/poi/poi.json', map.groups.poi);
 
     // Add the power grid to the map
-    await addPowerGridTomap(map.groups.powergrid);
+    //await addPowerGridTomap(map.groups.powergrid);
 
     // Add layer control and legends
     await addLegends(map, availableLayers, visibleLayers);
