@@ -379,7 +379,12 @@ export class Editor {
         });
 
         // Update the buffered layer when the layer has a vertex removed
-        entity.layer.on('pm:vertexremoved', () => {
+        entity.layer.on('pm:vertexremoved', (e) => {
+            if (e.layer._rings.length == 0) {
+                this.deleteAndRemoveEntity(this._selected, 'No vertex remaining, deleting entity');
+                return
+            }
+
             entity.updateBufferedLayer();
             this.refreshEntity(entity); //important that the buffer get updated before the rules are checked
             this.UpdateOnScreenDisplay(entity);
