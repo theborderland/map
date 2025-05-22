@@ -471,7 +471,7 @@ export class Editor {
                         this.refreshEntity(chunk[i], true);
                     }
                     resolve(chunk.length);
-                }, 10);
+                }, 50);
             }.bind(this)));
         }
 
