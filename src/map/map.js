@@ -258,7 +258,7 @@ export const createMap = async () => {
                 file: 'guide-home',
                 position: 'end',
                 onClose: () => {
-                    localStorage.setItem('hasSeenPlacementWelcome', 'true');
+                    localStorage.setItem('hasSeenPlacementWelcome2025', 'true');
                 },
             });
         }),

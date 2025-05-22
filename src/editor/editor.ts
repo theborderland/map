@@ -668,7 +668,7 @@ export class Editor {
                         file: 'entering_edit_mode_page_two',
                         position: 'bottom',
                         onClose: () => {
-                            localStorage.setItem('hasSeenEditorInstructions', 'true');
+                            localStorage.setItem('hasSeenEditorInstructions2025', 'true');
                         },
                         buttons: [{text: 'Close'}],
                     },

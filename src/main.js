@@ -12,7 +12,7 @@ async function index() {
     }
 
     // Only show message if user has not seen the welcome message yet
-    if (!localStorage.getItem('hasSeenPlacementWelcome')) {
+    if (!localStorage.getItem('hasSeenPlacementWelcome2025')) {
         showDrawers([{
             file: 'welcome',
             position: 'bottom',
@@ -21,7 +21,7 @@ async function index() {
             file: 'preplacement',
             position: 'bottom',
             onClose: () => {
-                localStorage.setItem('hasSeenPlacementWelcome', 'true');
+                localStorage.setItem('hasSeenPlacementWelcome2025', 'true');
             },
         }]);
     }
