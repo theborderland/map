@@ -459,7 +459,7 @@ export class Editor {
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
     private validateSlowly() {
-        const chunkSize = 50;
+        const chunkSize = 5;
         var arrayOfPromises: Array<Promise<any>> = [];
 
         for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
@@ -471,7 +471,7 @@ export class Editor {
                         this.refreshEntity(chunk[i], true);
                     }
                     resolve(chunk.length);
-                }, 50);
+                }, 10);
             }.bind(this)));
         }
 

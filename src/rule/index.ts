@@ -115,7 +115,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             groups.publicplease,
             Severity.Low,
             'Close to fire road',
-            'You are adjucant to a fire road, please use this space for public offerings and not just for sleeping',
+            'You are adjacent to a fire road, please use this space for public offerings and not just for sleeping',
         ),
         Rules.isOverlappingOrContained(
             groups.minorroad,
