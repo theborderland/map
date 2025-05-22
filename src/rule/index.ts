@@ -103,7 +103,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Too large/close to others!',
             'For fire safety, we need to add a bit of open space (' +
                 FIRE_BUFFER_IN_METER +
-                'm2) between these camps (or if not next to any camps, this camp simply too big)',
+                'm) between these camps (or if not next to any camps, this camp simply too big)',
         ),
         Rules.isNotInsideBoundaries(
             groups.neighbourhood,
