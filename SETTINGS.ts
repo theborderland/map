@@ -3,9 +3,10 @@
  */
 
 // Editor
-export const IS_EDITING_POSSIBLE: boolean = true;
-export const EDITING_PASSWORD: string = 'NotASecret';
-export const NOTE_ABOUT_EDITING: string = `Pre-placement is open!<br>
+export const IS_EDITING_POSSIBLE: boolean = false;
+export const NOTE_ABOUT_EDITING: string = `Editing disabled, will be back at 18:00 CET
+<br>
+<br>
 Report bugs in the 
 <a target="_blank" href="https://discord.com/channels/932714386286575736/1372483870976512032">🚩placement-forum</a> on Discord. <br>
 General placement opens May 22nd.
