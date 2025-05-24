@@ -459,7 +459,7 @@ export class Editor {
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
     private validateSlowly() {
-        const chunkSize = 5;
+        const chunkSize = 50;
         var arrayOfPromises: Array<Promise<any>> = [];
 
         for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
@@ -657,7 +657,7 @@ export class Editor {
         // Show instructions when entering edit mode, and wait for the user
         // to press a button on that screen before continuing
         if (this._isEditMode) {
-            if (localStorage.getItem('hasSeenEditorInstructions') == null) {
+            if (localStorage.getItem('hasSeenEditorInstructions2025') == null) {
                 Messages.showDrawers([
                     { 
                         file: 'entering_edit_mode', 
