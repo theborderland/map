@@ -334,7 +334,7 @@ export class Editor {
             properties: {},
         };
         marker.options.icon.options.iconSize = [1, 1];
-        marker.bindTooltip(entity.name, {
+        marker.bindTooltip(this.getTooltipName(entity), {
             permanent: true,
             interactive: false,
             direction: 'center',
@@ -418,9 +418,9 @@ export class Editor {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
-        if (entity.nameMarker._tooltip._content != entity.name) {
+        if (entity.nameMarker._tooltip._content != entity.name && checkRules) {
             // console.log('tooltip content changed', entity.nameMarker._tooltip);
-            entity.nameMarker.setTooltipContent(entity.name);
+            entity.nameMarker.setTooltipContent(this.getTooltipName(entity));
         }
 
         // Only show the name if zoomed beyond 19
@@ -834,6 +834,9 @@ export class Editor {
             console.log('[Editor]', 'Editor blur event fired (map click)', { mouseEvent });
             this.setMode('blur');
         });
+    }
 
+    private getTooltipName(entity: MapEntity ): string {
+            return entity.name + "<br />" + entity.area + 'm²';
     }
 }
