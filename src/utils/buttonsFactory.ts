@@ -49,7 +49,7 @@ export function guide(onClickCallback: () => any): L.Control {
             onAdd: () => {
                 let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
                 btn.title = 'Guide to the placement process';
-                btn.textContent = '⛑️';
+                btn.textContent = 'ℹ️';
                 L.DomEvent.disableClickPropagation(btn);
     
                 btn.onclick = () => {onClickCallback();};

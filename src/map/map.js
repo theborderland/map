@@ -22,12 +22,12 @@ import { loadDrawnMap } from '../loaders/loadDrawnMap';
 export const createMap = async () => {
     // Define the default visible map layers
     let visibleLayers = new Set([
-        // 'Placement',
+        'Placement',
         'Placement_map',
-        // 'POI',
-        // 'Neighbourhoods',
-        // 'Plazas',
-        // 'Names',
+        'POI',
+        'Neighbourhoods',
+        'Plazas',
+        'Names',
     ]);
 
     // Create map

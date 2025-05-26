@@ -101,9 +101,9 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             placementLayers,
             Severity.High,
             'Too large/close to others!',
-            'For fire safety, we need to add a bit of open space (' +
+            'For fire safety, we need space (' +
                 FIRE_BUFFER_IN_METER +
-                'm) between these camps (or if not next to any camps, this camp simply too big)',
+                'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big)',
         ),
         Rules.isNotInsideBoundaries(
             groups.neighbourhood,
