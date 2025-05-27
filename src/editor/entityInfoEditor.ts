@@ -50,6 +50,10 @@ export class EntityInfoEditor {
     private checkIfLargeCamp() {
         // Requirement came from power realities team
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
+        if (!this._entity.areaNeedPower) {
+            powerImage.parentElement.style.display = "none";
+            return;
+        }
 
         if (this._entity.nrOfPeople >= this._largeCampPeopleLimit ||
             this._entity.powerNeed >= this._largeCampPowerConsumtionLimit) {
@@ -57,7 +61,6 @@ export class EntityInfoEditor {
         } else {
             powerImage.parentElement.style.display = "none";
         }
-
     }
 
     private populateEditTab() {
@@ -124,6 +127,22 @@ export class EntityInfoEditor {
     }
 
     private populatePowerTab() {
+        let togglePowerSection = () => {
+            let displayMode = this._entity.areaNeedPower ? "" : "none";
+            let powerSections = document.querySelectorAll('.power-toggle') as NodeListOf<HTMLElement>;
+            powerSections.forEach((section) => {
+                section.style.display = displayMode;
+            });
+        };
+        const areaNeedPower = document.getElementById('entity-area-need-power') as HTMLInputElement;
+        areaNeedPower.checked = this._entity.areaNeedPower;
+        areaNeedPower.addEventListener('sl-input', () => {
+            this._entity.areaNeedPower = areaNeedPower.checked;
+            togglePowerSection();
+            this.preChecks();
+        });
+        togglePowerSection();
+
         const techContactInfo = document.getElementById('entity-tech-lead') as HTMLInputElement;
         techContactInfo.value = this._entity.powerContactInfo;
         techContactInfo.oninput = () => {
@@ -144,16 +163,10 @@ export class EntityInfoEditor {
 
         let validatePowerImageUrl = (powerImage: HTMLInputElement, initialLoad: boolean = false) => {
             let icons = powerImage.querySelectorAll("sl-icon");
-            let validUrl = powerImage.value.match(/\.(jpeg|jpg|gif|png)$/) != null;
+            let validUrl = powerImage.value != "";
             icons.forEach((icon) => {
                 validUrl ? icon.classList.add("hidden") : icon.classList.remove("hidden");
             });
-            if (typeof powerImage.setCustomValidity === "function"
-                && !initialLoad // the sl element has not yet been loaded onto the DOM
-            ) {
-                powerImage.setCustomValidity(validUrl ? "" : "Please enter a valid image URL.");
-                powerImage.reportValidity();
-            }
         };
 
         const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
@@ -189,7 +202,7 @@ export class EntityInfoEditor {
             this.addApplianceToContainer(Object.values(item));
         }
 
-        const totalPowerField = document.getElementById('entity-power-need') as HTMLSpanElement;
+        const totalPowerField = document.getElementById('entity-total-power-needed') as HTMLSpanElement;
         totalPowerField.innerText = String(this._entity.powerNeed);
     }
 
@@ -484,7 +497,7 @@ export class EntityInfoEditor {
             totalWatt += appliances[i].amount * appliances[i].watt;
         }
 
-        let totalPowerField = document.getElementById("entity-power-need") as HTMLSpanElement;
+        let totalPowerField = document.getElementById("entity-total-power-needed") as HTMLSpanElement;
         totalPowerField.innerText = totalWatt.toString();
 
         this._entity.powerNeed = totalWatt;

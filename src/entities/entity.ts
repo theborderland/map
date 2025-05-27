@@ -94,6 +94,7 @@ export class MapEntity implements EntityDTO {
     public powerExtraInfo: string;
     public powerImageUrl: string;
     public powerNeed: number;
+    public areaNeedPower: boolean = true;
     public powerAppliances: Array<Appliance>;
 
     /** Calculated area needed for this map entity from the given information */
@@ -184,13 +185,14 @@ export class MapEntity implements EntityDTO {
         }
         this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
-        
+
+        this.areaNeedPower = geoJson.properties.areaNeedPower ?? true;
         this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.techContactInfo) ?? '';
         this.powerPlugType = DOMPurify.sanitize(geoJson.properties.powerPlugType) ?? '';
         this.powerExtraInfo = DOMPurify.sanitize(geoJson.properties.powerExtraInfo) ?? '';
         this.powerImageUrl = DOMPurify.sanitize(geoJson.properties.powerImage) ?? '';
         if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
-            this.powerNeed = 0;
+            this.powerNeed = -1;
         } else {
             this.powerNeed = Number(geoJson.properties.powerNeed);
         }
@@ -290,6 +292,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.color = this.color;
         geoJson.properties.supressWarnings = this.supressWarnings;
         
+        geoJson.properties.areaNeedPower = this.areaNeedPower;
         geoJson.properties.techContactInfo = DOMPurify.sanitize(this.powerContactInfo);
         geoJson.properties.powerPlugType = DOMPurify.sanitize(this.powerPlugType);
         geoJson.properties.powerExtraInfo = DOMPurify.sanitize(this.powerExtraInfo);
