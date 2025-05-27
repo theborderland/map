@@ -61,17 +61,22 @@
                     Power is for everyone, but our supply is finite at 200kW
                     The Department of Energy must know your power requirement for all the devices your bring to BL2025
                     Cooking with gas instead of induction heaters is good.
-                    Be accurate when you fill out this form, all questions are explained in the <a href="https://coda.io/d/_ddTvwEwgvJw/Preparing_suY3b6XL#_lu934W2x" target="_blank">Survival Guide</a>.
+                    Be accurate when you fill out this form, all questions are explained in the <a href="https://coda.io/d/Survival-Guide_ddTvwEwgvJw/Preparing_suY3b6XL#_lueNwEyH" target="_blank">Survival Guide</a>.
                     If you don't know what to bring, simulate it and specifiy later. 
                     <b>Last edit to the power budget is July 1st.</b>
                     <br/><br/>
                     Get a Technical Lead in your camp, we insist.
                     <br/>
                     This person has responsibility for your internal powergrid,
-                    read about this in the <a href="https://coda.io/d/_ddTvwEwgvJw/Preparing_suY3b6XL#_lu934W2x" target="_blank">Survival Guide</a>.
+                    read about this in the <a href="https://coda.io/d/Survival-Guide_ddTvwEwgvJw/Preparing_suY3b6XL#_lueNwEyH" target="_blank">Survival Guide</a>.
                 </details>
             </section>
             <section>
+                <sl-checkbox size="small" align-right id="entity-area-need-power">
+                    Yes, our camp would like to use the powergrid
+                </sl-checkbox>
+            </section>
+            <section class="power-toggle">
                 <sl-input size="small" label="Technical lead contact info" id="entity-tech-lead" placeholder="Email, phone, @discord-name etc"></sl-input>
                 <sl-select id="power-plug-type" label="Connection type needed" placeholder="Connection type needed" value="1p_schuko" size="small">
                     <sl-option value="1p_schuko">Schuko (standard Swedish)</sl-option>
@@ -82,7 +87,7 @@
                   </sl-select>
                 <sl-input id="power-extra-info" size="small" label="What type of cables/powerstrips will the camp use?" placeholder="3G1,5/2,5/CEE - IPxx - flaps?"></sl-input>
             </section>
-            <section>
+            <section class="power-toggle">
                 <div style="font-weight: bold; font-size: 0.9rem; text-align: center;">    
                     Add your appliances
                 </div>
@@ -101,15 +106,17 @@
                 <hr>
                 <div id="power-items-container"></div>
             </section>
-            <section class="flex-row">
+            <section class="flex-row power-toggle">
                 <b>Total power:</b>
                 <div>
-                    <span id="entity-power-need">123</span><span> W</span>
+                    <span id="entity-total-power-needed">123</span><span> W</span>
                 </div>
             </section>
             <section style="display: none; margin-top: auto;">
-                <sl-input id="power-image-url" size="small" placeholder="URL (ending in .png, .jpg, .jpeg, .gif)">
-                    <span slot="label">Your camp's power consumption/participants is larger than average. Please share a link to a drawing of your plans for your camp's power grid. <a href="https://www.google.com/search?q=upload+picture" target="_blank">Find uploading site here</a></span>    
+                <sl-input id="power-image-url" size="small" placeholder="URL">
+                    <span slot="label">
+                        Your camp's power consumption/participants is larger than average, please share a link to a drawing of your plans for your camp's power grid. 
+                        You can create one using <a href="https://excalidraw.com" target="_blank">Excalidraw</a>.</span> 
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="prefix"></sl-icon>
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="suffix"></sl-icon>
                 </sl-input>
