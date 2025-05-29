@@ -172,7 +172,7 @@ export class Editor {
                     break;
 
                 case "save":
-                    if(!this._selected.hasChanges()) {
+                    if (!this._selected.hasChanges()) {
                         break;
                     }
                     // close popup displaying old data, save entity, reopen popup with new data
@@ -180,7 +180,7 @@ export class Editor {
                     this.UpdateOnScreenDisplay(this._selected, "Saving...");
                     let entityInResponse = await this.saveEntity(this._selected);
                     this.setSelected(entityInResponse, null);
-                    this.setPopup('info', entityInResponse);                    
+                    this.setPopup('info', entityInResponse);
                     break;
 
                 case "restore":
@@ -207,7 +207,7 @@ export class Editor {
                 this._ghostLayers,
                 editEntityCallback.bind(this),
             );
-            this._popup.setContent(content).openOn(this._map);      
+            this._popup.setContent(content).openOn(this._map);
 
             // Make a fullscreen popup that is shown if the screen width is less than
             // whatever is decided on the "@media max-width query".
@@ -238,7 +238,7 @@ export class Editor {
             let header = fullScreenPopup.querySelector("header");
             span.appendChild(closeButton);
             header.appendChild(span);
-   
+
             return;
         }
     }
@@ -334,7 +334,7 @@ export class Editor {
             properties: {},
         };
         marker.options.icon.options.iconSize = [1, 1];
-        marker.bindTooltip(this.getTooltipName(entity), {
+        marker.bindTooltip(this.buildTooltipName(entity), {
             permanent: true,
             interactive: false,
             direction: 'center',
@@ -420,7 +420,7 @@ export class Editor {
         }
         if (entity.nameMarker._tooltip._content != entity.name && checkRules) {
             // console.log('tooltip content changed', entity.nameMarker._tooltip);
-            entity.nameMarker.setTooltipContent(this.getTooltipName(entity));
+            entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
         }
 
         // Only show the name if zoomed beyond 19
@@ -446,7 +446,7 @@ export class Editor {
     }
 
     private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity> | null = null) {
-        Messages.showNotification('Validating...');
+        Messages.showNotification('Validating, hold on...');
         if (entitysToRefresh) {
             this._validateEntitiesQueue = entitysToRefresh;
         } else {
@@ -597,7 +597,7 @@ export class Editor {
         // Set path style options for newly created layers
         this._map.pm.setPathOptions(DefaultLayerStyle);
         this._map.pm.setGlobalOptions({
-            tooltips: false,
+            tooltips: true,
             allowSelfIntersection: false,
             snappable: true,
             draggable: true,
@@ -659,10 +659,10 @@ export class Editor {
         if (this._isEditMode) {
             if (localStorage.getItem('hasSeenEditorInstructions2025') == null) {
                 Messages.showDrawers([
-                    { 
-                        file: 'entering_edit_mode', 
+                    {
+                        file: 'entering_edit_mode',
                         position: 'bottom',
-                        buttons: [{text: 'Continue'}],
+                        buttons: [{ text: 'Continue' }],
                     },
                     {
                         file: 'entering_edit_mode_page_two',
@@ -670,7 +670,7 @@ export class Editor {
                         onClose: () => {
                             localStorage.setItem('hasSeenEditorInstructions2025', 'true');
                         },
-                        buttons: [{text: 'Close'}],
+                        buttons: [{ text: 'Close' }],
                     },
                 ]);
             }
@@ -689,7 +689,55 @@ export class Editor {
         });
 
         //Use changeActionsOfControl to only show the cancel button on the draw polygon toolbar
-        this._map.pm.Toolbar.changeActionsOfControl('Polygon', ['cancel']);
+        this._map.pm.Toolbar.changeActionsOfControl('Polygon', ['cancel', 'removeLastVertex']);
+
+        let writeDistanceOnTooltip = function (distance: number) {
+            // Update the tooltip content with the distance
+            let text = `Distance: ${distance.toFixed(1)} meters`;
+            document.querySelector('.leaflet-tooltip-bottom').innerText = text;
+        };
+
+        // This function is called when the user starts drawing a new polygon, it adds the distance to the tooltip
+        this._map.on("pm:drawstart", ({ workingLayer }) => {
+            // calculate the distance between the latest and previous vertices
+            workingLayer.on("pm:vertexadded", (e) => {
+                let coords = e.workingLayer._latlngs;
+                if (coords.length < 2) {
+                    return;
+                }
+                let prev = coords[coords.length - 2];
+                let latest = coords[coords.length - 1];
+                let distance = Turf.distance([prev.lng, prev.lat], [latest.lng, latest.lat], { units: 'meters' });
+                writeDistanceOnTooltip(distance);
+            });
+
+            // calculate the distance between the latest vertex and the not yet placed vertex (mouse position)
+            let snapdragFn = (e) => {
+                let coords = e.workingLayer._latlngs;
+                let prev = coords[coords.length - 1];
+                let next = e.marker._latlng;
+                let distance = Turf.distance([prev.lng, prev.lat], [next.lng, next.lat], { units: 'meters' });
+                writeDistanceOnTooltip(distance);
+            };
+
+            workingLayer.on("pm:snapdrag", snapdragFn);
+
+            // Used when the vertex gets snapped to another vertex, otherwise the distance is calculated from the mouse position
+            workingLayer.on("pm:snap", (e) => {
+                // toggle off the snapdrag event
+                workingLayer.off("pm:snapdrag", snapdragFn);
+                let coords = e.workingLayer._latlngs;
+                let prev = coords[coords.length - 1];
+                let next = e.snapLatLng;
+                let distance = Turf.distance([prev.lng, prev.lat], [next.lng, next.lat], { units: 'meters' });
+                writeDistanceOnTooltip(distance);
+            });
+
+            // toggle on the snapdrag event again
+            workingLayer.on("pm:unsnap", (e) => {
+                workingLayer.on("pm:snapdrag", snapdragFn);
+            });
+        });
     }
 
     /** Add each existing map entity from the API as an editable layer */
@@ -785,8 +833,6 @@ export class Editor {
             if (customMsg) {
                 tooltipText = customMsg;
             } else {
-                tooltipText = entity.area + 'm²';
-
                 for (const rule of entity.getAllTriggeredRules()) {
                     if (rule.severity >= 2) {
                         tooltipText += '<br>' + rule.shortMessage;
@@ -836,7 +882,7 @@ export class Editor {
         });
     }
 
-    private getTooltipName(entity: MapEntity ): string {
-            return entity.name + "<br />" + entity.area + 'm²';
+    private buildTooltipName(entity: MapEntity): string {
+        return entity.name + "<br />" + entity.area + 'm²';
     }
 }
