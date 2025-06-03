@@ -20,8 +20,8 @@ import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
-    // Define the default visible map layers
-    let visibleLayers = new Set([
+    // Define the default layers to be visible on load if no layers are specified in the URL hash
+    let defaultLayers = new Set([
         'Placement',
         'Placement_map',
         'POI',
@@ -29,6 +29,7 @@ export const createMap = async () => {
         'Plazas',
         'Names',
     ]);
+    let visibleLayers = new Set([]);
 
     // Create map
     const map = L.map('map', { zoomControl: false, maxZoom: 21, drawControl: true, attributionControl: false }).setView(
@@ -332,6 +333,10 @@ export const createMap = async () => {
     map.on('hashmetainit', function (initState) {
         hash.decode(initState.meta);
         hash.layers.filter((name) => name in availableLayers).forEach((layerName) => visibleLayers.add(layerName));
+        if (visibleLayers.size === 0) {
+            // Add the default layers to the map
+            visibleLayers = new Set(defaultLayers);
+        }
         visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
     });
 
@@ -371,10 +376,18 @@ export const createMap = async () => {
     await addLegends(map, availableLayers, visibleLayers);
 
     // To speed up the loading time, remove camp name layer while loading entities
-    map.removeLayer(availableLayers['Names']);
+    let isNamesLayerVisible = false;
+    if (visibleLayers.has('Names')) {
+        map.removeLayer(availableLayers['Names']);
+        isNamesLayerVisible = true;
+    }
+
     // Load all entities from the API
     await editor.addAPIEntities();
-    map.addLayer(availableLayers['Names']);
+
+    if (isNamesLayerVisible) {
+        map.addLayer(availableLayers['Names']);
+    }
 
     // Access the query string and zoom to entity if id is present
     const urlParams = new URLSearchParams(window.location.search);
@@ -384,5 +397,5 @@ export const createMap = async () => {
     }
 
     // Done!
-    await showNotification('Loaded everything!', 'success');
+    //await showNotification('Loaded everything!', 'success');
 };
