@@ -18,8 +18,14 @@ export enum Severity {
 export class Rule {
     private _severity: Severity;
     private _triggered: boolean;
-    private _callback: (entity: MapEntity) => { triggered: boolean; shortMessage?: string; message?: string };
+    private _callback: (entity: MapEntity) => { 
+        triggered: boolean; 
+        shortMessage?: string; 
+        message?: string;
+        shouldShowFireBuffer?: boolean;
+    };
 
+    public shouldShowFireBuffer: boolean;
     public message: string;
     public shortMessage: string;
 
@@ -34,6 +40,7 @@ export class Rule {
     public checkRule(entity: MapEntity) {
         const result = this._callback(entity);
         this._triggered = result.triggered;
+        this.shouldShowFireBuffer = result.shouldShowFireBuffer || false;
         if (result.shortMessage) this.shortMessage = result.shortMessage;
         if (result.message) this.message = result.message;
     }
@@ -127,7 +134,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         Rules.isOverlappingOrContained(
             groups.closetosanctuary,
             Severity.Low,
-            'Close to the  sanctuary',
+            'Close to the sanctuary',
             'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
         ),
     ];

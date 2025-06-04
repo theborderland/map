@@ -22,11 +22,16 @@ export const isBufferOverlappingRecursive = (
     //@ts-ignore
     clusterCache.coordsHaveChanged(layer._leaflet_id, layer._latlngs[0]) &&
         clusterCache.invalidateCache(entity.layer._leaflet_id);
-        
+
     const checkedOverlappingLayers = new Set<string>();
     let totalArea = _getTotalAreaOfOverlappingEntities(entity.layer, layerGroup, checkedOverlappingLayers);
     if (totalArea > MAX_CLUSTER_SIZE) {
-        return { triggered: true, severity: Severity.High, shortMessage: `We need some space between these camps` };
+        return {
+            triggered: true,
+            severity: Severity.High,
+            shortMessage: `We need some space between these camps`,
+            shouldShowFireBuffer: true,
+        };
     }
     return { triggered: false };
 });

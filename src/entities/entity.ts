@@ -253,8 +253,7 @@ export class MapEntity implements EntityDTO {
         //@ts-ignore
         const geoJson = this.layer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
-        //const weight = this.getAllTriggeredRules().findIndex((r) => r.severity == 3) > -1 ? 0.75 : 0;
-        const weight = 0;
+        const weight = this.getAllTriggeredRules().some((r) => r.shouldShowFireBuffer) ? 1 : 0;
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
                 style: {
@@ -270,6 +269,7 @@ export class MapEntity implements EntityDTO {
             this.bufferLayer.clearLayers();
             //@ts-ignore
             this.bufferLayer.addData(buffered);
+            this.bufferLayer.options.style.weight = weight;
         }
     }
 

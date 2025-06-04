@@ -115,7 +115,11 @@ export class Editor {
         }
         // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
-            nextEntity.layer.pm.enable({ editMode: true, snappable: false });
+            nextEntity.layer.pm.enable({ 
+                editMode: true, 
+                snappable: false,
+                allowSelfIntersection: false,
+            });
             this.setSelected(nextEntity, prevEntity);
             this.setPopup('none');
             return;
