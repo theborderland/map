@@ -29,8 +29,6 @@ export class Editor {
     /** The current status of the editor */
     private _mode: 'none' | 'selected' | 'editing-shape' | 'moving-shape' = 'none';
 
-    private _currentLayerFilterStyle: 'severity' | 'sound' | 'power' = 'severity';
-
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
     private _currentRevisions: Record<MapEntity['id'], MapEntity>;
@@ -47,6 +45,7 @@ export class Editor {
 
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
     private _nameTooltips: Record<number, L.Marker>;
+    stopwatch: number;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -436,7 +435,7 @@ export class Editor {
         if (checkRules) {
             entity.checkAllRules();
         }
-        entity.setLayerStyle(this._currentLayerFilterStyle);
+        entity.setLayerStyle();
     }
 
     private refreshAllEntities(checkRules: boolean = true) {
@@ -445,8 +444,8 @@ export class Editor {
         }
     }
 
-    private refreshEntitiesSlow(entitysToRefresh: Array<MapEntity> | null = null) {
-        Messages.showNotification('Validating, hold on...');
+    private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
+        Messages.showNotification('Validating, hold on...', undefined, undefined, 7000 );
         if (entitysToRefresh) {
             this._validateEntitiesQueue = entitysToRefresh;
         } else {
@@ -454,38 +453,26 @@ export class Editor {
                 this._validateEntitiesQueue.push(this._currentRevisions[entityid]);
             }
         }
-        this.validateSlowly();
+        this.stopwatch = new Date().getTime();
+        this.checkRulesSlowly();
     }
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
-    private validateSlowly() {
-        const chunkSize = 50;
-        var arrayOfPromises: Array<Promise<any>> = [];
-
-        for (let i = 0; i < this._validateEntitiesQueue.length; i += chunkSize) {
-            const chunk = this._validateEntitiesQueue.slice(i, i + chunkSize);
-            arrayOfPromises.push(new Promise(function (resolve, reject) {
-                // Let the UI redraw by resting a while, then continue until validated
-                setTimeout(() => {
-                    for (let i = 0; i < chunk.length; i++) {
-                        this.refreshEntity(chunk[i], true);
-                    }
-                    resolve(chunk.length);
-                }, 50);
-            }.bind(this)));
+    private checkRulesSlowly() {
+        if (this._validateEntitiesQueue.length === 0) {
+            Messages.showNotification('Validation done', 'success');
+            console.log('Validation took', new Date().getTime() - this.stopwatch, 'ms');
+            return;
         }
 
-        Promise.all(arrayOfPromises).then((res) => {
-            Messages.showNotification('Validation done', 'success');
-        }, (err) => {
-            console.log(err);
-        });
-    }
+        // Process up to 5 entities at a time
+        const batch = this._validateEntitiesQueue.splice(-5, 5);
+        for (const entity of batch) {
+            entity.checkAllRules();
+            entity.setLayerStyle();
+        }
 
-    // This method is never called. can be removed? Robin 2025-03-28
-    public setLayerFilter(filter: 'severity' | 'sound' | 'power', checkRules: boolean = true) {
-        this._currentLayerFilterStyle = filter;
-        this.refreshAllEntities(checkRules);
+        setTimeout(() => this.checkRulesSlowly(), 0); // Yield to UI
     }
 
     // Block crazy large areas
@@ -754,7 +741,7 @@ export class Editor {
 
         // Delayed start of validation
         setTimeout(() => {
-            this.refreshEntitiesSlow();
+            this.checkEntityRules();
         }, 100);
 
         // Automatic refresh of entities after a minute //Disabled after the event
@@ -804,7 +791,7 @@ export class Editor {
                     this.refreshAllEntities(false);
                 }
                 if (changesToQueue.length > 0) {
-                    this.refreshEntitiesSlow(changesToQueue);
+                    this.checkEntityRules(changesToQueue);
                 }
             }
         }
