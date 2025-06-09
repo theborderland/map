@@ -1,7 +1,7 @@
-import { Rule } from '../index';
+import { Rule, Severity } from '../index';
 
 export const hasMissingFields = () => new Rule(
-    2,
+    Severity.High,
     'Missing info',
     'Fill in name, description, contact info, power need and sound amplification please.',
     (entity) => {
@@ -9,7 +9,7 @@ export const hasMissingFields = () => new Rule(
             triggered: !entity.name ||
                 !entity.description ||
                 !entity.contactInfo ||
-                entity.powerNeed === -1 ||
+                (entity.areaNeedPower && entity.powerNeed === -1) ||
                 entity.amplifiedSound === -1,
         };
     }
