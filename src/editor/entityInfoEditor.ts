@@ -184,8 +184,8 @@ export class EntityInfoEditor {
             let amountInput = document.getElementById("amount") as HTMLInputElement;
             let wattInput = document.getElementById("watt") as HTMLInputElement;
             let name = applianceInput.value;
-            let amount = Number(amountInput.value);
-            let watt = Number(wattInput.value);
+            let amount = Math.ceil(Number(amountInput.value));
+            let watt = Math.ceil(Number(wattInput.value));
             if (!name || amount < 1 || watt < 1) {
                 return;
             }
@@ -498,11 +498,10 @@ export class EntityInfoEditor {
         }
 
         let totalPowerField = document.getElementById("entity-total-power-needed") as HTMLSpanElement;
-        totalPowerField.innerText = totalWatt.toString();
+        totalPowerField.innerText = Math.ceil(totalWatt).toString();
 
         this._entity.powerNeed = totalWatt;
         this.checkIfLargeCamp();
-        return totalWatt;
     }
 
     private updateEntityWithAddedAppliances() {
@@ -524,9 +523,9 @@ export class EntityInfoEditor {
                 //@ts-ignore
                 name: row.childNodes[0].value,
                 //@ts-ignore
-                amount: row.childNodes[1].value,
+                amount: Math.ceil(Number(row.childNodes[1].value)),
                 //@ts-ignore
-                watt: row.childNodes[2].value,
+                watt: Math.ceil(Number(row.childNodes[2].value)),
             });
         }
 

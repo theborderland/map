@@ -458,7 +458,7 @@ export class Editor {
             }
         }
         this.stopwatch = new Date().getTime();
-        this.checkRulesSlowly();
+        requestAnimationFrame(this.checkRulesSlowly.bind(this));
     }
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
@@ -476,7 +476,7 @@ export class Editor {
             entity.setLayerStyle();
         }
 
-        setTimeout(() => this.checkRulesSlowly(), 0); // Yield to UI
+        requestAnimationFrame(this.checkRulesSlowly.bind(this));
     }
 
     // Block crazy large areas
