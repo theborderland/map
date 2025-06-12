@@ -376,17 +376,24 @@ export const createMap = async () => {
     await addLegends(map, availableLayers, visibleLayers);
 
     // To speed up the loading time, remove camp name layer while loading entities
-    let isNamesLayerVisible = false;
     if (visibleLayers.has('Names')) {
         map.removeLayer(availableLayers['Names']);
-        isNamesLayerVisible = true;
     }
 
     // Load all entities from the API
     await editor.addAPIEntities();
 
-    if (isNamesLayerVisible) {
+    if (visibleLayers.has('Names')) {
         map.addLayer(availableLayers['Names']);
+    }
+    visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
+
+    // Placement layer is special.
+    // Even though it might not be visible by default, it is always shown because we add it when loading entities.
+    // So to hide it, we need to add it explicitly only to remove it again.
+    if  (!visibleLayers.has('Placement')) {
+        map.addLayer(availableLayers['Placement']);
+        map.removeLayer(availableLayers['Placement']);
     }
 
     // Access the query string and zoom to entity if id is present
