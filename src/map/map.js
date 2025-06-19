@@ -56,17 +56,17 @@ export const createMap = async () => {
     };
 
     // Add the Google Satellite layer if online, otherwise load the drawn map
-    if (!window.navigator.onLine) {
-        console.log("offline, loading local drawn map");
-        await loadDrawnMap(map);
-        map.addLayer(map.groups.drawnmap);
-    } else{
-        map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            maxZoom: 21,
-            maxNativeZoom: 20,
-            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-        }).addTo(map);
-    }
+    //if (!window.navigator.onLine) {
+    //console.log("offline, loading local drawn map");
+    await loadDrawnMap(map);
+    //map.addLayer(map.groups.drawnmap);
+    //} else{
+    map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 21,
+        maxNativeZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    }).addTo(map);
+    //}
 
     // Load contours
     fetch('./data/analysis/contours.geojson')
@@ -240,6 +240,7 @@ export const createMap = async () => {
         Slope: map.groups.slopemap,
         Height: map.groups.heightmap,
         Terrain: map.groups.terrain,
+        Handdrawn: map.groups.drawnmap,
         Plazas: map.groups.plazas,
         Placement: map.groups.placement,
         Names: map.groups.names,

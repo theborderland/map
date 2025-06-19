@@ -16,8 +16,8 @@ let getStyle = (color) => {
 };
 const geoJsonFiles = [
     { url: './data/drawnmap/roads.geojson', color: '#b3bcc3' },
-    { url: './data/drawnmap/farmland.geojson', color: '#8fc981' },
-    { url: './data/drawnmap/grass.geojson', color: '#8fc981' },
+    { url: './data/drawnmap/farmland.geojson', color: '#71BB78' },
+    { url: './data/drawnmap/grass.geojson', color: '#71BB78' },
     { url: './data/drawnmap/forest.geojson', color: '#27763d' },
     { url: './data/drawnmap/buildings.geojson', color: '#fef2cb' },
     { url: './data/drawnmap/lakes.geojson', color: '#8fdaed' },
