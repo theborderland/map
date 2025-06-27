@@ -355,8 +355,10 @@ MigrationBackup/
 .idea/
 
 # generated code
-public/bundle.js
-public/bundle.js.map
+public/main.js
+public/main.js.map
+public/getLocation.js
+public/getLocation.js.map
 
 # Mac OS
 .DS_Store
