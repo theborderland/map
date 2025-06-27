@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Location Fields</title>
+</head>
+<body>
+    <form>
+        <label for="neighborhood">Neighborhood:</label>
+        <input type="text" id="neighborhood" name="neighborhood"><br><br>
+
+        <label for="closest_plaza">Closest Plaza:</label>
+        <input type="text" id="closest_plaza" name="closest_plaza"><br><br>
+
+        <label for="distance_to_plaza">Distance to Plaza (meters):</label>
+        <input type="text" id="distance_to_plaza" name="distance_to_plaza"><br><br>
+
+        <label for="direction_from_plaza">Direction from Plaza:</label>
+        <input type="text" id="direction_from_plaza" name="direction_from_plaza"><br><br>
+
+        <label for="closest_poi">Closest POI:</label>
+        <input type="text" id="closest_poi" name="closest_poi"><br><br>
+
+        <label for="distance_to_poi">Distance to POI (meters):</label>
+        <input type="text" id="distance_to_poi" name="distance_to_poi"><br><br>
+
+        <label for="direction_from_poi">Direction from POI:</label>
+        <input type="text" id="direction_from_poi" name="direction_from_poi"><br><br>
+    </form>
+
+    <div id="main"></div>
+    <script>
+        document.querySelectorAll('input[type="text"]').forEach(function(input) {
+            input.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+    </script>
+    <script src="getlocation.js"></script>
+</body>
+</html>
