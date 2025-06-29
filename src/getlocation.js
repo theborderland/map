@@ -1,7 +1,9 @@
 /**
- * Usage: visit page with coordinates as querystring parameters.
+ * Usage: visit page with coordinates or id as querystring parameters.
  * The coordinates should be in the format: latitude,longitude
- * For example getlocation.html?coords=57.62045050822002,14.923006296157837
+ * For example 
+ * getlocation.html?coords=57.62045050822002,14.923006296157837
+ * getlocation.html?id=123
  * 
  * Most of this code was AI generated, because I was too lazy to write it myself.
  */
@@ -13,31 +15,23 @@ import { MapEntity, MapEntityRepository } from './entities';
 // If the id is present in the query string, it will be set to true and the camp name will be set accordingly
 let isCampOnMap = false; 
 let campName = '';
-let _repository = new MapEntityRepository(() => {
+const _repository = new MapEntityRepository(() => {
         // Create an empty ruleset because we don't need any rules for this example
         return [];
     });
-
+const geojsonData = { neighborhoods: null, plazas: null, POIs: null };
 // Fields to be filled with data from the query string or GeoJSON files
 // These fields are expected to be present in the HTML with the corresponding IDs
-const fields = {
-        camp_name: document.getElementById('camp_name'),
-        neighborhood: document.getElementById('neighborhood'),
-        closest_plaza: document.getElementById('closest_plaza'),
-        distance_to_plaza: document.getElementById('distance_to_plaza'),
-        direction_from_plaza: document.getElementById('direction_from_plaza'),
-        closest_poi: document.getElementById('closest_poi'),
-        distance_to_poi: document.getElementById('distance_to_poi'),
-        direction_from_poi: document.getElementById('direction_from_poi')
-    };
-
-// Ensure all fields are present
-Object.entries(fields).forEach(([key, field]) => {
-    if (!field) {
-        console.error(`Field with id '${key}' is missing in the HTML. Please ensure all fields are present with the correct IDs.`);
-    }
-}); 
-
+const _htmlFields = {
+    camp_name: document.getElementById('camp_name'),
+    neighborhood: document.getElementById('neighborhood'),
+    closest_plaza: document.getElementById('closest_plaza'),
+    distance_to_plaza: document.getElementById('distance_to_plaza'),
+    direction_from_plaza: document.getElementById('direction_from_plaza'),
+    closest_poi: document.getElementById('closest_poi'),
+    distance_to_poi: document.getElementById('distance_to_poi'),
+    direction_from_poi: document.getElementById('direction_from_poi')
+};
 /**
  * Loads GeoJSON data from specified URLs and returns an object containing the data.
  * @returns {Promise<Object>} An object containing the loaded GeoJSON data.
@@ -49,11 +43,9 @@ const loadData = async () => {
         { url: './data/bl25/poi/customPOIforJOMO.geojson', name: 'POIs' }
     ];
     const promises = await Promise.all(geoJsonFiles.map(file => getGeoJsonData(file.url)));
-    const geojsonData = {};
     geoJsonFiles.forEach((file, idx) => {
         geojsonData[file.name] = promises[idx];
     });
-    return geojsonData;
 };
 
 /** Fetches GeoJSON data from a given URL.
@@ -95,12 +87,10 @@ const getClosestDistance = (geojson, point) => {
         let distance = Infinity;
         if (feature.geometry.type === 'Point') {
             distance = turf.distance(point, feature, { units: 'meters' });
-        } else if (
-            feature.geometry.type === 'Polygon' ||
-            feature.geometry.type === 'MultiPolygon'
-        ) {
+        } else { // For polygons and MultiPolygons
             distance = turf.pointToPolygonDistance(point, feature, { units: 'meters' });
         }
+
         if (distance < minDistance) {
             minDistance = distance;
             areaName = feature.properties.name || '(No name)';
@@ -141,13 +131,10 @@ const getCardinalDirectionFromArea = (areaFeature, pt) => {
  * If a matching polygon is found, it sets the camp name and returns the point.
  * @returns {Promise<Object|null>} A GeoJSON point object if 'coords' is found and a matching polygon is identified, or null if not.
  */
-const getPointFromQueryString = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('coords')) {
-        return null;
-    }
-    const coords = urlParams.get('coords') ? urlParams.get('coords').split(',').map(Number) : [];
-    const pointCoord = [coords[1], coords[0]]; // Turf and geojson needs it in lng, lat order
+const getPointFromCoordinates = async (coordinates) => {
+    if (!coordinates) return null;
+
+    const pointCoord = [coordinates[1], coordinates[0]]; // Turf and geojson needs it in lng, lat order
     const point = turf.point(pointCoord);
     let entities = await _repository.entities();
     const found = entities.find(entity => {
@@ -167,18 +154,13 @@ const getPointFromQueryString = async () => {
  * If an entity is found, it sets the camp name and returns the point.
  * @returns {MapEntity|null} A GeoJSON point object if an 'id' and MapEntity are found, or null if not.
  */
-const getPointFromIdInQueryString = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = Number(urlParams.get('id'));
-    if (id) {
-        await _repository.loaded;
-        const entity = _repository.getEntityById(id);
-        if (entity) {
-            isCampOnMap = true;
-            campName = entity.name;
-            let feature = JSON.parse(entity.geoJson);
-            return turf.center(feature);
-        }
+const getPointFromId = async (id) => {
+    const entity = _repository.getEntityById(id);
+    if (entity) {
+        isCampOnMap = true;
+        campName = entity.name;
+        let feature = JSON.parse(entity.geoJson);
+        return turf.center(feature);
     }
     return null;
 }
@@ -188,7 +170,7 @@ const getPointFromIdInQueryString = async () => {
  * @param {Object} geojsonData - The GeoJSON data containing neighborhoods, plazas, and POIs.
  * @throws Will throw an error if the geojsonData is invalid or does not contain the expected structure.
  */
-const writeInfoToTables = geojsonData => {
+const displayGeoJsonInfo = geojsonData => {
     const mainDiv = document.getElementById("main");
     const table = document.createElement("table");
     const keys = Object.keys(geojsonData);
@@ -216,33 +198,139 @@ const writeInfoToTables = geojsonData => {
  * @returns {Promise<void>} A promise that resolves when the processing is complete.
  * @throws Will throw an error if the GeoJSON data cannot be loaded or if the point cannot be determined.
  */
-const doStuff = async () => {
-    const geojsonData = await loadData();
+const getLocationData = async (id, coordinates) => {
+    let fields = {};
+    Object.keys(_htmlFields).forEach(key => {
+        fields[key] = '';
+    });
 
-    let point = await getPointFromIdInQueryString() || await getPointFromQueryString();
+    let point = await getPointFromId(id) || await getPointFromCoordinates(coordinates);
     if (!point) {
-        console.error('No id or coordinates provided in the query string.');
+        console.error('No id (or camp not found) or coordinates provided in the query string.');
         return;
     }
 
     if (isCampOnMap) {
-        fields.camp_name.value = campName;
+        fields.camp_name = campName;
     }
 
-    let neighborhoodName = getNeighborhoodName(geojsonData.neighborhoods, point);
-    fields.neighborhood.value = neighborhoodName;
+    fields.neighborhood = getNeighborhoodName(geojsonData.neighborhoods, point);
 
     const closestPlaza = getClosestDistance(geojsonData.plazas, point);
-    fields.closest_plaza.value = closestPlaza.areaName;
-    fields.distance_to_plaza.value = Math.round(closestPlaza.distance);
-    fields.direction_from_plaza.value = getCardinalDirectionFromArea(closestPlaza.areaFeature, point);
-    
-    const closestPOI = getClosestDistance(geojsonData.POIs, point);
-    fields.closest_poi.value = closestPOI.areaName;
-    fields.distance_to_poi.value = Math.round(closestPOI.distance);
-    fields.direction_from_poi.value = getCardinalDirectionFromArea(closestPOI.areaFeature, point);
+    fields.closest_plaza = closestPlaza.areaName;
+    fields.distance_to_plaza = Math.round(closestPlaza.distance);
+    fields.direction_from_plaza = getCardinalDirectionFromArea(closestPlaza.areaFeature, point);
 
-    writeInfoToTables(geojsonData);
+    const closestPOI = getClosestDistance(geojsonData.POIs, point);
+    fields.closest_poi = closestPOI.areaName;
+    fields.distance_to_poi = Math.round(closestPOI.distance);
+    fields.direction_from_poi = getCardinalDirectionFromArea(closestPOI.areaFeature, point);
+
+    return fields;
 }
 
-doStuff();
+/**
+ * Handles CSV upload, processes each row to add new columns with location data from the fields object,
+ * and triggers a download of the updated CSV.
+ */
+const handleCsvUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.csv,text/csv';
+
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const text = await file.text();
+        // Parse CSV using PapaParse for robust parsing
+        const parsed = Papa.parse(text, { skipEmptyLines: true });
+        if (!parsed.data || parsed.data.length === 0) return;
+
+        // Parse header and rows
+        const header = parsed.data[0];
+        const rows = parsed.data;
+        const fieldKeys = Object.keys(_htmlFields);
+        const newHeader = header.concat(fieldKeys);
+
+        // Find the index of the column with coordinates or id
+        const locationColIdx = header.findIndex(h => h.trim().toLowerCase() === 'location / link on the placement map');
+
+        // Process each row (skip header)
+        const processedRows = [newHeader];
+        for (let i = 1; i < rows.length; i++) {
+            const cols = rows[i];
+            let locationValue = cols[locationColIdx] || '';
+            let id = null, coordinates = null;
+
+            // Try to extract id or coordinates from the column value
+            if (/id=(\d+)/i.test(locationValue)) {
+                // Extract id from the string like "id=123"
+                id = Number(locationValue.match(/id=(\d+)/i)[1]);
+            } else if (/^[-.\d]+\s+[-.\d]+$/.test(locationValue)) {
+                // Try to parse coordinates from a string like "57.62045050822002 14.923006296157837"
+                // Split by whitespace and convert to numbers
+                const parts = locationValue.trim().split(/\s+/).map(Number);
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    coordinates = parts;
+                }
+            }
+
+            let rowFields = {};
+            if (id !== null || coordinates !== null) {
+                rowFields = await getLocationData(id, coordinates) || {};
+            }
+
+            // Append field values to row
+            const newCols = fieldKeys.map(k => rowFields[k] ?? '');
+            processedRows.push(cols.concat(newCols));
+        }
+
+        // Convert processedRows to CSV using PapaParse
+        const csv = Papa.unparse(processedRows);
+
+        // Create and download new CSV
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = Object.assign(document.createElement('a'), {
+            href: URL.createObjectURL(blob),
+            download: file.name.slice(0, -4) + '_updated' + file.name.slice(-4)
+        });
+        a.click();
+        URL.revokeObjectURL(a.href);
+    };
+
+    input.click();
+}
+
+const initialize = async () => {
+    await _repository.loaded;
+    await loadData();
+    displayGeoJsonInfo(geojsonData);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasCoords = urlParams.has('coords');
+    const hasId = urlParams.has('id');
+    let locationData = {};
+    if (hasId) {
+        const id = Number(urlParams.get('id'));
+        locationData = await getLocationData(id);
+    } else if (hasCoords) {
+        const coords = urlParams.get('coords') ? urlParams.get('coords').split(',').map(Number) : [];
+        locationData = await getLocationData(null, coords);
+    }
+    // Fill HTML fields with the location data
+    if (locationData) {
+        Object.keys(_htmlFields).forEach(key => {
+            _htmlFields[key].value = locationData[key] || '';
+        });
+    } else {
+        console.error('No valid location data found.');
+    }
+
+}
+
+initialize();
+
+
+// Add trigger CSV upload to button
+document.getElementsByTagName('button')[0].onclick = handleCsvUpload;
