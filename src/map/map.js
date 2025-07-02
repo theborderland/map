@@ -3,6 +3,7 @@ import 'leaflet.locatecontrol';
 import 'leaflet.polylinemeasure';
 import 'leaflet-copy-coordinates-control';
 import '@geoman-io/leaflet-geoman-free';
+import { LocateControl } from 'leaflet.locatecontrol';
 import ToKML from '@maphubs/tokml';
 import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
@@ -319,6 +320,17 @@ export const createMap = async () => {
     // Add the measure tool
     let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });
     polylineMeasure.addTo(map);
+
+    // Add the "Show your location" controls
+    new LocateControl({
+        strings: {
+            title: 'Show your location',
+        },
+        locateOptions: {
+            watch: true,
+            enableHighAccuracy: true,
+        },
+    }).addTo(map);
 
     // Add the coordinates tool
     let coordinatesControl = new L.Control.Coordinates({
