@@ -1,6 +1,6 @@
 import L from 'leaflet';
 
-const POWER_GRID_GEOJSON_URL = 'https://bl.skookum.cc/data/bl24/power_grid.geojson';
+const POWER_GRID_GEOJSON_URL = 'https://bl.skookum.cc/api/bl25/v/default/power_grid';
 const LOCAL_POWER_GRID_GEOJSON_URL = './data/bl24/labels/power_grid.geojson';
 
 async function fetchPowerGrid() {
@@ -21,8 +21,8 @@ export const addPowerGridTomap = async (layerGroup: L.LayerGroup) => {
             if (feature.geometry.type != 'Point') {
                 continue;
             }
-            let name = feature.properties['Name'];
-            let marker_size = feature.properties['marker-size'];
+            let name = feature.properties['name'];
+            let marker_size = feature.properties['marker-size'] ?? 1;
             let { description, power_size, power_area } = feature.properties;
 
             const lng = feature.geometry.coordinates[0];

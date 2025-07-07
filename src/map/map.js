@@ -371,7 +371,7 @@ export const createMap = async () => {
     await addPointsOfInterestsTomap('./data/bl25/poi/poi.json', map.groups.poi);
 
     // Add the power grid to the map
-    //await addPowerGridTomap(map.groups.powergrid);
+    await addPowerGridTomap(map.groups.powergrid);
 
     // Add layer control and legends
     await addLegends(map, availableLayers, visibleLayers);
