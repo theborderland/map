@@ -102,7 +102,7 @@ export const createMap = async () => {
     });
 
     // Loads "minorroad"
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Minorroads_BL25_export.geojson', { buffer: 1 });
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Bluepaths_BL25_export.geojson', { buffer: 1 });
     // Loads "plaza"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
     // Loads "neighbourhood"
