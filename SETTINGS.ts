@@ -5,7 +5,8 @@
 // Editor
 export const IS_EDITING_POSSIBLE: boolean = true;
 export const NOTE_ABOUT_EDITING: string = `
-Camps that do not have a contact info will be <u>deleted every Monday morning at 08:00 CEST</u>`;
+We will <u>disable editing</u> on July 18th.<br><br>
+Camps that do not have a contact info will be deleted every Monday morning at 08:00 CEST`;
 
 // Repository
 export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
