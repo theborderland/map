@@ -4,14 +4,12 @@ import 'leaflet.polylinemeasure';
 import 'leaflet-copy-coordinates-control';
 import '@geoman-io/leaflet-geoman-free';
 import { LocateControl } from 'leaflet.locatecontrol';
-import ToKML from '@maphubs/tokml';
 import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
 import { addLegends } from './_addLegends';
 import { loadGeoJsonFeatureCollections } from '../loaders/loadGeoJsonFeatureCollections';
 import { loadImageOverlay } from '../loaders/loadImageOverlay';
 import { hash, ButtonsFactory } from '../utils';
-import { showNotification, showDrawer } from '../messages';
 import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
@@ -251,96 +249,13 @@ export const createMap = async () => {
         Aftermath24: map.groups.aftermath24,
     };
 
+    // When this query parameter is set, the map will be not display any buttons or messages,
+    // it will also not check entity rules.
+    const urlParams = new URLSearchParams(window.location.search);
+    let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
+
     // Initialize the editor
-    const editor = new Editor(map, map.groups);
-
-    // Add the guide button
-    map.addControl(
-        ButtonsFactory.guide(() => {
-            showDrawer({
-                file: 'guide-home',
-                position: 'end',
-                onClose: () => {
-                    localStorage.setItem('hasSeenPlacementWelcome2025', 'true');
-                },
-            });
-        }),
-    );
-
-    // Add the download button
-    map.addControl(
-        ButtonsFactory.download(async () => {
-            const quit = !confirm(
-                'This will download all the current map information as several KML and GeoJSON files, are you sure?',
-            );
-            if (quit) {
-                return;
-            }
-            const exportableLayers = [
-                ['mapstuff'],
-                ['poi'],
-                ['powergrid'],
-                ['soundguide'],
-                ['plazas'],
-                ['names'],
-                ['neighbourhoods'],
-                ['placement'],
-            ];
-            showNotification('Downloading map data...');
-            for (const [groupName] of exportableLayers) {
-                try {
-                    const layer = map.groups[groupName];
-                    const geojson = layer.toGeoJSON();
-                    var kml = ToKML(geojson, {
-                        documentName: groupName,
-                        name: 'name',
-                        description: 'description',
-                    });
-                    for (const [data, filetype] of [
-                        [kml, '.kml'],
-                        [JSON.stringify(geojson), '.geojson'],
-                    ]) {
-                        const link = document.createElement('a');
-                        const uri = 'data:text/kml;charset=utf-8,' + encodeURIComponent(data);
-                        link.download = groupName + filetype;
-                        link.target = '_blank';
-                        link.href = uri;
-                        link.click();
-                        console.log('Downloading map data from layergroup ' + groupName);
-                        await new Promise((r) => setTimeout(r, 500));
-                    }
-                } catch (err) {
-                    console.error(err);
-                    console.warn('Failed to download map data from layergroup ' + groupName);
-                }
-            }
-        }),
-    );
-
-    // Add the measure tool
-    let polylineMeasure = L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } });
-    polylineMeasure.addTo(map);
-
-    // Add the "Show your location" controls
-    new LocateControl({
-        strings: {
-            title: 'Show your location',
-        },
-        locateOptions: {
-            watch: true,
-            enableHighAccuracy: true,
-        },
-    }).addTo(map);
-
-    // Add the coordinates tool
-    let coordinatesControl = new L.Control.Coordinates({
-        position: 'topright',
-        latitudeText: 'lat',
-        longitudeText: 'lng',
-        promptText: 'Current Coordinaes:',
-        precision: 10,
-    });
-    coordinatesControl.addTo(map);
+    const editor = new Editor(map, map.groups, _isCleanAndQuietMode);
 
     // Make all layers in the URL hash visible on load
     map.on('hashmetainit', function (initState) {
@@ -376,7 +291,7 @@ export const createMap = async () => {
     // Log the the lat and long to the console when clicking the map or a layer or marker
     map.on('click', function (e) {
         console.log(e.latlng);
-        coordinatesControl.setCoordinates(e);
+        coordinatesControl?.setCoordinates(e);
     });
 
     // Add points of interests to the map
@@ -385,8 +300,51 @@ export const createMap = async () => {
     // Add the power grid to the map
     await addPowerGridTomap(map.groups.powergrid);
 
-    // Add layer control and legends
-    await addLegends(map, availableLayers, visibleLayers);
+    let coordinatesControl;
+    // Do not add any controls if the map is in "clean and quiet" mode.
+    if (!_isCleanAndQuietMode) {
+        map.addControl(ButtonsFactory.guide());
+        map.addControl(ButtonsFactory.download(map));
+    
+        // Add the measure tool
+        map.addControl(L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } }));
+        
+        // Add the coordinates tool
+        coordinatesControl = new L.Control.Coordinates({
+            position: 'topright',
+            latitudeText: 'lat',
+            longitudeText: 'lng',
+            promptText: 'Current Coordinates:',
+            precision: 10,
+        });
+        map.addControl(coordinatesControl);
+
+        // Add the "Show your location" controls
+        map.addControl(new LocateControl({
+            strings: {
+                title: 'Show your location',
+            },
+            locateOptions: {
+                watch: true,
+                enableHighAccuracy: true,
+            },
+            keepCurrentZoomLevel: true
+        }));
+
+        // Add layer control and legends
+        let layerControl = await addLegends(map, availableLayers, visibleLayers);
+        map.addControl(layerControl);
+    }
+
+    // Add a stopwatch to measure loading time
+    const stopwatch = {
+        start: performance.now(),
+        stop: null,
+        log: function () {
+            this.stop = performance.now();
+            console.log(`Map loading time: ${(this.stop - this.start).toFixed(2)} ms`);
+        }
+    };
 
     // To speed up the loading time, remove camp name layer while loading entities
     const hasNamesLayer = visibleLayers.has('Names');
@@ -410,13 +368,22 @@ export const createMap = async () => {
         map.removeLayer(availableLayers['Placement']);
     }
 
-    // Access the query string and zoom to entity if id is present
-    const urlParams = new URLSearchParams(window.location.search);
     const id = Number(urlParams.get('id'));
     if (id) {
+        if (_isCleanAndQuietMode) {
+            editor.ClearControls();
+            visibleLayers.add('Handdrawn');
+            visibleLayers.delete('Names');
+        }
+        // Zoom to entity if id is present
         editor.gotoEntity(id);
+        visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
     }
 
     // Done!
     //await showNotification('Loaded everything!', 'success');
+    stopwatch.log();
+    
+    // Return it so we can show/not show the welcome message.
+    return _isCleanAndQuietMode; 
 };

@@ -4,15 +4,16 @@ import { showDrawers } from './messages';
 
 /** Main method for index.html */
 async function index() {
+    let _isCleanAndQuietMode = false;
     // Create the map
     try {
-        await createMap();
+        _isCleanAndQuietMode = await createMap();
     } catch (err) {
         console.error(err);
     }
 
     // Only show message if user has not seen the welcome message yet
-    if (!localStorage.getItem('hasSeenPlacementWelcome2025')) {
+    if (!localStorage.getItem('hasSeenPlacementWelcome2025') && !_isCleanAndQuietMode) {
         showDrawers([{
             file: 'welcome',
             position: 'bottom',

@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
-import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
+import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING, JOMO_GUIDE_LOCATION } from '../../SETTINGS';
 import { generateRulesForEditor } from '../rule';
 import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
@@ -16,6 +16,7 @@ import { PopupContentFactory } from './popupContentFactory';
  * renders the map entities in the repository as editable layers on the map
  */
 export class Editor {
+    private _mapControls: Array<L.Control> = [];
     /** The Map Entities repository being used */
     private _repository: MapEntityRepository;
     /** The Leaflet Map being used */
@@ -25,6 +26,8 @@ export class Editor {
     private _popupContentFactory: PopupContentFactory;
     /** If the editor should be active or not */
     private _isEditMode: boolean = false;
+    // This will skip checking entity rules, hide controls and hide messages.
+    private _isCleanAndQuietMode: boolean;
 
     /** The current status of the editor */
     private _mode: 'none' | 'selected' | 'editing-shape' | 'moving-shape' = 'none';
@@ -439,7 +442,8 @@ export class Editor {
         if (checkRules) {
             entity.checkAllRules();
         }
-        entity.setLayerStyle();
+        let mode = this._isCleanAndQuietMode ? 'cleancolors' : 'severity';
+        entity.setLayerStyle(mode);
     }
 
     private refreshAllEntities(checkRules: boolean = true) {
@@ -531,11 +535,12 @@ export class Editor {
         }
     }
 
-    constructor(map: L.Map, groups: L.FeatureGroup) {
+    constructor(map: L.Map, groups: L.FeatureGroup, isCleanAndQuietMode: boolean = false) {
         // Keep track of the map
         this._map = map;
         this._popupContentFactory = new PopupContentFactory();
         this._groups = groups;
+        this._isCleanAndQuietMode = isCleanAndQuietMode;
 
         //Create two separate layersgroups, so that we can use them to check overlaps separately
         this._placementLayers = new L.LayerGroup().addTo(map);
@@ -612,15 +617,16 @@ export class Editor {
         };
 
         // Add search control
-        //@ts-ignore
-        var searchControl = new L.Control.Search({
-            layer: this._placementLayers,
-            propertyName: 'name',
-            marker: false,
-            zoom: 19,
-            initial: false,
-        });
-        map.addControl(searchControl);
+        if (!this._isCleanAndQuietMode) {
+            //@ts-ignore
+            map.addControl(new L.Control.Search({
+                layer: this._placementLayers,
+                propertyName: 'name',
+                marker: false,
+                zoom: 19,
+                initial: false,
+            }));
+        }
     }
 
     private addToggleEditButton() {
@@ -733,7 +739,9 @@ export class Editor {
 
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
-        await Messages.showNotification('Loading your drawn polygons from da interweb!');
+        if (!this._isCleanAndQuietMode) {
+            await Messages.showNotification('Loading your drawn polygons from da interweb!');
+        }
         const entities = await this._repository.entities();
         this._lastEnityFetch = new Date().getTime() / 1000;
 
@@ -742,22 +750,21 @@ export class Editor {
         }
         // Refresh enity with no rulecheck
         this.refreshAllEntities(false);
+        
+        if (!this._isCleanAndQuietMode) {
+            // Delayed start of validation
+            setTimeout(() => {
+                this.checkEntityRules();
+            }, 100);
 
-        // Delayed start of validation
-        setTimeout(() => {
-            this.checkEntityRules();
-        }, 100);
+            // Automatic refresh of entities after a minute //Disabled after the event
+            // setTimeout(() => {
+            //     this.checkForUpdatedEntities();
+            // }, this._autoRefreshIntervall * 1000);
 
-        // Automatic refresh of entities after a minute //Disabled after the event
-        // setTimeout(() => {
-        //     this.checkForUpdatedEntities();
-        // }, this._autoRefreshIntervall * 1000);
-
-        // Edit button disabled after the event took place
-        this.addToggleEditButton();
-
-        // This was used as a fast way to export everything as a geojson collection
-        // this.consoleLogAllEntitiesAsOneGeoJSONFeatureCollection();
+            // Edit button disabled after the event took place
+            this.addToggleEditButton();
+        }
     }
 
     // Atutomatically check for updates every minute or so
@@ -806,6 +813,11 @@ export class Editor {
     }
 
     public gotoEntity(id: number) {
+        if (this._isCleanAndQuietMode) {
+            this.gotoEntityFromJomo(id);
+            return;
+        }
+
         const entity = this._repository.getEntityById(id);
         if (entity) {
             const latlong = entity.layer.getBounds().getCenter();
@@ -815,6 +827,64 @@ export class Editor {
             // Call the click event
             this.onLayerClicked(entity);
         }
+    }
+
+    public gotoEntityFromJomo(id: number) {
+        const entity = this._repository.getEntityById(id);
+        if (entity) {
+            entity.setCustomColor('red');
+            let barnLocation: L.LatLng = new L.LatLng(57.6217374918, 14.9260103703); // lat, lng
+            let bambiLocation: L.LatLng = new L.LatLng(57.62329050140939, 14.929781556129457); // lat, lng
+            let currentLocation = JOMO_GUIDE_LOCATION === 1 ? barnLocation : bambiLocation;
+            let iconSize = 60;
+            
+            let randomNumber = Math.floor(Math.random() * 6) + 1;
+            let youAreHereMarker = L.marker(currentLocation, { 
+                icon: L.icon({
+                    iconUrl: './img/you-are-here-' + randomNumber + '.png',
+                    iconSize: [iconSize, iconSize],
+                    iconAnchor: [iconSize * 0.5, iconSize],
+                })
+            });
+            youAreHereMarker.addTo(this._map);
+
+            const latlong = entity.layer.getBounds().getCenter();
+            this._map.setView(latlong, 18);
+            iconSize = 48;
+            let destinationMarker = L.marker(latlong, {
+                icon: L.icon({
+                    iconUrl: './img/map-marker-icon.png',
+                    iconSize: [iconSize, iconSize],
+                    iconAnchor: [iconSize * 0.5, iconSize],
+                })
+            });
+            destinationMarker.addTo(this._map);
+
+            var group = new L.FeatureGroup([youAreHereMarker, destinationMarker]);
+            this._map.fitBounds(group.getBounds().pad(0.05));
+            
+            // Copilot wrote this code
+            // Smooth bounce animation using requestAnimationFrame
+            const bounceHeight = 0.00005; // Adjust this value for bounce height
+            const bounceDuration = 1000; // ms for a full up-down cycle
+            let startTime: number | null = null;
+            function animateBounce(timestamp: number) {
+                if (!destinationMarker._map) return; // Stop if marker is removed from map
+                if (!startTime) startTime = timestamp;
+                const elapsed = (timestamp - startTime) % bounceDuration;
+                // Use sine wave for smooth up and down, only bounce up (never below original position)
+                const t = elapsed / bounceDuration;
+                const offset = Math.max(0, Math.sin(t * Math.PI * 2)) * bounceHeight;
+                destinationMarker.setLatLng([latlong.lat + offset, latlong.lng]);
+                requestAnimationFrame(animateBounce);
+            }
+            requestAnimationFrame(animateBounce);
+        }
+    }
+
+    public ClearControls() {
+        // Remove all controls from the map
+        this._mapControls.forEach(control => this._map.removeControl(control));
     }
 
     private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {

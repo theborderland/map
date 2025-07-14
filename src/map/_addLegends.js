@@ -63,7 +63,7 @@ export const addLegends = async (map, toggableLayers, visibleLayers) => {
     });
 
     // Add all toggable layers as a control to the map
-    L.control.layers(undefined, toggableLayers, { position: 'bottomright' }).addTo(map);
+    let layerControl = L.control.layers(undefined, toggableLayers, { position: 'bottomright' })
 
     // Add all initial visible legends
     if (visibleLayers.has('Slope')) {
@@ -78,4 +78,6 @@ export const addLegends = async (map, toggableLayers, visibleLayers) => {
 
     // Add scale indicator to the UI
     //L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
+
+    return layerControl
 };

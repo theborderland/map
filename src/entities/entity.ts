@@ -203,7 +203,7 @@ export class MapEntity implements EntityDTO {
     private GetDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
         let colorToSet = this.color;
         if (cleancolors) {
-            colorToSet = Colors.Green;
+            colorToSet = DefaultColor;
         }
         return { color: colorToSet, fillColor: colorToSet, fillOpacity: 0.3, weight: 1 };
     }
@@ -213,6 +213,11 @@ export class MapEntity implements EntityDTO {
         for (const rule of this._rules) {
             rule.checkRule(this);
         }
+    }
+
+    public setCustomColor(color: string) {
+        //@ts-ignore
+        this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 1, weight: 1 });
     }
 
     public setLayerStyle(mode: 'severity' | 'sound' | 'power' | 'cleancolors' = 'severity') {
