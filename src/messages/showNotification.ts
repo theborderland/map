@@ -18,7 +18,7 @@ export async function showNotification(
     // Added timeout for when no internet connection available and sl-alert will not be defined
     // Wait for custom elements to be defined
     const timeout = new Promise(() => setTimeout(() => console.log('Timeout'), 1000));
-    await Promise.allSettled([customElements.whenDefined('sl-alert'), timeout]);
+    await Promise.race([customElements.whenDefined('sl-alert'), timeout]);
 
     alert.toast();
     return alert;
