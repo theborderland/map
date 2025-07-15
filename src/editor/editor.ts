@@ -354,13 +354,16 @@ export class Editor {
     private addEntityToMap(entity: MapEntity, checkRules: boolean = true) {
         this._currentRevisions[entity.id] = entity;
         // Bind the click-event of the editor to the layer
-        entity.layer.on('click', ({ latlng }) => {
-            console.log(latlng);
-            // Update the popup-position
-            this._popup.setLatLng(latlng);
-            // Call the click event
-            this.onLayerClicked(entity);
-        });
+        if (!this._isCleanAndQuietMode)
+        {
+            entity.layer.on('click', ({ latlng }) => {
+                console.log(latlng);
+                // Update the popup-position
+                this._popup.setLatLng(latlng);
+                // Call the click event
+                this.onLayerClicked(entity);
+            });
+        }
 
         // Add name tooltips
         this._nameTooltips[entity.id] = this.createEntityTooltip(entity);
@@ -829,57 +832,69 @@ export class Editor {
         }
     }
 
-    public gotoEntityFromJomo(id: number) {
+    public gotoEntityFromJomo(id: number, coordinates: string) {
         const entity = this._repository.getEntityById(id);
+        if (!entity && !coordinates) {
+            return;
+        }
+        let latlng;
         if (entity) {
             entity.setCustomColor('red');
-            let barnLocation: L.LatLng = new L.LatLng(57.6217374918, 14.9260103703); // lat, lng
-            let bambiLocation: L.LatLng = new L.LatLng(57.62329050140939, 14.929781556129457); // lat, lng
-            let currentLocation = JOMO_GUIDE_LOCATION === 1 ? barnLocation : bambiLocation;
-            let iconSize = 60;
-            
-            let randomNumber = Math.floor(Math.random() * 6) + 1;
-            let youAreHereMarker = L.marker(currentLocation, { 
-                icon: L.icon({
-                    iconUrl: './img/you-are-here-' + randomNumber + '.png',
-                    iconSize: [iconSize, iconSize],
-                    iconAnchor: [iconSize * 0.5, iconSize],
-                })
-            });
-            youAreHereMarker.addTo(this._map);
+            latlng = entity.layer.getBounds().getCenter();
+        }
+        
+        // coordinates are in format "57.6196721553  14.9193031468"
+        if (coordinates)
+        {
+            const coords = coordinates.split('  ');
+            latlng = new L.LatLng(parseFloat(coords[0]), parseFloat(coords[1]));
+        }
 
-            const latlong = entity.layer.getBounds().getCenter();
-            this._map.setView(latlong, 18);
-            iconSize = 48;
-            let destinationMarker = L.marker(latlong, {
-                icon: L.icon({
-                    iconUrl: './img/map-marker-icon.png',
-                    iconSize: [iconSize, iconSize],
-                    iconAnchor: [iconSize * 0.5, iconSize],
-                })
-            });
-            destinationMarker.addTo(this._map);
+        let barnLocation: L.LatLng = new L.LatLng(57.6217374918, 14.9260103703); // lat, lng
+        let bambiLocation: L.LatLng = new L.LatLng(57.62329050140939, 14.929781556129457); // lat, lng
+        let currentLocation = JOMO_GUIDE_LOCATION === 1 ? barnLocation : bambiLocation;
+        let iconSize = 60;
+        
+        let randomNumber = Math.floor(Math.random() * 6) + 1;
+        let youAreHereMarker = L.marker(currentLocation, { 
+            icon: L.icon({
+                iconUrl: './img/you-are-here-' + randomNumber + '.png',
+                iconSize: [iconSize, iconSize],
+                iconAnchor: [iconSize * 0.5, iconSize],
+            })
+        });
+        youAreHereMarker.addTo(this._map);
 
-            var group = new L.FeatureGroup([youAreHereMarker, destinationMarker]);
-            this._map.fitBounds(group.getBounds().pad(0.05));
-            
-            // Copilot wrote this code
-            // Smooth bounce animation using requestAnimationFrame
-            const bounceHeight = 0.00005; // Adjust this value for bounce height
-            const bounceDuration = 1000; // ms for a full up-down cycle
-            let startTime: number | null = null;
-            function animateBounce(timestamp: number) {
-                if (!destinationMarker._map) return; // Stop if marker is removed from map
-                if (!startTime) startTime = timestamp;
-                const elapsed = (timestamp - startTime) % bounceDuration;
-                // Use sine wave for smooth up and down, only bounce up (never below original position)
-                const t = elapsed / bounceDuration;
-                const offset = Math.max(0, Math.sin(t * Math.PI * 2)) * bounceHeight;
-                destinationMarker.setLatLng([latlong.lat + offset, latlong.lng]);
-                requestAnimationFrame(animateBounce);
-            }
+        this._map.setView(latlng, 18);
+        iconSize = 48;
+        let destinationMarker = L.marker(latlng, {
+            icon: L.icon({
+                iconUrl: './img/map-marker-icon.png',
+                iconSize: [iconSize, iconSize],
+                iconAnchor: [iconSize * 0.5, iconSize],
+            })
+        });
+        destinationMarker.addTo(this._map);
+
+        var group = new L.FeatureGroup([youAreHereMarker, destinationMarker]);
+        this._map.fitBounds(group.getBounds().pad(0.05));
+        
+        // Copilot wrote this code
+        // Smooth bounce animation using requestAnimationFrame
+        const bounceHeight = 0.00005; // Adjust this value for bounce height
+        const bounceDuration = 1000; // ms for a full up-down cycle
+        let startTime: number | null = null;
+        function animateBounce(timestamp: number) {
+            if (!destinationMarker._map) return; // Stop if marker is removed from map
+            if (!startTime) startTime = timestamp;
+            const elapsed = (timestamp - startTime) % bounceDuration;
+            // Use sine wave for smooth up and down, only bounce up (never below original position)
+            const t = elapsed / bounceDuration;
+            const offset = Math.max(0, Math.sin(t * Math.PI * 2)) * bounceHeight;
+            destinationMarker.setLatLng([latlng.lat + offset, latlng.lng]);
             requestAnimationFrame(animateBounce);
         }
+        requestAnimationFrame(animateBounce);
     }
 
     public ClearControls() {

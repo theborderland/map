@@ -17,6 +17,7 @@ export const addPointsOfInterestsTomap = async (
         description?: (properties: any) => string | string;
         link?: (properties: any) => string | string;
     } = {},
+    isCleanAndQuietMode: boolean = false
 ) => {
     let json = await (await fetch(filename)).json();
     let iconDict = {};
@@ -37,7 +38,7 @@ export const addPointsOfInterestsTomap = async (
         if (!iconDict[category]) iconDict[category] = new centeredIcon({ iconUrl: './img/icons/' + category + '.png' });
 
         // Add links
-        if (link && description) {
+        if (link && description && !isCleanAndQuietMode) {
             const props = link[0] != '#' ? `target="_blank` : ``;
             description = `${description}<br><a href="${link}" ${props}">Read more here</a>`;
         }

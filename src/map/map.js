@@ -19,6 +19,14 @@ import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async () => {
+    // When this query parameter is set, the map will
+    // not display any buttons or messages,
+    // not check entity rules
+    // disable camp popup on click
+    // disable links in POI
+    const urlParams = new URLSearchParams(window.location.search);
+    let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
+
     // Define the default layers to be visible on load if no layers are specified in the URL hash
     let defaultLayers = new Set([
         'Placement',
@@ -116,7 +124,7 @@ export const createMap = async () => {
     await addPointsOfInterestsTomap('./data/bl25/poi/soundspots.json', map.groups.soundspots, {
         description: getSoundspotDescription,
         link: '#page:soundspot',
-    });
+    }, _isCleanAndQuietMode);
     map.groups.soundspots.addTo(map.groups.soundguide);
     map.removeLayer(map.groups.soundspots);
     // Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
@@ -249,11 +257,6 @@ export const createMap = async () => {
         Aftermath24: map.groups.aftermath24,
     };
 
-    // When this query parameter is set, the map will be not display any buttons or messages,
-    // it will also not check entity rules.
-    const urlParams = new URLSearchParams(window.location.search);
-    let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
-
     // Initialize the editor
     const editor = new Editor(map, map.groups, _isCleanAndQuietMode);
 
@@ -295,7 +298,7 @@ export const createMap = async () => {
     });
 
     // Add points of interests to the map
-    await addPointsOfInterestsTomap('./data/bl25/poi/poi.json', map.groups.poi);
+    await addPointsOfInterestsTomap('./data/bl25/poi/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
 
     // Add the power grid to the map
     await addPowerGridTomap(map.groups.powergrid);
@@ -369,14 +372,17 @@ export const createMap = async () => {
     }
 
     const id = Number(urlParams.get('id'));
-    if (id) {
+    const coordinates = urlParams.get('coordinates');
+    if (id || coordinates) {
         if (_isCleanAndQuietMode) {
             editor.ClearControls();
             visibleLayers.add('Handdrawn');
             visibleLayers.delete('Names');
         }
         // Zoom to entity if id is present
-        editor.gotoEntity(id);
+        if (id) editor.gotoEntity(id);
+        if (coordinates) editor.gotoEntityFromJomo(undefined, coordinates);
+
         visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
     }
 
