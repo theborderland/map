@@ -3,6 +3,7 @@ const eventCountToShow = 50;
 const maxLettersOnScreen = getMaxLettersOnScreen();
 const eventsFilename = 'events fixed.json';
 const baseUrl = "https://www.theborderland.se/map/";
+const maxLengthOfHostName = 12; 
 
 const transformSpecialLetters = letter => {
         switch (letter) {
@@ -74,8 +75,7 @@ function removeUnwantedCharacters(text) {
  * @returns {Array} - Array of transformed sentences ready for display.
  */
 function createEventSummaryText(eventsRaw) {
-    let maxLengthOfTimeAndHostName = 16; 
-
+    let maxLengthOfTimeAndHostName = 4 + maxLengthOfHostName;
     let events = eventsRaw.map(event => ({
         ...event,
         summary_start_time: removeUnwantedCharacters(event.start_time),
