@@ -2,6 +2,7 @@ const letterToSpanElementMap = new Map();
 const eventCountToShow = 50;
 const maxLettersOnScreen = getMaxLettersOnScreen();
 const eventsFilename = 'events fixed.json';
+const baseUrl = "https://www.theborderland.se/map/";
 
 const transformSpecialLetters = letter => {
         switch (letter) {
@@ -255,7 +256,7 @@ function createTheInclusionsList(event)
 }
 
 function createIframe(event) {
-    let iframeSrc = `/?cleanandquiet`;
+    let iframeSrc = baseUrl + '?cleanandquiet';
     let locationFound = false;
     // if event.location_link is a url and has query string parameter "id", extract the id and create a link
     if (event.location_link && event.location_link.includes('id=')) {
