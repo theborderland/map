@@ -1,7 +1,7 @@
 :root,
 ::after,
 ::before {
-  --letter-height: 50;
+  --letter-height: 30; /* this controls the size of the letters, change only here */
   --letter-before-height: var(--letter-height) / 2;
   --letter-line-height: var(--letter-height);
 }
@@ -122,13 +122,13 @@ a {
   flex-direction: column;
   height: calc(var(--letter-height) * 1px);
   text-align: center;
-  width: 40px;
+  width: calc(var(--letter-height) * 1px);
 }
 
 .letter::before {
   background-color: #000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  font-size: 40px;
+  font-size: calc(var(--letter-height) * 1px);
   height: calc(var(--letter-before-height) * 1px);
   line-height: calc(var(--letter-line-height) * 1px);
   overflow: hidden;
@@ -139,9 +139,9 @@ a {
 .letter::after {
   background-color: #000;
   flex-grow: 0;
-  font-size: 40px;
-  height: 40px;
-  line-height: 40px;
+  font-size: calc(var(--letter-height) * 1px);
+  height: calc(var(--letter-height) * 1px);
+  line-height: calc(var(--letter-height) * 1px);
   margin-top: -50%;
   overflow: hidden;
   width: 100%;
