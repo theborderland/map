@@ -20,4 +20,4 @@ export const FIRE_BUFFER_IN_METER: number = 5;
 // JOMO guide locations
 // 1 = by the barn
 // 2 (or any other number)= by Bambi's Nest camp
-export const JOMO_GUIDE_LOCATION = 2;
+export const JOMO_GUIDE_LOCATION = 1;

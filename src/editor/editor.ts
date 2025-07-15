@@ -875,7 +875,8 @@ export class Editor {
             })
         });
         destinationMarker.addTo(this._map);
-
+        
+        this._map.setView(latlng, 18);
         var group = new L.FeatureGroup([youAreHereMarker, destinationMarker]);
         this._map.fitBounds(group.getBounds().pad(0.05));
         
