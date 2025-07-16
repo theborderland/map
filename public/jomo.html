@@ -11,19 +11,34 @@
 </head>
 
 <body>
-    <div class="header-container">
-        <div class="header-left">
-            <h1 class="yellow">✈️ The Borderland JOMO departure board ✈️</h1>
+    <div id="header-container">
+        <div class="header-left yellow">
+            <h1>✈️ The Borderland JOMO departure board ✈️</h1>
+            <div class="bold subtitle">Find your next adventure</div>
         </div>
 
-        <div class="header-right yellow">
-            <div class="bold">Shows the next <span id="event-count"></span> events for you to go on an adventure</div>
+        <div class="header-right dark-yellow">
             <div>Updates every 5min</div>
-            <div>Click on a row to show more info</div>
+            <div>Click on a row to show more info 👆 ℹ️</div>
+            <div>Zoom and pan on the map 🗺️</div>
         </div>
     </div>
-    <div id="board-container"></div>
-
+    <div class="board">
+        <div class="board-header bold">
+            <div class="time">Time</div>
+            <div class="gate">Gate</div>
+            <div class="destination">Destination</div>
+        </div>
+        <div id="board-container"></div>
+    </div>
+    <!-- This is a test element to be used for calculating how many rows fit on the screen by getting the elemtn height -->
+    <details class="event-details test" style="visibility: hidden;">
+        <summary>
+            <div class="flip-row">
+                <span class="letter letter-2"></span>
+            </div>
+        </summary>
+    </details>
     <script src="jomo.js"></script>
 </body>
 

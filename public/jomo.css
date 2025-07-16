@@ -1,6 +1,7 @@
 :root,
 ::after,
 ::before {
+  /* letter height is also letter width */
   --letter-height: 30; /* this controls the size of the letters, change only here */
   --letter-before-height: var(--letter-height) / 2;
   --letter-line-height: var(--letter-height);
@@ -9,12 +10,19 @@
 body {
   background-color: rgb(51, 51, 51);
   font-family: 'Fire Sans', sans-serif;
-  margin: 2px;
+}
+
+h1, h2, h3, .subtitle {
+  font-family: 'Times New Roman', serif;
 }
 
 .yellow {
   color: yellow;
 }
+.dark-yellow {
+  color: rgb(187, 169, 5);
+}
+
 .bold {
   font-weight: bold;
 } 
@@ -26,17 +34,42 @@ iframe {
       border: none;
 }
 
-.header-container {
+#header-container {
 	display: flex;
 	justify-content: center;
+
+  h1 {
+    margin: 0;
+  }
+
+  .header-left {
+    flex-grow: 1;
+    text-align: center;
+  }
+
+  .header-right {
+    flex-grow: 0;
+  }
 }
 
-.header-left {
-	flex-grow: 1;
-}
+.board-header {
+  color: white;
 
-.header-right {
-	flex-grow: 1;
+  .time {
+    display: inline-block;
+    width: calc(calc(var(--letter-height) * 1px) * 5);
+    margin-left: 10px;
+  }
+
+  .gate {
+    display: inline-block;
+    width: calc(calc(var(--letter-height) * 1px) * 18);
+  }
+
+  .destination {
+    padding-left: 10px;
+    display: inline-block;
+  }
 }
 
 details {
@@ -46,8 +79,9 @@ details {
   color: #fff;
   font-size: large;
   margin-top: 10px;
-  padding: 0 1em 0em 1em;
-  border-radius: 1em;
+  padding: 0 5px;
+  border-radius: 5px;
+
   summary {
     list-style: none;
   }
@@ -62,7 +96,7 @@ details {
   }
 }
 
-.columns-container {
+.inner-details-container {
   display: flex;
   gap: 32px;
   height: 500px;
@@ -105,18 +139,14 @@ details {
   }
 }
 
-
-a {
-  color: rgba(255, 255, 255, 0.3);
-}
-
 .flip-row {
   display: inline-flex;
+  font-family: 'Courier New', monospace;
 }
 
 .letter {
   background-color: #000;
-  border-right: 1px solid #1d1e1e;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
   color: #000;
   display: flex;
   flex-direction: column;
@@ -126,7 +156,6 @@ a {
 }
 
 .letter::before {
-  background-color: #000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   font-size: calc(var(--letter-height) * 1px);
   height: calc(var(--letter-before-height) * 1px);
@@ -137,7 +166,6 @@ a {
 }
 
 .letter::after {
-  background-color: #000;
   flex-grow: 0;
   font-size: calc(var(--letter-height) * 1px);
   height: calc(var(--letter-height) * 1px);
