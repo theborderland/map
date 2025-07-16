@@ -1,9 +1,10 @@
 const letterToSpanElementMap = new Map();
-const eventCountToShow = 50;
+const eventCountToShow = getMaxRowsOnScreen();
 const maxLettersOnScreen = getMaxLettersOnScreen();
 const eventsFilename = 'events fixed.json';
 const baseUrl = "https://www.theborderland.se/map/";
-const maxLengthOfHostName = 12; 
+const maxLengthOfHostName = 17; 
+let updateTimer = 1000 * 60 * 5; // 5 minutes in milliseconds
 
 const transformSpecialLetters = letter => {
         switch (letter) {
@@ -12,7 +13,7 @@ const transformSpecialLetters = letter => {
             case 'Ö': return 'OE';
             case ' ': return 'blank';
             case '.': return 'dot';
-            case '+': return 'dotdotdot';
+            case '€': return 'dotdotdot';
             case '/': return 'slash';
             case '&': return 'ampersand';
             default: return letter;
@@ -26,7 +27,7 @@ function createMap() {
         'Å', 'Ä', 'Ö',
         '.', ' ', '/', '&',
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-        '+', // This is used for the "dotdotdot" representation
+        '€', // This is used for the "dotdotdot" "..." representation
     ];
 
     // Transform special letters to their respective representations
@@ -60,6 +61,22 @@ function getMaxLettersOnScreen() {
     return maxLetters;
 }
 
+function getMaxRowsOnScreen() {
+    const sampleRow = document.querySelector('.event-details.test');
+    // Full height of a html element including border, padding and margin
+    var styles = window.getComputedStyle(sampleRow);
+    var margin = parseFloat(styles['marginTop']) + parseFloat(styles['marginBottom']);
+    var rowHeight = sampleRow.offsetHeight + margin;
+    document.body.removeChild(sampleRow);
+
+    const headerHeight = document.getElementById('header-container')?.getBoundingClientRect().height || 0;
+    const windowHeight = window.innerHeight;
+    const availableHeight = windowHeight - headerHeight;
+    let maxRows = Math.floor(availableHeight / rowHeight);
+    console.log(`Max rows on screen: ${maxRows}`);
+    return maxRows;
+}
+
 function removeUnwantedCharacters(text) {
     return text
         .toUpperCase()
@@ -75,7 +92,6 @@ function removeUnwantedCharacters(text) {
  * @returns {Array} - Array of transformed sentences ready for display.
  */
 function createEventSummaryText(eventsRaw) {
-    let maxLengthOfTimeAndHostName = 4 + maxLengthOfHostName;
     let events = eventsRaw.map(event => ({
         ...event,
         summary_start_time: removeUnwantedCharacters(event.start_time),
@@ -83,32 +99,26 @@ function createEventSummaryText(eventsRaw) {
         summary_event_title: removeUnwantedCharacters(event.event_title)
     }));
     
-    // Find the max length of "time location" part
-    const maxTimeAndHostLength = Math.max(...events.map(event =>
-        // Add + 1 in the end to accounts for the "..."
-        `${event.summary_start_time} ${event.summary_host.slice(0, maxLengthOfTimeAndHostName + 1)}`.length
-    ));
-
-    // Pad the "time location" part to the max length
     for (let event of events) {
-        let host = `${event.summary_host.length > maxLengthOfTimeAndHostName
-            ? event.summary_host.slice(0, maxLengthOfTimeAndHostName).trim() + '+' // + means "..."
-            : event.summary_host}`;
-        const eventStartTimeAndHost = `${event.summary_start_time} ${host}`.padEnd(maxTimeAndHostLength, ' ');
-        // two spaces between time/location and event title to make it more readable
-        event.summary = `${eventStartTimeAndHost}  ${event.summary_event_title.trim()}`;
+        let hostName = event.summary_host;
+        
+        if (event.summary_host.length > maxLengthOfHostName){
+            hostName = `${event.summary_host.slice(0, maxLengthOfHostName-1).trim()}€`; // € means "..."
+        }
+        
+        event.summary = `${event.summary_start_time} ${hostName.padEnd(maxLengthOfHostName, ' ')} ${event.summary_event_title.trim()}`;
     }
 
     // Trim text, adding a "..." if trimmed
     for (let event of events) {
         if (event.summary.length > maxLettersOnScreen) {
-            event.summary = event.summary.slice(0, maxLettersOnScreen - 1) + '+'; // + means "..."
+            event.summary = event.summary.slice(0, maxLettersOnScreen - 1) + '€'; // € means "..."
         }
     }
 
+    // Pad the summary to the max length, so the row takes up the whole width of the screen
     const maxSummaryLength = Math.max(...events.map(event => event.summary.length));
     for (let event of events) {
-        // Pad the summary to the max length
         event.summary = event.summary.padEnd(maxSummaryLength, ' ');
     }
     return events;
@@ -159,7 +169,7 @@ function createLine(event) {
     container.appendChild(details);
 
     let columnsContainer = document.createElement('div');
-    columnsContainer.classList.add('columns-container');
+    columnsContainer.classList.add('inner-details-container');
 
     let leftColumn = document.createElement('div');
     leftColumn.style.flex = '1';
@@ -287,15 +297,33 @@ function createIframe(event) {
     return iframe;
 }
 
+// Use this function to test the "update function"
+function testUpdateFunction(events) {
+    updateTimer = 1000 * 10; // 10 seconds in milliseconds
+    // change the timestamp of the first 5 events to 10,20,30.. seconds from now.
+    for (let i = 0; i < 5; i++) {
+        const event = events[i];
+        let newTimestamp = new Date().getTime();
+        event.timestamp = newTimestamp + (10000 * (i + 1));
+    }
+}
+
+function removeFadeOut(element, speed) {
+    var seconds = speed/1000;
+    element.style.transition = "opacity "+seconds+"s ease";
+    element.style.opacity = 0;
+    setTimeout(function() {
+        element.parentNode.removeChild(element);
+    }, speed);
+}
+
 async function initialize() {
-    document.getElementById('event-count').innerText = eventCountToShow;
     createMap();
     let events = await loadEvents();
-
+    //testUpdateFunction(events);
     events = getUpcomingEvents(events, getNow(), eventCountToShow);
     events = createEventSummaryText(events);
     events.forEach(createLine)
-
 
     // Every 5 minutes, remove already started events and add new not yet started events at the bottom
     setInterval(async () => {
@@ -309,7 +337,7 @@ async function initialize() {
         detailsElements.forEach(details => {
             const startTime = new Date(Number(details.dataset.startTime));
             if (startTime <= now) {
-                details.remove();
+                removeFadeOut(details, 2000);
                 counter++;
             }
         });
@@ -319,10 +347,7 @@ async function initialize() {
         newEvents = getUpcomingEvents(newEvents, now, counter, highestVisibleEventId);
         newEvents = createEventSummaryText(newEvents);
         newEvents.forEach(createLine);
-    }, 1000 * 60 * 5); // 5 minutes in milliseconds
+    }, updateTimer);
 }
 
 initialize();
-
-
-
