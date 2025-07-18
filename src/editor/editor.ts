@@ -852,7 +852,7 @@ export class Editor {
 
         let barnLocation: L.LatLng = new L.LatLng(57.6217374918, 14.9260103703); // lat, lng
         let bambiLocation: L.LatLng = new L.LatLng(57.62329050140939, 14.929781556129457); // lat, lng
-        let currentLocation = JOMO_GUIDE_LOCATION === 1 ? barnLocation : bambiLocation;
+        let currentLocation = JOMO_GUIDE_LOCATION == 'barn' ? barnLocation : bambiLocation;
         let iconSize = 60;
         
         let randomNumber = Math.floor(Math.random() * 6) + 1;
@@ -865,7 +865,6 @@ export class Editor {
         });
         youAreHereMarker.addTo(this._map);
 
-        this._map.setView(latlng, 18);
         iconSize = 48;
         let destinationMarker = L.marker(latlng, {
             icon: L.icon({

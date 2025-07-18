@@ -12,7 +12,7 @@ body {
   font-family: 'Fire Sans', sans-serif;
 }
 
-h1, h2, h3, .subtitle {
+h1, h2, h3 {
   font-family: 'Times New Roman', serif;
 }
 
@@ -38,7 +38,7 @@ iframe {
 	display: flex;
 	justify-content: center;
 
-  h1 {
+  h1, h3 {
     margin: 0;
   }
 
