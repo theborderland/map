@@ -465,7 +465,7 @@ export class Editor {
             }
         }
         this.stopwatch = new Date().getTime();
-        requestAnimationFrame(this.checkRulesSlowly.bind(this));
+        //requestAnimationFrame(this.checkRulesSlowly.bind(this));
     }
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
@@ -638,6 +638,10 @@ export class Editor {
             this._map.addControl(ButtonsFactory.edit(this._isEditMode, () => {
                 this.toggleEditMode();
             }));
+            // Auto click the button to enable edit mode
+            setTimeout(() => {
+                //document.querySelector('.btn.button-shake-animate.leaflet-control').click();
+            }, 100);
         }
         if (NOTE_ABOUT_EDITING) {
             this._map.addControl(Messages.editing(NOTE_ABOUT_EDITING));

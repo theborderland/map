@@ -1,18 +1,16 @@
 import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
-import { REPOSITORY_URL } from '../SETTINGS';
+import { REPOSITORY_URL, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
 
 /** The URL to the API */
 const ENTITIES_URL = REPOSITORY_URL + '/api/v1/mapentities';
 
-/** Total memberships sold for 2024 */
-const TOTAL_MEMBERSHIPS_SOLD = 4114;
-
 /** Any ID selected in the URL as search parameter */
 const ID = new URLSearchParams(window.location.search).get('id');
+const IsSingleEntity = ID && !isNaN(Number(ID));
 
 /** Columns visible on the /stats url and in the excel export */
-const COLUMNS: Array<{ title: String; field: keyof Entity; [key: string]: any }> = [
+const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> = [
     {
         title: 'Location',
         field: 'id',
@@ -90,11 +88,30 @@ export const createStats = async () => {
 
     const parsedEntries = [];
     const stats = {
-        nrOfMembershipsSold: { value: TOTAL_MEMBERSHIPS_SOLD, title: 'total nr. of memberships', unit: 'memberships' },
-        totalNrOfPeople: { value: 0, title: 'total nr. of campers', unit: 'persons' },
-        totalNrOfVechiles: { value: 0, title: 'total nr. of vechiles', unit: 'automobiles' },
-        totalPowerNeed: { value: 0, title: 'total power need of all camps', unit: 'watts' },
-        totalNrOfEntries: { value: entries.length, title: 'total nr. of shapes on the map', unit: 'shapes' },
+        nrOfMembershipsSold: { 
+            value: TOTAL_MEMBERSHIPS_SOLD, 
+            title: 'total nr. of memberships', 
+            unit: 'memberships' },
+        totalNrOfPeople: {
+            value: 0,
+            title: IsSingleEntity ? 'nr. of campers' : 'total nr. of campers',
+            unit: 'persons'
+        },
+        totalNrOfVechiles: {
+            value: 0,
+            title: IsSingleEntity ? 'nr. of vechiles' : 'total nr. of vechiles',
+            unit: 'automobiles'
+        },
+        totalNrOfEntries: {
+            value: entries.length,
+            title: IsSingleEntity ? 'nr. of changes to the shape' : 'total nr. of shapes on the map',
+            unit: IsSingleEntity ? 'times' : 'shapes'
+        },
+        totalPowerNeed: {
+            value: 0,
+            title: IsSingleEntity ? 'power need of camp' : 'total power need of all camps',
+            unit: 'watts'
+        },
     };
 
     for (const entry of entries) {
@@ -116,10 +133,16 @@ export const createStats = async () => {
             revision: Number(entry.revision),
             supressWarnings: Number(properties.supressWarnings),
         };
-        stats.totalNrOfPeople.value += +entity.nrOfPeople;
-        stats.totalNrOfVechiles.value += entity.nrOfVechiles;
-        stats.totalPowerNeed.value += entity.powerNeed;
+        stats.totalNrOfPeople.value += +isNaN(entity.nrOfPeople) ? 0 : entity.nrOfPeople;
+        stats.totalNrOfVechiles.value += +isNaN(entity.nrOfVechiles) ? 0 : entity.nrOfVechiles;
+        stats.totalPowerNeed.value += +isNaN(entity.powerNeed) ? 0 : entity.powerNeed;
         parsedEntries.push(entity);
+    }
+    if (IsSingleEntity) {
+        const { properties } = JSON.parse(entries[entries.length - 1].geoJson);
+        stats.totalNrOfPeople.value = properties.nrOfPeople;
+        stats.totalNrOfVechiles.value = properties.nrOfVechiles;
+        stats.totalPowerNeed.value = properties.powerNeed;
     }
 
     // Create Tabulator view
@@ -160,4 +183,15 @@ export const createStats = async () => {
     btn.setAttribute('variant', 'primary');
     link.appendChild(btn);
     document.querySelector('#header').appendChild(link);
+
+    if (ID) {
+        const linkToMap = document.createElement('a');
+        linkToMap.href = './?id=' + ID;
+        linkToMap.target = '_blank';
+        const btnForMapLink = document.createElement('sl-button');
+        btnForMapLink.innerHTML = 'Go to area on map';
+        btnForMapLink.setAttribute('variant', 'success');
+        linkToMap.appendChild(btnForMapLink);
+        document.querySelector('#header').appendChild(linkToMap);
+    }
 };
