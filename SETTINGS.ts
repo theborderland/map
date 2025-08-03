@@ -16,8 +16,3 @@ export const MAX_CLUSTER_SIZE: number = 1250;
 export const MAX_POWER_NEED: number = 8000;
 export const MAX_POINTS_BEFORE_WARNING: number = 10;
 export const FIRE_BUFFER_IN_METER: number = 5;
-
-// JOMO guide locations
-// 'barn' = by the barn
-// 'bambi' (or any other text) = by Bambi's Nest camp
-export const JOMO_GUIDE_LOCATION = 'bambi';

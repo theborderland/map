@@ -372,8 +372,7 @@ export const createMap = async () => {
     }
 
     const id = Number(urlParams.get('id'));
-    const coordinates = urlParams.get('coordinates');
-    if (id || coordinates) {
+    if (id) {
         if (_isCleanAndQuietMode) {
             editor.ClearControls();
             visibleLayers.add('Handdrawn');
@@ -381,7 +380,6 @@ export const createMap = async () => {
         }
         // Zoom to entity if id is present
         if (id) editor.gotoEntity(id);
-        if (coordinates) editor.gotoEntityFromJomo(undefined, coordinates);
 
         visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
     }
