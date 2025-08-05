@@ -1,6 +1,7 @@
 import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
 import { REPOSITORY_URL, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
+import * as Turf from '@turf/turf';
 
 /** The URL to the API */
 const ENTITIES_URL = REPOSITORY_URL + '/api/v1/mapentities';
@@ -17,26 +18,55 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
         formatter: 'link',
         formatterParams: {
             labelField: 'id',
-            urlPrefix: '/index.html?id=',
+            urlPrefix: './?id=', // Go to the map with this id
             target: '_blank',
         },
+        tooltip: 'Click to see this shape on the map',
     },
-    { title: 'Name', field: 'name' },
-    { title: 'Contact Info', field: 'contactInfo' },
-    { title: 'Nr of People', field: 'nrOfPeople' },
-    { title: 'Nr of Vechiles', field: 'nrOfVechiles' },
+    {
+        title: 'Name',
+        field: 'name',
+        formatter: 'link',
+        formatterParams: {
+            labelField: 'name',
+            urlPrefix: '?id=', // Go to the stats with this id
+            urlField: 'id',
+        },
+        headerFilter: true,
+        headerFilterPlaceholder: 'Search...',
+        width: 200,
+    },
+    {
+        title: 'Contact Info',
+        field: 'contactInfo',
+        headerFilter: true,
+        headerFilterPlaceholder: 'Search...',
+        width: 100,
+    },
+    {
+        title: 'Technical Contact Info',
+        field: 'techContactInfo',
+        headerFilter: true,
+        headerFilterPlaceholder: 'Search...',
+        width: 100,
+    },
+    { title: 'People', field: 'nrOfPeople' },
+    { title: 'Vehicles', field: 'nrOfVehicles' },
     { title: 'Color', field: 'color', formatter: 'color' },
-    { title: 'Additional Square meters (m2)', field: 'additionalSqm' },
-    { title: 'Amplified Sound (watts)', field: 'amplifiedSound' },
+    { title: 'Size (m2)', field: 'sizeSqm' },
+    { title: 'Sound (watts)', field: 'amplifiedSound' },
     { title: 'Power need (watts)', field: 'powerNeed' },
     {
         title: 'Description',
         field: 'description',
         formatter: 'textarea',
         resizable: true,
-        width: 600,
+        width: 400,
         variableHeight: true,
+        headerFilter: 'input',
+        headerFilterPlaceholder: 'Search...',
     },
+    { title: 'Timestamp', field: 'timeStamp' }
 ];
 
 type Entity = {
@@ -45,13 +75,14 @@ type Entity = {
     timeStamp: Date;
     isDeleted: boolean;
     deleteReason: string;
-    additionalSqm: number;
+    sizeSqm: number;
     amplifiedSound: number;
     color: string;
     contactInfo: string;
+    techContactInfo: string;
     description: string;
     nrOfPeople: number;
-    nrOfVechiles: number;
+    nrOfVehicles: number;
     powerNeed: number;
     revision: number;
     supressWarnings: number;
@@ -65,12 +96,154 @@ const createRowFromEntity = (row: Entity) => {
     return newEntity;
 };
 
+/** Fetches the entries from the API */
+async function fetchEntries(url: string, id: string): Promise<any[]> {
+    const resp = await fetch(url + (id ? '/' + id : ''));
+    return await resp.json();
+}
+
+function createOverviewStats(parsedEntries: Entity[], isSingleEntity: boolean) {
+    let stats: { [key: string]: { value: number; title: string; unit: string } } = {
+        nrOfMembershipsSold: {
+            value: TOTAL_MEMBERSHIPS_SOLD,
+            title: 'total nr. of memberships',
+            unit: 'memberships'
+        },
+        totalNrOfPeople: {
+            value: 0,
+            title: isSingleEntity ? 'nr. of campers' : 'total nr. of campers',
+            unit: 'persons'
+        },
+        totalNrOfVehicles: {
+            value: 0,
+            title: isSingleEntity ? 'nr. of vehicles' : 'total nr. of vehicles',
+            unit: 'automobiles'
+        },
+        totalNrOfEntries: {
+            value: parsedEntries.length,
+            title: isSingleEntity ? 'nr. of changes to the shape' : 'total nr. of shapes on the map',
+            unit: isSingleEntity ? 'times' : 'shapes'
+        },
+        totalPowerNeed: {
+            value: 0,
+            title: isSingleEntity ? 'power need of camp' : 'total power need of all camps',
+            unit: 'watts'
+        },
+    };
+
+    if (isSingleEntity) {
+        // Show only stats from the latest entry
+        let latestEntity = parsedEntries[parsedEntries.length - 1];
+        stats.totalNrOfPeople.value = latestEntity.nrOfPeople;
+        stats.totalNrOfVehicles.value = latestEntity.nrOfVehicles;
+        stats.totalPowerNeed.value = latestEntity.powerNeed;
+        delete stats.nrOfMembershipsSold;
+    } else {
+        // Aggregate stats for all entries
+        stats.totalNrOfPeople.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.nrOfPeople) ? 0 : entry.nrOfPeople), 0);
+        stats.totalNrOfVehicles.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.nrOfVehicles) ? 0 : entry.nrOfVehicles), 0);
+        stats.totalPowerNeed.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.powerNeed) ? 0 : entry.powerNeed), 0);
+    }
+
+    return stats;
+}
+
+function parseEntries(entries: any[]): Entity[] {
+    const parsedEntries: Entity[] = [];
+
+    for (const entry of entries) {
+        const { properties, geometry } = JSON.parse(entry.geoJson);
+        const entity: Entity = {
+            id: Number(entry.id),
+            name: String(properties.name),
+            timeStamp: new Date(entry.timeStamp),
+            isDeleted: Boolean(entry.isDeleted),
+            deleteReason: String(entry.deleteReason),
+            sizeSqm: Math.round(Turf.area(geometry)),
+            amplifiedSound: Number(properties.amplifiedSound),
+            color: String(properties.color),
+            contactInfo: String(properties.contactInfo),
+            techContactInfo: String(properties.techContactInfo),
+            description: String(properties.description),
+            nrOfPeople: Number(properties.nrOfPeople),
+            nrOfVehicles: Number(properties.nrOfVehicles),
+            powerNeed: Number(properties.powerNeed),
+            revision: Number(entry.revision),
+            supressWarnings: Number(properties.supressWarnings),
+        };
+        parsedEntries.push(entity);
+    }
+    return parsedEntries;
+}
+
+function createExcelFile(parsedEntries: Entity[]) {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Borderland Community Cocreators';
+    const worksheet = workbook.addWorksheet('Camps');
+    worksheet.columns = COLUMNS.map((column) => ({ header: column.title, key: column.field } as ExcelJS.Column));
+    parsedEntries.forEach((entity) => worksheet.addRow(createRowFromEntity(entity)));
+    return workbook;
+}
+
+function writeStatsListToDOM(stats: { [key: string]: { value: number; title: string; unit: string; }; }) {
+    const list = document.createElement('ul');
+    for (const { value, title, unit } of Object.values(stats)) {
+        const entry = document.createElement('li');
+        entry.innerHTML = `${title}: ${value} ${unit}`;
+        list.appendChild(entry);
+    }
+    document.querySelector('#header').appendChild(list);
+}
+
+async function createExcelDownloadBtn(workbook: ExcelJS.Workbook) {
+    const buffer = await workbook.xlsx.writeBuffer();
+    const url = URL.createObjectURL(new Blob([buffer], { type: 'application/xlsx' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'camps.xlsx';
+    const btn = document.createElement('sl-button');
+    btn.innerHTML = 'Download XLSX File';
+    btn.setAttribute('variant', 'primary');
+    link.appendChild(btn);
+    document.querySelector('#buttons').appendChild(link);
+}
+
+function createBackToListBtn() {
+    const linkBack = document.createElement('a');
+    linkBack.href = window.location.href.split('?')[0];
+    const btnBack = document.createElement('sl-button');
+    btnBack.innerHTML = 'Go back to list';
+    btnBack.setAttribute('variant', 'neutral');
+    linkBack.appendChild(btnBack);
+    document.querySelector('#buttons').appendChild(linkBack);
+}
+
+function addRowClickEvent(table: any) {
+    table.on("rowClick", function (e, row) {
+        if (e.target.tagName === 'A') {
+            return; // If the click was on a link, do not trigger the row click
+        }
+        const cell = row.getCell('name');
+        if (cell) {
+            const anchor = cell.getElement().querySelector('a');
+            if (anchor) {
+                anchor.click();
+            }
+            return;
+        }
+    });
+}
+
 /** Initializes the statistics page */
 export const createStats = async () => {
+    // Write header title
+    const title = document.createElement('h1');
+    title.innerHTML = IsSingleEntity ? 'History for shape with id ' + ID : 'All camps and statistics';
+    document.querySelector('#header').appendChild(title);
+
     /// Add columns visible only when a id is selected
-    if (ID) {
+    if (IsSingleEntity) {
         COLUMNS.push({ title: 'Revision', field: 'revision' });
-        COLUMNS.push({ title: 'Timestamp', field: 'timeStamp' });
         COLUMNS.push({
             title: 'Deleted',
             formatter: 'tickCross',
@@ -82,116 +255,34 @@ export const createStats = async () => {
         });
     }
 
-    // Fetch the data
-    const resp = await fetch(ENTITIES_URL + (ID ? '/' + ID : ''));
-    const entries = await resp.json();
-
-    const parsedEntries = [];
-    const stats = {
-        nrOfMembershipsSold: { 
-            value: TOTAL_MEMBERSHIPS_SOLD, 
-            title: 'total nr. of memberships', 
-            unit: 'memberships' },
-        totalNrOfPeople: {
-            value: 0,
-            title: IsSingleEntity ? 'nr. of campers' : 'total nr. of campers',
-            unit: 'persons'
-        },
-        totalNrOfVechiles: {
-            value: 0,
-            title: IsSingleEntity ? 'nr. of vechiles' : 'total nr. of vechiles',
-            unit: 'automobiles'
-        },
-        totalNrOfEntries: {
-            value: entries.length,
-            title: IsSingleEntity ? 'nr. of changes to the shape' : 'total nr. of shapes on the map',
-            unit: IsSingleEntity ? 'times' : 'shapes'
-        },
-        totalPowerNeed: {
-            value: 0,
-            title: IsSingleEntity ? 'power need of camp' : 'total power need of all camps',
-            unit: 'watts'
-        },
-    };
-
-    for (const entry of entries) {
-        const { properties } = JSON.parse(entry.geoJson);
-        const entity: Entity = {
-            id: Number(entry.id),
-            name: String(properties.name),
-            timeStamp: new Date(entry.timeStamp),
-            isDeleted: Boolean(entry.isDeleted),
-            deleteReason: String(entry.deleteReason),
-            additionalSqm: Number(properties.additionalSqm),
-            amplifiedSound: Number(properties.amplifiedSound),
-            color: String(properties.color),
-            contactInfo: String(properties.contactInfo),
-            description: String(properties.description),
-            nrOfPeople: Number(properties.nrOfPeople),
-            nrOfVechiles: Number(properties.nrOfVechiles),
-            powerNeed: Number(properties.powerNeed),
-            revision: Number(entry.revision),
-            supressWarnings: Number(properties.supressWarnings),
-        };
-        stats.totalNrOfPeople.value += +isNaN(entity.nrOfPeople) ? 0 : entity.nrOfPeople;
-        stats.totalNrOfVechiles.value += +isNaN(entity.nrOfVechiles) ? 0 : entity.nrOfVechiles;
-        stats.totalPowerNeed.value += +isNaN(entity.powerNeed) ? 0 : entity.powerNeed;
-        parsedEntries.push(entity);
-    }
-    if (IsSingleEntity) {
-        const { properties } = JSON.parse(entries[entries.length - 1].geoJson);
-        stats.totalNrOfPeople.value = properties.nrOfPeople;
-        stats.totalNrOfVechiles.value = properties.nrOfVechiles;
-        stats.totalPowerNeed.value = properties.powerNeed;
-    }
+    const entries = await fetchEntries(ENTITIES_URL, ID);
+    const parsedEntries = parseEntries(entries);
+    const stats = createOverviewStats(parsedEntries, IsSingleEntity);
 
     // Create Tabulator view
-    new TabulatorFull('#stats', {
+    let table: TabulatorFull = new TabulatorFull('#stats', {
         data: parsedEntries,
         columns: COLUMNS,
+        layout: 'fitColumns',
+        columnDefaults: {
+            headerTooltip: function (e, cell, onRendered) {
+                var el = document.createElement("div");
+                el.innerText = cell.getDefinition().title;
+                return el;
+            },
+            tooltip: IsSingleEntity ? '' : 'Click to see the history of this shape',
+        }
     });
 
-    // Create Excel export file
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Borderland Community Cocreators';
-    const worksheet = workbook.addWorksheet('Camps');
-    worksheet.columns = COLUMNS.map((column) => ({ header: column.title, key: column.field } as ExcelJS.Column));
-    parsedEntries.forEach((entity) => worksheet.addRow(createRowFromEntity(entity)));
+    
+    writeStatsListToDOM(stats);
+    // Create Excel export file and download button
+    const workbook = createExcelFile(parsedEntries);
+    await createExcelDownloadBtn(workbook);
 
-    // Create header title
-    const title = document.createElement('h1');
-    title.innerHTML = ID ? 'History for shape with id ' + ID : 'All camps and statistics';
-    document.querySelector('#header').appendChild(title);
-
-    // Create statistics list
-    const list = document.createElement('ul');
-    for (const { value, title, unit } of Object.values(stats)) {
-        const entry = document.createElement('li');
-        entry.innerHTML = `${title}: ${value} ${unit}`;
-        list.appendChild(entry);
-    }
-    document.querySelector('#header').appendChild(list);
-
-    // Create excel download button
-    const buffer = await workbook.xlsx.writeBuffer();
-    const url = URL.createObjectURL(new Blob([buffer], { type: 'application/xlsx' }));
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'camps.xlsx';
-    const btn = document.createElement('sl-button');
-    btn.innerHTML = 'Download XLSX File';
-    btn.setAttribute('variant', 'primary');
-    link.appendChild(btn);
-    document.querySelector('#header').appendChild(link);
-
-    if (ID) {
-        const linkToMap = document.createElement('a');
-        linkToMap.href = './?id=' + ID;
-        linkToMap.target = '_blank';
-        const btnForMapLink = document.createElement('sl-button');
-        btnForMapLink.innerHTML = 'Go to area on map';
-        btnForMapLink.setAttribute('variant', 'success');
-        linkToMap.appendChild(btnForMapLink);
-        document.querySelector('#header').appendChild(linkToMap);
+    if (IsSingleEntity) {
+        createBackToListBtn();
+    } else {
+        addRowClickEvent(table);
     }
 };
