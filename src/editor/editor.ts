@@ -465,7 +465,7 @@ export class Editor {
             }
         }
         this.stopwatch = new Date().getTime();
-        //requestAnimationFrame(this.checkRulesSlowly.bind(this));
+        requestAnimationFrame(this.checkRulesSlowly.bind(this));
     }
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
@@ -761,7 +761,7 @@ export class Editor {
         if (!this._isCleanAndQuietMode) {
             // Delayed start of validation
             setTimeout(() => {
-                this.checkEntityRules();
+                //this.checkEntityRules();
             }, 100);
 
             // Automatic refresh of entities after a minute //Disabled after the event

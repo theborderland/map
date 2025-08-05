@@ -176,7 +176,7 @@ export class MapEntity implements EntityDTO {
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
-        this.nrOfVehicles = geoJson.properties.nrOfVechiles ?? 0;
+        this.nrOfVehicles = geoJson.properties.nrOfVehicles ?? 0;
         this.additionalSqm = geoJson.properties.additionalSqm ?? 0;
         if (Number.isNaN(Number(geoJson.properties.amplifiedSound))) {
             this.amplifiedSound = -1;
@@ -291,7 +291,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.description = DOMPurify.sanitize(this.description).substring(0, 1000);
         geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
         geoJson.properties.nrOfPeople = this.nrOfPeople;
-        geoJson.properties.nrOfVechiles = this.nrOfVehicles;
+        geoJson.properties.nrOfVehicles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.color = this.color;
