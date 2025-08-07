@@ -99,53 +99,9 @@ const createRowFromEntity = (row: Entity) => {
 /** Fetches the entries from the API */
 async function fetchEntries(url: string, id: string): Promise<any[]> {
     const resp = await fetch(url + (id ? '/' + id : ''));
-    return await resp.json();
-}
-
-function createOverviewStats(parsedEntries: Entity[], isSingleEntity: boolean) {
-    let stats: { [key: string]: { value: number; title: string; unit: string } } = {
-        nrOfMembershipsSold: {
-            value: TOTAL_MEMBERSHIPS_SOLD,
-            title: 'total nr. of memberships',
-            unit: 'memberships'
-        },
-        totalNrOfPeople: {
-            value: 0,
-            title: isSingleEntity ? 'nr. of campers' : 'total nr. of campers',
-            unit: 'persons'
-        },
-        totalNrOfVehicles: {
-            value: 0,
-            title: isSingleEntity ? 'nr. of vehicles' : 'total nr. of vehicles',
-            unit: 'automobiles'
-        },
-        totalNrOfEntries: {
-            value: parsedEntries.length,
-            title: isSingleEntity ? 'nr. of changes to the shape' : 'total nr. of shapes on the map',
-            unit: isSingleEntity ? 'times' : 'shapes'
-        },
-        totalPowerNeed: {
-            value: 0,
-            title: isSingleEntity ? 'power need of camp' : 'total power need of all camps',
-            unit: 'watts'
-        },
-    };
-
-    if (isSingleEntity) {
-        // Show only stats from the latest entry
-        let latestEntity = parsedEntries[parsedEntries.length - 1];
-        stats.totalNrOfPeople.value = latestEntity.nrOfPeople;
-        stats.totalNrOfVehicles.value = latestEntity.nrOfVehicles;
-        stats.totalPowerNeed.value = latestEntity.powerNeed;
-        delete stats.nrOfMembershipsSold;
-    } else {
-        // Aggregate stats for all entries
-        stats.totalNrOfPeople.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.nrOfPeople) ? 0 : entry.nrOfPeople), 0);
-        stats.totalNrOfVehicles.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.nrOfVehicles) ? 0 : entry.nrOfVehicles), 0);
-        stats.totalPowerNeed.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.powerNeed) ? 0 : entry.powerNeed), 0);
-    }
-
-    return stats;
+    let entries = await resp.json();
+    let parsedEntries = parseEntries(entries);
+    return parsedEntries;
 }
 
 function parseEntries(entries: any[]): Entity[] {
@@ -176,6 +132,63 @@ function parseEntries(entries: any[]): Entity[] {
     return parsedEntries;
 }
 
+function createOverviewStats(parsedEntries: Entity[], isSingleEntity: boolean) {
+    let stats: { [key: string]: { value: number; title: string } } = {
+        nrOfMembershipsSold: {
+            value: TOTAL_MEMBERSHIPS_SOLD,
+            title: 'total nr. of memberships',
+        },
+        totalNrOfPeople: {
+            value: 0,
+            title: isSingleEntity ? 'nr. of campers' : 'total nr. of campers',
+        },
+        totalNrOfVehicles: {
+            value: 0,
+            title: isSingleEntity ? 'nr. of vehicles' : 'total nr. of vehicles',
+        },
+        totalNrOfEntries: {
+            value: parsedEntries.length,
+            title: isSingleEntity ? 'nr. of changes to the shape' : 'total nr. of shapes on the map',
+        },
+        totalPowerNeed: {
+            value: 0,
+            title: isSingleEntity ? 'power need of camp (watts)' : 'total power need of all camps (watts)',
+        },
+    };
+
+    if (isSingleEntity) {
+        // Show only stats from the latest entry
+        let latestEntity = parsedEntries[parsedEntries.length - 1];
+        stats.totalNrOfPeople.value = latestEntity.nrOfPeople;
+        stats.totalNrOfVehicles.value = latestEntity.nrOfVehicles;
+        stats.totalPowerNeed.value = latestEntity.powerNeed;
+        delete stats.nrOfMembershipsSold;
+    } else {
+        // Aggregate stats for all entries
+        stats.totalNrOfPeople.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.nrOfPeople) ? 0 : entry.nrOfPeople), 0);
+        stats.totalNrOfVehicles.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.nrOfVehicles) ? 0 : entry.nrOfVehicles), 0);
+        stats.totalPowerNeed.value = parsedEntries.reduce((sum, entry) => sum + (isNaN(entry.powerNeed) ? 0 : entry.powerNeed), 0);
+    }
+
+    return stats;
+}
+
+function createTable(entries: any[]): TabulatorFull {
+    return new TabulatorFull('#stats', {
+        data: entries,
+        columns: COLUMNS,
+        layout: 'fitColumns',
+        columnDefaults: {
+            headerTooltip: function (e, cell, onRendered) {
+                let el = document.createElement("div");
+                el.innerText = cell.getDefinition().title;
+                return el;
+            },
+            tooltip: IsSingleEntity ? '' : 'Click to see the history of this shape',
+        }
+    });
+}
+
 function createExcelFile(parsedEntries: Entity[]) {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Borderland Community Cocreators';
@@ -185,11 +198,11 @@ function createExcelFile(parsedEntries: Entity[]) {
     return workbook;
 }
 
-function writeStatsListToDOM(stats: { [key: string]: { value: number; title: string; unit: string; }; }) {
+function writeOverviewStatsToDOM(stats: { [key: string]: { value: number; title: string; }; }) {
     const list = document.createElement('ul');
-    for (const { value, title, unit } of Object.values(stats)) {
+    for (const { value, title } of Object.values(stats)) {
         const entry = document.createElement('li');
-        entry.innerHTML = `${title}: ${value} ${unit}`;
+        entry.innerHTML = `${title}: ${value}`;
         list.appendChild(entry);
     }
     document.querySelector('#header').appendChild(list);
@@ -256,28 +269,12 @@ export const createStats = async () => {
     }
 
     const entries = await fetchEntries(ENTITIES_URL, ID);
-    const parsedEntries = parseEntries(entries);
-    const stats = createOverviewStats(parsedEntries, IsSingleEntity);
-
-    // Create Tabulator view
-    let table: TabulatorFull = new TabulatorFull('#stats', {
-        data: parsedEntries,
-        columns: COLUMNS,
-        layout: 'fitColumns',
-        columnDefaults: {
-            headerTooltip: function (e, cell, onRendered) {
-                var el = document.createElement("div");
-                el.innerText = cell.getDefinition().title;
-                return el;
-            },
-            tooltip: IsSingleEntity ? '' : 'Click to see the history of this shape',
-        }
-    });
-
+    const stats = createOverviewStats(entries, IsSingleEntity);
+    const table: TabulatorFull = createTable(entries);
     
-    writeStatsListToDOM(stats);
-    // Create Excel export file and download button
-    const workbook = createExcelFile(parsedEntries);
+    writeOverviewStatsToDOM(stats);
+
+    const workbook = createExcelFile(entries);
     await createExcelDownloadBtn(workbook);
 
     if (IsSingleEntity) {
@@ -286,3 +283,4 @@ export const createStats = async () => {
         addRowClickEvent(table);
     }
 };
+
