@@ -390,7 +390,7 @@ export class Editor {
         // Update the buffered layer when the layer has a vertex removed
         entity.layer.on('pm:vertexremoved', (e) => {
             if (e.layer._rings.length == 0) {
-                this.deleteAndRemoveEntity(this._selected, 'No vertex remaining, deleting entity');
+                this.deleteAndRemoveEntity(this._selected, 'No vertex remaining, automatic deletion of entity');
                 return
             }
 
@@ -445,7 +445,7 @@ export class Editor {
         if (checkRules) {
             entity.checkAllRules();
         }
-        let mode = this._isCleanAndQuietMode ? 'cleancolors' : 'severity';
+        let mode: any = this._isCleanAndQuietMode ? 'cleancolors' : 'severity';
         entity.setLayerStyle(mode);
     }
 
