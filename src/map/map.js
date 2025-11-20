@@ -204,38 +204,38 @@ export const createMap = async () => {
         maxNativeZoom: 17,
         tms: false,
     });
-    
+
     map.groups.aftermath25 = L.tileLayer('./data/bl25/aftermath/{z}/{x}/{y}.png', {
-        minZoom: 0,
+        minZoom: 13,
         maxZoom: 21,
-        minNativeZoom: 0,
+        minNativeZoom: 15,
         maxNativeZoom: 19,
         tms: false,
     });
 
     map.groups.aftermath24 = L.tileLayer('./data/bl24/aftermath/{z}/{x}/{y}.png', {
-        minZoom: 0,
+        minZoom: 13,
         maxZoom: 21,
-        minNativeZoom: 0,
+        minNativeZoom: 15,
         maxNativeZoom: 19,
         tms: false,
     });
 
     // Load and add the after match layer for borderland 23
     map.groups.aftermath23 = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', {
-        minZoom: 0,
+        minZoom: 13,
         maxZoom: 21,
-        minNativeZoom: 0,
-        maxNativeZoom: 20,
+        minNativeZoom: 15,
+        maxNativeZoom: 19,
         tms: false,
     });
 
     // Load and add the after match layer for borderland 22
     map.groups.aftermath22 = L.tileLayer('./data/bl22/aftermath/{z}/{x}/{y}.png', {
-        minZoom: 0,
+        minZoom: 13,
         maxZoom: 21,
-        minNativeZoom: 0,
-        maxNativeZoom: 20,
+        minNativeZoom: 15,
+        maxNativeZoom: 19,
         tms: false,
     });
 
