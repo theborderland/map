@@ -204,6 +204,14 @@ export const createMap = async () => {
         maxNativeZoom: 17,
         tms: false,
     });
+    
+    map.groups.aftermath25 = L.tileLayer('./data/bl25/aftermath/{z}/{x}/{y}.png', {
+        minZoom: 0,
+        maxZoom: 21,
+        minNativeZoom: 0,
+        maxNativeZoom: 19,
+        tms: false,
+    });
 
     map.groups.aftermath24 = L.tileLayer('./data/bl24/aftermath/{z}/{x}/{y}.png', {
         minZoom: 0,
@@ -255,6 +263,7 @@ export const createMap = async () => {
         Aftermath22: map.groups.aftermath22,
         Aftermath23: map.groups.aftermath23,
         Aftermath24: map.groups.aftermath24,
+        Aftermath25: map.groups.aftermath25,
     };
 
     // Initialize the editor

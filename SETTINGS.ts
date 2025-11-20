@@ -5,8 +5,7 @@
 // Editor
 export const IS_EDITING_POSSIBLE: boolean = false;
 export const NOTE_ABOUT_EDITING: string = `
-We will <u>disable editing</u> on July 18th.<br><br>
-Camps that do not have a contact info will be deleted every Monday morning at 08:00 CEST`;
+BL 2025 Aftermath map is now available!`;
 
 // Repository
 export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
