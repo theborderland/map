@@ -4,10 +4,18 @@ import { showDrawers } from './messages';
 
 /** Main method for index.html */
 async function index() {
-    let _isCleanAndQuietMode = false;
+    /* 
+        When this query parameter is set, the map will
+        - not display any buttons or messages,
+        - not check entity rules
+        - disable camp popup on click
+        - disable links in POI
+    */
+    const urlParams = new URLSearchParams(window.location.search);
+    let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
     // Create the map
     try {
-        _isCleanAndQuietMode = await createMap();
+        await createMap(_isCleanAndQuietMode);
     } catch (err) {
         console.error(err);
     }

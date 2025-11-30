@@ -18,15 +18,7 @@ import { getSoundspotDescription, soundSpotType } from '../utils/soundData';
 import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
 /** Initializes the leaflet map and load data to create layers */
-export const createMap = async () => {
-    // When this query parameter is set, the map will
-    // not display any buttons or messages,
-    // not check entity rules
-    // disable camp popup on click
-    // disable links in POI
-    const urlParams = new URLSearchParams(window.location.search);
-    let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
-
+export const createMap = async (_isCleanAndQuietMode) => {
     // Define the default layers to be visible on load if no layers are specified in the URL hash
     let defaultLayers = new Set([
         'Placement',
@@ -396,7 +388,4 @@ export const createMap = async () => {
     // Done!
     //await showNotification('Loaded everything!', 'success');
     stopwatch.log();
-    
-    // Return it so we can show/not show the welcome message.
-    return _isCleanAndQuietMode; 
 };

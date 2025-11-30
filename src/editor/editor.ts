@@ -1,7 +1,6 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
 import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
-import { IS_EDITING_POSSIBLE, NOTE_ABOUT_EDITING } from '../../SETTINGS';
 import { generateRulesForEditor } from '../rule';
 import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
@@ -10,6 +9,7 @@ import * as Turf from '@turf/turf';
 import 'leaflet.path.drag';
 import 'leaflet-search';
 import { PopupContentFactory } from './popupContentFactory';
+import { AdminAPI } from './adminAPI';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -632,9 +632,9 @@ export class Editor {
         }
     }
 
-    private addToggleEditButton() {
+    private async addToggleEditButton() {
         // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
-        if (IS_EDITING_POSSIBLE) {
+        if (await AdminAPI.isEditAllowed()) {
             this._map.addControl(ButtonsFactory.edit(this._isEditMode, () => {
                 this.toggleEditMode();
             }));
@@ -643,17 +643,21 @@ export class Editor {
                 //document.querySelector('.btn.button-shake-animate.leaflet-control').click();
             }, 100);
         }
-        if (NOTE_ABOUT_EDITING) {
-            this._map.addControl(Messages.editing(NOTE_ABOUT_EDITING));
+    }
+
+    private async addEditButtonText() {
+        let editText = await AdminAPI.getEditText();
+        if (editText) {
+            this._map.addControl(Messages.editing(editText));
         }
     }
 
     public async toggleEditMode() {
-        // This function is called from addToggleEditButton() which already checks if editing is possible.
-        // So could we remove this if statement below?
-        if (!IS_EDITING_POSSIBLE) {
+        // Doublecheck if editing still is allowed.
+        if (!await AdminAPI.isEditAllowed()) {
             this._isEditMode = false;
             return;
+            // Perhaps remove the button or show a message?
         }
 
         this._isEditMode = !this._isEditMode;
@@ -770,7 +774,8 @@ export class Editor {
             // }, this._autoRefreshIntervall * 1000);
 
             // Edit button disabled after the event took place
-            this.addToggleEditButton();
+            await this.addToggleEditButton();
+            await this.addEditButtonText();
         }
     }
 
