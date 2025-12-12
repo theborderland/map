@@ -88,9 +88,9 @@ export const createMap = async (_isCleanAndQuietMode) => {
     // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
 
-    // Loads "fireroad"
+    // Loads "fireroads"
+    // with the fireroads as a reference, also load "publicplease" and "oktocamp" with a bigger buffer
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', { buffer: 2.5 });
-    // Loads "publicplease", "oktocamp"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', {
         buffer: 3.5,
         propertyRenameFn: () => 'publicplease',
