@@ -90,7 +90,7 @@ export function download(map: L.Map): L.Control {
     return new button;
 }
 
-export function guide(onClickCallback: () => any): L.Control {
+export function guide(): L.Control {
     const button = L.Control.extend({
         options: { position: 'topleft' },
         onAdd: () => {
@@ -106,6 +106,8 @@ export function guide(onClickCallback: () => any): L.Control {
                     onClose: () => {
                         localStorage.setItem('hasSeenPlacementWelcome2025', 'true');
                     },
+                }, {
+                    keepOpen: false,
                 });
             };
 
