@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { getStyle } from './_layerStyles';
+import { getStyle } from './layerStyles';
 import * as Turf from '@turf/turf';
 
 /**

@@ -13,7 +13,7 @@ import { hash, ButtonsFactory } from '../utils';
 import { Editor } from '../editor';
 import { filterFeatures } from './filterFeatures';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
-import { getSoundStyle } from '../loaders/_layerStyles';
+import { getSoundStyle } from '../loaders/layerStyles';
 import { getSoundspotDescription, soundSpotType } from '../utils/soundData';
 import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
@@ -336,7 +336,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         }));
 
         // Add layer control and legends
-        let layerControl = await addLegends(map, availableLayers, visibleLayers);
+        let layerControl = addLegends(map, availableLayers, visibleLayers);
         map.addControl(layerControl);
     }
 

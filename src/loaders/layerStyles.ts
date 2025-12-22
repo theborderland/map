@@ -1,12 +1,22 @@
-const baseStyle = {
+import L from 'leaflet';
+
+interface PathOptions extends L.PathOptions {
+    opacity?: number;
+    fillOpacity?: number;
+    weight?: number;
+    dashArray?: string;
+    color?: string;
+}
+
+const baseStyle: PathOptions = {
     opacity: 1,
     fillOpacity: 0,
     weight: 1.5,
     dashArray: '5',
 };
 
-export function getSoundStyle(value, feature) {
-    switch (feature.properties.soundlevel) {
+export function getSoundStyle(feature: GeoJSON.Feature): PathOptions {
+    switch (feature.properties?.soundlevel) {
         case 'sound_e':
             return {
                 ...baseStyle,
@@ -14,7 +24,6 @@ export function getSoundStyle(value, feature) {
                 fillOpacity: 0.75,
                 weight: 0,
             };
-
         case 'sound_d':
             return {
                 ...baseStyle,
@@ -51,8 +60,10 @@ export function getSoundStyle(value, feature) {
     }
 }
 
-/** Gives back a style definition based on the given name of a geojson feature */
-export function getStyle(name) {
+/**
+ * Gives back a style definition based on the given name of a geojson feature
+ */
+export function getStyle(name: string): PathOptions {
     switch (name) {
         case 'container':
             return {
@@ -186,7 +197,6 @@ export function getStyle(name) {
                 weight: 0,
             };
         case 'closetosanctuary':
-
         default:
             return {
                 ...baseStyle,
