@@ -300,6 +300,25 @@ textarea {
     width: 100px;
 }
 
+/* Leaflet Grouped Layer Control CSS */
+.leaflet-control-layers-group-name {
+    font-weight: bold;
+    margin-left: 3px;
+}
+
+.leaflet-control-layers-group:not(:last-of-type) {
+    margin-bottom: 0.5em;
+}
+
+.leaflet-control-layers-group-item {
+    font-weight: normal;
+}
+
+.leaflet-control-layers-scrollbar {
+    overflow-y: scroll;
+    padding-right: 10px;
+}
+
 .scrollable {
     /* 6.5 lines of current font size in area description of the popup, so you'll see that you need to scroll */
     max-height: 188px;
@@ -430,11 +449,12 @@ body,
     font-weight: bold;
     width: 200px;
 }
- .leaflet-tooltip-bottom {
+
+.leaflet-tooltip-bottom {
     background-color: #000;
     color: #fff;
     text-align: center;
-} 
+}
 
 .leaflet-pm-action {
     background-color: purple !important;
@@ -447,13 +467,15 @@ body,
     }
 }
 
- /* mobile */
+/* mobile */
 @media (min-device-width: 480px) {
+
     /* Never display the full screen popup when not on mobile */
     #fullScreenPopup {
         display: none;
     }
 }
+
 @media (max-device-width: 480px) {
     #fullScreenPopup:not(.hidden) {
         display: block;
