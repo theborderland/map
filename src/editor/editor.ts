@@ -143,7 +143,7 @@ export class Editor {
         if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
             await this.saveEntity(prevEntity);
         }
-        if (this._isEditMode) {
+        if (this._isEditMode || nextEntity == null) {
             this.UpdateOnScreenDisplay(nextEntity);
         }
 
