@@ -19,14 +19,33 @@ import { loadDrawnMap } from '../loaders/loadDrawnMap';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async (_isCleanAndQuietMode) => {
+    const LAYER_NAMES = {
+        placement: 'Camps',
+        names: 'Camp names',
+        mapstuff: 'Roads etc.',
+        neighbourhoods: 'Neighbourhoods',
+        plazas: 'Plazas',
+        poi: 'Places of Interest',
+        powergrid: 'Power grid',
+        soundguide: 'Soundguide',
+        aftermath22: "Aftermath '22",
+        aftermath23: "Aftermath '23",
+        aftermath24: "Aftermath '24",
+        aftermath25: "Aftermath '25",
+        slopemap: 'Slope',
+        heightmap: 'Height',
+        terrain: 'Terrain',
+        drawnmap: 'Handdrawn',
+    }
+
     // Define the default layers to be visible on load if no layers are specified in the URL hash
     let defaultLayers = new Set([
-        'Placement',
-        'Placement_map',
-        'POI',
-        'Neighbourhoods',
-        'Plazas',
-        'Names',
+        LAYER_NAMES.placement,
+        LAYER_NAMES.mapstuff,
+        LAYER_NAMES.poi,
+        LAYER_NAMES.neighbourhoods,
+        LAYER_NAMES.plazas,
+        LAYER_NAMES.names,
     ]);
     let visibleLayers = new Set([]);
 
@@ -239,37 +258,37 @@ export const createMap = async (_isCleanAndQuietMode) => {
     addPolygonFeatureLabelOverlayToMap(map.groups.neighbourhoods, map.groups.neighbourhood, 'white', 1);
     addPolygonFeatureLabelOverlayToMap(map.groups.plazas, map.groups.plaza, 'white', 0.2);
 
-    var availableLayers = {
-        Placement_map: map.groups.mapstuff,
-        POI: map.groups.poi,
-        PowerGrid: map.groups.powergrid,
-        Soundguide: map.groups.soundguide,
-        Slope: map.groups.slopemap,
-        Height: map.groups.heightmap,
-        Terrain: map.groups.terrain,
-        Handdrawn: map.groups.drawnmap,
-        Plazas: map.groups.plazas,
-        Placement: map.groups.placement,
-        Names: map.groups.names,
-        Neighbourhoods: map.groups.neighbourhoods,
-        Aftermath22: map.groups.aftermath22,
-        Aftermath23: map.groups.aftermath23,
-        Aftermath24: map.groups.aftermath24,
-        Aftermath25: map.groups.aftermath25,
-    };
-
-    // Initialize the editor
-    const editor = new Editor(map, map.groups, _isCleanAndQuietMode);
+    var availableLayers = [
+        // Type determines in which group the layer appears in the layerControl.
+        { name: LAYER_NAMES.placement, layer: map.groups.placement, type: 'Placement' },
+        { name: LAYER_NAMES.names, layer: map.groups.names, type: 'Placement' },
+        { name: LAYER_NAMES.mapstuff, layer: map.groups.mapstuff, type: 'Placement' },
+        { name: LAYER_NAMES.neighbourhoods, layer: map.groups.neighbourhoods, type: 'Placement' },
+        { name: LAYER_NAMES.plazas, layer: map.groups.plazas, type: 'Placement' },
+        { name: LAYER_NAMES.poi, layer: map.groups.poi, type: 'Placement' },
+        { name: LAYER_NAMES.powergrid, layer: map.groups.powergrid, type: 'Placement' },
+        { name: LAYER_NAMES.soundguide, layer: map.groups.soundguide, type: 'Placement' },
+        { name: LAYER_NAMES.slopemap, layer: map.groups.slopemap, type: 'Background' },
+        { name: LAYER_NAMES.heightmap, layer: map.groups.heightmap, type: 'Background' },
+        { name: LAYER_NAMES.terrain, layer: map.groups.terrain, type: 'Background' },
+        { name: LAYER_NAMES.drawnmap, layer: map.groups.drawnmap, type: 'Background' },
+        { name: LAYER_NAMES.aftermath22, layer: map.groups.aftermath22, type: 'Background' },
+        { name: LAYER_NAMES.aftermath23, layer: map.groups.aftermath23, type: 'Background' },
+        { name: LAYER_NAMES.aftermath24, layer: map.groups.aftermath24, type: 'Background' },
+        { name: LAYER_NAMES.aftermath25, layer: map.groups.aftermath25, type: 'Background' },
+    ];
 
     // Make all layers in the URL hash visible on load
     map.on('hashmetainit', function (initState) {
         hash.decode(initState.meta);
-        hash.layers.filter((name) => name in availableLayers).forEach((layerName) => visibleLayers.add(layerName));
+        // Find all layers in the URL hash that also exist in availableLayers, and add them to visibleLayers
+        availableLayers.filter(layer => hash.layers.includes(layer.name)).forEach(layer => { visibleLayers.add(layer.name); });
+
         if (visibleLayers.size === 0) {
             // Add the default layers to the map
             visibleLayers = new Set(defaultLayers);
         }
-        visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
+        availableLayers.filter(layer => visibleLayers.has(layer.name)).forEach((layer) => map.addLayer(layer.layer));
     });
 
     // Add any visible layers to in the URL hash
@@ -309,10 +328,10 @@ export const createMap = async (_isCleanAndQuietMode) => {
     if (!_isCleanAndQuietMode) {
         map.addControl(ButtonsFactory.guide());
         map.addControl(ButtonsFactory.download(map));
-    
+
         // Add the measure tool
         map.addControl(L.control.polylineMeasure({ measureControlLabel: '&#128207;', arrow: { color: '#0000' } }));
-        
+
         // Add the coordinates tool
         coordinatesControl = new L.Control.Coordinates({
             position: 'topright',
@@ -351,38 +370,45 @@ export const createMap = async (_isCleanAndQuietMode) => {
     };
 
     // To speed up the loading time, remove camp name layer while loading entities
-    const hasNamesLayer = visibleLayers.has('Names');
+    const hasNamesLayer = visibleLayers.has(LAYER_NAMES.names);
     if (hasNamesLayer) {
-        map.removeLayer(availableLayers['Names']);
+        map.removeLayer(availableLayers.find(layer => layer.name === LAYER_NAMES.names).layer);
     }
 
     // Load all entities from the API
+    const editor = new Editor(map, map.groups, _isCleanAndQuietMode);
     await editor.addAPIEntities();
 
     if (hasNamesLayer) {
-        map.addLayer(availableLayers['Names']);
+        map.addLayer(availableLayers.find(layer => layer.name === LAYER_NAMES.names).layer);
     }
-    visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
+    // Finally, add all layers that should be visible
+    visibleLayers.forEach(layerName => {
+        const layer = availableLayers.find(layer => layer.name === layerName);
+        if (layer) {
+            map.addLayer(layer.layer);
+        }
+    });
 
     // Placement layer is special.
     // Even though it might not be visible by default, it is always shown because we add it when loading entities.
     // So to hide it, we need to add it explicitly only to remove it again.
-    if (!visibleLayers.has('Placement')) {
-        map.addLayer(availableLayers['Placement']);
-        map.removeLayer(availableLayers['Placement']);
+    if (!visibleLayers.has(LAYER_NAMES.placement)) {
+        let placementLayer = availableLayers.find(layer => layer.name === LAYER_NAMES.placement).layer;
+        map.addLayer(placementLayer);
+        map.removeLayer(placementLayer);
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
     const id = Number(urlParams.get('id'));
     if (id) {
         if (_isCleanAndQuietMode) {
             editor.ClearControls();
-            visibleLayers.add('Handdrawn');
-            visibleLayers.delete('Names');
+            visibleLayers.add(LAYER_NAMES.drawnmap);
+            visibleLayers.delete(LAYER_NAMES.names);
         }
         // Zoom to entity if id is present
         if (id) editor.gotoEntity(id);
-
-        visibleLayers.forEach((layer) => map.addLayer(availableLayers[layer]));
     }
 
     // Done!

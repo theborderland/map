@@ -1,7 +1,6 @@
 import L from 'leaflet';
 import GroupedLayers from '../utils/_groupedLayers.js';
-
-const SOUND_GUIDE_URL = 'https://docs.google.com/document/d/1aDBv3UWOxngdjWd_z4N34Wcm7r7GvD-gINGwQIr4ti8';
+import { SOUND_GUIDE_URL } from '../../SETTINGS.js';
 
 function createImageLegend(src: string, width: number, height: number): L.Control {
     const ctrl = new L.Control({ position: 'topright' });
@@ -26,7 +25,7 @@ function createHtmlLegend(html: string): L.Control {
 
 export const addLegends = (
     map: L.Map,
-    toggableLayers: { [key: string]: L.LayerGroup },
+    availableLayers: Array<{ name: string; layer: L.LayerGroup, type: string; }>,
     visibleLayers: Set<string>,
 ): L.Control => {
     const slopeLegend = createImageLegend('./img/slopelegend.png', 100, 141);
@@ -72,31 +71,16 @@ export const addLegends = (
         }
     });
 
-    // Add all toggable layers as a grouped control
-    const groupedLayers: any = {
-        Placement: {
-            Camps: toggableLayers['Placement'],
-            'Camp names': toggableLayers['Names'],
-            'Roads etc.': toggableLayers['Placement_map'],
-            Neighbourhoods: toggableLayers['Neighbourhoods'],
-            Plazas: toggableLayers['Plazas'],
-            'Places of Interest': toggableLayers['POI'],
-            'Power grid': toggableLayers['PowerGrid'],
-            Soundguide: toggableLayers['Soundguide'],
-        },
-        Background: {
-            Slope: toggableLayers['Slope'],
-            Height: toggableLayers['Height'],
-            Terrain: toggableLayers['Terrain'],
-            Handdrawn: toggableLayers['Handdrawn'],
-            "Aftermath '22": toggableLayers['Aftermath22'],
-            "Aftermath '23": toggableLayers['Aftermath23'],
-            "Aftermath '24": toggableLayers['Aftermath24'],
-            "Aftermath '25": toggableLayers['Aftermath25'],
-        },
-    };
+    // Organize available layers by their type
+    const layersByType: Record<string, Record<string, L.LayerGroup>> = {};
+    for (const currentItem of availableLayers) {
+        if (!layersByType[currentItem.type]) {
+            layersByType[currentItem.type] = {};
+        }
+        layersByType[currentItem.type][currentItem.name] = currentItem.layer;
+    }
 
-    const layerControl = GroupedLayers(undefined, groupedLayers, { position: 'bottomright' });
+    const layerControl = GroupedLayers(undefined, layersByType, { position: 'bottomright' });
 
     // Add all initial visible legends
     if (visibleLayers && visibleLayers.has('Slope')) slopeLegend.addTo(map);
