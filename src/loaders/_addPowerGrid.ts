@@ -1,21 +1,9 @@
 import L from 'leaflet';
-
-const POWER_GRID_GEOJSON_URL = 'https://bl.skookum.cc/api/bl25/v/default/power_grid';
-const LOCAL_POWER_GRID_GEOJSON_URL = './data/bl24/labels/power_grid.geojson';
-
-async function fetchPowerGrid() {
-    try {
-        return await (await fetch(POWER_GRID_GEOJSON_URL)).json();
-    } catch (err) {
-        console.error(err);
-        console.warn('Failed to fetch from', POWER_GRID_GEOJSON_URL, 'trying', LOCAL_POWER_GRID_GEOJSON_URL);
-        return await (await fetch(LOCAL_POWER_GRID_GEOJSON_URL)).json();
-    }
-}
+import { POWER_GRID_GEOJSON_URL } from '../../SETTINGS';
 
 export const addPowerGridTomap = async (layerGroup: L.LayerGroup) => {
     try {
-        let json = await fetchPowerGrid();
+        let json = await (await fetch(POWER_GRID_GEOJSON_URL)).json()
 
         for (let feature of json['features']) {
             if (feature.geometry.type != 'Point') {

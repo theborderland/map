@@ -15,7 +15,7 @@ export const addPointsOfInterestsTomap = async (
     layerGroup: L.LayerGroup,
     propertyOverrides: {
         description?: (properties: any) => string | string;
-        link?: (properties: any) => string | string;
+        link?: string;
     } = {},
     isCleanAndQuietMode: boolean = false
 ) => {
