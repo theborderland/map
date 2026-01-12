@@ -57,7 +57,8 @@ export async function showDrawers(drawerOptions: Array<DrawerOptions>) {
 
 export async function showDrawer(
     drawerOptions: DrawerOptions,
-    orderOptions: OrderOptions = {}
+    orderOptions: OrderOptions = {}, 
+    onLoadedCallback: () => any = () => {}
 ) {
     // Prevent concurrent drawer loading
     if (isDrawerLoading) {
@@ -96,6 +97,7 @@ export async function showDrawer(
             hash.page = drawerOptions.file;
             openedDrawer = drawerOptions;
             drawer.show();
+            onLoadedCallback();
             isDrawerLoading = false;
         });
     } catch (error) {
