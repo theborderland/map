@@ -7,28 +7,39 @@
     <sl-tab-panel name="area">
         <div class="tab-pannel-inner flex-column">
             <section>
-                <sl-input id="entity-name" type="text" maxlength="100" placeholder="Enter camp name here.." label="Name of camp/dream" size="small"></sl-input>
+                <sl-select id="entity-area-type" label="What type of area is this?" size="small">
+                    <sl-option value="public-offering">Public offering</sl-option>
+                    <sl-option value="sound-camp">Sound camp</sl-option>
+                    <sl-option value="normal-camp">Just a camp (sleeping, cooking, magic etc)</sl-option>
+                    <sl-option value="art">Art</sl-option>
+                    <sl-option value="other">Other</sl-option>
+                </sl-select>
+            </section>
+            <section>
+                <sl-input id="entity-name" type="text" maxlength="100" label="Name of area" size="small"></sl-input>
                 <sl-textarea id="entity-description" maxlength="300" rows="5"
-                    placeholder="Describe your camp/dream here as much as you want. Remember that this information is public. 300 characters max."
+                    placeholder="Describe your area here as much as you want. Remember that this information is public. 300 characters max."
                     label="Description" size="small"></sl-textarea>
                 <sl-input id="entity-contact" type="text" placeholder="Email, phone, @discord-name etc" label="Contact info" size="small"></sl-input>
             </section>
             <section>
                 <div class="flex-row">
                     <b>People</b>
-                    <sl-tooltip content="10m² per person">
+                    <sl-tooltip content="10m² per person" placement="left">
                         <sl-input id="entity-people" class="long-input" type="number" min="0" size="small"></sl-input>
                     </sl-tooltip>
                 </div>
                 <div class="flex-row">
                     <b>Vehicles</b>
-                    <sl-tooltip content="70m² per vehicle">
+                    <sl-tooltip content="70m² per vehicle" placement="left">
                         <sl-input id="entity-vehicles" class="long-input" type="number" min="0" size="small"></sl-input>
                     </sl-tooltip>
                 </div>
                 <div class="flex-row">
                     <b>Other stuff in m²</b>
-                    <sl-tooltip content="Area needed for kitchen, storage, workshop tents etc.">
+                    <sl-tooltip placement="left">
+                          <div slot="content" style="color: white;">Area needed for kitchen,<br> storage, workshop tents etc.</div>
+
                         <sl-input id="entity-other-sqm" class="long-input" type="number" min="0" size="small" no-spin-buttons></sl-input>
                     </sl-tooltip>
                 </div>
@@ -106,7 +117,7 @@
                     <span id="entity-total-power-needed">123</span><span> W</span>
                 </div>
             </section>
-            <section style="display: none; margin-top: auto;">
+            <section class="hidden" style="margin-top: auto;">
                 <sl-input id="power-image-url" size="small" placeholder="URL">
                     <span slot="label">
                         Your camp's power consumption/participants is larger than average, please share a link to a drawing of your plans for your camp's power grid. 
@@ -158,14 +169,10 @@
                 <sl-checkbox align-right id="entity-supress-warnings"> Supress yellow warnings
                 </sl-checkbox>
             </section>
-            <section class="flex-row">
-                <b>Custom color</b>
-                <sl-color-picker id="entity-color" label="Select a color" size="small"></sl-color-picker>
-            </section>
             <section class="flex-fill"></section>
             <section class="flex-column">
-                <div>Use delete with caution! Only delete things you know is ok. Undelete can only be performed by using
-                    black magic.
+                <div>Use delete with caution! Only delete things you know is ok. Undelete can only be performed by 
+                    an admin using black magic.
                 </div>
                 <sl-button id="entity-delete" variant="danger" style="align-self: flex-end;">Delete area</sl-button>
             </section>
