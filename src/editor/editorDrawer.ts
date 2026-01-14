@@ -53,10 +53,10 @@ export class EditorDrawer {
         };
 
         this.tabs = [
-            new Tabs.AreaTabController(context),
-            new Tabs.PowerTabController(context),
+            new Tabs.AdvancedTabController(context),
             new Tabs.HistoryTabController(context),
-            new Tabs.AdvancedTabController(context)
+            new Tabs.AreaTabController(context),
+            new Tabs.PowerTabController(context), // needs to be last to calculate isLargeCamp() correctly
         ];
 
         this.tabs.forEach(tab => {
