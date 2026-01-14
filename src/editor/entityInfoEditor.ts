@@ -4,24 +4,43 @@ import * as Messages from '../messages';
 import { formatDate } from "../utils";
 import { Appliance, EntityDifferences } from "../entities/entity";
 
+interface InputFields {
+    areaType: HTMLSelectElement;
+    name: HTMLInputElement;
+    description: HTMLTextAreaElement;
+    contactInfo: HTMLInputElement;
+    nrOfPeople: HTMLInputElement;
+    nrOfVehicles: HTMLInputElement;
+    additionalSqm: HTMLInputElement;
+    amplifiedSound: HTMLInputElement;
+    areaNeedPower: HTMLInputElement;
+    powerContactInfo: HTMLInputElement;
+    powerPlugType: HTMLSelectElement;
+    powerExtraInfo: HTMLInputElement;
+    powerImageUrl: HTMLInputElement;
+    powerNeed: HTMLSpanElement;
+    supressWarnings: HTMLInputElement;
+}
+
 export class EntityInfoEditor {
     private _entity: MapEntity;
     private _editEntityCallback: (action: string, extraInfo?: string) => void;
     private _repository: MapEntityRepository;
-    private _ghostLayers: L.LayerGroup<any>;
+    private _compareRevDiffLayer: L.LayerGroup<any>;
     private _largeCampPeopleLimit: number = 25;
     private _largeCampPowerConsumtionLimit: number = 5000;
+    private _inputFields: InputFields;
 
     constructor(
         entity: MapEntity,
         repository: MapEntityRepository,
-        ghostLayers: L.LayerGroup<any>,
+        compareRevDiffLayer: L.LayerGroup<any>,
         editEntityCallback: (...args: any[]) => void
     ) {
         this._entity = entity;
         this._editEntityCallback = editEntityCallback;
         this._repository = repository;
-        this._ghostLayers = ghostLayers;
+        this._compareRevDiffLayer = compareRevDiffLayer;
     }
 
     public render(): void {
@@ -29,13 +48,51 @@ export class EntityInfoEditor {
             {
                 file: "edit-entity",
                 position: "end",
-                onClose: () => { this._editEntityCallback("save"); },
+                onClose: () => { this._editEntityCallback("cancel"); },
+                buttons: [
+                    {
+                        text: 'Save',
+                        variant: 'primary',
+                        onClickAction: () => {
+                            this.saveEntityChanges();
+                        },
+                        shouldCloseDrawer: true
+                    },
+                    {
+                        text: 'Cancel',
+                        variant: 'neutral',
+                        onClickAction: () => {
+                            this._editEntityCallback("cancel");
+                        },
+                        shouldCloseDrawer: true
+                    }
+                ]
             },
             {},
             () => this.populate());
     }
 
     private populate(): void {
+        // We can only get the fields after the drawer content has been loaded
+        this._inputFields = {
+            areaType: document.getElementById('entity-area-type') as HTMLSelectElement,
+            name: document.getElementById('entity-name') as HTMLInputElement,
+            description: document.getElementById('entity-description') as HTMLTextAreaElement,
+            contactInfo: document.getElementById('entity-contact') as HTMLInputElement,
+            nrOfPeople: document.getElementById('entity-people') as HTMLInputElement,
+            nrOfVehicles: document.getElementById('entity-vehicles') as HTMLInputElement,
+            additionalSqm: document.getElementById('entity-other-sqm') as HTMLInputElement,
+            amplifiedSound: document.getElementById('entity-sound') as HTMLInputElement,
+            areaNeedPower: document.getElementById('entity-area-need-power') as HTMLInputElement,
+            powerContactInfo: document.getElementById('entity-tech-lead') as HTMLInputElement,
+            powerPlugType: document.getElementById('power-plug-type') as HTMLSelectElement,
+            powerExtraInfo: document.getElementById('power-extra-info') as HTMLInputElement,
+            powerImageUrl: document.getElementById('power-image-url') as HTMLInputElement,
+            powerNeed: document.getElementById('entity-total-power-needed') as HTMLSpanElement,
+            // powerAppliances: this.getAppliancesFromUi(),
+            supressWarnings: document.getElementById('entity-supress-warnings') as HTMLInputElement,
+        }
+
         this.preChecks();
         this.populateEditTab();
         this.populatePowerTab();
@@ -44,124 +101,107 @@ export class EntityInfoEditor {
     }
 
     private preChecks() {
-        this.checkIfLargeCamp();
+        this.checkIfLargeCamp(this._entity);
     }
 
-    private checkIfLargeCamp() {
-        // Requirement came from power realities team
-        const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
-        if (!this._entity.areaNeedPower) {
-            powerImage.parentElement.style.display = "none";
+    // Requirement came from power realities team
+    private checkIfLargeCamp(entity: MapEntity = null) {
+        let fields = entity ?? this.getNewFieldValues();
+
+        const powerDiagramSection = this._inputFields.powerImageUrl.parentElement; // parentElement is the section element
+        if (!fields.areaNeedPower) {
+            powerDiagramSection.classList.add('hidden');
             return;
         }
 
-        if (this._entity.nrOfPeople >= this._largeCampPeopleLimit ||
-            this._entity.powerNeed >= this._largeCampPowerConsumtionLimit) {
-            powerImage.parentElement.style.display = "block"; // parent is the section element
+        if (fields.nrOfPeople >= this._largeCampPeopleLimit ||
+            fields.powerNeed >= this._largeCampPowerConsumtionLimit) {
+            powerDiagramSection.classList.remove('hidden');
         } else {
-            powerImage.parentElement.style.display = "none";
+            powerDiagramSection.classList.add('hidden');
         }
     }
 
+    private getNewFieldValues(): any {
+        // This is just a dummy MapEntity to hold the new values
+        // @ts-ignore
+        let entity: MapEntity = new MapEntity({ geoJson: this._entity.geoJson }, this._entity._rules);
+
+        entity.areaType = this._inputFields.areaType.value;
+        entity.name = this._inputFields.name.value;
+        entity.description = this._inputFields.description.value;
+        entity.contactInfo = this._inputFields.contactInfo.value;
+        entity.nrOfPeople = Number(this._inputFields.nrOfPeople.value);
+        entity.nrOfVehicles = Number(this._inputFields.nrOfVehicles.value);
+        entity.additionalSqm = Number(this._inputFields.additionalSqm.value);
+        entity.amplifiedSound = Number(this._inputFields.amplifiedSound.value);
+        entity.areaNeedPower = this._inputFields.areaNeedPower.checked;
+        entity.powerContactInfo = this._inputFields.powerContactInfo.value;
+        entity.powerPlugType = this._inputFields.powerPlugType.value;
+        entity.powerExtraInfo = this._inputFields.powerExtraInfo.value;
+        entity.powerImageUrl = this._inputFields.powerImageUrl.value;
+        entity.powerNeed = Number(this._inputFields.powerNeed.innerText);
+        entity.powerAppliances = this.getAppliancesFromUi();
+        entity.supressWarnings = this._inputFields.supressWarnings.checked;
+
+        return entity;
+    }
+
+    private saveEntityChanges() {
+        let entityChanges: MapEntity = { ...this.getNewFieldValues() };
+        this._entity.updateEntity(entityChanges);
+        this._editEntityCallback("save");
+    }
+
+    private updateTextAboutNeededSpace() {
+        let fields = this.getNewFieldValues();
+        let areaElem = document.getElementById('entity-area');
+        let areaNeededElem = document.getElementById('entity-calculated-area-needed');
+        areaNeededElem.innerText = String(fields?.calculatedAreaNeeded);
+        areaElem.innerText = String(fields?.area);
+    }
+
     private populateEditTab() {
-        let updateTextAboutNeededSpace = () => {
-            let area = document.getElementById('entity-area');
-            let areaNeeded = document.getElementById('entity-calculated-area-needed');
-            areaNeeded.innerText = String(this._entity?.calculatedAreaNeeded);
-            area.innerText = String(this._entity?.area);
+        this._inputFields.areaType.value = this._entity.areaType;
+        this._inputFields.name.value = this._entity.name;
+        this._inputFields.description.value = this._entity.description;
+        this._inputFields.contactInfo.value = this._entity.contactInfo;
+        this._inputFields.nrOfPeople.value = String(this._entity.nrOfPeople);
+        this._inputFields.nrOfVehicles.value = String(this._entity.nrOfVehicles);
+        this._inputFields.additionalSqm.value = String(this._entity.additionalSqm);
+        this._inputFields.amplifiedSound.value = String(this._entity.amplifiedSound);
+        
+        this._inputFields.nrOfPeople.oninput = () => {
+            this.updateTextAboutNeededSpace();
+            this.checkIfLargeCamp();
         };
-
-        const nameField = document.getElementById('entity-name') as HTMLInputElement;
-        nameField.value = this._entity.name;
-        nameField.oninput = () => {
-            this._entity.name = nameField.value;
+        this._inputFields.nrOfVehicles.oninput = () => {
+            this.updateTextAboutNeededSpace();
         };
-
-        const descriptionField = document.getElementById('entity-description') as HTMLTextAreaElement;
-        descriptionField.value = this._entity.description;
-        descriptionField.oninput = () => {
-            this._entity.description = descriptionField.value;
+        this._inputFields.additionalSqm.oninput = () => {
+            this.updateTextAboutNeededSpace();
         };
-
-        const contactField = document.getElementById('entity-contact') as HTMLInputElement;
-        contactField.value = this._entity.contactInfo;
-        contactField.oninput = () => {
-            this._entity.contactInfo = contactField.value;
-        };
-
-        const peopleField = document.getElementById('entity-people') as HTMLInputElement;
-        peopleField.value = String(this._entity.nrOfPeople);
-        peopleField.oninput = () => {
-            this._entity.nrOfPeople = Number(peopleField.value);
-            updateTextAboutNeededSpace();
-            this.checkIfLargeCamp()
-        };
-
-        const vehiclesField = document.getElementById('entity-vehicles') as HTMLInputElement;
-        vehiclesField.value = String(this._entity.nrOfVehicles);
-        vehiclesField.oninput = () => {
-            this._entity.nrOfVehicles = Number(vehiclesField.value);
-            updateTextAboutNeededSpace();
-        };
-
-        const otherSqm = document.getElementById('entity-other-sqm') as HTMLInputElement;
-        otherSqm.value = String(this._entity.additionalSqm);
-        otherSqm.oninput = () => {
-            this._entity.additionalSqm = Number(otherSqm.value);
-            updateTextAboutNeededSpace();
-        };
-
-        const soundField = document.getElementById('entity-sound') as HTMLInputElement;
-        soundField.value = String(this._entity.amplifiedSound);
-        soundField.oninput = () => {
-            this._entity.amplifiedSound = Number(soundField.value);
+        this._inputFields.amplifiedSound.onblur = (e) => {
             let soundGuideLink = document.getElementById('sound-guide-link') as HTMLDivElement;
-            if (this._entity.amplifiedSound > 0) {
+            // @ts-ignore
+            if (e.target.valueAsNumber > 0) {
                 soundGuideLink.classList.remove('hidden');
             } else {
                 soundGuideLink.classList.add('hidden');
             }
         };
 
-        updateTextAboutNeededSpace();
+        this.updateTextAboutNeededSpace();
     }
 
     private populatePowerTab() {
         let togglePowerSection = () => {
-            let displayMode = this._entity.areaNeedPower ? "" : "none";
             let powerSections = document.querySelectorAll('.power-toggle') as NodeListOf<HTMLElement>;
             powerSections.forEach((section) => {
-                section.style.display = displayMode;
+                this._entity.areaNeedPower ? section.classList.remove("hidden") : section.classList.add("hidden");
             });
         };
-        const areaNeedPower = document.getElementById('entity-area-need-power') as HTMLInputElement;
-        areaNeedPower.checked = this._entity.areaNeedPower;
-        areaNeedPower.addEventListener('sl-input', () => {
-            this._entity.areaNeedPower = areaNeedPower.checked;
-            togglePowerSection();
-            this.preChecks();
-        });
-        togglePowerSection();
-
-        const techContactInfo = document.getElementById('entity-tech-lead') as HTMLInputElement;
-        techContactInfo.value = this._entity.powerContactInfo;
-        techContactInfo.oninput = () => {
-            this._entity.powerContactInfo = techContactInfo.value;
-        };
-
-        const powerPlugType = document.getElementById('power-plug-type') as HTMLSelectElement;
-        powerPlugType.value = this._entity.powerPlugType;
-        powerPlugType.addEventListener('sl-change', () => {
-            this._entity.powerPlugType = powerPlugType.value;
-        });
-
-        const powerExtraInfo = document.getElementById('power-extra-info') as HTMLInputElement;
-        powerExtraInfo.value = this._entity.powerExtraInfo;
-        powerExtraInfo.oninput = () => {
-            this._entity.powerExtraInfo = powerExtraInfo.value;
-        };
-
-        let validatePowerImageUrl = (powerImage: HTMLInputElement, initialLoad: boolean = false) => {
+        let validatePowerImageUrl = (powerImage: HTMLInputElement) => {
             let icons = powerImage.querySelectorAll("sl-icon");
             let validUrl = powerImage.value != "";
             icons.forEach((icon) => {
@@ -169,14 +209,23 @@ export class EntityInfoEditor {
             });
         };
 
-        const powerImage = document.getElementById('power-image-url') as HTMLInputElement;
-        powerImage.value = this._entity.powerImageUrl;
-        powerImage.oninput = () => {
-            validatePowerImageUrl(powerImage);
-            this._entity.powerImageUrl = powerImage.value;
+        this._inputFields.areaNeedPower.checked = this._entity.areaNeedPower;
+        this._inputFields.powerContactInfo.value = this._entity.powerContactInfo;
+        this._inputFields.powerPlugType.value = this._entity.powerPlugType;
+        this._inputFields.powerExtraInfo.value = this._entity.powerExtraInfo;
+        this._inputFields.powerImageUrl.value = this._entity.powerImageUrl;
+        this._inputFields.powerNeed.innerText = String(this._entity.powerNeed);
+        
+        this._inputFields.areaNeedPower.addEventListener('sl-input', () => {
+            togglePowerSection();
+            this.checkIfLargeCamp();
+        });
+        this._inputFields.powerImageUrl.onblur = (e) => {
+            // @ts-ignore
+            validatePowerImageUrl(e.target.value);
         }
-        validatePowerImageUrl(powerImage, true);
 
+        // Handle adding new appliances
         const powerForm = document.getElementById('power-form') as HTMLFormElement;
         powerForm.onsubmit = (event: Event) => {
             event.preventDefault();
@@ -190,7 +239,6 @@ export class EntityInfoEditor {
                 return;
             }
             this.addApplianceToContainer([name, amount, watt]);
-            this.updateEntityWithAddedAppliances();
             this.calculateTotalPower();
             powerForm.reset();
             applianceInput.focus();
@@ -201,9 +249,8 @@ export class EntityInfoEditor {
             const item = this._entity.powerAppliances[i];
             this.addApplianceToContainer(Object.values(item));
         }
-
-        const totalPowerField = document.getElementById('entity-total-power-needed') as HTMLSpanElement;
-        totalPowerField.innerText = String(this._entity.powerNeed);
+        togglePowerSection();
+        validatePowerImageUrl(this._inputFields.powerImageUrl);
     }
 
     private async populateHistoryTab() {
@@ -279,6 +326,7 @@ export class EntityInfoEditor {
                     btnRestoreDetails.textContent = '⚠ Restore Details';
                     btnRestoreDetails.onclick = () => {
                         console.log(`Restores detailes from revision ${revisionentity}.`);
+                        this._entity.areaType = this._entity.revisions[revisionentity].areaType;
                         this._entity.name = this._entity.revisions[revisionentity].name;
                         this._entity.description = this._entity.revisions[revisionentity].description;
                         this._entity.contactInfo = this._entity.revisions[revisionentity].contactInfo;
@@ -286,7 +334,6 @@ export class EntityInfoEditor {
                         this._entity.nrOfVehicles = this._entity.revisions[revisionentity].nrOfVehicles;
                         this._entity.additionalSqm = this._entity.revisions[revisionentity].additionalSqm;
                         this._entity.amplifiedSound = this._entity.revisions[revisionentity].amplifiedSound;
-                        this._entity.color = this._entity.revisions[revisionentity].color;
                         this._entity.supressWarnings = this._entity.revisions[revisionentity].supressWarnings;
                         this._entity.powerContactInfo = this._entity.revisions[revisionentity].powerContactInfo;
                         this._entity.powerPlugType = this._entity.revisions[revisionentity].powerPlugType;
@@ -312,10 +359,10 @@ export class EntityInfoEditor {
                     };
                     divdescription.append(btnRestoreShape);
                     // Draw ghosted shape of selected revision
-                    this._ghostLayers.clearLayers();
+                    this._compareRevDiffLayer.clearLayers();
                     //@ts-ignore
                     entityRevSelected.layer.setStyle(GhostLayerStyle);
-                    this._ghostLayers.addLayer(entityRevSelected.layer);
+                    this._compareRevDiffLayer.addLayer(entityRevSelected.layer);
                 };
                 li.append(a);
                 ulChanges.append(li);
@@ -342,18 +389,7 @@ export class EntityInfoEditor {
             link[i].href = "?id=" + this._entity.id;
         }
 
-        const supressWarnings = document.getElementById('entity-supress-warnings') as HTMLInputElement;
-        supressWarnings.checked = this._entity.supressWarnings;
-        supressWarnings.addEventListener('sl-input', () => {
-            this._entity.supressWarnings = supressWarnings.checked;
-        });
-
-        const colorPicker = document.getElementById('entity-color') as HTMLInputElement;
-        colorPicker.value = this._entity.color;
-        colorPicker.addEventListener('sl-change', () => {
-            this._entity.color = colorPicker.value;
-            this._entity.setLayerStyle();
-        });
+        this._inputFields.supressWarnings.checked = this._entity.supressWarnings;
 
         const deleteButton = document.getElementById('entity-delete') as HTMLButtonElement;
         deleteButton.onclick = () => {
@@ -377,6 +413,7 @@ export class EntityInfoEditor {
 
         // Go through all relevant properties and look for differences, list them verbosly under differences
         let basicPropertiesToCheck = [
+            'areaType',
             'name',
             'description',
             'contactInfo',
@@ -384,7 +421,6 @@ export class EntityInfoEditor {
             'nrOfVehicles',
             'additionalSqm',
             'amplifiedSound',
-            'color',
             'supressWarnings',
             'powerContactInfo',
             'powerPlugType',
@@ -457,7 +493,6 @@ export class EntityInfoEditor {
             // @ts-ignore
             input.value = values[i];
             input.onblur = () => {
-                this.updateEntityWithAddedAppliances();
                 this.calculateTotalPower();
             }
 
@@ -481,7 +516,6 @@ export class EntityInfoEditor {
             let row = (e.target as Element).closest(".power-item");
             if (row) {
                 row.remove();
-                this.updateEntityWithAddedAppliances();
                 this.calculateTotalPower();
             }
         };
@@ -491,26 +525,15 @@ export class EntityInfoEditor {
     }
 
     private calculateTotalPower() {
+        let appliances = this.getAppliancesFromUi();
         let totalWatt = 0;
-        let appliances = this._entity.powerAppliances
         for (let i = 0; i < appliances.length; i++) {
             totalWatt += appliances[i].amount * appliances[i].watt;
         }
 
         let totalPowerField = document.getElementById("entity-total-power-needed") as HTMLSpanElement;
         totalPowerField.innerText = Math.ceil(totalWatt).toString();
-
-        this._entity.powerNeed = totalWatt;
         this.checkIfLargeCamp();
-    }
-
-    private updateEntityWithAddedAppliances() {
-        // Easiest to just empty the array and add all again.
-        let appliances = this.getAppliancesFromUi()
-        this._entity.powerAppliances = [];
-        for (let i = 0; i < appliances.length; i++) {
-            this._entity.powerAppliances.push(appliances[i]);
-        }
     }
 
     private getAppliancesFromUi(): Array<Appliance> {

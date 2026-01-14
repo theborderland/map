@@ -29,6 +29,15 @@ export enum Colors {
 }
 
 export const DefaultColor = Colors.ElectricBlue
+
+export enum AreaTypesColor {
+    'public-offering' = '#d900ff',
+    'sound-camp' = '#fc90e5',
+    'normal-camp' = DefaultColor,
+    'art' = '#ffffff',
+    'other' = '#909090',
+}
+
 /** Returns the default style to use for map entities on the map */
 export const DefaultLayerStyle: L.PathOptions = {
     color: DefaultColor,
@@ -80,6 +89,7 @@ export class MapEntity implements EntityDTO {
 
     // Information fields.
     // Don't forget to update the restore getEntityDifferences function when you add/rename/delete fields here
+    public areaType: string;
     public name: string;
     public description: string;
     public contactInfo: string;
@@ -87,7 +97,6 @@ export class MapEntity implements EntityDTO {
     public nrOfVehicles: number;
     public additionalSqm: number;
     public amplifiedSound: number;
-    public color: string;
     public supressWarnings: boolean = false;
     public powerContactInfo: string;
     public powerPlugType: string;
@@ -172,6 +181,7 @@ export class MapEntity implements EntityDTO {
         this.revisions = {};
 
         // Extract information fields from the geoJson
+        this.areaType = geoJson.properties.areaType;
         this.name = DOMPurify.sanitize(geoJson.properties.name);
         this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
         this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
@@ -183,9 +193,7 @@ export class MapEntity implements EntityDTO {
         } else {
             this.amplifiedSound = Number(geoJson.properties.amplifiedSound);
         }
-        this.color = geoJson.properties.color ?? DefaultColor;
         this.supressWarnings = geoJson.properties.supressWarnings ?? false;
-
         this.areaNeedPower = geoJson.properties.areaNeedPower ?? true;
         this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.techContactInfo) ?? '';
         this.powerPlugType = DOMPurify.sanitize(geoJson.properties.powerPlugType) ?? '';
@@ -200,11 +208,22 @@ export class MapEntity implements EntityDTO {
 
         this.updateBufferedLayer();
     }
+
+    private GetColorForAreaType(areaType: string): string {
+        if (areaType && AreaTypesColor[areaType]) {
+            return AreaTypesColor[areaType];
+        } else {
+            return DefaultColor;
+        }
+    }
+
     private GetDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
-        let colorToSet = this.color;
+        let colorToSet: string = this.GetColorForAreaType(this.areaType);
+
         if (cleancolors) {
             colorToSet = DefaultColor;
         }
+
         return { color: colorToSet, fillColor: colorToSet, fillOpacity: 0.3, weight: 1 };
     }
 
@@ -220,7 +239,7 @@ export class MapEntity implements EntityDTO {
         this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 1, weight: 1 });
     }
 
-    public setLayerStyle(mode: 'severity' | 'sound' | 'power' | 'cleancolors' = 'severity') {
+    public setLayerStyle(mode: 'severity' | 'sound' | 'cleancolors' = 'severity') {
         if (mode == 'severity' || mode == 'cleancolors') {
             if (this.severityOfRulesBroken >= 3) {
                 //@ts-ignore
@@ -232,13 +251,6 @@ export class MapEntity implements EntityDTO {
                 //@ts-ignore
                 this.layer.setStyle(this.GetDefaultLayerStyle(mode == 'cleancolors'));
             }
-        } else if (mode == 'power') {
-            let color = Colors.Green;
-            if (!this.powerNeed) color = Colors.LightGrey;
-            else if (this.powerNeed > 9000) color = Colors.Red;
-            else if (this.powerNeed > 1000) color = Colors.Orange;
-            //@ts-ignore
-            this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.3, weight: 1 });
         } else if (mode == 'sound') {
             let color = Colors.Green;
             if (!this.amplifiedSound) color = Colors.LightGrey;
@@ -287,6 +299,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties = geoJson.properties || {};
 
         // Add all information fields as properties
+        geoJson.properties.areaType = this.areaType;
         geoJson.properties.name = DOMPurify.sanitize(this.name).substring(0, 100);
         geoJson.properties.description = DOMPurify.sanitize(this.description).substring(0, 1000);
         geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
@@ -294,7 +307,6 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.nrOfVehicles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
-        geoJson.properties.color = this.color;
         geoJson.properties.supressWarnings = this.supressWarnings;
         
         geoJson.properties.areaNeedPower = this.areaNeedPower;
@@ -311,5 +323,24 @@ export class MapEntity implements EntityDTO {
     /** Returns true if the geo-json of this map entity has been modified since last saved */
     public hasChanges(): boolean {
         return this._originalGeoJson != this.geoJson;
+    }
+
+    public updateEntity(newEntity: MapEntity) {
+        this.areaType = newEntity.areaType;
+        this.name = newEntity.name;
+        this.description = newEntity.description;
+        this.contactInfo = newEntity.contactInfo;
+        this.nrOfPeople = newEntity.nrOfPeople;
+        this.nrOfVehicles = newEntity.nrOfVehicles;
+        this.additionalSqm = newEntity.additionalSqm;
+        this.amplifiedSound = newEntity.amplifiedSound;
+        this.areaNeedPower = newEntity.areaNeedPower;
+        this.powerContactInfo = newEntity.powerContactInfo;
+        this.powerPlugType = newEntity.powerPlugType;
+        this.powerExtraInfo = newEntity.powerExtraInfo;
+        this.powerImageUrl = newEntity.powerImageUrl;
+        this.powerNeed = newEntity.powerNeed;
+        this.powerAppliances = newEntity.powerAppliances;
+        this.supressWarnings = newEntity.supressWarnings;
     }
 }

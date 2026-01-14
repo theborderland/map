@@ -30,7 +30,7 @@ export class Editor {
     private _isCleanAndQuietMode: boolean;
 
     /** The current status of the editor */
-    private _mode: 'none' | 'selected' | 'editing-shape' | 'moving-shape' = 'none';
+    private _mode: 'none' | 'selected' | 'editing-shape' | 'moving-shape' | 'editing-info' = 'none';
 
     /** The currently selected map entity, if any */
     private _selected: MapEntity | null = null;
@@ -41,7 +41,7 @@ export class Editor {
     private _groups: L.FeatureGroup<any>;
     private _placementLayers: L.LayerGroup<any>;
     private _placementBufferLayers: L.LayerGroup<any>;
-    private _ghostLayers: L.LayerGroup<any>;
+    private _compareRevDiffLayer: L.LayerGroup<any>;
 
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
@@ -63,7 +63,7 @@ export class Editor {
         }
 
         // Always remove ghosted entitys when changing mode
-        this._ghostLayers.clearLayers();
+        this._compareRevDiffLayer.clearLayers();
 
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
@@ -98,14 +98,14 @@ export class Editor {
 
         // Deselect and stop editing
         if (this._mode == 'none') {
-            this.setSelected(null, prevEntity);
+            this.setSelected(null);
             this.setPopup('none');
             return;
         }
 
         // Select an entity for editing
         if (this._mode == 'selected' && nextEntity) {
-            this.setSelected(nextEntity, prevEntity);
+            this.setSelected(nextEntity);
             this.setPopup('info', nextEntity);
 
             // Stop any ongoing editing of the previously selected layer
@@ -129,20 +129,21 @@ export class Editor {
         }
         // Move the shape of the entity
         if (this._mode == 'moving-shape' && nextEntity) {
-            this.setSelected(nextEntity, prevEntity);
+            this.setSelected(nextEntity);
             this.setPopup('none');
             this.UpdateOnScreenDisplay(nextEntity, 'Drag to move');
             nextEntity.layer._layers[nextEntity.layer._leaflet_id - 1].dragging.enable();
             return;
         }
+        // Edit the info of the entity
+        if (this._mode == 'editing-info' && nextEntity) {
+            this.setSelected(nextEntity);
+            return;
+        }
     }
 
-    /** Updates the currently selected map entity  */
-    private async setSelected(nextEntity: MapEntity | null, prevEntity: MapEntity | null) {
-        // When a map entity is unselected, save it to the database if it has changes
-        if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
-            await this.saveEntity(prevEntity);
-        }
+    /** Updates the currently selected map entity */
+    private async setSelected(nextEntity: MapEntity | null) {
         if (this._isEditMode || nextEntity == null) {
             this.UpdateOnScreenDisplay(nextEntity);
         }
@@ -153,22 +154,25 @@ export class Editor {
     }
 
     private keyEscapeListener(evt: Event) {
-        // console.log('keyEscapeListener', evt);
         if ('key' in evt && !(evt.key === 'Escape' || evt.key === 'Esc')) {
-            // console.log('not escape...');
             return;
         }
-        this.setMode('blur');
+        
+        // If we are in edit camp sidebar, close it first before changing mode.
+        if (this._mode !== 'editing-info') {
+            this.setMode('blur');
+        }
     }
 
     /** Updates whats display in the pop up window, if anything - usually called from setMode */
-    private async setPopup(display: 'info' | 'edit-info' | 'more' | 'history' | 'none', entity?: MapEntity | null) {
+    private async setPopup(display: 'info' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
             this._popup.close();
             return;
         }
 
+        // Move this logic to the entityInfoEditor?
         let editEntityCallback = async (action: string, extraInfo?: string) => {
             switch (action) {
                 case "delete":
@@ -185,7 +189,7 @@ export class Editor {
                     this._popup.close();
                     this.UpdateOnScreenDisplay(this._selected, "Saving...");
                     let entityInResponse = await this.saveEntity(this._selected);
-                    this.setSelected(entityInResponse, null);
+                    this.setSelected(entityInResponse);
                     this.setPopup('info', entityInResponse);
                     break;
 
@@ -196,9 +200,9 @@ export class Editor {
                     this._selected.layer = this._selected.revisions[extraInfo].layer;
                     this.addEntityToMap(this._selected);
                     break;
-
-                default:
-                    console.log('Unknown action', action);
+                
+                default: // also known as cancel.
+                    this.setMode('selected', this._selected);
                     break;
             }
         };
@@ -210,7 +214,7 @@ export class Editor {
                 this._isEditMode,
                 this.setMode.bind(this),
                 this._repository,
-                this._ghostLayers,
+                this._compareRevDiffLayer,
                 editEntityCallback.bind(this),
             );
             this._popup.setContent(content).openOn(this._map);
@@ -225,7 +229,7 @@ export class Editor {
                 this._isEditMode,
                 this.setMode.bind(this),
                 this._repository,
-                this._ghostLayers,
+                this._compareRevDiffLayer,
                 editEntityCallback.bind(this),
             );
             var fullScreenPopup = document.getElementById("fullScreenPopup");
@@ -548,7 +552,7 @@ export class Editor {
         //Create two separate layersgroups, so that we can use them to check overlaps separately
         this._placementLayers = new L.LayerGroup().addTo(map);
         this._placementBufferLayers = new L.LayerGroup().addTo(map);
-        this._ghostLayers = new L.LayerGroup().addTo(map);
+        this._compareRevDiffLayer = new L.LayerGroup().addTo(map);
 
         //Place both in the same group so that we can toggle them on and off together on the map
         //@ts-ignore

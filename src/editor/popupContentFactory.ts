@@ -9,7 +9,7 @@ export class PopupContentFactory {
         isEditMode: boolean,
         setMode: (nextMode: string, nextEntity?: MapEntity) => void,
         repository: MapEntityRepository,
-        ghostLayers: L.LayerGroup<any>,
+        compareRevDiffLayer: L.LayerGroup<any>,
         editEntityCallback: (...args: any[]) => void
     ): HTMLElement {
         const content = document.createElement('div');
@@ -90,12 +90,6 @@ export class PopupContentFactory {
         }
 
         if (isEditMode) {
-            const entityInfoEditor = new EntityInfoEditor(
-                entity,
-                repository,
-                ghostLayers,
-                editEntityCallback);
-
             const editShapeButton = document.createElement('button');
             editShapeButton.innerHTML = "Edit shape";
             editShapeButton.onclick = (e) => {
@@ -119,6 +113,13 @@ export class PopupContentFactory {
             editInfoButton.onclick = (e) => {
                 e.stopPropagation();
                 e.preventDefault();
+                setMode('editing-info', entity);
+                const entityInfoEditor = new EntityInfoEditor(
+                    entity,
+                    repository,
+                    compareRevDiffLayer,
+                    editEntityCallback);
+
                 entityInfoEditor.render();
             };
             content.appendChild(editInfoButton);
