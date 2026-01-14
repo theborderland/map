@@ -1,2 +1,2 @@
 export { MapEntityRepository } from './repository';
-export { MapEntity, DefaultLayerStyle } from './entity';
+export { MapEntity, DefaultLayerStyle, Appliance, EntityDifferences } from './entity';

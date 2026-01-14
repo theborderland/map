@@ -1,3 +1,4 @@
+import { calculatedAreaNeeded } from '../../utils';
 import { Rule } from '../index';
 
 export const isSmallerThanNeeded = () => new Rule(
@@ -5,7 +6,11 @@ export const isSmallerThanNeeded = () => new Rule(
     'Too small.',
     'Considering the amount of people, vehicles and extras you have, this area is probably too small.',
     (entity) => {
-        let calculatedNeed = entity.calculatedAreaNeeded;
+        let calculatedNeed = calculatedAreaNeeded(
+            entity.nrOfPeople,
+            entity.nrOfVehicles,
+            entity.additionalSqm
+        );
         if (entity.area < calculatedNeed) {
             return {
                 triggered: true,

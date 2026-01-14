@@ -8,7 +8,7 @@ import { ButtonsFactory } from '../utils';
 import * as Turf from '@turf/turf';
 import 'leaflet.path.drag';
 import 'leaflet-search';
-import { PopupContentFactory } from './popupContentFactory';
+import { EditorPopup } from './editorPopup';
 import { AdminAPI } from './adminAPI';
 
 /**
@@ -23,7 +23,7 @@ export class Editor {
     private _map: L.Map;
     /** A Leaflet popup used to display information and choices for individual editable layers */
     private _popup: L.Popup;
-    private _popupContentFactory: PopupContentFactory;
+    private _editorPopup: EditorPopup;
     /** If the editor should be active or not */
     private _isEditMode: boolean = false;
     // This will skip checking entity rules, hide controls and hide messages.
@@ -193,7 +193,7 @@ export class Editor {
                     this.setPopup('info', entityInResponse);
                     break;
 
-                case "restore":
+                case "restore-shape":
                     // First remove currently drawn shape to avoid duplicates
                     this.removeEntityNameTooltip(this._selected);
                     this.removeEntityFromLayers(this._selected);
@@ -209,7 +209,7 @@ export class Editor {
 
         // Show information popup for the entity
         if (display == 'info') {
-            const content = this._popupContentFactory.CreateInfoPopup(
+            const content = this._editorPopup.Create(
                 entity,
                 this._isEditMode,
                 this.setMode.bind(this),
@@ -224,7 +224,7 @@ export class Editor {
             // A hack for mobile where the popup took up almost the whole screen
             // and some popup buttons could not be scrolled into view
             // and map controls where overlayed ontop of popup.
-            const contentFullScreenPopup = this._popupContentFactory.CreateInfoPopup(
+            const contentFullScreenPopup = this._editorPopup.Create(
                 entity,
                 this._isEditMode,
                 this.setMode.bind(this),
@@ -545,7 +545,7 @@ export class Editor {
     constructor(map: L.Map, groups: L.FeatureGroup, isCleanAndQuietMode: boolean = false) {
         // Keep track of the map
         this._map = map;
-        this._popupContentFactory = new PopupContentFactory();
+        this._editorPopup = new EditorPopup();
         this._groups = groups;
         this._isCleanAndQuietMode = isCleanAndQuietMode;
 

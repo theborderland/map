@@ -1,10 +1,10 @@
 import DOMPurify from "dompurify";
 import { MapEntity, MapEntityRepository } from "../entities";
 import L from "leaflet";
-import { EntityInfoEditor } from "./entityInfoEditor";
+import { EditorDrawer } from "./editorDrawer";
 
-export class PopupContentFactory {
-    public CreateInfoPopup(
+export class EditorPopup {
+    public Create(
         entity: MapEntity,
         isEditMode: boolean,
         setMode: (nextMode: string, nextEntity?: MapEntity) => void,
@@ -68,7 +68,7 @@ export class PopupContentFactory {
         const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
 
         if (sortedRules.length > 0) {
-            if (!entity.supressWarnings)
+            if (!entity.suppressWarnings)
                 content.innerHTML += `<p style="margin: 10px 0 0 0"><b>${sortedRules.length}</b> issues found:</p> `;
 
             const ruleMessages = document.createElement('div');
@@ -79,7 +79,7 @@ export class PopupContentFactory {
             for (const rule of sortedRules) {
                 if (rule.severity >= 3) {
                     ruleMessages.innerHTML += `<div class="error">${' ' + rule.message}</div>`;
-                } else if (!entity.supressWarnings) {
+                } else if (!entity.suppressWarnings) {
                     if (rule.severity >= 2) {
                         ruleMessages.innerHTML += `<div class="warning">${' ' + rule.message}</div>`;
                     } else {
@@ -114,13 +114,12 @@ export class PopupContentFactory {
                 e.stopPropagation();
                 e.preventDefault();
                 setMode('editing-info', entity);
-                const entityInfoEditor = new EntityInfoEditor(
+                const entityEditor = new EditorDrawer(
                     entity,
                     repository,
                     compareRevDiffLayer,
                     editEntityCallback);
-
-                entityInfoEditor.render();
+                entityEditor.render();
             };
             content.appendChild(editInfoButton);
         }

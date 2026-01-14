@@ -74,8 +74,6 @@ export class MapEntity implements EntityDTO {
     private _rules: Array<Rule>;
     private _originalGeoJson: string;
     private readonly _bufferWidth: number = 5;
-    private readonly _sqmPerPerson: number = 10;
-    private readonly _sqmPerVehicle: number = 70;
 
     public readonly id: number;
     public readonly revision: number;
@@ -97,7 +95,7 @@ export class MapEntity implements EntityDTO {
     public nrOfVehicles: number;
     public additionalSqm: number;
     public amplifiedSound: number;
-    public supressWarnings: boolean = false;
+    public suppressWarnings: boolean = false;
     public powerContactInfo: string;
     public powerPlugType: string;
     public powerExtraInfo: string;
@@ -105,27 +103,6 @@ export class MapEntity implements EntityDTO {
     public powerNeed: number;
     public areaNeedPower: boolean = true;
     public powerAppliances: Array<Appliance>;
-
-    /** Calculated area needed for this map entity from the given information */
-    public get calculatedAreaNeeded(): number {
-        try {
-            let calculatedareaneed = 0;
-
-            if (this.nrOfPeople) {
-                calculatedareaneed += this.nrOfPeople * this._sqmPerPerson;
-            }
-            if (this.nrOfVehicles) {
-                calculatedareaneed += this.nrOfVehicles * this._sqmPerVehicle;
-            }
-            if (this.additionalSqm) {
-                calculatedareaneed += this.additionalSqm;
-            }
-
-            return calculatedareaneed;
-        } catch {
-            return NaN;
-        }
-    }
 
     public get severityOfRulesBroken(): number {
         return this._rules.reduce<number>((severity, rule) => Math.max(severity, rule.severity), 0);
@@ -193,7 +170,7 @@ export class MapEntity implements EntityDTO {
         } else {
             this.amplifiedSound = Number(geoJson.properties.amplifiedSound);
         }
-        this.supressWarnings = geoJson.properties.supressWarnings ?? false;
+        this.suppressWarnings = geoJson.properties.suppressWarnings ?? false;
         this.areaNeedPower = geoJson.properties.areaNeedPower ?? true;
         this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.techContactInfo) ?? '';
         this.powerPlugType = DOMPurify.sanitize(geoJson.properties.powerPlugType) ?? '';
@@ -244,7 +221,7 @@ export class MapEntity implements EntityDTO {
             if (this.severityOfRulesBroken >= 3) {
                 //@ts-ignore
                 this.layer.setStyle(DangerLayerStyle);
-            } else if (this.severityOfRulesBroken == 2 && !this.supressWarnings) {
+            } else if (this.severityOfRulesBroken == 2 && !this.suppressWarnings) {
                 //@ts-ignore
                 this.layer.setStyle(WarningLayerStyle);
             } else {
@@ -307,7 +284,7 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.nrOfVehicles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
-        geoJson.properties.supressWarnings = this.supressWarnings;
+        geoJson.properties.suppressWarnings = this.suppressWarnings;
         
         geoJson.properties.areaNeedPower = this.areaNeedPower;
         geoJson.properties.techContactInfo = DOMPurify.sanitize(this.powerContactInfo);
@@ -341,6 +318,6 @@ export class MapEntity implements EntityDTO {
         this.powerImageUrl = newEntity.powerImageUrl;
         this.powerNeed = newEntity.powerNeed;
         this.powerAppliances = newEntity.powerAppliances;
-        this.supressWarnings = newEntity.supressWarnings;
+        this.suppressWarnings = newEntity.suppressWarnings;
     }
 }

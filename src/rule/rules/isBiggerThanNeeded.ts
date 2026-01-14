@@ -2,15 +2,21 @@ import {
     MAX_CLUSTER_SIZE
 } from '../../../SETTINGS';
 import { Rule } from '../index';
+import { calculatedAreaNeeded } from '../../utils';
 
 export const isBiggerThanNeeded = () => new Rule(
     2,
     'Bigger than needed?',
     'Your area is quite big for the amount of people/vehicles and extras you have typed in.',
     (entity) => {
+        let areaNeeded = calculatedAreaNeeded(
+            entity.nrOfPeople,
+            entity.nrOfVehicles,
+            entity.additionalSqm
+        );
         return {
-            triggered: entity.area > _calculateReasonableArea(entity.calculatedAreaNeeded),
-            message: `Your area is <b>${entity.area - entity.calculatedAreaNeeded}m² bigger</b> than the suggested area size. Consider making it smaller.`,
+            triggered: entity.area > _calculateReasonableArea(areaNeeded),
+            message: `Your area is <b>${entity.area - areaNeeded}m² bigger</b> than the suggested area size. Consider making it smaller.`,
         };
     }
 );

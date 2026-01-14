@@ -85,7 +85,7 @@ type Entity = {
     nrOfVehicles: number;
     powerNeed: number;
     revision: number;
-    supressWarnings: number;
+    suppressWarnings: number;
 };
 
 const createRowFromEntity = (row: Entity) => {
@@ -125,7 +125,7 @@ function parseEntries(entries: any[]): Entity[] {
             nrOfVehicles: Number(properties.nrOfVehicles),
             powerNeed: Number(properties.powerNeed),
             revision: Number(entry.revision),
-            supressWarnings: Number(properties.supressWarnings),
+            suppressWarnings: Number(properties.suppressWarnings),
         };
         parsedEntries.push(entity);
     }
