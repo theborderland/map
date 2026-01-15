@@ -81,7 +81,7 @@ export class MapEntity implements EntityDTO {
     public readonly isDeleted: boolean;
     public readonly deleteReason: string;
     public readonly layer: L.Layer & { pm?: any };
-    public bufferLayer: L.Layer;
+    public bufferLayer: L.GeoJSON;
     public revisions: Record<number, MapEntity>;
     public nameMarker: L.Marker;
 
@@ -152,7 +152,7 @@ export class MapEntity implements EntityDTO {
             interactive: true,
             bubblingMouseEvents: false,
             snapIgnore: true,
-            style: (/*feature*/) => this.GetDefaultLayerStyle(),
+            style: (/*feature*/) => this.getDefaultLayerStyle(),
         });
 
         this.revisions = {};
@@ -186,21 +186,12 @@ export class MapEntity implements EntityDTO {
         this.updateBufferedLayer();
     }
 
-    private GetColorForAreaType(areaType: string): string {
-        if (areaType && AreaTypesColor[areaType]) {
-            return AreaTypesColor[areaType];
-        } else {
-            return DefaultColor;
-        }
+    private getColorForAreaType(areaType: string): string {
+        return areaType && AreaTypesColor[areaType] ? AreaTypesColor[areaType] : DefaultColor;
     }
 
-    private GetDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
-        let colorToSet: string = this.GetColorForAreaType(this.areaType);
-
-        if (cleancolors) {
-            colorToSet = DefaultColor;
-        }
-
+    private getDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
+        const colorToSet: string = cleancolors ? DefaultColor : this.getColorForAreaType(this.areaType);
         return { color: colorToSet, fillColor: colorToSet, fillOpacity: 0.3, weight: 1 };
     }
 
@@ -209,11 +200,6 @@ export class MapEntity implements EntityDTO {
         for (const rule of this._rules) {
             rule.checkRule(this);
         }
-    }
-
-    public setCustomColor(color: string) {
-        //@ts-ignore
-        this.layer.setStyle({ color: color, fillColor: color, fillOpacity: 1, weight: 1 });
     }
 
     public setLayerStyle(mode: 'severity' | 'sound' | 'cleancolors' = 'severity') {
@@ -226,7 +212,7 @@ export class MapEntity implements EntityDTO {
                 this.layer.setStyle(WarningLayerStyle);
             } else {
                 //@ts-ignore
-                this.layer.setStyle(this.GetDefaultLayerStyle(mode == 'cleancolors'));
+                this.layer.setStyle(this.getDefaultLayerStyle(mode == 'cleancolors'));
             }
         } else if (mode == 'sound') {
             let color = Colors.Green;
@@ -244,7 +230,6 @@ export class MapEntity implements EntityDTO {
 
     public updateBufferedLayer() {
         // Update the buffer layer so that its geometry is the same as this.layers geometry
-        //@ts-ignore
         const geoJson = this.layer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
         const weight = this.getAllTriggeredRules().some((r) => r.shouldShowFireBuffer) ? 1 : 0;
@@ -253,16 +238,16 @@ export class MapEntity implements EntityDTO {
                 style: {
                     color: 'red',
                     fillOpacity: 0.0,
-                    weight, // Set the outline width
-                    dashArray: '5, 5', // Set the outline to be dashed,
+                    weight, // outline width
+                    dashArray: '5, 5', // outline dashed,
                 },
                 interactive: false,
             });
         } else {
-            //@ts-ignore
             this.bufferLayer.clearLayers();
-            //@ts-ignore
+            if (weight === 0) return;
             this.bufferLayer.addData(buffered);
+            //@ts-ignore
             this.bufferLayer.options.style.weight = weight;
         }
     }
