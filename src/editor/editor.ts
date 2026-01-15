@@ -98,14 +98,14 @@ export class Editor {
 
         // Deselect and stop editing
         if (this._mode == 'none') {
-            this.setSelected(null);
+            this.setSelected(null, prevEntity);
             this.setPopup('none');
             return;
         }
 
         // Select an entity for editing
         if (this._mode == 'selected' && nextEntity) {
-            this.setSelected(nextEntity);
+            this.setSelected(nextEntity, prevEntity);
             this.setPopup('info', nextEntity);
 
             // Stop any ongoing editing of the previously selected layer
@@ -123,7 +123,7 @@ export class Editor {
                 snappable: false,
                 allowSelfIntersection: false,
             });
-            this.setSelected(nextEntity, prevEntity);
+            this.setSelected(nextEntity);
             this.setPopup('none');
             return;
         }
@@ -143,7 +143,11 @@ export class Editor {
     }
 
     /** Updates the currently selected map entity */
-    private async setSelected(nextEntity: MapEntity | null) {
+    private async setSelected(nextEntity: MapEntity | null, prevEntity: MapEntity | null = null) {
+        // When a map entity is unselected, save it to the database if it has changes (used when dragging or edit shape)
+        if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
+            await this.saveEntity(prevEntity);
+        }
         if (this._isEditMode || nextEntity == null) {
             this.UpdateOnScreenDisplay(nextEntity);
         }
