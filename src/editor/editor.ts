@@ -16,6 +16,7 @@ import { AdminAPI } from './adminAPI';
  * renders the map entities in the repository as editable layers on the map
  */
 export class Editor {
+    private _hideWarningColors: boolean;
     private _mapControls: Array<L.Control> = [];
     /** The Map Entities repository being used */
     private _repository: MapEntityRepository;
@@ -453,8 +454,8 @@ export class Editor {
         if (checkRules) {
             entity.checkAllRules();
         }
-        let mode: any = this._isCleanAndQuietMode ? 'cleancolors' : 'severity';
-        entity.setLayerStyle(mode);
+        let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
+        entity.setLayerStyle('severity', hideWarnings);
     }
 
     private refreshAllEntities(checkRules: boolean = true) {
@@ -546,11 +547,13 @@ export class Editor {
         }
     }
 
-    constructor(map: L.Map, groups: L.FeatureGroup, isCleanAndQuietMode: boolean = false) {
+    constructor(map: L.Map, hideWarningColors: boolean, isCleanAndQuietMode: boolean = false) {
         // Keep track of the map
         this._map = map;
+        this._hideWarningColors = hideWarningColors;
         this._editorPopup = new EditorPopup();
-        this._groups = groups;
+        // @ts-ignore
+        this._groups = map.groups;
         this._isCleanAndQuietMode = isCleanAndQuietMode;
 
         //Create two separate layersgroups, so that we can use them to check overlaps separately
@@ -560,9 +563,9 @@ export class Editor {
 
         //Place both in the same group so that we can toggle them on and off together on the map
         //@ts-ignore
-        this._placementLayers.addTo(groups.placement);
+        this._placementLayers.addTo(this._groups.placement);
         //@ts-ignore
-        this._placementBufferLayers.addTo(groups.placement);
+        this._placementBufferLayers.addTo(this._groups.placement);
         this._validateEntitiesQueue = new Array<MapEntity>();
         this._lastEnityFetch = 0;
         this._autoRefreshIntervall = 90; // Seconds
@@ -637,6 +640,14 @@ export class Editor {
                 zoom: 19,
                 initial: false,
             }));
+        }
+    }
+
+    public hideWarningColors(hide: boolean = true) {
+        this._hideWarningColors = hide;
+        for (const entityid in this._currentRevisions) {
+            let entity = this._currentRevisions[entityid];
+            entity.setLayerStyle("severity", this._hideWarningColors);
         }
     }
 

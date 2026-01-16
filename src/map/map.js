@@ -13,6 +13,7 @@ import { loadBaseLayers } from '../loaders/loadBaseLayers';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async (_isCleanAndQuietMode) => {
     const LAYER_NAMES = {
+        warnings: 'Warnings colors',
         placement: 'Camps',
         names: 'Camp names',
         mapstuff: 'Roads etc.',
@@ -33,6 +34,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
 
     // Define the default layers to be visible on load if no layers are specified in the URL hash
     let defaultLayers = new Set([
+        LAYER_NAMES.warnings,
         LAYER_NAMES.placement,
         LAYER_NAMES.mapstuff,
         LAYER_NAMES.poi,
@@ -93,6 +95,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
 
     var availableLayers = [
         // Type determines in which group the layer appears in the layerControl.
+        { name: LAYER_NAMES.warnings, layer: L.layerGroup(), type: 'Misc.' }, // Dummy layer for toggling warnings
         { name: LAYER_NAMES.placement, layer: map.groups.placement, type: 'Placement' },
         { name: LAYER_NAMES.names, layer: map.groups.names, type: 'Placement' },
         { name: LAYER_NAMES.mapstuff, layer: map.groups.mapstuff, type: 'Placement' },
@@ -128,12 +131,18 @@ export const createMap = async (_isCleanAndQuietMode) => {
     map.on('overlayadd', function (event) {
         visibleLayers.add(event.name);
         hash.layers = visibleLayers;
+        if (event.name === LAYER_NAMES.warnings) {
+            editor.hideWarningColors(false);
+        }
     });
 
     // Remove any hidden layers from the URL hash
     map.on('overlayremove', function (event) {
         visibleLayers.delete(event.name);
         hash.layers = visibleLayers;
+        if (event.name === LAYER_NAMES.warnings) {
+            editor.hideWarningColors(true);
+        }
     });
 
     // Link the map to the URL hash
@@ -201,7 +210,8 @@ export const createMap = async (_isCleanAndQuietMode) => {
     }
 
     // Load all entities from the API
-    const editor = new Editor(map, map.groups, _isCleanAndQuietMode);
+    let hideWarningColors = !visibleLayers.has(LAYER_NAMES.warnings) ;
+    const editor = new Editor(map, hideWarningColors, _isCleanAndQuietMode);
     await editor.addAPIEntities();
 
     if (hasNamesLayer) {

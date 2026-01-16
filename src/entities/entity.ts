@@ -110,7 +110,7 @@ export class MapEntity implements EntityDTO {
 
     /** Calculated area from the leaflet layer */
     public get area(): number {
-        return Math.round(Turf.area(this.calculateGeoJson()));
+        return Math.round(Turf.area(this._calculateGeoJson()));
     }
 
     /** The GeoJSON representation of this entity as a string */
@@ -119,7 +119,7 @@ export class MapEntity implements EntityDTO {
     }
 
     /** Extracts the GeoJson from the internal Leaflet layer to make sure its up-to-date */
-    private calculateGeoJson() {
+    private _calculateGeoJson() {
         //@ts-ignore
         let geoJson = this.layer.toGeoJSON();
 
@@ -152,7 +152,7 @@ export class MapEntity implements EntityDTO {
             interactive: true,
             bubblingMouseEvents: false,
             snapIgnore: true,
-            style: (/*feature*/) => this.getDefaultLayerStyle(),
+            style: (/*feature*/) => this._getDefaultLayerStyle(),
         });
 
         this.revisions = {};
@@ -186,12 +186,12 @@ export class MapEntity implements EntityDTO {
         this.updateBufferedLayer();
     }
 
-    private getColorForAreaType(areaType: string): string {
+    private _getColorForAreaType(areaType: string): string {
         return areaType && AreaTypesColor[areaType] ? AreaTypesColor[areaType] : DefaultColor;
     }
 
-    private getDefaultLayerStyle(cleancolors: boolean = false): L.PathOptions {
-        const colorToSet: string = cleancolors ? DefaultColor : this.getColorForAreaType(this.areaType);
+    private _getDefaultLayerStyle(): L.PathOptions {
+        let colorToSet = this._getColorForAreaType(this.areaType);
         return { color: colorToSet, fillColor: colorToSet, fillOpacity: 0.3, weight: 1 };
     }
 
@@ -202,8 +202,15 @@ export class MapEntity implements EntityDTO {
         }
     }
 
-    public setLayerStyle(mode: 'severity' | 'sound' | 'cleancolors' = 'severity') {
-        if (mode == 'severity' || mode == 'cleancolors') {
+    public setLayerStyle(mode: 'severity' | 'sound' = 'severity', hideWarningColors: boolean = true) {
+        if (hideWarningColors)
+        {
+            //@ts-ignore
+            this.layer.setStyle(this._getDefaultLayerStyle());
+            return;
+        }
+
+        if (mode == 'severity') {
             if (this.severityOfRulesBroken >= 3) {
                 //@ts-ignore
                 this.layer.setStyle(DangerLayerStyle);
@@ -212,7 +219,7 @@ export class MapEntity implements EntityDTO {
                 this.layer.setStyle(WarningLayerStyle);
             } else {
                 //@ts-ignore
-                this.layer.setStyle(this.getDefaultLayerStyle(mode == 'cleancolors'));
+                this.layer.setStyle(this._getDefaultLayerStyle());
             }
         } else if (mode == 'sound') {
             let color = Colors.Green;
@@ -255,7 +262,7 @@ export class MapEntity implements EntityDTO {
     /** Converts a the current map entity data represented as GeoJSON */
     public toGeoJSON() {
         // Get the up-to-date geo json data from the layer
-        const geoJson = this.calculateGeoJson();
+        const geoJson = this._calculateGeoJson();
 
         // Make sure that properties exist
         geoJson.properties = geoJson.properties || {};
