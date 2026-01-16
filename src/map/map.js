@@ -13,7 +13,7 @@ import { loadBaseLayers } from '../loaders/loadBaseLayers';
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async (_isCleanAndQuietMode) => {
     const LAYER_NAMES = {
-        warnings: 'Warnings colors',
+        warnings: 'Warning colors',
         placement: 'Camps',
         names: 'Camp names',
         mapstuff: 'Roads etc.',
