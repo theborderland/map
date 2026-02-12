@@ -1,6 +1,7 @@
 import * as L from 'leaflet';
 import '@geoman-io/leaflet-geoman-free';
-import { MapEntity, MapEntityRepository, DefaultLayerStyle } from '../entities';
+import { MapEntity, MapEntityRepository } from '../entities';
+import { LayerStyles } from '../entities/enums';
 import { generateRulesForEditor } from '../rule';
 import * as Messages from '../messages';
 import { EntityChanges } from '../entities/repository';
@@ -487,9 +488,10 @@ export class Editor {
 
         // Process up to 5 entities at a time
         const batch = this._validateEntitiesQueue.splice(-5, 5);
+        let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         for (const entity of batch) {
             entity.checkAllRules();
-            entity.setLayerStyle();
+            entity.setLayerStyle("severity", hideWarnings);
         }
 
         requestAnimationFrame(this.checkRulesSlowly.bind(this));
@@ -605,7 +607,7 @@ export class Editor {
         });
 
         // Set path style options for newly created layers
-        this._map.pm.setPathOptions(DefaultLayerStyle);
+        this._map.pm.setPathOptions(LayerStyles.Default);
         this._map.pm.setGlobalOptions({
             tooltips: true,
             allowSelfIntersection: false,
@@ -784,7 +786,7 @@ export class Editor {
         if (!this._isCleanAndQuietMode) {
             // Delayed start of validation
             setTimeout(() => {
-                //this.checkEntityRules();
+                this.checkEntityRules();
             }, 100);
 
             // Automatic refresh of entities after a minute //Disabled after the event

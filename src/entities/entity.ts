@@ -3,68 +3,8 @@ import '@geoman-io/leaflet-geoman-free';
 import * as Turf from '@turf/turf';
 import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
-
-/** The representation of a Map Entity in the API */
-export interface EntityDTO {
-    id: number;
-    revision: number;
-    geoJson: string;
-    timeStamp: number;
-    isDeleted: boolean;
-    deleteReason: string;
-}
-
-export interface EntityDifferences {
-    what: string;
-    changeShort: string;
-    changeLong: string;
-}
-export enum Colors {
-    Green ='#00FF40',
-    ElectricBlue = '#7AE9FF',
-    Yellow = '#FFBB00',
-    Red = '#FF0000',
-    LightGrey = '#D1D1D1',
-    Orange = '#FFA200',
-}
-
-export const DefaultColor = Colors.ElectricBlue
-
-export enum AreaTypesColor {
-    'public-offering' = '#d900ff',
-    'sound-camp' = '#fc90e5',
-    'normal-camp' = DefaultColor,
-    'art' = '#ffffff',
-    'other' = '#909090',
-}
-
-/** Returns the default style to use for map entities on the map */
-export const DefaultLayerStyle: L.PathOptions = {
-    color: DefaultColor,
-    fillColor: DefaultColor,
-    fillOpacity: 0.3,
-    weight: 1,
-};
-
-export const WarningLayerStyle: L.PathOptions = {
-    color: Colors.Yellow,
-    fillColor: Colors.Yellow,
-    fillOpacity: 0.75,
-    weight: 3,
-};
-
-export const DangerLayerStyle: L.PathOptions = {
-    color: Colors.Red,
-    fillColor: Colors.Red,
-    fillOpacity: 0.95,
-    weight: 5,
-};
-
-export interface Appliance {
-    name: string,
-    amount: number,
-    watt: number
-}
+import { EntityDTO, Appliance } from './interfaces';
+import { LayerStyles, Colors, AreaTypesColor } from './enums';
 
 /**
  * Represents the fields and data for single Map Entity and includes
@@ -159,9 +99,9 @@ export class MapEntity implements EntityDTO {
 
         // Extract information fields from the geoJson
         this.areaType = geoJson.properties.areaType;
-        this.name = DOMPurify.sanitize(geoJson.properties.name);
-        this.contactInfo = DOMPurify.sanitize(geoJson.properties.contactInfo) ?? '';
-        this.description = DOMPurify.sanitize(geoJson.properties.description) ?? '';
+        this.name = geoJson.properties.name;
+        this.contactInfo = geoJson.properties.contactInfo ?? '';
+        this.description = geoJson.properties.description ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
         this.nrOfVehicles = geoJson.properties.nrOfVehicles ?? 0;
         this.additionalSqm = geoJson.properties.additionalSqm ?? 0;
@@ -172,10 +112,10 @@ export class MapEntity implements EntityDTO {
         }
         this.suppressWarnings = geoJson.properties.suppressWarnings ?? false;
         this.areaNeedPower = geoJson.properties.areaNeedPower ?? true;
-        this.powerContactInfo = DOMPurify.sanitize(geoJson.properties.techContactInfo) ?? '';
-        this.powerPlugType = DOMPurify.sanitize(geoJson.properties.powerPlugType) ?? '';
-        this.powerExtraInfo = DOMPurify.sanitize(geoJson.properties.powerExtraInfo) ?? '';
-        this.powerImageUrl = DOMPurify.sanitize(geoJson.properties.powerImage) ?? '';
+        this.powerContactInfo = geoJson.properties.techContactInfo ?? '';
+        this.powerPlugType = geoJson.properties.powerPlugType ?? '';
+        this.powerExtraInfo = geoJson.properties.powerExtraInfo ?? '';
+        this.powerImageUrl = geoJson.properties.powerImage ?? '';
         if (Number.isNaN(Number(geoJson.properties.powerNeed))) {
             this.powerNeed = -1;
         } else {
@@ -187,7 +127,7 @@ export class MapEntity implements EntityDTO {
     }
 
     private _getColorForAreaType(areaType: string): string {
-        return areaType && AreaTypesColor[areaType] ? AreaTypesColor[areaType] : DefaultColor;
+        return AreaTypesColor[areaType] ?? Colors.Default;
     }
 
     private _getDefaultLayerStyle(): L.PathOptions {
@@ -211,12 +151,13 @@ export class MapEntity implements EntityDTO {
         }
 
         if (mode == 'severity') {
-            if (this.severityOfRulesBroken >= 3) {
+            let severity = this.severityOfRulesBroken;
+            if (severity >= 3) {
                 //@ts-ignore
-                this.layer.setStyle(DangerLayerStyle);
-            } else if (this.severityOfRulesBroken == 2 && !this.suppressWarnings) {
+                this.layer.setStyle(LayerStyles.Danger);
+            } else if (severity == 2 && !this.suppressWarnings) {
                 //@ts-ignore
-                this.layer.setStyle(WarningLayerStyle);
+                this.layer.setStyle(LayerStyles.Warning);
             } else {
                 //@ts-ignore
                 this.layer.setStyle(this._getDefaultLayerStyle());

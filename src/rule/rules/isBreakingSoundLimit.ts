@@ -4,23 +4,23 @@ import { MapEntity } from '../../entities';
 import { soundLimits, soundPropertyKey, soundSpotType } from '../../utils/soundData';
 
 function breaksSoundRule(entity: MapEntity, entityFeature, otherFeature) {
-    if(otherFeature.geometry.type === "Point"){
+    if (otherFeature.geometry.type === "Point") {
         return;
     }
 
-    if(otherFeature.properties.type === soundSpotType){
-        if(Turf.booleanOverlap(otherFeature, entityFeature)  || Turf.booleanContains(otherFeature, entityFeature)){
-            for(const [key, value] of Object.entries(soundLimits)){
-                if(otherFeature.properties[soundPropertyKey] == key){
-                    return {point: entity.amplifiedSound > value};
+    if (otherFeature.properties.type === soundSpotType) {
+        if (Turf.booleanOverlap(otherFeature, entityFeature) || Turf.booleanContains(otherFeature, entityFeature)) {
+            for (const [key, value] of Object.entries(soundLimits)) {
+                if (otherFeature.properties[soundPropertyKey] == key) {
+                    return { point: entity.amplifiedSound > value };
                 }
             }
         }
     } else if (Turf.booleanOverlap(entityFeature, otherFeature) || Turf.booleanContains(otherFeature, entityFeature)) {
         // In sound zone
-        for(const [key, value] of Object.entries(soundLimits)){
-            if(otherFeature.properties[soundPropertyKey] == key && entity.amplifiedSound > value){
-                return {zone: true};
+        for (const [key, value] of Object.entries(soundLimits)) {
+            if (otherFeature.properties[soundPropertyKey] == key && entity.amplifiedSound > value) {
+                return { zone: true };
             }
         }
     }
@@ -35,12 +35,12 @@ function breaksSoundRule(entity: MapEntity, entityFeature, otherFeature) {
  * 
  */
 export const isBreakingSoundLimit = (
-    layerGroup: any, 
-    severity: Severity, 
-    shortMsg: string, 
+    layerGroup: any,
+    severity: Severity,
+    shortMsg: string,
     message: string
 ) => new Rule(severity, shortMsg, message, (entity) => {
-    if (entity.amplifiedSound === undefined) return { triggered: false };
+    if (entity.amplifiedSound != null && entity.amplifiedSound > 0) return { triggered: false };
 
     let entityGeoJson = entity.toGeoJSON();
     let { point, zone } = { point: undefined, zone: false };
