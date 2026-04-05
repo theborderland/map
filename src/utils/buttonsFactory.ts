@@ -2,7 +2,7 @@ import * as L from 'leaflet';
 import { showDrawer, showNotification } from '../messages';
 import ToKML from '@maphubs/tokml';
 
-export function edit(isEditMode: boolean, onClickCallback: () => void): L.Control {
+export function edit(isEditMode: boolean, onClickCallback: () => Promise<boolean>): L.Control {
     const button = L.Control.extend({
         options: { position: 'bottomleft' },
         onAdd: () => {
@@ -13,8 +13,10 @@ export function edit(isEditMode: boolean, onClickCallback: () => void): L.Contro
 
             let _isEditMode = isEditMode;
 
-            btn.onclick = () => {
-                onClickCallback();
+            btn.onclick = async () => {
+                const success = await onClickCallback();
+                if (!success) return; // cancel the toggle if callback returns false
+
                 _isEditMode = !_isEditMode;
                 btn.textContent = _isEditMode ? 'Done' : 'Edit';
                 btn.title = _isEditMode ? 'Done' : 'Edit';

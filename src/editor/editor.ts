@@ -50,7 +50,7 @@ export class Editor {
 
     private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
     private _nameTooltips: Record<number, L.Marker>;
-    stopwatch: number;
+    private stopwatch: number;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -120,8 +120,8 @@ export class Editor {
         }
         // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
-            nextEntity.layer.pm.enable({ 
-                editMode: true, 
+            nextEntity.layer.pm.enable({
+                editMode: true,
                 snappable: false,
                 allowSelfIntersection: false,
             });
@@ -163,7 +163,7 @@ export class Editor {
         if ('key' in evt && !(evt.key === 'Escape' || evt.key === 'Esc')) {
             return;
         }
-        
+
         // If we are in edit camp sidebar, close it first before changing mode.
         if (this._mode !== 'editing-info') {
             this.setMode('blur');
@@ -206,7 +206,7 @@ export class Editor {
                     this._selected.layer = this._selected.revisions[extraInfo].layer;
                     this.addEntityToMap(this._selected);
                     break;
-                
+
                 default: // also known as cancel.
                     this.setMode('selected', this._selected);
                     break;
@@ -364,8 +364,7 @@ export class Editor {
     private addEntityToMap(entity: MapEntity, checkRules: boolean = true) {
         this._currentRevisions[entity.id] = entity;
         // Bind the click-event of the editor to the layer
-        if (!this._isCleanAndQuietMode)
-        {
+        if (!this._isCleanAndQuietMode) {
             entity.layer.on('click', ({ latlng }) => {
                 console.log(latlng);
                 // Update the popup-position
@@ -466,7 +465,7 @@ export class Editor {
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
-        Messages.showNotification('Validating, hold on...', undefined, undefined, 7000 );
+        Messages.showNotification('Validating, hold on...', undefined, undefined, 7000);
         if (entitysToRefresh) {
             this._validateEntitiesQueue = entitysToRefresh;
         } else {
@@ -627,6 +626,7 @@ export class Editor {
         this.sqmTooltip.addTo(this._map);
         this.sqmTooltip.closeTooltip();
         this._nameTooltips = {};
+        this.stopwatch = 0;
 
         document.onkeydown = (evt: Event) => {
             this.keyEscapeListener(evt);
@@ -656,8 +656,27 @@ export class Editor {
     private async addToggleEditButton() {
         // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
         if (await AdminAPI.isEditAllowed()) {
-            this._map.addControl(ButtonsFactory.edit(this._isEditMode, () => {
+            this._map.addControl(ButtonsFactory.edit(this._isEditMode, async () => {
+                // This callback should return true if edit mode should be toggled on, false if not.
+                if (!this._isEditMode) {
+                    const isSecretSet = await AdminAPI.isEditButtonSecretSet();
+
+                    if (isSecretSet) {
+                        const pw = prompt('Password? 🤐');
+                        if (pw == null || pw.trim() === '')
+                            return false;
+
+                        const success = await AdminAPI.CheckIfSecretIsSet(pw);
+                        if (!success)
+                        {
+                            alert('Wrong password! 😢');
+                            return false;
+                        }
+                    }
+                }
+
                 this.toggleEditMode();
+                return true;
             }));
             // Auto click the button to enable edit mode
             setTimeout(() => {
@@ -782,7 +801,7 @@ export class Editor {
         }
         // Refresh enity with no rulecheck
         this.refreshAllEntities(false);
-        
+
         if (!this._isCleanAndQuietMode) {
             // Delayed start of validation
             setTimeout(() => {

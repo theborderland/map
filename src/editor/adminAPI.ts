@@ -6,12 +6,12 @@ export class AdminAPI {
     public static async isEditAllowed(): Promise<boolean> {
         try {
             const res = await fetch(this.ENTITY_API_ADDRESS + '/is-edit-enabled');
-            if (!res.ok) 
+            if (!res.ok)
                 throw new Error('Response not ok');
 
             const data = await res.json();
 
-            if (typeof data !== 'boolean') 
+            if (typeof data !== 'boolean')
                 throw new Error('Invalid data type');
 
             return data;
@@ -20,20 +20,50 @@ export class AdminAPI {
         }
     }
 
-    public static async getEditText(): Promise<string> {
+    public static async isEditButtonSecretSet(): Promise<boolean> {
+        const res = await fetch(this.ENTITY_API_ADDRESS + '/edit-button-secret-set');
+        if (!res.ok)
+            throw new Error('Response not ok');
+
+        const data = await res.json();
+
+        if (typeof data !== 'boolean')
+            throw new Error('Invalid data type');
+
+        return data;
+    }
+
+    public static async CheckIfSecretIsSet(secret: string): Promise<boolean> {
         try {
-            const res = await fetch(this.ENTITY_API_ADDRESS + '/edit-text');
-            if (!res.ok) 
-                throw new Error('Response not ok');
+            const res = await fetch(this.ENTITY_API_ADDRESS + '/edit-button-secret', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(secret),
+            });
 
-            const data = await res.text();
-
-            if (typeof data !== 'string')
-                throw new Error('Invalid data type');
-
-            return data;
-        } catch {
-            return '';
+            return res.ok;
         }
+        catch {
+            return false;
+        }
+    }
+
+    public static async getEditText(): Promise < string > {
+    try {
+        const res = await fetch(this.ENTITY_API_ADDRESS + '/edit-text');
+        if(!res.ok)
+        throw new Error('Response not ok');
+
+        const data = await res.text();
+
+        if(typeof data !== 'string')
+    throw new Error('Invalid data type');
+
+    return data;
+} catch {
+    return '';
+}
     }
 }
