@@ -33,9 +33,21 @@ export class MapEntityRepository {
 
     /** Loads the latest entity data revisions from the server given the set constraints, if any */
     private async _update(): Promise<void> {
-        const res = await fetch(ENTITY_API_ADDRESS);
-        const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
+        // const res = await fetch(ENTITY_API_ADDRESS);
+        // const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
         this._latestRevisions = {};
+        const res = await fetch('./data/bl25/all_user_added_camps_from_event.geojson');
+        const geojsonData = await res.json();
+        const entityDTOs: Array<EntityDTO> = geojsonData.features.map((feature: any, index: number) => {
+            return {
+                id: index,
+                revision: 1,
+                geoJson: JSON.stringify(feature),
+                timeStamp: new Date().getTime(),
+                isDeleted: false,
+                deleteReason: '',
+            } as EntityDTO;
+        });
         for (const data of entityDTOs) {
             if (this._entityConstraints) {
                 const { earliest, latest } = this._entityConstraints;
@@ -161,6 +173,8 @@ export class MapEntityRepository {
 
     /** Creates a new revision of the current entity in the database */
     public async updateEntity(entity: MapEntity) {
+        return;
+
         const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`, {
             method: 'PUT',
             headers: {
