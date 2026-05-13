@@ -58,7 +58,7 @@ class HashMetaImplementation {
         // Decode any layers
         const layersVal = this._hashMeta.find((val) => val.startsWith(LAYERS_KEY));
         this._layers = layersVal ? layersVal.substring(LAYERS_KEY.length).split(',') : [];
-        this._layers = this._layers.map(x => x.replace("%20", " ")); // Handle spaces in layer names
+        this._layers = this._layers.map(x => x.replaceAll("%20", " ")); // Handle spaces in layer names
         
         // Decode any opened page
         const pageVal = this._hashMeta.find((val) => val.startsWith(PAGE_KEY));
