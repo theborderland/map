@@ -67,6 +67,12 @@
         <script src="main.js"></script>
         <script>
             indexMain();
+            document.body.addEventListener('click', function(e) {
+                if (e.target.matches('a.sound-guide-url')) {
+                    e.preventDefault();
+                    window.open(GetSoundGuideUrl(), '_blank');
+                }
+            });
         </script>
 
         <!-- Leaflet Scripts-->
