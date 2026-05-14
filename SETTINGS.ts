@@ -11,7 +11,9 @@ export const MAX_POWER_NEED: number = 8000;
 export const MAX_POINTS_BEFORE_WARNING: number = 10;
 export const FIRE_BUFFER_IN_METER: number = 5;
 
-/** Total memberships sold for 2025 */
-export const TOTAL_MEMBERSHIPS_SOLD = 4603;
+export const TOTAL_MEMBERSHIPS_SOLD = 5432; // 2026, this is used for the stats page.
 export const SOUND_GUIDE_URL = 'https://docs.google.com/document/d/1aDBv3UWOxngdjWd_z4N34Wcm7r7GvD-gINGwQIr4ti8';
 export const POWER_GRID_GEOJSON_URL = 'https://bl.skookum.cc/api/bl25/v/default/power_grid';
+
+export const HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY = 'hasSeenPlacementWelcome';
+export const HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY = 'hasSeenEditorInstructions';

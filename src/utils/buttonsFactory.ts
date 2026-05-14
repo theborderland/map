@@ -105,9 +105,6 @@ export function guide(): L.Control {
                 showDrawer({
                     file: 'guide-home',
                     position: 'end',
-                    onClose: () => {
-                        localStorage.setItem('hasSeenPlacementWelcome2025', 'true');
-                    },
                 }, {
                     keepOpen: false,
                 });

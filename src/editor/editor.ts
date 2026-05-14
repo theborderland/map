@@ -11,6 +11,8 @@ import 'leaflet.path.drag';
 import 'leaflet-search';
 import { EditorPopup } from './editorPopup';
 import { AdminAPI } from './adminAPI';
+import { HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY } from '../../SETTINGS';
+import { setCookie, getCookie } from "../utils/cookie";
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -705,7 +707,7 @@ export class Editor {
         // Show instructions when entering edit mode, and wait for the user
         // to press a button on that screen before continuing
         if (this._isEditMode) {
-            if (localStorage.getItem('hasSeenEditorInstructions2025') == null) {
+            if (getCookie(HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY) == null) {
                 Messages.showDrawers([
                     {
                         file: 'entering_edit_mode',
@@ -716,7 +718,7 @@ export class Editor {
                         file: 'entering_edit_mode_page_two',
                         position: 'bottom',
                         onClose: () => {
-                            localStorage.setItem('hasSeenEditorInstructions2025', 'true');
+                            setCookie(HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY, 'true', 60);
                         },
                         buttons: [{ text: 'Close' }],
                     },

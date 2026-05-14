@@ -1,6 +1,8 @@
 import { createMap } from './map';
 import { createStats } from './stats';
 import { showDrawers } from './messages';
+import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY } from '../SETTINGS';
+import { setCookie, getCookie } from "./utils/cookie";
 
 /** Main method for index.html */
 async function index() {
@@ -21,7 +23,7 @@ async function index() {
     }
 
     // Only show message if user has not seen the welcome message yet
-    if (!localStorage.getItem('hasSeenPlacementWelcome2025') && !_isCleanAndQuietMode) {
+    if (getCookie(HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY) == null && !_isCleanAndQuietMode) {
         showDrawers([{
             file: 'welcome',
             position: 'bottom',
@@ -30,7 +32,7 @@ async function index() {
             file: 'preplacement',
             position: 'bottom',
             onClose: () => {
-                localStorage.setItem('hasSeenPlacementWelcome2025', 'true');
+                setCookie(HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY, 'true', 60);
             },
         }]);
     }
