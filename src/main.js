@@ -1,7 +1,7 @@
 import { createMap } from './map';
 import { createStats } from './stats';
 import { showDrawers } from './messages';
-import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY } from '../SETTINGS';
+import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY, SOUND_GUIDE_URL } from '../SETTINGS';
 import { setCookie, getCookie } from "./utils/cookie";
 
 /** Main method for index.html */
@@ -44,3 +44,7 @@ async function stats() {
     await createStats();
 }
 window.statsMain = stats;
+
+window.GetSoundGuideUrl = function() {
+    return SOUND_GUIDE_URL;
+};
