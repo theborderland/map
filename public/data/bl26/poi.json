@@ -1,0 +1,624 @@
+{
+    "type": "FeatureCollection",
+    "name": "poi",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Sanctuary",
+                "description": "The Sanctuary is the First Aid and Emotional Support space of The Borderland.",
+                "link": "https://docs.google.com/document/d/15h51rBlfih84XK9HceFjTytABKrJ3aTpYFFGCkOhfI4",
+                "category": "sanctuary"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9242937565,
+                    57.6240987583
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Gate Toilets",
+                "description": "10 toilets <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9239169061,
+                    57.6282837404
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Villa Toilets",
+                "description": "30 toilets including 1 accessibility toilet <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9253693223,
+                    57.6243658992
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Artic Chill Toilets",
+                "description": "20 toilets <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9280703068,
+                    57.6270537159
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Wedge Toilets",
+                "description": "10 toilets <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9313372374,
+                    57.6212261511
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Muumin Valley Toilets",
+                "description": "10 toilets <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9193423986,
+                    57.6265115728
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Bison Swamp Toilets",
+                "description": "30 toilets <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9288696051,
+                    57.6222265623
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Downtown Toilets",
+                "description": "30 toilets <br>Please clean them when needed!",
+                "link": null,
+                "category": "toilet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9266299605,
+                    57.6211493057
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The War Room a.k.a B.O.W.E.L.S HQ",
+                "description": "Blackwater Operations Well Executed Latrine Services.<br>This is the place where all volunteers, Craptains and Lootenants, will meet for their shift to strategise and where all the supplies will be stored.",
+                "category": "hello"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9259513617,
+                    57.6216003211
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Threshold Check-in \"Gate\"",
+                "description": "This is the Gate run by The Threshold.",
+                "category": "threshold"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.923771053584561,
+                    57.62825166977558
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Main parking",
+                "description": "Place your vehicle here.",
+                "category": "parking"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.922152359901222,
+                    57.628692110347913
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "The Well",
+                "description": "4 taps available. Only for drinking and cooking!",
+                "category": "water"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.925387436364057,
+                    57.62120664395475
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Water",
+                "description": "Water taps at the square for bottle refill. Only for drinking and cooking!",
+                "category": "water"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9262732267,
+                    57.6211399694
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Clown HQ",
+                "description": "Helpful Clowns can be found here",
+                "category": "clown"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.92530857455476,
+                    57.621254753062331
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Trash2Treasure",
+                "description": "Recycling station with containers and trash bins. Remember:  Reuse -> Repair -> Recycle. Don't waste resources.",
+                "category": "recycle"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9256026745,
+                    57.6239896034
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Missing Piece: Low-Impact Neighborhood",
+                "description": "Fallow farm field. No camping. Extreme LNT zone.",
+                "link": null,
+                "category": "forbidden"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9278664589,
+                    57.6236334113
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Missing Piece: Low-Impact Neighborhood",
+                "description": "Fallow farm field. No camping. Extreme LNT zone.",
+                "link": null,
+                "category": "forbidden"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9285745621,
+                    57.6273215532
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone",
+                "description": "In case of rain this area may be flooded. Take a look at the aftermath layers in the map for details. Contact camps located there in previous years to learn more. Place yourself at your own risk <3",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9298191071,
+                    57.6223536765
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone",
+                "description": "This area is almost always flooded. No camping. Take a look at the aftermath layers in the map for details. Contact camps located there in previous years to learn more.",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9289661646,
+                    57.6222258442
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone",
+                "description": "With case of rain this area may be flooded. Take a look at the aftermath layers in the map for details. Contact camps located there in previous years to learn more. Place yourself at your own risk <3",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9319487810,
+                    57.6224800721
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone",
+                "description": "With heavy rain this area may be flooded. Take a look at the aftermath layers in the map for details. Contact camps that were located there in previous years to learn more. Place yourself at your own risk <3",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9322438240,
+                    57.6220233224
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone",
+                "description": "With heavy rain this area may be flooded. Take a look at the aftermath layers in the map for details. Contact camps that were located there in previous years to learn more. Place yourself at your own risk <3",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9322035909,
+                    57.6217877637
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone",
+                "description": "This area is almost always swampy. No camping, no cars.",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9278450012,
+                    57.6196547389
+                ]
+            }
+        },
+{
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone - Muumin Valley",
+                "description": "With heavy rain this area may be flooded. Place yourself at your own risk <3",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9165797234,
+                    57.6238603405
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Potential Flood Zone - Muumin Valley",
+                "description": "With heavy rain this area may be flooded. Place yourself at your own risk <3",
+                "category": "wet"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9176687002,
+                    57.6235989410	
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Bison No Cars",
+                "description": "No cars allowed. This area is too swampy for cars. Camping allowed",
+                "category": "warning"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9278235435,
+                    57.6203643247	
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "This is a nature reserve and not our lands. Please treat it with respect!",
+                "category": "info"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.92257767668516,
+                    57.622967069686723
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "This is a nature reserve and not our lands. Please treat it with respect!",
+                "category": "info"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.934005302856574,
+                    57.619754629944531
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "You can swim in the lakes. But no washing in the lake with soap shampoo or conditioner. Not even with environmentally friendly soaps. And no sunscreen or glitter either.",
+                "link": "https://www.facebook.com/groups/theborderland/permalink/5668316446521075",
+                "category": "info"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.922202,
+                    57.620027
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "You can swim in the lakes. But no washing in the lake with soap shampoo or conditioner. Not even with environmentally friendly soaps. And no sunscreen or glitter either.",
+                "link": "https://www.facebook.com/groups/theborderland/permalink/5668316446521075",
+                "category": "info"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.92835,
+                    57.628828
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Nature Reserve",
+                "description": "This is a nature reserve and not our lands. Please treat it with respect!",
+                "category": "info"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.931330406379983,
+                    57.627848571190079
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.930495023727419,
+                    57.621981668808694
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.925435854288482,
+                    57.626398527405534
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.92834260028053,
+                    57.626184405823771
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9257314205,
+                    57.6276891979
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Protected biotope!",
+                "description": "Åkerholme in Swedish, a protected nature area. Read more about it here",
+                "link": "https://www.naturvardsverket.se/4a60e5/globalassets/vagledning/skyddad-natur/biotopskyddsomraden/07-akerholme-2014-04-15.pdf",
+                "category": "notice"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9254417419,
+                    57.6285508506
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Please don't disturb them!",
+                "category": "neighbour"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.933759252202757,
+                    57.613007131943114
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Respect their peace, sound travels easily over the water",
+                "link": null,
+                "category": "neighbour"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.932492740436626,
+                    57.634439527630875
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Please don't disturb them. And dont use their trashbin on your way home.",
+                "category": "neighbour"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.921468596024436,
+                    57.633500552647462
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Neighbors",
+                "description": "Their property is off-limits! Respect this.",
+                "category": "neighbour"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.925760278156909,
+                    57.618919987442872
+                ]
+            }
+        }
+    ]
+}

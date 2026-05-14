@@ -39,36 +39,36 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	//     });
 
 	// Loads: "slope", "parking", "closetosanctuary"
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/placement_areas.geojson');
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/placement_areas.geojson');
 	// Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/borders.geojson');
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/borders.geojson');
 
 	// Loads "fireroads"
 	// with the fireroads as a reference, also load "publicplease" and "oktocamp" with a bigger buffer
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', { buffer: 2.5 });
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', {
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', { buffer: 2.5 });
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', {
 		buffer: 3.5,
 		propertyRenameFn: () => 'publicplease',
 	});
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Fireroads_BL25_export.geojson', {
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', {
 		buffer: 52.5,
 		propertyRenameFn: () => 'oktocamp',
 	});
 
 	// Loads "minorroad"
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Bluepaths_BL25_export.geojson', { buffer: 1 });
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/walking_paths.geojson', { buffer: 1 });
 	// Loads "plaza"
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/Plazas_BL25_export.geojson');
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/plazas.geojson');
 	// Loads "neighbourhood"
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl25/neighbourhoods.geojson');
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/neighbourhoods.geojson');
 
 
 	// Loads sound_c, sound_d, sound_e
-	await loadGeoJsonFeatureCollections(map, 'soundlevel', './data/bl25/soundguide.geojson', {
+	await loadGeoJsonFeatureCollections(map, 'soundlevel', './data/bl26/soundguide.geojson', {
 		styleFn: (_value: string, feature: any) => getSoundStyle(feature),
 	});
 	// Add soundspots and add it to the soundguide layer
-	await addPointsOfInterestsTomap('./data/bl25/poi/soundspots.json', map.groups.soundspots, {
+	await addPointsOfInterestsTomap('./data/bl26/soundspots.json', map.groups.soundspots, {
 		description: getSoundspotDescription,
 		link: '#page:soundspot',
 	}, _isCleanAndQuietMode);
@@ -76,7 +76,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	map.groups.soundspots.addTo(map.groups.soundguide);
 	map.removeLayer(map.groups.soundspots);
 	// Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
-	await loadGeoJsonFeatureCollections(map, "type", './data/bl25/poi/soundspots.json', {
+	await loadGeoJsonFeatureCollections(map, "type", './data/bl26/soundspots.json', {
 		propertyRenameFn: () => soundSpotType,
 		buffer: 10,
 		styleFn: (_value: string, feature: any) => getSoundStyle(feature),
@@ -84,7 +84,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	map.groups[soundSpotType].addTo(map.groups.soundguide);
 	map.removeLayer(map.groups[soundSpotType]);
 
-	await addPointsOfInterestsTomap('./data/bl25/poi/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
+	await addPointsOfInterestsTomap('./data/bl26/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
 	await addPowerGridTomap(map.groups.powergrid);
 
 	// Combine the Placement Area layers
