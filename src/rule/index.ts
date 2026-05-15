@@ -5,6 +5,7 @@ import type { MapEntity } from '../entities/entity';
 import { ClusterCache } from '../entities/ClusterCache';
 import * as Rules from './rules';
 import { FIRE_BUFFER_IN_METER } from '../../SETTINGS';
+import { soundLayers, soundSpotType } from '../utils/soundData';
 
 export const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
 export const ruler = new CheapRuler(57.5, 'meters');
@@ -18,9 +19,9 @@ export enum Severity {
 export class Rule {
     private _severity: Severity;
     private _triggered: boolean;
-    private _callback: (entity: MapEntity) => { 
-        triggered: boolean; 
-        shortMessage?: string; 
+    private _callback: (entity: MapEntity) => {
+        triggered: boolean;
+        shortMessage?: string;
         message?: string;
         shouldShowFireBuffer?: boolean;
     };
@@ -62,17 +63,19 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
         Rules.hasLargeEnergyNeed(),
         Rules.hasMissingFields(),
         // Rules.hasManyCoordinates(),
-        Rules.isBreakingSoundLimit(
-            groups.soundguide,
-            Severity.Medium,
-            'Making too much noise?',
-            'Seems like you wanna play louder than your neighbors might expect? Check the sound guide layer!',
-        ),
+        ...soundLayers.map((layer) => {
+            return Rules.isBreakingSoundLimit(
+                groups[layer], // only check the specific sound layer, not the whole soundguide group, to optimize performance
+                Severity.Medium,
+                'Making too much noise?',
+                'Seems like you wanna play louder than your neighbors might expect? Check the sound guide layer!',
+            );
+        }),
         Rules.isOnSoundSpot(
-            groups.soundguide,
+            groups[soundSpotType],
             Severity.Medium,
             'On a sound spot!',
-            'You are on a recommended sound spot, but do not seem to be a sound camp.',
+            'You are on a recommended sound spot. Check the sound guide layer for more info!',
         ),
         Rules.isOverlapping(
             placementLayers,
@@ -109,8 +112,8 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             Severity.High,
             'Too large/close to others!',
             'For fire safety, we need space (' +
-                FIRE_BUFFER_IN_METER +
-                'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big)',
+            FIRE_BUFFER_IN_METER +
+            'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big)',
         ),
         Rules.isNotInsideBoundaries(
             groups.neighbourhood,
