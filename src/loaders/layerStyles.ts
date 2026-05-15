@@ -20,7 +20,7 @@ export function getSoundStyle(feature: GeoJSON.Feature): PathOptions {
         ...baseStyle,
         color: feature.properties?.fill,
         fillOpacity: 0.4,
-        weight: 0, // border
+        weight: 2, // border width
     };
 }
 
