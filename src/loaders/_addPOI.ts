@@ -14,37 +14,50 @@ export const addPointsOfInterestsTomap = async (
     filename: string,
     layerGroup: L.LayerGroup,
     propertyOverrides: {
-        description?: (properties: any) => string | string;
+        description?: ((properties: any) => string) | string;
         link?: string;
     } = {},
     isCleanAndQuietMode: boolean = false
 ) => {
     let json = await (await fetch(filename)).json();
-    let iconDict = {};
+    let iconCache = new Map<string, L.Icon>();
 
     for (let point of json['features']) {
-        let { name, description, category, link } = point.properties;
-        const descriptionOverride =
+        let { name, category, link, fill } = point.properties;
+        let description =
             typeof propertyOverrides.description === 'function'
                 ? propertyOverrides.description(point.properties)
-                : propertyOverrides.description;
-        description = descriptionOverride || description;
+                : propertyOverrides.description ?? point.properties.description;
         link = propertyOverrides.link || link;
 
-        const lng = point.geometry.coordinates[0];
-        const lat = point.geometry.coordinates[1];
+        const [lng, lat] = point.geometry.coordinates;
 
         // Load the icon
-        if (!iconDict[category]) iconDict[category] = new centeredIcon({ iconUrl: './img/icons/' + category + '.png' });
+        if (!iconCache.has(category)) {
+            iconCache.set(category, new centeredIcon({ iconUrl: './img/icons/' + category + '.png' }));
+        }
 
         // Add links
         if (link && description && !isCleanAndQuietMode) {
-            const props = link[0] != '#' ? `target="_blank` : ``;
+            const props = link[0] != '#' ? `target="_blank"` : ``;
             description = `${description}<br><a href="${link}" ${props}">Read more here</a>`;
         }
 
         // Add the marker
-        const content = `<h3>${name}</h3> <p>${description}</p>`;
-        L.marker([lat, lng], { icon: iconDict[category] }).addTo(layerGroup).bindPopup(content);
+        const content = `${name ? `<h3>${name}</h3>` : ''}<p>${description ?? ''}</p>`;
+        if (fill) {
+            L.circleMarker([lat, lng], {
+                radius: 10,
+                fillColor: fill,
+                fillOpacity: 1,
+                weight: 2, // border width
+                color: '#000000', // border color
+                opacity: 0.5, // border opacity
+            }).addTo(layerGroup).bindPopup(content);
+        } else {
+            L.marker([lat, lng], {
+                icon: iconCache.get(category)
+            }).addTo(layerGroup).bindPopup(content);
+        }
     }
 };

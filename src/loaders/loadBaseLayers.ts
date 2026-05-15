@@ -2,7 +2,7 @@ import L from 'leaflet';
 import { loadDrawnMap } from './loadDrawnMap';
 import { loadGeoJsonFeatureCollections } from './loadGeoJsonFeatureCollections';
 import { getSoundStyle } from './layerStyles';
-import { getSoundspotDescription, soundSpotType } from '../utils/soundData';
+import { getSoundspotDescription, soundSpotType, soundPropertyKey, soundLayers } from '../utils/soundData';
 import { filterFeatures } from './filterFeatures';
 import { loadImageOverlay } from './loadImageOverlay';
 import { addPowerGridTomap } from './_addPowerGrid';
@@ -63,26 +63,31 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/neighbourhoods.geojson');
 
 
-	// Loads sound_c, sound_d, sound_e
-	await loadGeoJsonFeatureCollections(map, 'soundlevel', './data/bl26/soundguide.geojson', {
+	// Load sound areas
+	await loadGeoJsonFeatureCollections(map, soundPropertyKey, 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=polygons', {
 		styleFn: (_value: string, feature: any) => getSoundStyle(feature),
 	});
-	// Add soundspots and add it to the soundguide layer
-	await addPointsOfInterestsTomap('./data/bl26/soundspots.json', map.groups.soundspots, {
-		description: getSoundspotDescription,
-		link: '#page:soundspot',
-	}, _isCleanAndQuietMode);
-	
-	map.groups.soundspots.addTo(map.groups.soundguide);
-	map.removeLayer(map.groups.soundspots);
-	// Soundspots have to be added as a Feature as well, in order to have properties (For isBreakingSoundLimit)
-	await loadGeoJsonFeatureCollections(map, "type", './data/bl26/soundspots.json', {
+    soundLayers.forEach((layer) => {
+        map.groups[layer].addTo(map.groups.soundguide);
+    });
+
+	// Soundspots have to be added as a Feature, in order to have properties (For isBreakingSoundLimit)
+	await loadGeoJsonFeatureCollections(map, "type", 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=points', {
 		propertyRenameFn: () => soundSpotType,
 		buffer: 10,
 		styleFn: (_value: string, feature: any) => getSoundStyle(feature),
 	});
 	map.groups[soundSpotType].addTo(map.groups.soundguide);
 	map.removeLayer(map.groups[soundSpotType]);
+	
+	// Add soundspots to the soundguide layer, needs to be after the feature which adds buffer, otherwise they are not clickable.
+	await addPointsOfInterestsTomap('https://alversjomaps.vercel.app/geoapi/maps/map2?features=points', map.groups.soundspots, {
+		description: getSoundspotDescription,
+		link: '#page:soundspot',
+	}, _isCleanAndQuietMode);
+	
+	map.groups.soundspots.addTo(map.groups.soundguide);
+	map.removeLayer(map.groups.soundspots);
 
 	await addPointsOfInterestsTomap('./data/bl26/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
 	await addPowerGridTomap(map.groups.powergrid);

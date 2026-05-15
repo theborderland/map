@@ -9,6 +9,7 @@ import { hash, ButtonsFactory } from '../utils';
 import { Editor } from '../editor';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { loadBaseLayers } from '../loaders/loadBaseLayers';
+import { soundLayers } from '../utils/soundData';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async (_isCleanAndQuietMode) => {
@@ -71,20 +72,6 @@ export const createMap = async (_isCleanAndQuietMode) => {
     // Load all layers and stuff
     await loadBaseLayers(map, _isCleanAndQuietMode);
 
-    // Bring the sound guide layer to the back when it is added so the placement and POI is "on top"
-    map.on('overlayadd', function (eventLayer) {
-        map.groups.names.setZIndex(101);
-        if (eventLayer.name === 'Soundguide') {
-            soundLayers.forEach((layer) => {
-                map.groups[layer].bringToBack();
-            });
-        }
-    });
-    const soundLayers = ['sound_e', 'sound_d', 'sound_c'];
-    soundLayers.forEach((layer) => {
-        map.groups[layer].addTo(map.groups.soundguide);
-    });
-
     map.groups.plaza.addTo(map.groups.plazas);
     map.removeLayer(map.groups.plaza);
     map.groups.neighbourhood.addTo(map.groups.neighbourhoods);
@@ -133,6 +120,13 @@ export const createMap = async (_isCleanAndQuietMode) => {
         hash.layers = visibleLayers;
         if (event.name === LAYER_NAMES.warnings) {
             editor.hideWarningColors(false);
+        }
+        // Bring the sound guide layer to the back when it is added so the placement and POI is "on top"
+        map.groups.names.setZIndex(101);
+        if (event.name === 'Soundguide') {
+            soundLayers.forEach((layer) => {
+                map.groups[layer].bringToBack();
+            });
         }
     });
 

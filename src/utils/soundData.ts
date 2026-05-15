@@ -1,36 +1,51 @@
-const directionMap = {
-    N: 'North',
-    NE: 'North East',
-    E: 'East',
-    SE: 'South East',
-    S: 'South',
-    SW: 'South West',
-    W: 'West',
-    NW: 'North West',
-};
 
-// TODO: These are made up
+// TODO: These are made up (wattage)
 export const soundLimits = {
-    "sound_a": 20000,
-    "sound_b": 15000,
-    "sound_c": 50000,
-    "sound_d": 2000,
-    "sound_e": 120
+    "A": 20000,
+    "B": 15000,
+    "C": 50000,
+    "D": 2000,
+    "E": 120,
+    "F": 50,
 }
 
+export const soundLayers = ['A', 'B', 'C', 'D', 'E', 'F'];
 export const soundSpotType = "soundspotfeature";
+export const soundPropertyKey = "sound-class";
+const soundDirectionKey = "sound-direction-azimuth";
+const soundDirectionCommentKey = "sound-direction-comment";
 
-export const soundPropertyKey = "soundlevel";
-
-export const getSoundspotDescription = (properties) => {
-    let baseDescription = `If you want to host a music/rave camp this is a recommended spot, read more in the sound guide`;
+export const getSoundspotDescription = (properties: any) => {
+    let baseDescription = `<h3>${properties.title}</h3>`;
+    baseDescription += `<p>${properties.description}</p>`;
 
     if (properties[soundPropertyKey]) {
-        baseDescription += `<br>Sound class: <b>${properties[soundPropertyKey].at(-1).toUpperCase()}</b>`;
+        baseDescription += `Sound class: <b>${properties[soundPropertyKey]}</b>`;
     }
 
-    if (properties.preferred_direction) {
-        baseDescription += `<br>Speaker direction: <b>${directionMap[properties.preferred_direction]}</b>`;
+    if (properties[soundDirectionKey]) {
+        baseDescription += `<br>Speaker direction: <b>${azimuthToDirection(properties[soundDirectionKey])}</b> ${properties[soundDirectionCommentKey]}`;
     }
     return baseDescription;
 };
+
+function azimuthToDirection(degrees: number): string {
+    // Normalize to 0–359
+    degrees = ((degrees % 360) + 360) % 360;
+
+    const directions = [
+        "North",
+        "North-East",
+        "East",
+        "South-East",
+        "South",
+        "South-West",
+        "West",
+        "North-West"
+    ];
+
+    // 360 / 8 = 45 degrees per direction
+    const index = Math.round(degrees / 45) % 8;
+
+    return directions[index];
+}

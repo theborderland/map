@@ -16,48 +16,12 @@ const baseStyle: PathOptions = {
 };
 
 export function getSoundStyle(feature: GeoJSON.Feature): PathOptions {
-    switch (feature.properties?.soundlevel) {
-        case 'sound_e':
-            return {
-                ...baseStyle,
-                color: '#00e300',
-                fillOpacity: 0.75,
-                weight: 0,
-            };
-        case 'sound_d':
-            return {
-                ...baseStyle,
-                color: '#f4e512',
-                fillOpacity: 0.75,
-                weight: 0,
-            };
-        case 'sound_c':
-            return {
-                ...baseStyle,
-                color: '#ff8b16',
-                fillOpacity: 0.75,
-                weight: 0,
-            };
-        case 'sound_b':
-            return {
-                ...baseStyle,
-                color: '#eb6359',
-                fillOpacity: 0.75,
-                weight: 0,
-            };
-        case 'sound_a':
-            return {
-                ...baseStyle,
-                color: '#ad3f37',
-                fillOpacity: 0.75,
-                weight: 0,
-            };
-        default:
-            return {
-                ...baseStyle,
-                color: 'black',
-            };
-    }
+    return {
+        ...baseStyle,
+        color: feature.properties?.fill,
+        fillOpacity: 0.4,
+        weight: 0, // border
+    };
 }
 
 /**
