@@ -3,9 +3,7 @@ import { Severity, Rule } from '../index';
 import { MapEntity } from '../../entities';
 import { soundLimits, soundPropertyKey, soundSpotType } from '../../utils/soundData';
 
-let counter = 0; // For debugging, counts how many times the check function is called
 function breaksSoundRule(entity: MapEntity, entityFeature, otherFeature) {
-    counter++;
     if (otherFeature.geometry.type === "Point") {
         return;
     }
@@ -66,7 +64,6 @@ export const isBreakingSoundLimit = (
         }
     });
 
-    console.log('isBreakingSoundLimit checks:', counter);
     if (point !== undefined) {
         // Sound spot takes precedence over zone
         return { triggered: point };
