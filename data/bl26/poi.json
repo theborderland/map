@@ -5,6 +5,36 @@
         {
             "type": "Feature",
             "properties": {
+                "name": "Info point WTF",
+                "description": "WTF - Where To Find everything <br>Lost, confused, or just vibing? Swing by - we know where everything is… and if not, we'll confidently point you somewhere anyway.",
+                "category": "infofolder"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9264824390,
+                    57.6211600785
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Info point WTF",
+                "description": "WTF - Where To Find everything <br>Lost, confused, or just vibing? Swing by - we know where everything is… and if not, we'll confidently point you somewhere anyway.",
+                "category": "infofolder"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.9236929417,
+                    57.6284244761
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
                 "name": "The Sanctuary",
                 "description": "The Sanctuary is the First Aid and Emotional Support space of The Borderland.",
                 "link": "https://docs.google.com/document/d/15h51rBlfih84XK9HceFjTytABKrJ3aTpYFFGCkOhfI4",
