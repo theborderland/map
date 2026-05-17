@@ -218,3 +218,12 @@
     order: 1;
     margin-left:auto
 }
+
+#entity-area-type sl-option[aria-selected="true"]::part(base) {
+    background-color: unset;
+    color: black;
+}
+
+#entity-area-type sl-option::part(base):hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}

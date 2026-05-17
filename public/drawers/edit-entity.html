@@ -8,11 +8,11 @@
         <div class="tab-pannel-inner flex-column">
             <section>
                 <sl-select id="entity-area-type" label="What type of area is this?" size="small">
-                    <sl-option value="public-offering">Public offering</sl-option>
-                    <sl-option value="sound-camp">Sound camp</sl-option>
-                    <sl-option value="normal-camp">Just a camp (sleeping, cooking, magic etc)</sl-option>
-                    <sl-option value="art">Art</sl-option>
-                    <sl-option value="other">Other</sl-option>
+                    <sl-option value="public-offering" style="background-color: rgba(217, 0, 255, 0.6);">Public offering</sl-option>
+                    <sl-option value="sound-camp" style="background-color: rgba(252, 144, 229, 0.6);">Sound camp</sl-option>
+                    <sl-option value="normal-camp" style="background-color: rgba(122, 233, 255, 0.6);">Just a camp (sleeping, cooking, magic etc)</sl-option>
+                    <sl-option value="art" style="background-color: rgba(255, 255, 255, 0.6);">Art</sl-option>
+                    <sl-option value="other" style="background-color: rgba(144, 144, 144, 0.6);">Other</sl-option>
                 </sl-select>
             </section>
             <section>
@@ -84,7 +84,7 @@
             </section>
             <section class="power-toggle">
                 <sl-input size="small" label="Technical lead contact info" id="entity-tech-lead" placeholder="Email, phone, @discord-name etc"></sl-input>
-                <sl-select id="power-plug-type" label="Connection type needed" placeholder="Connection type needed" value="1p_schuko" size="small">
+                <sl-select id="power-plug-type" label="Connection type needed" placeholder="Connection type needed" size="small">
                     <sl-option value="1p_schuko">Schuko (standard Swedish)</sl-option>
                     <sl-option value="1p_dk">DK</sl-option>
                     <sl-option value="1p_cee">CEE 1-Phase</sl-option>

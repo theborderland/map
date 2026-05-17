@@ -185,6 +185,11 @@ export const createMap = async (_isCleanAndQuietMode) => {
         // Add layer control and legends
         let layerControl = addLegends(map, availableLayers, visibleLayers);
         map.addControl(layerControl);
+        // Leaflet puts all controls inside a single container with the class .leaflet-control-container. 
+        // This covers all controls (zoom buttons, layer switcher, attribution, any custom ones) in one shot since they all live inside that wrapper div.
+        // By disabling click propagation on that container, we ensure that double-clicking on any control doesn't cause the map to zoom in.
+        const controlContainer = map.getContainer().querySelector('.leaflet-control-container');
+        L.DomEvent.disableClickPropagation(controlContainer);
     }
 
     // Add a stopwatch to measure loading time
