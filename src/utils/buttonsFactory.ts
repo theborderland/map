@@ -9,7 +9,6 @@ export function edit(isEditMode: boolean, onClickCallback: () => Promise<boolean
             let btn = L.DomUtil.create('button', 'btn button-shake-animate');
             btn.title = 'Edit';
             btn.textContent = 'Edit';
-            L.DomEvent.disableClickPropagation(btn);
 
             let _isEditMode = isEditMode;
 
@@ -36,7 +35,6 @@ export function download(map: L.Map): L.Control {
             let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
             btn.title = 'Save everything';
             btn.textContent = '💾';
-            L.DomEvent.disableClickPropagation(btn);
 
             btn.onclick = async () => {
                 const quit = !confirm(
@@ -99,7 +97,6 @@ export function guide(): L.Control {
             let btn = L.DomUtil.create('button', 'leaflet-bar help-button');
             btn.title = 'Guide to the placement process';
             btn.textContent = 'ℹ️';
-            L.DomEvent.disableClickPropagation(btn);
 
             btn.onclick = () => {
                 showDrawer({
