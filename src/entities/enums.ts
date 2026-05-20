@@ -17,6 +17,13 @@ export enum AreaTypesColor {
     'art' = '#ffffff',
     'other' = '#909090',
 }
+export enum AreaTypeToText {
+    'public-offering' = 'Public Offering',
+    'sound-camp' = 'Sound Camp',
+    'normal-camp' = 'Normal Camp',
+    'art' = 'Art',
+    'other' = 'Other',
+}
 
 const createStyle = (
     color: string,

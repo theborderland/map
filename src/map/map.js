@@ -68,7 +68,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         soundguide: new L.LayerGroup(),
         names: new L.LayerGroup(),
     };
-    
+
     // Load all layers and stuff
     await loadBaseLayers(map, _isCleanAndQuietMode);
 
@@ -209,7 +209,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
     }
 
     // Load all entities from the API
-    let hideWarningColors = !visibleLayers.has(LAYER_NAMES.warnings) ;
+    let hideWarningColors = !visibleLayers.has(LAYER_NAMES.warnings);
     const editor = new Editor(map, hideWarningColors, _isCleanAndQuietMode);
     await editor.addAPIEntities();
 
@@ -248,4 +248,24 @@ export const createMap = async (_isCleanAndQuietMode) => {
     // Done!
     //await showNotification('Loaded everything!', 'success');
     stopwatch.log();
+
+    // Expose toggleLayerByName function so it can be used in the guide-areatypes drawer
+    // to toggle the warning colors layer on and off as an example of how to use it.
+    // leave 'visible' parameter undefined to activate true toggle
+    function toggleLayerByName(name, visible) {
+        const entry = availableLayers.find(l => l.name === name);
+        if (!entry) return;
+        
+        const shouldBeVisible = visible !== undefined ? visible : !visibleLayers.has(name);
+        
+        if (shouldBeVisible) {
+            map.addLayer(entry.layer);
+            visibleLayers.add(name);
+        } else {
+            map.removeLayer(entry.layer);
+            visibleLayers.delete(name);
+        }
+        hash.layers = visibleLayers;
+    }
+    return { toggleLayerByName };
 };

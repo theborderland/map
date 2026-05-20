@@ -17,7 +17,8 @@ async function index() {
     let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
     // Create the map
     try {
-        await createMap(_isCleanAndQuietMode);
+        var map = await createMap(_isCleanAndQuietMode);
+        window.toggleLayerByName = map.toggleLayerByName;
     } catch (err) {
         console.error(err);
     }
@@ -27,8 +28,8 @@ async function index() {
         showDrawers([{
             file: 'welcome',
             position: 'bottom',
-            buttons: [{text: 'Continue'}]
-        },{
+            buttons: [{ text: 'Continue' }]
+        }, {
             file: 'preplacement',
             position: 'bottom',
             onClose: () => {
@@ -45,6 +46,6 @@ async function stats() {
 }
 window.statsMain = stats;
 
-window.GetSoundGuideUrl = function() {
+window.GetSoundGuideUrl = function () {
     return SOUND_GUIDE_URL;
 };

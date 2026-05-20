@@ -11,8 +11,9 @@ export function editing(messageText: string): L.Control {
                 ${messageText}
                 `;
 
-            div.querySelector('.note-close')?.addEventListener('click', () => {
+            div.querySelector('.note-close')?.addEventListener('click', (e) => {
                 this.remove();
+                e.stopPropagation();
             });
 
             return div;

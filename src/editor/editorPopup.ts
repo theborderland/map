@@ -2,6 +2,7 @@ import DOMPurify from "dompurify";
 import { MapEntity, MapEntityRepository } from "../entities";
 import L from "leaflet";
 import { EditorDrawer } from "./editorDrawer";
+import { AreaTypeToText } from "../entities/enums";
 
 export class EditorPopup {
     public Create(
@@ -14,8 +15,8 @@ export class EditorPopup {
     ): HTMLElement {
         const content = document.createElement('div');
 
-        const personText = entity.nrOfPeople === 1 ? ' person,' : ' people,';
-        const vehicleText = entity.nrOfVehicles === 1 ? ' vehicle,' : ' vehicles,';
+        const personText = entity.nrOfPeople === 1 ? 'person' : 'people';
+        const vehicleText = entity.nrOfVehicles === 1 ? 'vehicle' : 'vehicles';
         const entityName = entity.name ? entity.name : '<i>No name yet</i>';
         const entityDescription = entity.description ? entity.description : '<i>No description yet</i>';
         const entityContactInfo = entity.contactInfo
@@ -23,7 +24,7 @@ export class EditorPopup {
             : 'Please add contact info! Areas without it might be removed.';
         const entityPowerNeed = entity.areaNeedPower && entity.powerNeed != -1
             ? `${entity.powerNeed} Watts`
-            : !entity.areaNeedPower 
+            : !entity.areaNeedPower
                 ? '0'
                 : 'Please state your power need! Uncheck the box if you will not use electricity.';
         const entitySoundAmp = entity.amplifiedSound != -1
@@ -37,16 +38,16 @@ export class EditorPopup {
             replacePattern1,
             '<a href="$1" target="_blank">$1</a>'
         );
-        
-        content.innerHTML += `<div class="flex-column" style="margin-bottom: 10px;">
+
+        content.innerHTML += `<div class="flex-column">
                                 <header class="flex-row">
                                     <h3 class="flex-fill" style="margin: 0px; overflow-wrap:anywhere">${DOMPurify.sanitize(entityName)}</h3>
-                                    <a href="?id=${entity.id}" style="margin: 5px;">
+                                    <a href="?id=${entity.id}" style="margin: 5px 0 0 0;">
                                         <sl-icon name="share" title="Direct link to this area (right click & copy)" style="font-size: 18px;"></sl-icon>
                                     </a>
                                 </header>
                                 <p class="scrollable" style="margin: 0;">${descriptionWithLinks}</p>
-                                <div class="flex-column" style="font-weight:200; margin:10px 0 5px 0;">
+                                <div class="flex-column" style="font-weight:200; margin:5px 0;">
                                     <div>
                                         <b>Contact:</b> ${DOMPurify.sanitize(entityContactInfo)}   
                                     </div>
@@ -57,11 +58,16 @@ export class EditorPopup {
                                         <b>Sound:</b> ${entitySoundAmp}
                                     </div>
                                 </div> 
-                                <div style="font-size: 14px; color:#5c5c5c; margin: 0;">
+                                <div style="font-size: 14px; color:#5c5c5c; margin-bottom: 5px;">
                                     <b>${entity.area}</b> m² - 
-                                    ${entity.nrOfPeople > 0 ? '<b>' + entity.nrOfPeople + '</b>' + personText : ''} 
-                                    ${entity.nrOfVehicles > 0 ? '<b>' + entity.nrOfVehicles + '</b>' + vehicleText : ''} 
-                                    ${entity.additionalSqm > 0 ? '<b>' + entity.additionalSqm + '</b> m² other' : ''}
+                                    ${entity.nrOfPeople > 0 ? '<b>' + entity.nrOfPeople + ' </b>' + personText : ''}
+                                    ${entity.nrOfVehicles > 0 ? ', <b>' + entity.nrOfVehicles + ' </b>' + vehicleText : ''}
+                                    ${entity.additionalSqm > 0 ? ', <b>' + entity.additionalSqm + ' </b> m² other' : ''}
+                                </div>
+                                <div>
+                                    ${entity.areaType ? `<sl-button class="cursor-pointer ${entity.areaType}" size="small" pill href="#page:guide-areatypes" title="Click for more info on area types" >
+                                        ${AreaTypeToText[entity.areaType]}
+                                    </sl-button>` : ''}
                                 </div>
                             </div>`;
 
