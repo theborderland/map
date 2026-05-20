@@ -34,7 +34,7 @@ export class AreaTabController implements EditorDrawerTab {
     populate() {
         const e = this.ctx.entity;
         this.fields.areaType.value = e.areaType;
-        this.fields.name.value = e.name;
+        this.fields.name.value = e.name || '';
         this.fields.description.value = e.description;
         this.fields.contactInfo.value = e.contactInfo;
         this.fields.nrOfPeople.value = String(e.nrOfPeople);

@@ -50,7 +50,7 @@ export class Editor {
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
 
-    private sqmTooltip: L.Tooltip; //The tooltip that shows the areasize of the current layer
+    private campWarningTooltip: L.Tooltip; //The tooltip that shows some warning messages under the name and area size.
     private _nameTooltips: Record<number, L.Marker>;
     private stopwatch: number;
 
@@ -383,18 +383,17 @@ export class Editor {
         // Update the buffered layer when the layer is being edited
         entity.layer.on('pm:markerdrag', () => {
             entity.updateBufferedLayer();
-            this.refreshEntity(entity);
+            this.refreshEntityLite(entity);
             this.UpdateOnScreenDisplay(entity);
         });
 
         entity.layer.on('pm:markerdragend', () => {
+            this.refreshEntity(entity);
             this.isAreaTooBig(entity.toGeoJSON());
         });
 
         entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
-            // console.log("dragging");
             entity.updateBufferedLayer();
-            this.refreshEntity(entity);
             this.UpdateOnScreenDisplay(null);
         });
 
@@ -423,6 +422,19 @@ export class Editor {
         }
 
         if (checkRules) this.refreshEntity(entity);
+    }
+    /**
+     * Check rules, update area and update warning color.
+     */
+    private refreshEntityLite(entity: MapEntity) {
+        if (entity == null) {
+            return;
+        }
+
+        entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
+        entity.checkAllRules();
+        let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
+        entity.setLayerStyle('severity', hideWarnings);
     }
 
     private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
@@ -618,15 +630,15 @@ export class Editor {
 
         this.setupMapEvents(this._map);
 
-        this.sqmTooltip = new L.Tooltip({
+        this.campWarningTooltip = new L.Tooltip({
             permanent: true,
             interactive: false,
             direction: 'center',
             className: 'shape-tooltip',
         });
-        this.sqmTooltip.setLatLng([0, 0]);
-        this.sqmTooltip.addTo(this._map);
-        this.sqmTooltip.closeTooltip();
+        this.campWarningTooltip.setLatLng([0, 0]);
+        this.campWarningTooltip.addTo(this._map);
+        this.campWarningTooltip.closeTooltip();
         this._nameTooltips = {};
         this.stopwatch = 0;
 
@@ -669,8 +681,7 @@ export class Editor {
                             return false;
 
                         const success = await AdminAPI.CheckIfSecretIsSet(pw);
-                        if (!success)
-                        {
+                        if (!success) {
                             alert('Wrong password! 😢');
                             return false;
                         }
@@ -897,11 +908,11 @@ export class Editor {
                 }
             }
 
-            this.sqmTooltip.openOn(this._map);
-            this.sqmTooltip.setLatLng(entity.layer.getBounds().getCenter());
-            this.sqmTooltip.setContent(tooltipText);
+            this.campWarningTooltip.openOn(this._map);
+            this.campWarningTooltip.setLatLng(entity.layer.getBounds().getCenter());
+            this.campWarningTooltip.setContent(tooltipText);
         } else {
-            this.sqmTooltip.close();
+            this.campWarningTooltip.close();
         }
     }
 
@@ -940,6 +951,10 @@ export class Editor {
     }
 
     private buildTooltipName(entity: MapEntity): string {
-        return entity.name + "<br />" + entity.area + 'm²';
+        let txt = entity.name;
+        if (this._isEditMode) {
+            txt += "<br />" + entity.area + 'm²';
+        }
+        return txt;
     }
 }
