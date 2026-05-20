@@ -1,4 +1,11 @@
 /* The styles applies to things shown in the drawer */
+:root {
+    --area-type-public-offering: rgba(217, 0, 255, 0.6);
+    --area-type-sound-camp: rgba(252, 144, 229, 0.6);
+    --area-type-normal-camp: rgba(122, 233, 255, 0.6);
+    --area-type-art: rgba(255, 255, 255, 0.6);
+    --area-type-other: rgba(144, 144, 144, 0.6);
+}
 
 #drawer-content {
     font-family: Arial, sans-serif;
@@ -58,42 +65,45 @@
 #drawer-content sl-select::part(form-control-label) {
     font-weight: bold;
 }
+
 #drawer-content .power-item sl-input {
     min-width: 0;
 }
 
 /* Appliance name */
-#drawer-content .power-item > :first-child {
+#drawer-content .power-item> :first-child {
     flex-grow: 1;
 }
 
 /* amount */
-#drawer-content .power-item > sl-input:nth-child(2),
-#drawer-content .power-item > sl-tooltip:nth-child(2) > sl-input {
+#drawer-content .power-item>sl-input:nth-child(2),
+#drawer-content .power-item>sl-tooltip:nth-child(2)>sl-input {
     width: 3.5rem;
 }
+
 /* watt */
-#drawer-content .power-item > sl-input:nth-child(3),
-#drawer-content .power-item > sl-tooltip:nth-child(3) > sl-input {
+#drawer-content .power-item>sl-input:nth-child(3),
+#drawer-content .power-item>sl-tooltip:nth-child(3)>sl-input {
     width: 6rem;
 }
+
 /* Add/delete button */
 #drawer-content .power-item sl-button {
     width: 2rem;
 }
 
-#drawer-content .power-info-details > summary {
+#drawer-content .power-info-details>summary {
     cursor: pointer;
     list-style: none;
     text-align: center;
     font-family: monospace
 }
 
-#drawer-content .power-info-details > summary::-webkit-details-marker {
+#drawer-content .power-info-details>summary::-webkit-details-marker {
     display: none
 }
 
-#drawer-content .power-info-details > summary::after {
+#drawer-content .power-info-details>summary::after {
     content: '(click to show)';
     float: right;
     font-size: x-small;
@@ -117,7 +127,7 @@
     width: 98%;
     margin: 0 auto;
     padding: 5px;
-    
+
     &::after {
         position: absolute;
         content: "";
@@ -153,6 +163,7 @@
     /* Disable the expand/collapse animation */
     rotate: none;
 }
+
 #drawer-content sl-details::part(summary) {
     font-weight: bold;
 }
@@ -216,14 +227,69 @@
 
 #drawer-content sl-checkbox[align-right]::part(control) {
     order: 1;
-    margin-left:auto
+    margin-left: auto
 }
 
-#entity-area-type sl-option[aria-selected="true"]::part(base) {
-    background-color: unset;
+.area-types-info-list {
+    padding-left: 1rem;
+}
+
+.area-types-info-list li {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+sl-button.public-offering::part(base) {
+    background-color: var(--area-type-public-offering);
+}
+
+sl-button.sound-camp::part(base) {
+    background-color: var(--area-type-sound-camp);
+}
+
+sl-button.normal-camp::part(base) {
+    background-color: var(--area-type-normal-camp);
+}
+
+sl-button.art::part(base) {
+    background-color: var(--area-type-art);
+}
+
+sl-button.other::part(base) {
+    background-color: var(--area-type-other);
+}
+
+sl-button.public-offering::part(base):hover {
+    background-color: var(--area-type-public-offering);
     color: black;
+    border-color: black;
 }
 
-#entity-area-type sl-option::part(base):hover {
-    background-color: rgba(0, 0, 0, 0.1);
+sl-button.sound-camp::part(base):hover {
+    background-color: var(--area-type-sound-camp);
+    color: black;
+    border-color: black;
+}
+
+sl-button.normal-camp::part(base):hover {
+    background-color: var(--area-type-normal-camp);
+    color: black;
+    border-color: black;
+}
+
+sl-button.art::part(base):hover {
+    background-color: var(--area-type-art);
+    color: black;
+    border-color: black;
+}
+
+sl-button.other::part(base):hover {
+    background-color: var(--area-type-other);
+    color: black;
+    border-color: black;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
