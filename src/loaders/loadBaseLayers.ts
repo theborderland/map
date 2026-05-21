@@ -90,7 +90,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	map.removeLayer(map.groups.soundspots);
 
 	await addPointsOfInterestsTomap('./data/bl26/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
-	await addPowerGridTomap(map.groups.powergrid);
+	// await addPowerGridTomap(map.groups.powergrid);
 
 	// Combine the Placement Area layers
 	map.groups.propertyborder.addTo(map.groups.mapstuff);
