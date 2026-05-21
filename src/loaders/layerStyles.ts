@@ -24,6 +24,15 @@ export function getSoundStyle(feature: GeoJSON.Feature): PathOptions {
     };
 }
 
+export function getKidzoneStyle(feature: GeoJSON.Feature): PathOptions {
+    return {
+        color: feature.properties?.fill,
+        opacity: 0.5,
+        fillColor: feature.properties?.fill,
+        fillOpacity: 0.3,
+    };
+}
+
 /**
  * Gives back a style definition based on the given name of a geojson feature
  */

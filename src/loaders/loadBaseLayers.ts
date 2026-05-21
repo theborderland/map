@@ -1,7 +1,7 @@
 import L from 'leaflet';
 import { loadDrawnMap } from './loadDrawnMap';
 import { loadGeoJsonFeatureCollections } from './loadGeoJsonFeatureCollections';
-import { getSoundStyle } from './layerStyles';
+import { getKidzoneStyle, getSoundStyle } from './layerStyles';
 import { getSoundspotDescription, soundSpotType, soundPropertyKey, soundLayers } from '../utils/soundData';
 import { filterFeatures } from './filterFeatures';
 import { loadImageOverlay } from './loadImageOverlay';
@@ -62,6 +62,11 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	// Loads "neighbourhood"
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/neighbourhoods.geojson');
 
+	// Loads kids zones with feature-specific fill colors
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/kids_zones.geojson', {
+		propertyRenameFn: () => 'kidszones',
+		styleFn: (_value: string, feature: any) => getKidzoneStyle(feature),
+	});
 
 	// Load sound areas
 	await loadGeoJsonFeatureCollections(map, soundPropertyKey, 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=polygons', {
@@ -90,7 +95,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	map.removeLayer(map.groups.soundspots);
 
 	await addPointsOfInterestsTomap('./data/bl26/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
-	// await addPowerGridTomap(map.groups.powergrid);
+	await addPowerGridTomap(map.groups.powergrid);
 
 	// Combine the Placement Area layers
 	map.groups.propertyborder.addTo(map.groups.mapstuff);

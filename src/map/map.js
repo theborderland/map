@@ -30,6 +30,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         slopemap: 'Slope',
         heightmap: 'Height',
         terrain: 'Terrain',
+        kidszones: 'Kids zones',
         drawnmap: 'Handdrawn',
     }
 
@@ -67,6 +68,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         soundspots: new L.LayerGroup(),
         soundguide: new L.LayerGroup(),
         names: new L.LayerGroup(),
+        kidszones: new L.LayerGroup(),
     };
 
     // Load all layers and stuff
@@ -82,7 +84,6 @@ export const createMap = async (_isCleanAndQuietMode) => {
 
     var availableLayers = [
         // Type determines in which group the layer appears in the layerControl.
-        { name: LAYER_NAMES.warnings, layer: L.layerGroup(), type: 'Misc.' }, // Dummy layer for toggling warnings
         { name: LAYER_NAMES.placement, layer: map.groups.placement, type: 'Placement' },
         { name: LAYER_NAMES.names, layer: map.groups.names, type: 'Placement' },
         { name: LAYER_NAMES.mapstuff, layer: map.groups.mapstuff, type: 'Placement' },
@@ -91,6 +92,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         { name: LAYER_NAMES.poi, layer: map.groups.poi, type: 'Placement' },
         { name: LAYER_NAMES.powergrid, layer: map.groups.powergrid, type: 'Placement' },
         { name: LAYER_NAMES.soundguide, layer: map.groups.soundguide, type: 'Placement' },
+        { name: LAYER_NAMES.kidszones, layer: map.groups.kidszones, type: 'Placement' },
         { name: LAYER_NAMES.slopemap, layer: map.groups.slopemap, type: 'Background' },
         { name: LAYER_NAMES.heightmap, layer: map.groups.heightmap, type: 'Background' },
         { name: LAYER_NAMES.terrain, layer: map.groups.terrain, type: 'Background' },
@@ -99,6 +101,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         { name: LAYER_NAMES.aftermath23, layer: map.groups.aftermath23, type: 'Background' },
         { name: LAYER_NAMES.aftermath24, layer: map.groups.aftermath24, type: 'Background' },
         { name: LAYER_NAMES.aftermath25, layer: map.groups.aftermath25, type: 'Background' },
+        { name: LAYER_NAMES.warnings, layer: L.layerGroup(), type: 'Misc.' }, // Dummy layer for toggling warnings
     ];
 
     // Make all layers in the URL hash visible on load

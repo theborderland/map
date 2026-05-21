@@ -38,6 +38,27 @@ export const addLegends = (
     </a>`;
     const soundLegend = createHtmlLegend(soundLegendHtml);
 
+    const kidsLegendHtml = `
+    <div style="background-color: white; padding: 5px; border: 2px solid black; cursor: default;">
+      <span style="font-weight: bold; font-size: 24px;">Kids zones</span>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        <li style="margin-bottom: 10px;">
+          <span style="display:inline-block; width:20px; height:20px; background-color:#00ff00; margin-right:5px;"></span>
+          These areas are particularly recommended<br>for camping with kids.
+        </li>
+        <li style="margin-bottom: 10px;">
+          <span style="display:inline-block; width:20px; height:20px; background-color:#ffd54f; margin-right:5px;"></span>
+          Might be suitable for camping with kids.<br>Coordinate with neighbouring camps when<br>placing your camp.
+        </li>
+        <li>
+          <span style="display:inline-block; width:20px; height:20px; background-color:#ff0000; margin-right:5px;"></span>
+          Camping with kids is strongly advised against.
+        </li>
+      </ul>
+    </div>
+    `;
+    const kidsLegend = createHtmlLegend(kidsLegendHtml);
+
     // Toggle legends when overlays are added/removed
     map.on('overlayadd', (eventLayer: L.LayersControlEvent) => {
         switch (eventLayer.name) {
@@ -49,6 +70,9 @@ export const addLegends = (
                 break;
             case 'Soundguide':
                 soundLegend.addTo(map);
+                break;
+            case 'Kids zones':
+                kidsLegend.addTo(map);
                 break;
             default:
                 break;
@@ -65,6 +89,9 @@ export const addLegends = (
                 break;
             case 'Soundguide':
                 map.removeControl(soundLegend);
+                break;
+            case 'Kids zones':
+                map.removeControl(kidsLegend);
                 break;
             default:
                 break;
@@ -86,6 +113,7 @@ export const addLegends = (
     if (visibleLayers && visibleLayers.has('Slope')) slopeLegend.addTo(map);
     if (visibleLayers && visibleLayers.has('Height')) heightLegend.addTo(map);
     if (visibleLayers && visibleLayers.has('Soundguide')) soundLegend.addTo(map);
+    if (visibleLayers && visibleLayers.has('Kids zones')) kidsLegend.addTo(map);
 
     return layerControl;
 };
