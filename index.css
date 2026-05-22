@@ -505,3 +505,33 @@ body,
         padding: 10px;
     }
 }
+
+/* user invalid styles */
+.validity-styles sl-input[data-user-invalid]::part(base),
+.validity-styles sl-select[data-user-invalid]::part(combobox),
+.validity-styles sl-checkbox[data-user-invalid]::part(control) {
+    border-color: var(--sl-color-danger-600);
+}
+
+.validity-styles sl-input[data-invalid]::part(base),
+.validity-styles sl-select[data-invalid]::part(combobox),
+.validity-styles sl-checkbox[data-invalid]::part(control) {
+    border-color: var(--sl-color-danger-600);
+}
+
+.validity-styles [data-user-invalid]::part(form-control-label),
+.validity-styles [data-user-invalid]::part(form-control-help-text),
+.validity-styles sl-checkbox[data-user-invalid]::part(label) {
+    color: var(--sl-color-danger-700);
+}
+
+.validity-styles sl-checkbox[data-user-invalid]::part(control) {
+    outline: none;
+}
+
+.validity-styles sl-input:focus-within[data-user-invalid]::part(base),
+.validity-styles sl-select:focus-within[data-user-invalid]::part(combobox),
+.validity-styles sl-checkbox:focus-within[data-user-invalid]::part(control) {
+    border-color: var(--sl-color-danger-600);
+    box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-color-danger-300);
+}
