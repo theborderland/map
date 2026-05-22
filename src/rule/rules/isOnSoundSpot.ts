@@ -24,10 +24,15 @@ export const isOnSoundSpot = (
     layerGroup: any,
     severity: Severity,
     shortMsg: string,
-    message: string
+    message: string,
+    skipFor: (entity: MapEntity) => boolean = () => false
 ) => new Rule(severity, shortMsg, message, (entity) => {
+    if (skipFor(entity)) {
+        return { triggered: false };
+    }
     let entityGeoJson = entity.toGeoJSON();
     let triggered = false;
+    
     layerGroup.eachLayer((layer) => {
         let layerGeoJson = layer.toGeoJSON();
         if (layerGeoJson.features) {

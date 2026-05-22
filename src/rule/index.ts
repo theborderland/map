@@ -76,6 +76,10 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             Severity.Medium,
             'On a sound spot!',
             'You are on a recommended sound spot. Check the sound guide layer for more info!',
+            (entity) => {
+                // skip this rule for sound camps, since they are expected to be on sound spots
+                return entity.areaType === 'sound-camp';
+            }
         ),
         Rules.isOverlapping(
             placementLayers,
@@ -113,7 +117,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Too large/close to others!',
             'For fire safety, we need space (' +
             FIRE_BUFFER_IN_METER +
-            'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big)',
+            'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big). <a href="#page:guide-rules">Read more</a>',
         ),
         Rules.isNotInsideBoundaries(
             groups.neighbourhood,
@@ -126,6 +130,10 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             Severity.Low,
             'Close to fire road',
             'You are adjacent to a fire road, please use this space for public offerings and not just for sleeping',
+            (entity) => {
+                // skip this rule for public offering, sound camps and art, since they are public offerings
+                return  ['public-offering', 'sound-camp', 'art'].includes(entity.areaType);
+            }
         ),
         Rules.isOverlappingOrContained(
             groups.minorroad,

@@ -1,12 +1,17 @@
 import * as Turf from '@turf/turf';
 import { Severity, Rule } from '../index';
+import { MapEntity } from '../../entities';
 
 export const isOverlappingOrContained = (
     layerGroup: any, 
     severity: Severity, 
     shortMsg: string, 
-    message: string
+    message: string,
+    skipFor: (entity: MapEntity) => boolean = () => false
 ) => new Rule(severity, shortMsg, message, (entity) => {
+    if (skipFor(entity)) {
+        return { triggered: false };
+    }
     let geoJson = entity.toGeoJSON();
     let overlap = false;
 
