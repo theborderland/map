@@ -5,6 +5,8 @@ export { isBiggerThanNeeded } from './isBiggerThanNeeded';
 export { isBreakingSoundLimit } from './isBreakingSoundLimit';
 export { isCalculatedAreaTooBig } from './isCalculatedAreaTooBig';
 export { isInsideBoundaries, isNotInsideBoundaries } from './isInsideOrNotInsideBoundaries';
+export { isInLowPowerArea } from './isInLowPowerArea';
+export { isInWaterProtectionArea } from './isInWaterProtectionArea';
 export { isOverlapping } from './isOverlapping';
 export { isOverlappingOrContained } from './isOverlappingOrContained';
 export { isSmallerThanNeeded } from './isSmallerThanNeeded';

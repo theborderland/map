@@ -7,6 +7,7 @@ import { filterFeatures } from './filterFeatures';
 import { loadImageOverlay } from './loadImageOverlay';
 import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
+import * as Turf from '@turf/turf';
 
 export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) => {
 	// Add the Google Satellite layer if online, otherwise load the drawn map
@@ -30,6 +31,10 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 				map.groups.mapstuff,
 			);
 		});
+
+	// Load low power area (for rules only, not visible)
+	map.groups.lowpowerarea = new L.LayerGroup();
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/low_power_area.geojson');
 
 	// Load reference drawings
 	// fetch('./data/analysis/references.geojson')
@@ -96,6 +101,12 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 
 	await addPointsOfInterestsTomap('./data/bl26/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
 	await addPowerGridTomap(map.groups.powergrid);
+	
+	// Load lakes with 50m buffer (for rules only, not visible)
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/lakes.geojson', {
+		buffer: 50,
+	});
+	await addWellPOIToWaterProtectionArea(map);
 
 	// Combine the Placement Area layers
 	map.groups.propertyborder.addTo(map.groups.mapstuff);
@@ -160,3 +171,18 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	map.groups.aftermath23 = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 	map.groups.aftermath22 = L.tileLayer('./data/bl22/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 };
+
+
+async function addWellPOIToWaterProtectionArea(map: any) {
+	// Filter for water category POIs
+	const response = await fetch('./data/bl26/poi.json');
+	const poiData = await response.json();
+	const waterPois = poiData.features.filter((f: any) => f.properties.name === 'The Well');
+
+	// Apply 50m buffer and add to waterprotectionarea
+	waterPois.forEach((feature: any) => {
+		const buffered = Turf.buffer(feature, 50, { units: 'meters' });
+		const layer = L.geoJSON(buffered, { interactive: false });
+		map.groups.waterprotectionarea.addLayer(layer);
+	});
+}

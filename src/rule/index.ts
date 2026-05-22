@@ -140,6 +140,18 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Close to the sanctuary',
             'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
         ),
+        Rules.isInLowPowerArea(
+            groups.lowpowerarea,
+            Severity.Low,
+            'Low power supply',
+            'Low power supply in this area (<1000W per camp)',
+        ),
+        Rules.isInWaterProtectionArea(
+            groups.waterprotectionarea,
+            Severity.Medium,
+            'Water protection area',
+            'Water protection area. NO cars/RVs, pee/poo, soap or greywater.',
+        ),
     ];
 }
 

@@ -195,7 +195,6 @@ export class Editor {
                     }
                     // close popup displaying old data, save entity, reopen popup with new data
                     this._popup.close();
-                    this.UpdateOnScreenDisplay(this._selected, "Saving...");
                     let entityInResponse = await this.saveEntity(this._selected);
                     this.setSelected(entityInResponse);
                     this.setPopup('info', entityInResponse);
