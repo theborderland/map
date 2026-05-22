@@ -158,7 +158,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             groups.waterprotectionarea,
             Severity.Medium,
             'Water protection area',
-            'Water protection area. NO cars/RVs, pee/poo, soap or greywater.',
+            'You are placed near water (lake or drinking water well). NO cars/RVs, pee pee, poo poo, soap or greywater here.',
         ),
     ];
 }
