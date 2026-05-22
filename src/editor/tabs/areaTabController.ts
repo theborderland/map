@@ -8,6 +8,8 @@ export class AreaTabController implements EditorDrawerTab {
         name: HTMLInputElement;
         description: HTMLTextAreaElement;
         contactInfo: HTMLInputElement;
+        contactSecondary: HTMLInputElement;
+        contactConsent: HTMLInputElement;
         nrOfPeople: HTMLInputElement;
         nrOfVehicles: HTMLInputElement;
         additionalSqm: HTMLInputElement;
@@ -22,6 +24,8 @@ export class AreaTabController implements EditorDrawerTab {
             name: document.getElementById('entity-name') as HTMLInputElement,
             description: document.getElementById('entity-description') as HTMLTextAreaElement,
             contactInfo: document.getElementById('entity-contact') as HTMLInputElement,
+            contactSecondary: document.getElementById('entity-contact-secondary') as HTMLInputElement,
+            contactConsent: document.getElementById('entity-contact-consent') as HTMLInputElement,
             nrOfPeople: document.getElementById('entity-people') as HTMLInputElement,
             nrOfVehicles: document.getElementById('entity-vehicles') as HTMLInputElement,
             additionalSqm: document.getElementById('entity-other-sqm') as HTMLInputElement,
@@ -37,6 +41,8 @@ export class AreaTabController implements EditorDrawerTab {
         this.fields.name.value = e.name || '';
         this.fields.description.value = e.description;
         this.fields.contactInfo.value = e.contactInfo;
+        this.fields.contactSecondary.value = e.contactSecondary;
+        this.fields.contactConsent.value = e.contactConsent;
         this.fields.nrOfPeople.value = String(e.nrOfPeople);
         this.fields.nrOfVehicles.value = String(e.nrOfVehicles);
         this.fields.additionalSqm.value = String(e.additionalSqm);
@@ -51,6 +57,8 @@ export class AreaTabController implements EditorDrawerTab {
             name: this.fields.name.value,
             description: this.fields.description.value,
             contactInfo: this.fields.contactInfo.value,
+            contactSecondary: this.fields.contactSecondary.value,
+            contactConsent: this.fields.contactConsent.value,
             nrOfPeople: Number(this.fields.nrOfPeople.value),
             nrOfVehicles: Number(this.fields.nrOfVehicles.value),
             additionalSqm: Number(this.fields.additionalSqm.value),

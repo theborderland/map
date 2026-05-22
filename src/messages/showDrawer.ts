@@ -159,8 +159,7 @@ function createButtonElement(button: Button): HTMLElement {
 function createClickHandler(button: Button, drawer: any): () => void {
     return () => {
         if (button.onClickAction) {
-            button.onClickAction();
-            if (button.shouldCloseDrawer) {
+            if (button.onClickAction() != false && button.shouldCloseDrawer) {
                 drawer.hide();
             }
         } else {
@@ -187,6 +186,9 @@ type Button = {
     /**
      * If there is an onClickAction, the button will not close the drawer (otherwise it will).
      * To do so, you need to explicitly set the shouldCloseDrawer to true.
+     * 
+     * 
+     * However, if the onClickAction explicitly returns false, the drawer will not be closed, even if shouldCloseDrawer is true.
      */
     onClickAction?: () => any;
     variant?: 'primary' | 'success' | 'danger' | 'warning' | 'neutral';

@@ -31,6 +31,8 @@ export class MapEntity implements EntityDTO {
     public name: string;
     public description: string;
     public contactInfo: string;
+    public contactSecondary: string;
+    public contactConsent: string;
     public nrOfPeople: number;
     public nrOfVehicles: number;
     public additionalSqm: number;
@@ -101,6 +103,8 @@ export class MapEntity implements EntityDTO {
         this.areaType = geoJson.properties.areaType;
         this.name = geoJson.properties.name;
         this.contactInfo = geoJson.properties.contactInfo ?? '';
+        this.contactSecondary = geoJson.properties.contactSecondary ?? '';
+        this.contactConsent = geoJson.properties.contactConsent ?? '';
         this.description = geoJson.properties.description ?? '';
         this.nrOfPeople = geoJson.properties.nrOfPeople ?? 0;
         this.nrOfVehicles = geoJson.properties.nrOfVehicles ?? 0;
@@ -213,12 +217,13 @@ export class MapEntity implements EntityDTO {
         geoJson.properties.name = DOMPurify.sanitize(this.name).substring(0, 100);
         geoJson.properties.description = DOMPurify.sanitize(this.description).substring(0, 1000);
         geoJson.properties.contactInfo = DOMPurify.sanitize(this.contactInfo);
+        geoJson.properties.contactSecondary = DOMPurify.sanitize(this.contactSecondary);
+        geoJson.properties.contactConsent = DOMPurify.sanitize(this.contactConsent);
         geoJson.properties.nrOfPeople = this.nrOfPeople;
         geoJson.properties.nrOfVehicles = this.nrOfVehicles;
         geoJson.properties.additionalSqm = this.additionalSqm;
         geoJson.properties.amplifiedSound = this.amplifiedSound;
         geoJson.properties.suppressWarnings = this.suppressWarnings;
-        
         geoJson.properties.areaNeedPower = this.areaNeedPower;
         geoJson.properties.techContactInfo = DOMPurify.sanitize(this.powerContactInfo);
         geoJson.properties.powerPlugType = DOMPurify.sanitize(this.powerPlugType);
@@ -240,6 +245,8 @@ export class MapEntity implements EntityDTO {
         this.name = newEntity.name;
         this.description = newEntity.description;
         this.contactInfo = newEntity.contactInfo;
+        this.contactSecondary = newEntity.contactSecondary;
+        this.contactConsent = newEntity.contactConsent;
         this.nrOfPeople = newEntity.nrOfPeople;
         this.nrOfVehicles = newEntity.nrOfVehicles;
         this.additionalSqm = newEntity.additionalSqm;

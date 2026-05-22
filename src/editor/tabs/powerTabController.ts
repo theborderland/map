@@ -94,10 +94,10 @@ export class PowerTabController implements EditorDrawerTab {
         const wattInput = document.getElementById("watt") as HTMLInputElement;
 
         const name = applianceInput.value.trim();
-        const amount = Math.ceil(amountInput.valueAsNumber);
-        const watt = Math.ceil(wattInput.valueAsNumber);
+        const amount = Math.ceil(amountInput.valueAsNumber) || 0;
+        const watt = Math.ceil(wattInput.valueAsNumber) || 0;
 
-        if (!name || amount < 1 || watt < 1) return;
+        if (name === "" || amount < 1 || watt < 1) return;
 
         this.addApplianceToContainer([name, amount, watt]);
 

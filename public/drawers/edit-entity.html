@@ -5,61 +5,73 @@
     <sl-tab slot="nav" panel="advanced">Advanced</sl-tab>
 
     <sl-tab-panel name="area">
-        <div class="tab-pannel-inner flex-column">
-            <section>
-                <sl-select id="entity-area-type" label="What type of area is this?" size="small">
-                    <sl-option value="public-offering"> 💜 Public offering</sl-option>
-                    <sl-option value="sound-camp"> 🩷 Sound camp</sl-option>
-                    <sl-option value="normal-camp"> 🩵 Camp communal space / normal camp</sl-option>
-                    <sl-option value="art"> 🤍 Art piece</sl-option>
-                    <sl-option value="other"> 🩶 Other</sl-option>
-                </sl-select>
-            </section>
-            <section>
-                <sl-input id="entity-name" type="text" maxlength="100" label="Name of area" size="small"></sl-input>
-                <sl-textarea id="entity-description" maxlength="300" rows="5"
-                    placeholder="Describe your area here as much as you want. Remember that this information is public. 300 characters max." label="Description"
-                    size="small"></sl-textarea>
-                <sl-input id="entity-contact" type="text" placeholder="Email, phone, @discord-name etc" label="Contact info" size="small"></sl-input>
-            </section>
-            <section>
-                <div class="flex-row">
-                    <b>People</b>
-                    <sl-tooltip content="10m² per person" placement="left">
-                        <sl-input id="entity-people" class="long-input" type="number" min="0" size="small" autocomplete="off"></sl-input>
-                    </sl-tooltip>
-                </div>
-                <div class="flex-row">
-                    <b>Vehicles</b>
-                    <sl-tooltip content="70m² per vehicle" placement="left">
-                        <sl-input id="entity-vehicles" class="long-input" type="number" min="0" size="small" autocomplete="off"></sl-input>
-                    </sl-tooltip>
-                </div>
-                <div class="flex-row">
-                    <b>Other stuff in m²</b>
-                    <sl-tooltip placement="left">
-                        <div slot="content" style="color: white;">Area needed for kitchen,<br> storage, workshop tents etc.</div>
+        <form id="area-form" class="validity-styles" onsubmit="return false;">
+            <div class="tab-pannel-inner flex-column">
+                <section>
+                    <sl-select id="entity-area-type" label="What type of area is this?" size="small">
+                        <sl-option value="public-offering"> 💜 Public offering</sl-option>
+                        <sl-option value="sound-camp"> 🩷 Sound camp</sl-option>
+                        <sl-option value="normal-camp"> 🩵 Camp communal space / normal camp</sl-option>
+                        <sl-option value="art"> 🤍 Art piece</sl-option>
+                        <sl-option value="other"> 🩶 Other</sl-option>
+                    </sl-select>
+                </section>
+                <section>
+                    <sl-input id="entity-name" type="text" maxlength="100" label="Name of area" size="small"></sl-input>
+                    <sl-textarea id="entity-description" maxlength="300" rows="5"
+                        placeholder="Describe your area here as much as you want. Remember that this information is public. 300 characters max."
+                        label="Description" size="small"></sl-textarea>
+                    <div class="flex-column">
+                        <sl-input id="entity-contact" type="text" placeholder="Discord username" label="Camp contact Discord" size="small" required></sl-input>
+                        <sl-input id="entity-contact-secondary" type="text" placeholder="your@email.com or +1234567890" label="Camp contact email or phone"
+                            size="small"></sl-input>
+                        <sl-input id="entity-contact-consent" type="email" placeholder="your@email.com" size="small">
+                            <a slot="label" href="https://discord.com/channels/932714386286575736/1490729044956676248" target="_blank">Consent lead <sl-icon
+                                    name="box-arrow-up-right"></sl-icon></a>
+                        </sl-input>
+                    </div>
 
-                        <sl-input id="entity-other-sqm" class="long-input" type="number" min="0" size="small" no-spin-buttons autocomplete="off"></sl-input>
-                    </sl-tooltip>
-                </div>
-                <div style="font-size: 13px;">
-                    With this amount of people, vehicles and extra m² such as art, kitchen tents and structures, a suggested camp size is
-                    <b><span id="entity-calculated-area-needed"></span>m²</b>. <br>
-                    Currently the area is <b><span id="entity-area"></span>m².</b>'
-                </div>
-            </section>
-            <br>
-            <section>
-                <div class="flex-row">
-                    <b>Sound amplification (Watts)</b>
-                    <sl-tooltip content="If over 1000W then you are considered a sound camp. Please get in contact with the sound lead.">
-                        <sl-input id="entity-sound" class="long-input" type="number" placeholder="?" min="0" size="small" no-spin-buttons autocomplete="off"></sl-input>
-                    </sl-tooltip>
-                </div>
-                <div id="sound-guide-link" class="hidden">Read more in the <a class="sound-guide-url" href="#">Sound Guide</a>.</div>
-            </section>
-        </div>
+                </section>
+                <section>
+                    <div class="flex-row">
+                        <b>People</b>
+                        <sl-tooltip content="10m² per person" placement="left">
+                            <sl-input id="entity-people" class="long-input" type="number" min="0" size="small" autocomplete="off"></sl-input>
+                        </sl-tooltip>
+                    </div>
+                    <div class="flex-row">
+                        <b>Vehicles</b>
+                        <sl-tooltip content="70m² per vehicle" placement="left">
+                            <sl-input id="entity-vehicles" class="long-input" type="number" min="0" size="small" autocomplete="off"></sl-input>
+                        </sl-tooltip>
+                    </div>
+                    <div class="flex-row">
+                        <b>Other stuff in m²</b>
+                        <sl-tooltip placement="left">
+                            <div slot="content" style="color: white;">Area needed for kitchen,<br> storage, workshop tents etc.</div>
+
+                            <sl-input id="entity-other-sqm" class="long-input" type="number" min="0" size="small" no-spin-buttons autocomplete="off"></sl-input>
+                        </sl-tooltip>
+                    </div>
+                    <div style="font-size: 13px;">
+                        With this amount of people, vehicles and extra m² such as art, kitchen tents and structures, a suggested camp size is
+                        <b><span id="entity-calculated-area-needed"></span>m²</b>. <br>
+                        Currently the area is <b><span id="entity-area"></span>m².</b>'
+                    </div>
+                </section>
+                <br>
+                <section>
+                    <div class="flex-row">
+                        <b>Sound amplification (Watts)</b>
+                        <sl-tooltip content="If over 1000W then you are considered a sound camp. Please get in contact with the sound lead.">
+                            <sl-input id="entity-sound" class="long-input" type="number" placeholder="?" min="-1" size="small" no-spin-buttons
+                                autocomplete="off"></sl-input>
+                        </sl-tooltip>
+                    </div>
+                    <div id="sound-guide-link" class="hidden">Read more in the <a class="sound-guide-url" href="#">Sound Guide</a>.</div>
+                </section>
+            </div>
+        </form>
     </sl-tab-panel>
     <sl-tab-panel name="power">
         <div class="tab-pannel-inner flex-column">
@@ -99,13 +111,13 @@
                     Add your appliances
                 </div>
                 <form id="power-form" onsubmit="return false;" class="flex-row power-item">
-                    <sl-input id="appliance" size="small" placeholder="e.g. lights or kitchen" required></sl-input>
+                    <sl-input id="appliance" size="small" placeholder="e.g. lights or kitchen"></sl-input>
                     <sl-tooltip content="How many of this item?">
-                        <sl-input form="power-form" id="amount" type="number" size="small" placeholder="No." min="1" no-spin-buttons required
+                        <sl-input form="power-form" id="amount" type="number" size="small" placeholder="No." min="1" no-spin-buttons
                             autocomplete="off"></sl-input>
                     </sl-tooltip>
                     <sl-tooltip content="Watt per item">
-                        <sl-input form="power-form" id="watt" type="number" size="small" placeholder="Power, W" min="1" no-spin-buttons required
+                        <sl-input form="power-form" id="watt" type="number" size="small" placeholder="Power, W" min="1" no-spin-buttons
                             autocomplete="off"></sl-input>
                     </sl-tooltip>
                     <sl-tooltip content="Add" placement="left">

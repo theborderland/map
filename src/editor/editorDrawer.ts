@@ -65,10 +65,47 @@ export class EditorDrawer {
         });
     }
 
-    private save() {
+    private save(): boolean | null {
+        if (!this.validateRequiredFields()) {
+            return false;
+        }
         const changes = this.collectChanges();
         this.entity.updateEntity(changes as MapEntity);
         this.editCallback("save");
+        return true;
+    }
+
+    /** Validates all required fields across all tabs and switches to the first invalid tab */
+    private validateRequiredFields(): boolean {
+        const tabGroup = document.querySelector('sl-tab-group') as any;
+        if (!tabGroup) {
+            return true;
+        }
+
+        const forms = Array.from(tabGroup.querySelectorAll('form')) as HTMLFormElement[];
+        let invalidTab: string | null = null;
+        let invalidForm: HTMLFormElement | null = null;
+
+        for (const form of forms) {
+            if (!form.checkValidity()) {
+                invalidForm = invalidForm || form;
+                if (!invalidTab) {
+                    const tabPanel = form.closest('sl-tab-panel');
+                    invalidTab = tabPanel?.getAttribute('name') ?? null;
+                }
+            }
+        }
+
+        if (!invalidForm || !invalidTab) {
+            return invalidForm === null;
+        }
+
+        tabGroup.show(invalidTab);
+        setTimeout(() => {
+            invalidForm.reportValidity();
+        }, 100);
+
+        return false;
     }
 
     private collectChanges(): Partial<MapEntity> {
