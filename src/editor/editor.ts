@@ -403,8 +403,6 @@ export class Editor {
 
         // Update the buffered layer when the layer has a vertex removed
         entity.layer.on('pm:vertexremoved', (e) => {
-            entity.pruneToSinglePolygonLayer(e.layer);
-
             if (e.layer._rings.length == 0) {
                 this.deleteAndRemoveEntity(this._selected, 'No vertex remaining, automatic deletion of entity');
                 return
@@ -533,9 +531,12 @@ export class Editor {
     }
 
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
-        this._selected = null; // Dont think this is needed for setMode function to work with 'none' (not fully tested this scenario though)
-        this.setMode('none');
+        this._selected = null;
         this.removeEntity(entity);
+        // Avoid setMode('none') here — it runs _syncPlacementSnapTargets / L.PM.reInitLayer
+        // on camps still on the map, which can leave a ghost polygon after delete.
+        this._mode = 'none';
+        this.setPopup('none');
         this._repository.deleteEntity(entity, deleteReason);
     }
 
