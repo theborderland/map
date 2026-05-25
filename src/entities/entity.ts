@@ -62,6 +62,11 @@ export class MapEntity implements EntityDTO {
 
     /** Extracts the GeoJson from the internal Leaflet layer to make sure its up-to-date */
     private _calculateGeoJson() {
+        const polygonLayer = this.getEditablePolygonLayer();
+        if (polygonLayer) {
+            return polygonLayer.toGeoJSON();
+        }
+
         //@ts-ignore
         let geoJson = this.layer.toGeoJSON();
 
@@ -72,6 +77,22 @@ export class MapEntity implements EntityDTO {
         }
 
         return geoJson;
+    }
+
+    /** The polygon Leaflet layer Geoman actually edits inside the GeoJSON wrapper. */
+    public getEditablePolygonLayer(): L.Polygon | undefined {
+        const layers = (this.layer as L.GeoJSON).getLayers() as L.Polygon[];
+        return layers.at(-1);
+    }
+
+    /** Geoman can leave a stale polygon in the GeoJSON group after vertex edits. */
+    public pruneToSinglePolygonLayer(keepLayer: L.Layer) {
+        const group = this.layer as L.GeoJSON;
+        for (const layer of [...group.getLayers()]) {
+            if (layer !== keepLayer) {
+                group.removeLayer(layer);
+            }
+        }
     }
 
     constructor(data: EntityDTO, rules: Array<Rule>) {
@@ -93,7 +114,7 @@ export class MapEntity implements EntityDTO {
             pmIgnore: false,
             interactive: true,
             bubblingMouseEvents: false,
-            snapIgnore: true,
+            snapIgnore: false,
             style: (/*feature*/) => this._getDefaultLayerStyle(),
         });
 
@@ -181,12 +202,18 @@ export class MapEntity implements EntityDTO {
     }
 
     public updateBufferedLayer() {
-        // Update the buffer layer so that its geometry is the same as this.layers geometry
-        const geoJson = this.layer.toGeoJSON();
+        const polygonLayer = this.getEditablePolygonLayer();
+        if (!polygonLayer) {
+            return;
+        }
+
+        const geoJson = polygonLayer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
         const weight = this.getAllTriggeredRules().some((r) => r.shouldShowFireBuffer) ? 1 : 0;
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
+                pmIgnore: true,
+                snapIgnore: true,
                 style: {
                     color: 'red',
                     fillOpacity: 0.0,
