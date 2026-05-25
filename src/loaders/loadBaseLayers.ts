@@ -48,9 +48,8 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
     // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/borders.geojson');
 
-    // Loads "fireroads"
-    // with the fireroads as a reference, also load "publicplease" and "oktocamp" with a bigger buffer
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', { buffer: 2.5 });
+    // Loads "fireroads" — buffered polygons; edges are used as snap targets when placing camps
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', { buffer: 2.5, snapTarget: true });
     await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', {
         buffer: 3.5,
         propertyRenameFn: () => 'publicplease',

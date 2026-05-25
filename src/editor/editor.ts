@@ -117,7 +117,7 @@ export class Editor {
 
             return;
         }
-        // Edit the shape of the entity — snap vertices to other camp areas only
+        // Edit the shape of the entity — snap vertices to other camp areas and fireroad edges
         if (this._mode == 'editing-shape' && nextEntity) {
             this._syncPlacementSnapTargets(nextEntity);
             nextEntity.layer.pm.enable({
@@ -606,6 +606,7 @@ export class Editor {
         // Add controls for creating and editing shapes to the map
         this._map.pm.addControls(this._getPmToolbarOptions(false));
         this._updateSnapOptions();
+        this._initFireroadSnapLayers();
 
         // Set path style options for newly created layers
         this._map.pm.setPathOptions(LayerStyles.Default);
@@ -659,7 +660,7 @@ export class Editor {
         };
     }
 
-    /** Snap a dragged/placed vertex to corners and edges of other camp areas. */
+    /** Snap a dragged/placed vertex to corners and edges of other camp areas and fireroad boundaries. */
     private _getShapeEditSnapOptions() {
         return {
             snappable: true,
@@ -680,7 +681,7 @@ export class Editor {
         });
     }
 
-    /** Other camp areas are snap targets; optionally exclude the area being vertex-edited. */
+    /** Camp areas are snap targets; optionally exclude the area being vertex-edited. */
     private _syncPlacementSnapTargets(excludedEntity: MapEntity | null = null) {
         for (const entityId in this._currentRevisions) {
             const entity = this._currentRevisions[entityId];
@@ -691,6 +692,17 @@ export class Editor {
             entity.layer.options.snapIgnore = snapIgnore;
             L.PM.reInitLayer(entity.layer);
         }
+    }
+
+    private _initFireroadSnapLayers() {
+        const fireroad = this._groups['fireroad'] as L.GeoJSON | undefined;
+        if (!fireroad) {
+            return;
+        }
+
+        fireroad.eachLayer((layer) => {
+            L.PM.reInitLayer(layer);
+        });
     }
 
     public hideWarningColors(hide: boolean = true) {
