@@ -3,12 +3,7 @@
  */
 
 // Repository
-
-//Repository (Point to prod)
 export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
-
-//Repository (Point to dev)
-//export const REPOSITORY_URL: string = 'https://bl-map-dev.runasp.net';
 
 // Rules
 export const MAX_CLUSTER_SIZE: number = 1250;
