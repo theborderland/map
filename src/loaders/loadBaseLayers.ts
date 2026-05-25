@@ -24,7 +24,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	//}
 
 	// Load contours
-	fetch('./data/analysis/contours.geojson')
+	fetch('./data/analysis/contours_simplified.geojson')
 		.then((response) => response.json())
 		.then((response) => {
 			L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1, opacity: 0.5 } }).addTo(
@@ -43,7 +43,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	//         L.geoJSON(response.features, { style: { color: '#ffffff', weight: 1 } }).addTo(map.groups.mapstuff);
 	//     });
 
-	// Loads: "slope", "parking", "closetosanctuary"
+	// Loads: "slope", "parking", "closetosanctuary"Contours_only_neighbourhoods_1m.geojson
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/placement_areas.geojson');
 	// Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/borders.geojson');
