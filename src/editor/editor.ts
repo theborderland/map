@@ -12,7 +12,7 @@ import 'leaflet-search';
 import { EditorPopup } from './editorPopup';
 import { AdminAPI } from './adminAPI';
 import { HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY } from '../../SETTINGS';
-import { setCookie, getCookie } from '../utils/cookie';
+import { setCookie, getCookie } from "../utils/cookie";
 import { metersToSnapPixels } from '../utils/snapDistance';
 
 /**
@@ -30,7 +30,7 @@ export class Editor {
     private _popup: L.Popup;
     private _editorPopup: EditorPopup;
     /** If the editor should be active or not */
-    private _isEditMode: boolean = true;
+    private _isEditMode: boolean = false;
     // This will skip checking entity rules, hide controls and hide messages.
     private _isCleanAndQuietMode: boolean;
 
@@ -72,7 +72,13 @@ export class Editor {
 
         // When blur is sent as parameter, the next mode is dynamicly determined
         if (nextMode == 'blur') {
-            if ((prevMode == 'editing-shape' || prevMode == 'moving-shape') && prevEntity) {
+            if (
+                (
+                    prevMode == 'editing-shape'
+                    || prevMode == 'moving-shape'
+                )
+                && prevEntity
+            ) {
                 nextMode = 'selected';
                 nextEntity = nextEntity || prevEntity;
                 //re-center the pop up on the new layer, in case the layer has moved
@@ -117,7 +123,7 @@ export class Editor {
 
             return;
         }
-        // Edit the shape of the entity — snap vertices to other camp areas and fireroad edges
+        // Edit the shape of the entity
         if (this._mode == 'editing-shape' && nextEntity) {
             this._syncPlacementSnapTargets(nextEntity);
             nextEntity.layer.pm.enable({
@@ -129,7 +135,7 @@ export class Editor {
             this.setPopup('none');
             return;
         }
-        // Move the shape of the entity — whole-shape drag, no vertex snapping
+        // Move the shape of the entity
         if (this._mode == 'moving-shape' && nextEntity) {
             this._syncPlacementSnapTargets(null);
             this.setSelected(nextEntity);
@@ -182,13 +188,13 @@ export class Editor {
         // Move this logic to the entityInfoEditor?
         let editEntityCallback = async (action: string, extraInfo?: string) => {
             switch (action) {
-                case 'delete':
+                case "delete":
                     this.deleteAndRemoveEntity(this._selected, extraInfo);
-                    Messages.showNotification('Deleted', 'success');
+                    Messages.showNotification("Deleted", 'success');
                     this._popup.close();
                     break;
 
-                case 'save':
+                case "save":
                     if (!this._selected.hasChanges()) {
                         break;
                     }
@@ -199,7 +205,7 @@ export class Editor {
                     this.setPopup('info', entityInResponse);
                     break;
 
-                case 'restore-shape':
+                case "restore-shape":
                     // First remove currently drawn shape to avoid duplicates
                     this.removeEntityNameTooltip(this._selected);
                     this.removeEntityFromLayers(this._selected);
@@ -238,20 +244,20 @@ export class Editor {
                 this._compareRevDiffLayer,
                 editEntityCallback.bind(this),
             );
-            var fullScreenPopup = document.getElementById('fullScreenPopup');
-            fullScreenPopup.innerHTML = ''; // Need to remove the old info
+            var fullScreenPopup = document.getElementById("fullScreenPopup");
+            fullScreenPopup.innerHTML = ""; // Need to remove the old info
             fullScreenPopup.appendChild(contentFullScreenPopup);
             fullScreenPopup.classList.remove('hidden');
             // Add a close button to the fullScreenPopup
-            let span = document.createElement('span');
-            let closeButton = document.createElement('sl-icon');
-            closeButton.style.margin = '5px 5px 5px 10px';
-            closeButton.style.fontSize = '20px';
-            closeButton.setAttribute('name', 'x-lg'); // sets the icon
+            let span = document.createElement("span");
+            let closeButton = document.createElement("sl-icon");
+            closeButton.style.margin = "5px 5px 5px 10px";
+            closeButton.style.fontSize = "20px";
+            closeButton.setAttribute("name", "x-lg"); // sets the icon
             closeButton.onclick = () => {
-                this.setMode('none');
+                this.setMode("none");
             };
-            let header = fullScreenPopup.querySelector('header');
+            let header = fullScreenPopup.querySelector("header");
             span.appendChild(closeButton);
             header.appendChild(span);
 
@@ -285,7 +291,8 @@ export class Editor {
         }
         let latestEntity = entity.revisions[latestKey];
         if (entity.revision != latestEntity.revision) {
-            let diffDescription: string = `<b>Someone else edited this shape at the same time as you</b><br/>
+            let diffDescription: string =
+                `<b>Someone else edited this shape at the same time as you</b><br/>
             You have now overwritten their changes, see the differences in the history tab.`;
             Messages.showNotification(diffDescription, 'danger', undefined, 3600000);
         }
@@ -400,7 +407,7 @@ export class Editor {
 
             if (e.layer._rings.length == 0) {
                 this.deleteAndRemoveEntity(this._selected, 'No vertex remaining, automatic deletion of entity');
-                return;
+                return
             }
 
             entity.updateBufferedLayer();
@@ -503,7 +510,7 @@ export class Editor {
         let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         for (const entity of batch) {
             entity.checkAllRules();
-            entity.setLayerStyle('severity', hideWarnings);
+            entity.setLayerStyle("severity", hideWarnings);
         }
 
         requestAnimationFrame(this.checkRulesSlowly.bind(this));
@@ -632,15 +639,13 @@ export class Editor {
         // Add search control
         if (!this._isCleanAndQuietMode) {
             //@ts-ignore
-            map.addControl(
-                new L.Control.Search({
-                    layer: this._placementLayers,
-                    propertyName: 'name',
-                    marker: false,
-                    zoom: 19,
-                    initial: false,
-                }),
-            );
+            map.addControl(new L.Control.Search({
+                layer: this._placementLayers,
+                propertyName: 'name',
+                marker: false,
+                zoom: 19,
+                initial: false,
+            }));
         }
     }
 
@@ -660,7 +665,6 @@ export class Editor {
         };
     }
 
-    /** Snap a dragged/placed vertex to corners and edges of other camp areas and fireroad boundaries. */
     private _getShapeEditSnapOptions() {
         return {
             snappable: true,
@@ -681,7 +685,6 @@ export class Editor {
         });
     }
 
-    /** Camp areas are snap targets; optionally exclude the area being vertex-edited. */
     private _syncPlacementSnapTargets(excludedEntity: MapEntity | null = null) {
         for (const entityId in this._currentRevisions) {
             const entity = this._currentRevisions[entityId];
@@ -709,35 +712,34 @@ export class Editor {
         this._hideWarningColors = hide;
         for (const entityid in this._currentRevisions) {
             let entity = this._currentRevisions[entityid];
-            entity.setLayerStyle('severity', this._hideWarningColors);
+            entity.setLayerStyle("severity", this._hideWarningColors);
         }
     }
 
     private async addToggleEditButton() {
         // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
         if (await AdminAPI.isEditAllowed()) {
-            this._map.addControl(
-                ButtonsFactory.edit(this._isEditMode, async () => {
-                    // This callback should return true if edit mode should be toggled on, false if not.
-                    if (!this._isEditMode) {
-                        const isSecretSet = await AdminAPI.isEditButtonSecretSet();
+            this._map.addControl(ButtonsFactory.edit(this._isEditMode, async () => {
+                // This callback should return true if edit mode should be toggled on, false if not.
+                if (!this._isEditMode) {
+                    const isSecretSet = await AdminAPI.isEditButtonSecretSet();
 
-                        if (isSecretSet) {
-                            const pw = prompt('Password? 🤐');
-                            if (pw == null || pw.trim() === '') return false;
+                    if (isSecretSet) {
+                        const pw = prompt('Password? 🤐');
+                        if (pw == null || pw.trim() === '')
+                            return false;
 
-                            const success = await AdminAPI.CheckIfSecretIsSet(pw);
-                            if (!success) {
-                                alert('Wrong password! 😢');
-                                return false;
-                            }
+                        const success = await AdminAPI.CheckIfSecretIsSet(pw);
+                        if (!success) {
+                            alert('Wrong password! 😢');
+                            return false;
                         }
                     }
+                }
 
-                    this.toggleEditMode();
-                    return true;
-                }),
-            );
+                this.toggleEditMode();
+                return true;
+            }));
             // Auto click the button to enable edit mode
             setTimeout(() => {
                 //document.querySelector('.btn.button-shake-animate.leaflet-control').click();
@@ -754,7 +756,7 @@ export class Editor {
 
     public async toggleEditMode() {
         // Doublecheck if editing still is allowed.
-        if (!(await AdminAPI.isEditAllowed())) {
+        if (!await AdminAPI.isEditAllowed()) {
             this._isEditMode = false;
             return;
             // Perhaps remove the button or show a message?
@@ -805,9 +807,9 @@ export class Editor {
         };
 
         // This function is called when the user starts drawing a new polygon, it adds the distance to the tooltip
-        this._map.on('pm:drawstart', ({ workingLayer }) => {
+        this._map.on("pm:drawstart", ({ workingLayer }) => {
             // calculate the distance between the latest and previous vertices
-            workingLayer.on('pm:vertexadded', (e) => {
+            workingLayer.on("pm:vertexadded", (e) => {
                 let coords = e.workingLayer._latlngs;
                 if (coords.length < 2) {
                     return;
@@ -827,12 +829,12 @@ export class Editor {
                 writeDistanceOnTooltip(distance);
             };
 
-            workingLayer.on('pm:snapdrag', snapdragFn);
+            workingLayer.on("pm:snapdrag", snapdragFn);
 
             // Used when the vertex gets snapped to another vertex, otherwise the distance is calculated from the mouse position
-            workingLayer.on('pm:snap', (e) => {
+            workingLayer.on("pm:snap", (e) => {
                 // toggle off the snapdrag event
-                workingLayer.off('pm:snapdrag', snapdragFn);
+                workingLayer.off("pm:snapdrag", snapdragFn);
                 let coords = e.workingLayer._latlngs;
                 let prev = coords[coords.length - 1];
                 let next = e.snapLatLng;
@@ -841,8 +843,8 @@ export class Editor {
             });
 
             // toggle on the snapdrag event again
-            workingLayer.on('pm:unsnap', (e) => {
-                workingLayer.on('pm:snapdrag', snapdragFn);
+            workingLayer.on("pm:unsnap", (e) => {
+                workingLayer.on("pm:snapdrag", snapdragFn);
             });
         });
     }
@@ -938,7 +940,7 @@ export class Editor {
 
     public ClearControls() {
         // Remove all controls from the map
-        this._mapControls.forEach((control) => this._map.removeControl(control));
+        this._mapControls.forEach(control => this._map.removeControl(control));
     }
 
     private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
@@ -965,10 +967,10 @@ export class Editor {
 
     private setupMapEvents(map: L.Map) {
         // When popup is closed, remove the fullscreen popup too.
-        // It's a bit backwards but since the close button on the fullscreen actually closes the popup, this makes it close the fullscreen too.
+        // It's a bit backwards but since the close button on the fullscreen actually closes the popup, this makes it close the fullscreen too. 
         map.on('popupclose', function () {
-            var fullScreenPopup = document.getElementById('fullScreenPopup');
-            fullScreenPopup.classList.add('hidden');
+            var fullScreenPopup = document.getElementById("fullScreenPopup");
+            fullScreenPopup.classList.add("hidden");
         });
 
         //Hide buffers when zoomed out
@@ -1002,7 +1004,7 @@ export class Editor {
     private buildTooltipName(entity: MapEntity): string {
         let txt = entity.name;
         if (this._isEditMode) {
-            txt += '<br />' + entity.area + 'm²';
+            txt += "<br />" + entity.area + 'm²';
         }
         return txt;
     }
