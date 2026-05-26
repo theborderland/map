@@ -19,6 +19,7 @@ import { setCookie, getCookie } from "../utils/cookie";
  * renders the map entities in the repository as editable layers on the map
  */
 export class Editor {
+    public placementLayersId: number; // needed to be able to differentiate placement layers from the buffer layer.
     private _hideWarningColors: boolean;
     private _mapControls: Array<L.Control> = [];
     /** The Map Entities repository being used */
@@ -572,6 +573,7 @@ export class Editor {
 
         //Create two separate layersgroups, so that we can use them to check overlaps separately
         this._placementLayers = new L.LayerGroup().addTo(map);
+        this.placementLayersId = L.stamp(this._placementLayers);
         this._placementBufferLayers = new L.LayerGroup().addTo(map);
         this._compareRevDiffLayer = new L.LayerGroup().addTo(map);
 
