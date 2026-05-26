@@ -66,6 +66,8 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/plazas.geojson');
 	// Loads "neighbourhood"
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/neighbourhoods.geojson');
+	// this is neighborhoods merged together so there is no gap between adjecent neighborhoods, used for rules only, not visible
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/ok_to_camp.geojson');
 
 	// Loads kids zones with feature-specific fill colors
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/kids_zones.geojson', {
