@@ -359,7 +359,14 @@ export class Editor {
     }
 
     private createEntityTooltip(entity: MapEntity) {
-        let marker = new L.Marker(entity.layer.getBounds().getCenter(), { opacity: 0 });
+        const center = (entity.layer as any).getBounds().getCenter();
+        const marker = new L.Marker(center, {
+            icon: L.divIcon({
+                className: '',
+                html: '',
+                iconSize: [0, 0],
+            }),
+        });
         marker.feature = {
             type: 'Feature',
             geometry: {
@@ -368,12 +375,12 @@ export class Editor {
             },
             properties: {},
         };
-        marker.options.icon.options.iconSize = [1, 1];
         marker.bindTooltip(this.buildTooltipName(entity), {
             permanent: true,
             interactive: false,
             direction: 'center',
             className: 'name-tooltip',
+            pane: 'campNameLabels',
         });
         entity.nameMarker = marker;
         return marker;
@@ -462,7 +469,7 @@ export class Editor {
             return;
         }
 
-        this.refreshEntityTooltip(entity, true);
+        this.refreshEntityTooltip(entity);
         entity.checkAllRules();
         let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         entity.setLayerStyle('severity', hideWarnings);
@@ -491,7 +498,7 @@ export class Editor {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
-        this.refreshEntityTooltip(entity, checkRules);
+        this.refreshEntityTooltip(entity);
 
         if (checkRules) {
             entity.checkAllRules();
@@ -504,6 +511,23 @@ export class Editor {
         for (const entityid in this._currentRevisions) {
             this.refreshEntity(this._currentRevisions[entityid], checkRules);
         }
+    }
+
+    private refreshTooltipPositions() {
+        for (const entityid in this._currentRevisions) {
+            const entity = this._currentRevisions[entityid];
+            if (!entity || !entity.nameMarker) continue;
+            const center = (entity.layer as any).getBounds().getCenter();
+            entity.nameMarker.setLatLng(center);
+        }
+    }
+
+    private refreshEntityTooltip(entity: MapEntity | null) {
+        if (!entity || !entity.nameMarker) {
+            return;
+        }
+
+        entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
@@ -828,6 +852,11 @@ export class Editor {
 
         this._isEditMode = !this._isEditMode;
 
+        // Refresh tooltips for all entities, because edit mode changes the tooltip text.
+        for (const entityId in this._currentRevisions) {
+            this.refreshEntityTooltip(this._currentRevisions[entityId]);
+        }
+       
         // Show instructions when entering edit mode, and wait for the user
         // to press a button on that screen before continuing
         if (this._isEditMode) {
@@ -1056,6 +1085,8 @@ export class Editor {
 
         //Hide buffers when zoomed out
         var bufferLayers = this._placementBufferLayers;
+
+        map.createPane('campNameLabels');
         map.on('zoomend', function () {
             var zoom = map.getZoom();
 
@@ -1065,13 +1096,11 @@ export class Editor {
             });
 
             // Hide name tooltips when zoomed out
-            this._groups['names'].getLayers().forEach(function (layer: any) {
-                layer._tooltip.setOpacity(zoom >= 19 ? 1 : 0);
-            });
-
-            this._updateSnapOptions();
-            this._applyCampSnapOutlineDistances();
-            this._initFireroadSnapLayers();
+            const visible = map.getZoom() >= 19;
+            map.getPane('campNameLabels')!.style.display = visible ? 'block' : 'none';
+            if (visible) {
+                this.refreshTooltipPositions();
+            }
         }.bind(this));
 
         // Add the event handler for newly created layers
