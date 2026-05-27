@@ -14,6 +14,9 @@ import { AdminAPI } from './adminAPI';
 import { HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY } from '../../SETTINGS';
 import { setCookie, getCookie } from "../utils/cookie";
 
+const CAMP_NAME_LABEL_PANE = 'campNameLabels';
+const SHOW_NAME_TOOLTIP_ZOOM_LEVEL = 19;
+
 /**
  * The Editor class keeps track of the user status regarding editing and
  * renders the map entities in the repository as editable layers on the map
@@ -362,7 +365,7 @@ export class Editor {
             interactive: false,
             direction: 'center',
             className: 'name-tooltip',
-            pane: 'campNameLabels',
+            pane: CAMP_NAME_LABEL_PANE,
         });
         entity.nameMarker = marker;
         return marker;
@@ -422,7 +425,7 @@ export class Editor {
         this._placementBufferLayers.addLayer(entity.bufferLayer);
 
         //Set initial opacity of the bufferlayer depending on the zoomlevel (REFACTOR this and how its done in the onZoomEnd event)
-        if (this._map.getZoom() < 19) {
+        if (this._map.getZoom() < SHOW_NAME_TOOLTIP_ZOOM_LEVEL) {
             //@ts-ignore
             entity.bufferLayer.setStyle({ opacity: 0 });
         }
@@ -469,6 +472,9 @@ export class Editor {
         for (const entityid in this._currentRevisions) {
             this.refreshEntity(this._currentRevisions[entityid], checkRules);
         }
+        // Only show the name if zoomed beyond the specified level
+        const visible = this._map.getZoom() >= SHOW_NAME_TOOLTIP_ZOOM_LEVEL;
+        this._map.getPane(CAMP_NAME_LABEL_PANE)!.style.display = visible ? 'block' : 'none';
     }
 
     private refreshTooltipPositions() {
@@ -663,7 +669,7 @@ export class Editor {
                 layer: this._placementLayers,
                 propertyName: 'name',
                 marker: false,
-                zoom: 19,
+                zoom: SHOW_NAME_TOOLTIP_ZOOM_LEVEL,
                 initial: false,
             }));
         }
@@ -896,7 +902,7 @@ export class Editor {
         const entity = this._repository.getEntityById(id);
         if (entity) {
             const latlong = entity.layer.getBounds().getCenter();
-            this._map.setView(latlong, 19);
+            this._map.setView(latlong, SHOW_NAME_TOOLTIP_ZOOM_LEVEL);
             // Update the popup-position
             this._popup.setLatLng(latlong);
             // Call the click event
@@ -909,14 +915,14 @@ export class Editor {
         this._mapControls.forEach(control => this._map.removeControl(control));
     }
 
-    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
+    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string | null = null) {
         if (entity || customMsg) {
             let tooltipText = '';
 
             if (customMsg) {
                 tooltipText = customMsg;
             } else {
-                for (const rule of entity.getAllTriggeredRules()) {
+                for (const rule of entity!.getAllTriggeredRules()) {
                     if (rule.severity >= 2) {
                         tooltipText += '<br>' + rule.shortMessage;
                     }
@@ -924,7 +930,7 @@ export class Editor {
             }
 
             this.campWarningTooltip.openOn(this._map);
-            this.campWarningTooltip.setLatLng(entity.layer.getBounds().getCenter());
+            this.campWarningTooltip.setLatLng(entity!.layer.getBounds().getCenter());
             this.campWarningTooltip.setContent(tooltipText);
         } else {
             this.campWarningTooltip.close();
@@ -942,18 +948,18 @@ export class Editor {
         //Hide buffers when zoomed out
         var bufferLayers = this._placementBufferLayers;
 
-        map.createPane('campNameLabels');
+        map.createPane(CAMP_NAME_LABEL_PANE);
         map.on('zoomend', function () {
             var zoom = map.getZoom();
 
             bufferLayers.getLayers().forEach(function (layer) {
                 //@ts-ignore
-                layer.setStyle({ opacity: zoom >= 19 ? 1 : 0 });
+                layer.setStyle({ opacity: zoom >= SHOW_NAME_TOOLTIP_ZOOM_LEVEL ? 1 : 0 });
             });
 
             // Hide name tooltips when zoomed out
-            const visible = map.getZoom() >= 19;
-            map.getPane('campNameLabels')!.style.display = visible ? 'block' : 'none';
+            const visible = zoom >= SHOW_NAME_TOOLTIP_ZOOM_LEVEL;
+            map.getPane(CAMP_NAME_LABEL_PANE)!.style.display = visible ? 'block' : 'none';
             if (visible) {
                 this.refreshTooltipPositions();
             }
