@@ -11,9 +11,15 @@ import 'leaflet.path.drag';
 import 'leaflet-search';
 import { EditorPopup } from './editorPopup';
 import { AdminAPI } from './adminAPI';
-import { HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY } from '../../SETTINGS';
+import {
+    CAMP_SNAP_DISTANCE_METERS,
+    HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY,
+    SNAP_DISTANCE_METERS,
+} from '../../SETTINGS';
 import { setCookie, getCookie } from "../utils/cookie";
 import { metersToSnapPixels } from '../utils/snapDistance';
+import { createCampSnapOutlineLayer } from '../utils/campSnapOutline';
+import { getGeoJsonChildLayer, getWorkingLayerLatLngs } from '../types/leafletHelpers';
 
 /**
  * The Editor class keeps track of the user status regarding editing and
@@ -47,6 +53,8 @@ export class Editor {
     private _placementLayers: L.LayerGroup<any>;
     private _placementBufferLayers: L.LayerGroup<any>;
     private _compareRevDiffLayer: L.LayerGroup<any>;
+    private _campSnapOutlines: L.LayerGroup;
+    private _campSnapOutlineById: Record<number, L.GeoJSON> = {};
 
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
@@ -118,7 +126,7 @@ export class Editor {
             // Stop any ongoing editing of the previously selected layer
             if (prevEntity) {
                 prevEntity?.layer.pm.disable();
-                prevEntity?.layer._layers[prevEntity.layer._leaflet_id - 1].dragging.disable();
+                getGeoJsonChildLayer(prevEntity.layer)?.dragging?.disable();
             }
 
             return;
@@ -130,7 +138,7 @@ export class Editor {
                 editMode: true,
                 allowSelfIntersection: false,
                 ...this._getShapeEditSnapOptions(),
-            });
+            } as Parameters<NonNullable<L.GeoJSON['pm']>['enable']>[0]);
             this.setSelected(nextEntity);
             this.setPopup('none');
             return;
@@ -141,7 +149,7 @@ export class Editor {
             this.setSelected(nextEntity);
             this.setPopup('none');
             this.UpdateOnScreenDisplay(nextEntity, 'Drag to move');
-            nextEntity.layer._layers[nextEntity.layer._leaflet_id - 1].dragging.enable();
+            getGeoJsonChildLayer(nextEntity.layer)?.dragging?.enable();
             return;
         }
         // Edit the info of the entity
@@ -333,8 +341,13 @@ export class Editor {
 
         // Remove the drawn layer and replace it with one bound to the entity
         if (entityInResponse) {
-            this.addEntityToMap(entityInResponse);
+            // Geoman adds finished draws to _placementLayers — remove before rule checks
+            // or the new camp will overlap its own temporary duplicate geometry.
+            this._placementLayers.removeLayer(layer);
             this._map.removeLayer(layer);
+
+            this.addEntityToMap(entityInResponse);
+            this._syncPlacementSnapTargets(null);
 
             //@ts-ignore
             const bounds = entityInResponse.layer.getBounds();
@@ -394,22 +407,35 @@ export class Editor {
         entity.layer.on('pm:markerdragend', () => {
             this.refreshEntity(entity);
             this.isAreaTooBig(entity.toGeoJSON());
+            this._updateCampSnapOutline(entity, this._isCampSnapOutlineExcluded(entity));
         });
 
-        entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
+        getGeoJsonChildLayer(entity.layer)?.on('drag', () => {
             entity.updateBufferedLayer();
             this.UpdateOnScreenDisplay(null);
         });
 
         // Update the buffered layer when the layer has a vertex removed
         entity.layer.on('pm:vertexremoved', (e) => {
-            if (e.layer._rings.length == 0) {
+            entity.pruneStalePolygonLayers();
+
+            if (!e.layer._rings?.length) {
                 this.deleteAndRemoveEntity(this._selected, 'No vertex remaining, automatic deletion of entity');
                 return
             }
 
             entity.updateBufferedLayer();
             this.refreshEntity(entity); //important that the buffer get updated before the rules are checked
+            this._updateCampSnapOutline(entity, this._isCampSnapOutlineExcluded(entity));
+            this.UpdateOnScreenDisplay(entity);
+        });
+
+        // Update the snap outline when a new vertex gets added (prevents stale snap targets).
+        entity.layer.on('pm:vertexadded', () => {
+            entity.pruneStalePolygonLayers();
+            entity.updateBufferedLayer();
+            this.refreshEntity(entity);
+            this._updateCampSnapOutline(entity, this._isCampSnapOutlineExcluded(entity));
             this.UpdateOnScreenDisplay(entity);
         });
 
@@ -426,6 +452,7 @@ export class Editor {
         }
 
         if (checkRules) this.refreshEntity(entity);
+        this._updateCampSnapOutline(entity, this._isCampSnapOutlineExcluded(entity));
     }
     /**
      * Check rules, update area and update warning color.
@@ -454,7 +481,7 @@ export class Editor {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
-        if (entity.nameMarker._tooltip._content != entity.name && checkRules) {
+        if (entity.nameMarker._tooltip?._content != entity.name && checkRules) {
             // console.log('tooltip content changed', entity.nameMarker._tooltip);
             entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
         }
@@ -559,6 +586,7 @@ export class Editor {
     private removeEntity(entity: MapEntity, removeInRepository: boolean = true) {
         this.removeEntityNameTooltip(entity);
         this.removeEntityFromLayers(entity);
+        this._removeCampSnapOutline(entity.id);
 
         // Remove from current
         delete this._currentRevisions[entity.id];
@@ -582,6 +610,7 @@ export class Editor {
         this._placementLayers = new L.LayerGroup().addTo(map);
         this._placementBufferLayers = new L.LayerGroup().addTo(map);
         this._compareRevDiffLayer = new L.LayerGroup().addTo(map);
+        this._campSnapOutlines = new L.LayerGroup().addTo(map);
 
         //Place both in the same group so that we can toggle them on and off together on the map
         //@ts-ignore
@@ -686,25 +715,62 @@ export class Editor {
         });
     }
 
+    private _isCampSnapOutlineExcluded(entity: MapEntity): boolean {
+        return this._selected === entity && this._mode === 'editing-shape';
+    }
+
+    private _applyCampSnapOutlineDistances() {
+        const campSnapPx = metersToSnapPixels(this._map, CAMP_SNAP_DISTANCE_METERS);
+        for (const entityId in this._campSnapOutlineById) {
+            this._campSnapOutlineById[entityId].eachLayer((child) => {
+                child.options.snapDistance = campSnapPx;
+                L.PM.reInitLayer(child);
+            });
+        }
+    }
+
+    private _removeCampSnapOutline(entityId: number) {
+        const outline = this._campSnapOutlineById[entityId];
+        if (!outline) {
+            return;
+        }
+        this._campSnapOutlines.removeLayer(outline);
+        delete this._campSnapOutlineById[entityId];
+    }
+
+    private _updateCampSnapOutline(entity: MapEntity, excluded: boolean) {
+        this._removeCampSnapOutline(entity.id);
+        if (excluded) {
+            return;
+        }
+
+        entity.pruneStalePolygonLayers();
+        const outline = createCampSnapOutlineLayer(entity.layer as L.GeoJSON, entity.id);
+        if (!outline) {
+            return;
+        }
+
+        this._campSnapOutlineById[entity.id] = outline;
+        this._campSnapOutlines.addLayer(outline);
+        this._applyCampSnapOutlineDistances();
+    }
+
     private _syncPlacementSnapTargets(excludedEntity: MapEntity | null = null) {
         for (const entityId in this._currentRevisions) {
             const entity = this._currentRevisions[entityId];
-            const snapIgnore = entity === excludedEntity;
-            if (entity.layer.options.snapIgnore === snapIgnore) {
-                continue;
-            }
-            entity.layer.options.snapIgnore = snapIgnore;
-            L.PM.reInitLayer(entity.layer);
+            this._updateCampSnapOutline(entity, entity === excludedEntity);
         }
     }
 
     private _initFireroadSnapLayers() {
-        const fireroad = this._groups['fireroad'] as L.GeoJSON | undefined;
-        if (!fireroad) {
+        const fireroadSnap = this._groups['fireroad_snap'] as L.GeoJSON | undefined;
+        if (!fireroadSnap) {
             return;
         }
 
-        fireroad.eachLayer((layer) => {
+        const roadSnapPx = metersToSnapPixels(this._map, SNAP_DISTANCE_METERS);
+        fireroadSnap.eachLayer((layer) => {
+            layer.options.snapDistance = roadSnapPx;
             L.PM.reInitLayer(layer);
         });
     }
@@ -802,16 +868,21 @@ export class Editor {
         this._map.pm.Toolbar.changeActionsOfControl('Polygon', ['cancel', 'removeLastVertex']);
 
         let writeDistanceOnTooltip = function (distance: number) {
-            // Update the tooltip content with the distance
-            let text = `Distance: ${distance.toFixed(1)} meters`;
-            document.querySelector('.leaflet-tooltip-bottom').innerText = text;
+            const tooltip = document.querySelector('.leaflet-tooltip-bottom');
+            if (!tooltip) {
+                return;
+            }
+            tooltip.textContent = `Distance: ${distance.toFixed(1)} meters`;
         };
 
         // This function is called when the user starts drawing a new polygon, it adds the distance to the tooltip
         this._map.on("pm:drawstart", ({ workingLayer }) => {
             // calculate the distance between the latest and previous vertices
             workingLayer.on("pm:vertexadded", (e) => {
-                let coords = e.workingLayer._latlngs;
+                let coords = getWorkingLayerLatLngs(e.workingLayer);
+                if (!coords) {
+                    return;
+                }
                 if (coords.length < 2) {
                     return;
                 }
@@ -823,9 +894,15 @@ export class Editor {
 
             // calculate the distance between the latest vertex and the not yet placed vertex (mouse position)
             let snapdragFn = (e) => {
-                let coords = e.workingLayer._latlngs;
+                let coords = getWorkingLayerLatLngs(e.workingLayer);
+                if (!coords?.length) {
+                    return;
+                }
                 let prev = coords[coords.length - 1];
-                let next = e.marker._latlng;
+                let next = e.snapLatLng ?? e.marker?._latlng;
+                if (prev?.lng == null || next?.lng == null) {
+                    return;
+                }
                 let distance = Turf.distance([prev.lng, prev.lat], [next.lng, next.lat], { units: 'meters' });
                 writeDistanceOnTooltip(distance);
             };
@@ -836,9 +913,15 @@ export class Editor {
             workingLayer.on("pm:snap", (e) => {
                 // toggle off the snapdrag event
                 workingLayer.off("pm:snapdrag", snapdragFn);
-                let coords = e.workingLayer._latlngs;
+                let coords = getWorkingLayerLatLngs(e.workingLayer);
+                if (!coords?.length) {
+                    return;
+                }
                 let prev = coords[coords.length - 1];
-                let next = e.snapLatLng;
+                let next = e.snapLatLng ?? e.marker?._latlng;
+                if (prev?.lng == null || next?.lng == null) {
+                    return;
+                }
                 let distance = Turf.distance([prev.lng, prev.lat], [next.lng, next.lat], { units: 'meters' });
                 writeDistanceOnTooltip(distance);
             });
@@ -990,6 +1073,8 @@ export class Editor {
             });
 
             this._updateSnapOptions();
+            this._applyCampSnapOutlineDistances();
+            this._initFireroadSnapLayers();
         }.bind(this));
 
         // Add the event handler for newly created layers

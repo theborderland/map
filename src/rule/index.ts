@@ -98,6 +98,8 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             Severity.High,
             'Touching fireroad!',
             'Plz move this area away from the fire road!',
+            undefined,
+            { clearanceZone: true },
         ),
         Rules.isNotInsideBoundaries(
             groups.propertyborder,
@@ -166,25 +168,24 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
 // Function not used?
 /** Utility function to calculate the ovelap between a geojson and layergroup */
 function _isGeoJsonOverlappingLayergroup(
-    geoJson: Turf.helpers.Feature<any, Turf.helpers.Properties> | Turf.helpers.Geometry,
+    geoJson: GeoJSON.Feature | GeoJSON.Geometry,
     layerGroup: L.GeoJSON,
 ): boolean {
     //NOTE: Only checks overlaps, not if its inside or covers completely
 
     let overlap = false;
     layerGroup.eachLayer((layer) => {
-        //@ts-ignore
-        let otherGeoJson = layer.toGeoJSON();
+        const otherGeoJson = layer.toGeoJSON() as GeoJSON.Feature | GeoJSON.FeatureCollection;
 
         //Loop through all features if it is a feature collection
-        if (otherGeoJson.features) {
+        if ('features' in otherGeoJson && otherGeoJson.features) {
             for (let i = 0; i < otherGeoJson.features.length; i++) {
                 if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i])) {
                     overlap = true;
                     return; // Break out of the inner loop
                 }
             }
-        } else if (Turf.booleanOverlap(geoJson, otherGeoJson)) {
+        } else if (Turf.booleanOverlap(geoJson, otherGeoJson as GeoJSON.Feature)) {
             overlap = true;
         }
 

@@ -5,6 +5,7 @@ import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
 import { EntityDTO, Appliance } from './interfaces';
 import { LayerStyles, Colors, AreaTypesColor } from './enums';
+import type { PolygonFeature } from '../types/geojson';
 
 /**
  * Represents the fields and data for single Map Entity and includes
@@ -20,7 +21,7 @@ export class MapEntity implements EntityDTO {
     public readonly timeStamp: number;
     public readonly isDeleted: boolean;
     public readonly deleteReason: string;
-    public readonly layer: L.Layer & { pm?: any };
+    public layer: L.GeoJSON;
     public bufferLayer: L.GeoJSON;
     public revisions: Record<number, MapEntity>;
     public nameMarker: L.Marker;
@@ -60,18 +61,44 @@ export class MapEntity implements EntityDTO {
         return JSON.stringify(this.toGeoJSON());
     }
 
+    /** The polygon Leaflet layer Geoman actually edits inside the GeoJSON wrapper. */
+    public getEditablePolygonLayer(): L.Polygon | undefined {
+        const layers = (this.layer as L.GeoJSON).getLayers() as L.Polygon[];
+        return layers[layers.length - 1];
+    }
+
+    /** Geoman can leave extra polygons in the GeoJSON group; keep only the active one. */
+    public pruneStalePolygonLayers() {
+        const group = this.layer as L.GeoJSON;
+        const layers = [...group.getLayers()] as L.Polygon[];
+        if (layers.length <= 1) {
+            return;
+        }
+
+        const keep = layers[layers.length - 1];
+        for (const layer of layers) {
+            if (layer !== keep) {
+                group.removeLayer(layer);
+            }
+        }
+    }
+
     /** Extracts the GeoJson from the internal Leaflet layer to make sure its up-to-date */
-    private _calculateGeoJson() {
-        //@ts-ignore
-        let geoJson = this.layer.toGeoJSON();
+    private _calculateGeoJson(): PolygonFeature {
+        const polygonLayer = this.getEditablePolygonLayer();
+        if (polygonLayer) {
+            return polygonLayer.toGeoJSON() as PolygonFeature;
+        }
+
+        let geoJson = this.layer.toGeoJSON() as PolygonFeature | GeoJSON.FeatureCollection;
 
         // Make sure that its a single features and not a collection, as Geoman
         // sometimes mess it up
-        if (geoJson.features && geoJson.features[0]) {
-            geoJson = geoJson.features[0];
+        if ('features' in geoJson && geoJson.features?.[0]) {
+            geoJson = geoJson.features[0] as PolygonFeature;
         }
 
-        return geoJson;
+        return geoJson as PolygonFeature;
     }
 
     constructor(data: EntityDTO, rules: Array<Rule>) {
@@ -93,9 +120,14 @@ export class MapEntity implements EntityDTO {
             pmIgnore: false,
             interactive: true,
             bubblingMouseEvents: false,
-            snapIgnore: false,
+            snapIgnore: true,
             style: (/*feature*/) => this._getDefaultLayerStyle(),
+            onEachFeature: (_feature, layer) => {
+                layer.options.snapIgnore = true;
+            },
         });
+        //@ts-ignore
+        this.layer.options.entityId = this.id;
 
         this.revisions = {};
 
@@ -140,7 +172,7 @@ export class MapEntity implements EntityDTO {
     }
 
     public checkAllRules() {
-        // Check which rules are currently broken
+        this.pruneStalePolygonLayers();
         for (const rule of this._rules) {
             rule.checkRule(this);
         }
@@ -181,8 +213,12 @@ export class MapEntity implements EntityDTO {
     }
 
     public updateBufferedLayer() {
-        // Update the buffer layer so that its geometry is the same as this.layers geometry
-        const geoJson = this.layer.toGeoJSON();
+        const polygonLayer = this.getEditablePolygonLayer();
+        if (!polygonLayer) {
+            return;
+        }
+
+        const geoJson = polygonLayer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
         const weight = this.getAllTriggeredRules().some((r) => r.shouldShowFireBuffer) ? 1 : 0;
         if (!this.bufferLayer) {
@@ -207,7 +243,7 @@ export class MapEntity implements EntityDTO {
     }
 
     /** Converts a the current map entity data represented as GeoJSON */
-    public toGeoJSON() {
+    public toGeoJSON(): PolygonFeature {
         // Get the up-to-date geo json data from the layer
         const geoJson = this._calculateGeoJson();
 

@@ -3,9 +3,9 @@ export class ClusterCache {
     // Since moving or redrawing a entity creates a new leaflet_id we dont have to worry about invalidating cache results.
     private areaCache: { [key: number]: number; } = {};
     private overlapCache: { [key: number]: { [key: number]: Boolean; }; } = {}; // a dict with a dict of booleans eg. x[1][2] = true
-    private coordsCache: { [key: string]: Array<{ [key: string]: number; }>; } = {};
-    
-    public coordsHaveChanged(layerID: any, coords: Array<{ [key: string]: number; }>) {
+    private coordsCache: { [key: string]: Array<{ lat: number; lng: number }> } = {};
+
+    public coordsHaveChanged(layerID: number, coords: Array<{ lat: number; lng: number }>) {
         //Input: coords -> layer._latlng[0]
         // Returns true  if coords are still the same for layerID and caches new coords if not
         // can be used to check if layerID should be cache invalidated
