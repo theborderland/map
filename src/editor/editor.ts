@@ -469,14 +469,18 @@ export class Editor {
             return;
         }
 
-        this.refreshEntityTooltip(entity);
+        this.refreshEntityTooltip(entity, false);
         entity.checkAllRules();
         let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         entity.setLayerStyle('severity', hideWarnings);
     }
 
-    private refreshEntityTooltip(entity: MapEntity, checkRules: boolean = true) {
-        if (entity.nameMarker._tooltip?._content != entity.name && checkRules) {
+    private refreshEntityTooltip(entity: MapEntity | null, checkRules: boolean = true) {
+        if (!entity?.nameMarker) {
+            return;
+        }
+
+        if (!checkRules || entity.nameMarker._tooltip?._content != entity.name) {
             entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
         }
 
@@ -498,7 +502,7 @@ export class Editor {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
-        this.refreshEntityTooltip(entity);
+        this.refreshEntityTooltip(entity, checkRules);
 
         if (checkRules) {
             entity.checkAllRules();
@@ -520,14 +524,6 @@ export class Editor {
             const center = (entity.layer as any).getBounds().getCenter();
             entity.nameMarker.setLatLng(center);
         }
-    }
-
-    private refreshEntityTooltip(entity: MapEntity | null) {
-        if (!entity || !entity.nameMarker) {
-            return;
-        }
-
-        entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
@@ -581,6 +577,7 @@ export class Editor {
     private deleteAndRemoveEntity(entity: MapEntity, deleteReason: string = null) {
         this._selected = null;
         this.removeEntity(entity);
+        this.UpdateOnScreenDisplay(null);
         // Avoid setMode('none') here — it runs _syncPlacementSnapTargets / L.PM.reInitLayer
         // on camps still on the map, which can leave a ghost polygon after delete.
         this._mode = 'none';
@@ -678,8 +675,6 @@ export class Editor {
             className: 'shape-tooltip',
         });
         this.campWarningTooltip.setLatLng([0, 0]);
-        this.campWarningTooltip.addTo(this._map);
-        this.campWarningTooltip.closeTooltip();
         this._nameTooltips = {};
         this.stopwatch = 0;
 
@@ -854,7 +849,7 @@ export class Editor {
 
         // Refresh tooltips for all entities, because edit mode changes the tooltip text.
         for (const entityId in this._currentRevisions) {
-            this.refreshEntityTooltip(this._currentRevisions[entityId]);
+            this.refreshEntityTooltip(this._currentRevisions[entityId], false);
         }
        
         // Show instructions when entering edit mode, and wait for the user
@@ -1053,6 +1048,35 @@ export class Editor {
         this._mapControls.forEach(control => this._map.removeControl(control));
     }
 
+    /** Hides the rule-warning label (openOn/closeTooltip alone can leave DOM behind). */
+    private hideCampWarningTooltip() {
+        this.campWarningTooltip.setContent('');
+        if (this._map.hasLayer(this.campWarningTooltip)) {
+            this._map.removeLayer(this.campWarningTooltip);
+        }
+        const el = this.campWarningTooltip.getElement?.();
+        if (el) {
+            el.style.display = 'none';
+            el.innerHTML = '';
+        }
+        // Orphaned copies can remain in the tooltip pane after openOn()
+        this._map.getPane('tooltipPane')?.querySelectorAll('.shape-tooltip').forEach((node) => {
+            node.remove();
+        });
+    }
+
+    private showCampWarningTooltip(latLng: L.LatLng, tooltipText: string) {
+        this.campWarningTooltip.setContent(tooltipText);
+        this.campWarningTooltip.setLatLng(latLng);
+        if (!this._map.hasLayer(this.campWarningTooltip)) {
+            this.campWarningTooltip.addTo(this._map);
+        }
+        const el = this.campWarningTooltip.getElement?.();
+        if (el) {
+            el.style.display = '';
+        }
+    }
+
     private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string = null) {
         if (entity || customMsg) {
             let tooltipText = '';
@@ -1067,11 +1091,21 @@ export class Editor {
                 }
             }
 
-            this.campWarningTooltip.openOn(this._map);
-            this.campWarningTooltip.setLatLng(entity.layer.getBounds().getCenter());
-            this.campWarningTooltip.setContent(tooltipText);
+            if (!tooltipText) {
+                this.hideCampWarningTooltip();
+                return;
+            }
+
+            const latLng = customMsg
+                ? entity?.layer.getBounds().getCenter()
+                : entity.layer.getBounds().getCenter();
+            if (!latLng) {
+                this.hideCampWarningTooltip();
+                return;
+            }
+            this.showCampWarningTooltip(latLng, tooltipText);
         } else {
-            this.campWarningTooltip.close();
+            this.hideCampWarningTooltip();
         }
     }
 
