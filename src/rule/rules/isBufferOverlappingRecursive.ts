@@ -5,7 +5,15 @@ import {
     FIRE_BUFFER_IN_METER
 } from '../../../SETTINGS';
 import { Severity, Rule, clusterCache, ruler } from '../index';
-import { compareLayers, getBBoxForCoords, fastIsOverlap } from './utils';
+import {
+    compareLayers,
+    getBBoxForCoords,
+    fastIsOverlap,
+    getActivePolygonFeatureFromLayer,
+    hasSignificantPolygonOverlap,
+} from './utils';
+import type { PolygonFeature } from '../../types/geojson';
+import { getGeoJsonChildLayer, getLayerLatLngRing } from '../../types/leafletHelpers';
 
 const CHEAP_RULER_BUFFER: number = FIRE_BUFFER_IN_METER + 1; // We add a little extra to the buffer, to compensate for usign the approximation method from cheapruler
 
@@ -15,16 +23,31 @@ export const isBufferOverlappingRecursive = (
     shortMsg: string,
     message: string
 ) => new Rule(severity, shortMsg, message, (entity) => {
-    //@ts-ignore
-    const layer = entity.layer._layers[Object.keys(entity.layer._layers)[0]];
+    const layer = getGeoJsonChildLayer(entity.layer);
+    if (!layer) {
+        return { triggered: false };
+    }
 
     // invalidate cache if coords have changed
-    //@ts-ignore
-    clusterCache.coordsHaveChanged(layer._leaflet_id, layer._latlngs[0]) &&
+    const ring = getLayerLatLngRing(layer);
+    if (
+        layer._leaflet_id != null &&
+        ring &&
+        clusterCache.coordsHaveChanged(
+            layer._leaflet_id,
+            ring.map((ll) => ({ lat: ll.lat, lng: ll.lng })),
+        ) &&
+        entity.layer._leaflet_id != null
+    ) {
         clusterCache.invalidateCache(entity.layer._leaflet_id);
+    }
 
     const checkedOverlappingLayers = new Set<string>();
-    let totalArea = _getTotalAreaOfOverlappingEntities(entity.layer, layerGroup, checkedOverlappingLayers);
+    let totalArea = _getTotalAreaOfOverlappingEntities(
+        entity.layer,
+        layerGroup,
+        checkedOverlappingLayers,
+    );
     if (totalArea > MAX_CLUSTER_SIZE) {
         return {
             triggered: true,
@@ -49,27 +72,24 @@ function _getTotalAreaOfOverlappingEntities(
         checkedOverlappingLayers.add(layer._leaflet_id);
     }
 
+    const layerFeature = getActivePolygonFeatureFromLayer(layer);
+    if (!layerFeature) {
+        return 0;
+    }
+
     let totalArea: number;
     //@ts-ignore
     if (clusterCache.areaIsCached(layer._leaflet_id)) {
         //@ts-ignore
         totalArea = clusterCache.getAreaCache(layer._leaflet_id);
     } else {
-        //@ts-ignore
-        totalArea = Turf.area(layer.toGeoJSON());
+        totalArea = Turf.area(layerFeature);
         //@ts-ignore
         clusterCache.setAreaCache(layer._leaflet_id, totalArea);
     }
 
     // get an approximate bounding box with firebuffer padding to use for later calculations
-    //@ts-ignore
-    /* you can get bounds like so:
-    const bounds = layer.getBounds()
-    let boxBounds = [bounds._southWest.lng,bounds._southWest.lat,bounds._northEast.lng,bounds._northEast.lat]
-    However, layer.getBounds is not updated when moving the layer. Need to call layer.geoJson for an udpated bounds.
-    */
-    //@ts-ignore
-    let boxBounds = getBBoxForCoords(layer.toGeoJSON().features[0].geometry.coordinates[0]);
+    let boxBounds = getBBoxForCoords(layerFeature.geometry.coordinates[0]);
     //@ts-ignore
     const bBox = ruler.bufferBBox(boxBounds, CHEAP_RULER_BUFFER); // add buffer padding to box
 
@@ -103,28 +123,14 @@ function _getTotalAreaOfOverlappingEntities(
                     //@ts-ignore
                     clusterCache.setOverlapCache(layer._leaflet_id, otherLayer._leaflet_id, overlaps);
                 } else {
-                    // bounding boxes overlap so polygons might overlap. Time to do the expensive calculations
-                    //@ts-ignore
-                    const otherLayerGeoJSON = otherLayer.toGeoJSON();
-                    let otherLayerPolygon;
-                    if (otherLayerGeoJSON.type === 'Feature') {
-                        otherLayerPolygon = otherLayerGeoJSON.geometry;
-                    } else if (otherLayerGeoJSON.type === 'FeatureCollection') {
-                        otherLayerPolygon = otherLayerGeoJSON.features[0];
-                    } else {
-                        // Unsupported geometry type
-                        throw new Error('unsupported geometry');
-                    }
-
-                    //@ts-ignore
-                    let buffer = Turf.buffer(layer.toGeoJSON(), FIRE_BUFFER_IN_METER, {
-                        units: 'meters',
-                    }) as Turf.helpers.FeatureCollection<Turf.helpers.Polygon>;
-                    if (Turf.booleanOverlap(buffer.features[0], otherLayerPolygon) ||
-                        Turf.booleanContains(buffer.features[0], otherLayerPolygon)) {
-                        overlaps = true;
-                    } else {
+                    const otherFeature = getActivePolygonFeatureFromLayer(otherLayer);
+                    if (!otherFeature) {
                         overlaps = false;
+                    } else {
+                        const buffer = Turf.buffer(layerFeature, FIRE_BUFFER_IN_METER, {
+                            units: 'meters',
+                        }) as PolygonFeature;
+                        overlaps = hasSignificantPolygonOverlap(buffer, otherFeature);
                     }
                     //@ts-ignore
                     clusterCache.setOverlapCache(layer._leaflet_id, otherLayer._leaflet_id, overlaps);

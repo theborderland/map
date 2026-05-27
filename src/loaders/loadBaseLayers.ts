@@ -8,6 +8,7 @@ import { loadImageOverlay } from './loadImageOverlay';
 import { addPowerGridTomap } from './_addPowerGrid';
 import { addPointsOfInterestsTomap } from './_addPOI';
 import * as Turf from '@turf/turf';
+import { FIREROAD_CLEARANCE_METERS, FIREROAD_SNAP_OUTSET_METERS } from '../../SETTINGS';
 
 export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) => {
 	// Add the Google Satellite layer if online, otherwise load the drawn map
@@ -50,7 +51,22 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 
 	// Loads "fireroads"
 	// with the fireroads as a reference, also load "publicplease" and "oktocamp" with a bigger buffer
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', { buffer: 2.5 });
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', {
+		buffer: FIREROAD_CLEARANCE_METERS,
+	});
+	// Snap to outline outside clearance so camps do not sit on the forbidden boundary
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', {
+		buffer: FIREROAD_CLEARANCE_METERS + FIREROAD_SNAP_OUTSET_METERS,
+		propertyRenameFn: () => 'fireroad_snap',
+		snapTarget: true,
+		styleFn: () => ({
+			color: '#000000',
+			weight: 0,
+			opacity: 0,
+			fillOpacity: 0,
+		}),
+	});
+	map.groups.fireroad_snap.addTo(map);
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/fireroads.geojson', {
 		buffer: 3.5,
 		propertyRenameFn: () => 'publicplease',

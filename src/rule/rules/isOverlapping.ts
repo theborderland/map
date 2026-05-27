@@ -1,45 +1,74 @@
-import * as Turf from '@turf/turf';
 import * as L from 'leaflet';
 import { Severity, Rule } from '../index';
-import { compareLayers, getBBoxForCoords, fastIsOverlap } from './utils';
+import {
+    compareLayers,
+    getBBoxForCoords,
+    fastIsOverlap,
+    getActivePolygonFeatureFromLayer,
+    campsShareForbiddenAreaOverlap,
+    getPolygonFeatureFromGeoJson,
+} from './utils';
+import { MapEntity } from '../../entities';
+import type { PolygonFeature } from '../../types/geojson';
 
 export const isOverlapping = (
-    layerGroup: any, 
-    severity: Severity, 
-    shortMsg: string, 
+    layerGroup: any,
+    severity: Severity,
+    shortMsg: string,
     message: string
 ) => new Rule(severity, shortMsg, message, (entity) => {
-    return { triggered: _isLayerOverlappingOrContained(entity.layer, layerGroup) };
+    return { triggered: _campsOverlap(entity, layerGroup) };
 });
 
-/** Utility function to calculate the ovelap between a layer and layergroup */
-function _isLayerOverlappingOrContained(layer: L.Layer, layerGroup: L.GeoJSON): boolean {
-    //NOTE: Only checks overlaps, not if its inside or covers completely
-    //@ts-ignore
-    let layerGeoJson = layer.toGeoJSON();
-    let bBox = getBBoxForCoords(layerGeoJson.features[0].geometry.coordinates[0]);
-    //@ts-ignore
+function getCampPolygonForRules(entity: MapEntity): PolygonFeature | null {
+    entity.pruneStalePolygonLayers();
+    const geoJson = entity.toGeoJSON();
+    if (geoJson.geometry.type === 'Polygon') {
+        return geoJson;
+    }
+    return getPolygonFeatureFromGeoJson(geoJson);
+}
+
+/** True if this camp shares area with another camp (touching without overlapping is OK). */
+function _campsOverlap(entity: MapEntity, layerGroup: L.GeoJSON): boolean {
+    const campFeature = getCampPolygonForRules(entity);
+    if (!campFeature) {
+        return false;
+    }
+
+    const bBox = getBBoxForCoords(campFeature.geometry.coordinates[0]);
     let overlap = false;
-    let i = 0;
+
     layerGroup.eachLayer((otherLayer) => {
         if (overlap) {
             return;
         }
-        if (compareLayers(layer, otherLayer)) {
+        if (compareLayers(entity.layer, otherLayer)) {
             return;
         }
-        //@ts-ignore
-        let otherGeoJson = otherLayer.toGeoJSON();
-        //@ts-ignore
-        let otherBBox = getBBoxForCoords(otherGeoJson.features[0].geometry.coordinates[0]);
-        if (fastIsOverlap(bBox, otherBBox)) {
-            // Might overlap
-            if (Turf.booleanOverlap(layerGeoJson.features[0], otherGeoJson.features[0]) ||
-                Turf.booleanContains(layerGeoJson.features[0], otherGeoJson.features[0])) {
-                overlap = true;
-            }
+        const otherEntityId = otherLayer.options?.entityId;
+        // Ignore Geoman draw/temp layers — only compare saved camps
+        if (otherEntityId == null) {
+            return;
+        }
+        if (otherEntityId === entity.id) {
+            return;
+        }
+
+        const otherFeature = getActivePolygonFeatureFromLayer(otherLayer);
+        if (!otherFeature) {
+            return;
+        }
+
+        const otherBBox = getBBoxForCoords(otherFeature.geometry.coordinates[0]);
+        if (!fastIsOverlap(bBox, otherBBox)) {
+            return;
+        }
+
+        if (campsShareForbiddenAreaOverlap(campFeature, otherFeature)) {
+            overlap = true;
         }
     });
+
     return overlap;
 }
-

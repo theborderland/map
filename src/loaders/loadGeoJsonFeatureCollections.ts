@@ -15,6 +15,7 @@ import * as Turf from '@turf/turf';
  * @param {number} operations.buffer - (Optional) Buffer radius to add around the features
  * @param {Function} operations.propertyRenameFn - (Optional) Function to rename groupByProperty value
  * @param {Function} operations.styleFn - (Optional) Function to style the features
+ * @param {boolean} operations.snapTarget - (Optional) Expose polygon edges as Geoman snap targets
  * @returns {Promise<void>}
  */
 export const loadGeoJsonFeatureCollections = async (
@@ -25,6 +26,7 @@ export const loadGeoJsonFeatureCollections = async (
         buffer?: number;
         propertyRenameFn?: (value: string) => string;
         styleFn?: (value: string, feature: any) => L.PathOptions;
+        snapTarget?: boolean;
     } = {},
 ) => {
     const response = await fetch(filename);
@@ -55,6 +57,11 @@ export const loadGeoJsonFeatureCollections = async (
         const geojsonLayer = L.geoJSON(geojsonData, {
             filter: filterByProperty(groupByProperty, value),
             style: operations.styleFn ? (feature) => operations.styleFn(value, feature) : () => getStyle(value),
+            onEachFeature: operations.snapTarget
+                ? (_feature, layer) => {
+                      layer.options.snapIgnore = false;
+                  }
+                : undefined,
         });
 
         map.groups[value] = geojsonLayer;
