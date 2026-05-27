@@ -10,6 +10,7 @@ import * as Turf from '@turf/turf';
 import 'leaflet.path.drag';
 import 'leaflet-search';
 import { EditorPopup } from './editorPopup';
+import { ShapeEditTooltip } from './ShapeEditTooltip';
 import { AdminAPI } from './adminAPI';
 import { HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY } from '../../SETTINGS';
 import { setCookie, getCookie } from "../utils/cookie";
@@ -55,6 +56,7 @@ export class Editor {
 
     private campWarningTooltip: L.Tooltip; //The tooltip that shows some warning messages under the name and area size.
     private _nameTooltips: Record<number, L.Marker>;
+    private _shapeEditTooltip: ShapeEditTooltip;
     private stopwatch: number;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
@@ -101,6 +103,11 @@ export class Editor {
         console.log('[Editor]', 'mode changed!', { mode: this._mode, nextMode, nextEntity });
         this._mode = nextMode as Editor['_mode'];
 
+        // Hide the edit tooltip whenever we leave editing-shape mode
+        if (this._mode !== 'editing-shape') {
+            this._shapeEditTooltip.setVisible(false);
+        }
+
         // Handle effects of setting the correct mode
 
         // Deselect and stop editing
@@ -124,7 +131,7 @@ export class Editor {
             return;
         }
         // Edit the shape of the entity
-        if (this._mode == 'editing-shape' && nextEntity) {
+        if (this._mode == 'editing-shape' && nextEntity) { 
             nextEntity.layer.pm.enable({
                 editMode: true,
                 snappable: false,
@@ -132,6 +139,7 @@ export class Editor {
             });
             this.setSelected(nextEntity);
             this.setPopup('none');
+            this._shapeEditTooltip.setVisible(true);
             return;
         }
         // Move the shape of the entity
@@ -174,8 +182,7 @@ export class Editor {
             this.setMode('blur');
         }
     }
-
-    /** Updates whats display in the pop up window, if anything - usually called from setMode */
+        /** Updates whats display in the pop up window, if anything - usually called from setMode */
     private async setPopup(display: 'info' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
@@ -656,6 +663,7 @@ export class Editor {
         this.campWarningTooltip.addTo(this._map);
         this.campWarningTooltip.closeTooltip();
         this._nameTooltips = {};
+        this._shapeEditTooltip = new ShapeEditTooltip(this._map);
         this.stopwatch = 0;
 
         document.onkeydown = (evt: Event) => {
