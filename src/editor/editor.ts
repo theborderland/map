@@ -462,10 +462,20 @@ export class Editor {
             return;
         }
 
-        entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
+        this.refreshEntityTooltip(entity, true);
         entity.checkAllRules();
         let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         entity.setLayerStyle('severity', hideWarnings);
+    }
+
+    private refreshEntityTooltip(entity: MapEntity, checkRules: boolean = true) {
+        if (entity.nameMarker._tooltip?._content != entity.name && checkRules) {
+            entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
+        }
+
+        const zoom = this._map.getZoom();
+        const nameTooltip = this._nameTooltips[entity.id]?._tooltip;
+        nameTooltip?.setOpacity(zoom >= 19 ? 1 : 0);
     }
 
     private refreshEntity(entity: MapEntity, checkRules: boolean = true) {
@@ -481,20 +491,7 @@ export class Editor {
             // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
-        if (entity.nameMarker._tooltip?._content != entity.name && checkRules) {
-            // console.log('tooltip content changed', entity.nameMarker._tooltip);
-            entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
-        }
-
-        // Only show the name if zoomed beyond 19
-        var zoom = this._map.getZoom();
-        if (zoom >= 19) {
-            //@ts-ignore
-            this._nameTooltips[entity.id]._tooltip.setOpacity(1);
-        } else {
-            //@ts-ignore
-            this._nameTooltips[entity.id]._tooltip.setOpacity(0);
-        }
+        this.refreshEntityTooltip(entity, checkRules);
 
         if (checkRules) {
             entity.checkAllRules();
