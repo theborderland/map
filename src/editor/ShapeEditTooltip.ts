@@ -4,7 +4,6 @@ export class ShapeEditTooltip {
     private _map: L.Map;
     private _tooltip: HTMLDivElement;
     private _mouseMoveListener: (evt: MouseEvent) => void;
-    private _visible: boolean = false;
 
     constructor(map: L.Map) {
         this._map = map;
@@ -21,15 +20,10 @@ export class ShapeEditTooltip {
         };
 
         container.appendChild(this._tooltip);
+        this.setVisible(false);
     }
 
     public setVisible(visible: boolean) {
-        if (visible === this._visible) {
-            return;
-        }
-
-        this._visible = visible;
-
         if (visible) {
             this._tooltip.style.display = 'block';
             this._map.getContainer().addEventListener('mousemove', this._mouseMoveListener);

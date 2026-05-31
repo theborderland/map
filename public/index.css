@@ -535,3 +535,16 @@ body,
     border-color: var(--sl-color-danger-600);
     box-shadow: 0 0 0 var(--sl-focus-ring-width) var(--sl-color-danger-300);
 }
+
+.shape-edit-tooltip {
+    background-color: #000;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    position: absolute;
+    text-shadow: 1px 1px #000;
+    pointer-events: none;
+    z-index: 1000;
+    transform: translate(12px, 12px);
+}

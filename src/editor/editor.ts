@@ -91,6 +91,7 @@ export class Editor {
                 const bounds = nextEntity.layer.getBounds();
                 const latlng = bounds.getCenter();
                 this._popup.setLatLng(latlng);
+                this._shapeEditTooltip.setVisible(false);
             }
             // Fall back to the "none" mode
             else {
@@ -103,17 +104,13 @@ export class Editor {
         console.log('[Editor]', 'mode changed!', { mode: this._mode, nextMode, nextEntity });
         this._mode = nextMode as Editor['_mode'];
 
-        // Hide the edit tooltip whenever we leave editing-shape mode
-        if (this._mode !== 'editing-shape') {
-            this._shapeEditTooltip.setVisible(false);
-        }
-
         // Handle effects of setting the correct mode
 
         // Deselect and stop editing
         if (this._mode == 'none') {
             this.setSelected(null, prevEntity);
             this.setPopup('none');
+            this._shapeEditTooltip.setVisible(false);
             return;
         }
 
@@ -131,7 +128,7 @@ export class Editor {
             return;
         }
         // Edit the shape of the entity
-        if (this._mode == 'editing-shape' && nextEntity) { 
+        if (this._mode == 'editing-shape' && nextEntity) {
             nextEntity.layer.pm.enable({
                 editMode: true,
                 snappable: false,
@@ -182,7 +179,7 @@ export class Editor {
             this.setMode('blur');
         }
     }
-        /** Updates whats display in the pop up window, if anything - usually called from setMode */
+    /** Updates whats display in the pop up window, if anything - usually called from setMode */
     private async setPopup(display: 'info' | 'none', entity?: MapEntity | null) {
         // Don't show any pop-up if set to none or if there is no entity
         if (display == 'none' || !entity) {
@@ -743,7 +740,7 @@ export class Editor {
         for (const entityId in this._currentRevisions) {
             this.refreshEntityTooltip(this._currentRevisions[entityId]);
         }
-       
+
         // Show instructions when entering edit mode, and wait for the user
         // to press a button on that screen before continuing
         if (this._isEditMode) {
