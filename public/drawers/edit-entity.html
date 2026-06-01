@@ -136,11 +136,18 @@
                 </div>
             </section>
             <section class="hidden" style="margin-top: auto;">
-                <sl-input id="power-image-url" size="small" placeholder="Will be enabled soon.." disabled>
+                <hr />
+                <label for="power-upload-image" style="font-size: 14px;">
+                    Your camp's power consumption/participants is larger than average,
+                    please upload a picture of your plans for your camp's power grid.
+                    You can create one using <a href="https://excalidraw.com" target="_blank">Excalidraw</a>.
+                </label>
+                <input type="file" id="power-upload-image">
+                </input>
+                <sl-input id="power-image-url" size="small" placeholder="Url goes here" >
                     <span slot="label">
-                        Your camp's power consumption/participants is larger than average, please upload a picture of your plans for your camp's power
-                        grid.
-                        You can create one using <a href="https://excalidraw.com" target="_blank">Excalidraw</a>.</span>
+                        Or just paste an url to your picture here..
+                    </span>
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="prefix"></sl-icon>
                     <sl-icon style="color: red;" name="exclamation-octagon" slot="suffix"></sl-icon>
                 </sl-input>

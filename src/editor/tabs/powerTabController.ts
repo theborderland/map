@@ -1,5 +1,6 @@
 import { EditorDrawerTab, EditorDrawerContext } from "../editorDrawerContracts";
 import { Appliance, MapEntity } from "../../entities";
+import { uploadPowerImage } from '../../utils'
 
 export class PowerTabController implements EditorDrawerTab {
     private fields!: {
@@ -7,6 +8,7 @@ export class PowerTabController implements EditorDrawerTab {
         powerContactInfo: HTMLInputElement;
         powerPlugType: HTMLSelectElement;
         powerExtraInfo: HTMLInputElement;
+        powerUploadImage: HTMLInputElement;
         powerImageUrl: HTMLInputElement;
         powerNeed: HTMLSpanElement;
     };
@@ -19,6 +21,7 @@ export class PowerTabController implements EditorDrawerTab {
             powerContactInfo: document.getElementById("entity-tech-lead") as HTMLInputElement,
             powerPlugType: document.getElementById("power-plug-type") as HTMLSelectElement,
             powerExtraInfo: document.getElementById("power-extra-info") as HTMLInputElement,
+            powerUploadImage: document.getElementById("power-upload-image") as HTMLInputElement,
             powerImageUrl: document.getElementById("power-image-url") as HTMLInputElement,
             powerNeed: document.getElementById("entity-total-power-needed") as HTMLSpanElement
         };
@@ -69,11 +72,23 @@ export class PowerTabController implements EditorDrawerTab {
             this.validatePowerImageUrl();
         });
 
+        this.fields.powerUploadImage.addEventListener("change", () => {
+            const file = this.fields.powerUploadImage.files?.[0];
+            if (!file) return;
+            uploadPowerImage(file)
+                .then(({ url, filename }) => {
+                    this.fields.powerImageUrl.value = url;
+                })
+                .catch((error) => {
+                    alert(`Upload failed: ${error.message}`);
+                });
+        });
+
         const powerForm = document.getElementById("power-form") as HTMLFormElement;
         powerForm.addEventListener("submit", (e) => this.onPowerFormSubmit(e));
 
         const container = document.getElementById("power-items-container");
-        container.addEventListener("click", (e) => {
+        container?.addEventListener("click", (e) => {
             const target = e.target as HTMLElement;
             const deleteBtn = target.closest('[data-action="delete-power-item"]');
             if (!deleteBtn) return;
