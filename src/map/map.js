@@ -10,6 +10,7 @@ import { Editor } from '../editor';
 import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { loadBaseLayers } from '../loaders/loadBaseLayers';
 import { soundLayers } from '../utils/soundData';
+import { initMario } from './mario';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async (_isCleanAndQuietMode) => {
@@ -252,6 +253,9 @@ export const createMap = async (_isCleanAndQuietMode) => {
     // Done!
     //await showNotification('Loaded everything!', 'success');
     stopwatch.log();
+
+    // Konami easter egg — ↑↑↓↓←→←→BA
+    initMario(map, editor.placementLayersId);
 
     // Expose toggleLayerByName function so it can be used in the guide-areatypes drawer
     // to toggle the warning colors layer on and off as an example of how to use it.
