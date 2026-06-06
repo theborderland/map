@@ -357,8 +357,9 @@ MigrationBackup/
 # generated code
 public/main.js
 public/main.js.map
-public/getLocation.js
-public/getLocation.js.map
+public/admin/index.js
+public/admin/index.css
+public/admin/index.html
 
 # Mac OS
 .DS_Store
