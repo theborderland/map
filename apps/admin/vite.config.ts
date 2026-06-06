@@ -17,6 +17,7 @@ export default defineConfig({
   build: {
     outDir: "../../public/admin", // IMPORTANT
     emptyOutDir: true,
+    target: "es2020",
     rollupOptions: {
       output: {
         entryFileNames: "[name].js",
