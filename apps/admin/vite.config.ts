@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
+  // Vite automatically passes mode depending on the command:
+  // vite / npm run dev	 = "development"
+  // vite build	= "production"
+  // and since the github action does "npm run build" it will be "production" there.
   const isProd = mode === "production";
 
   return {

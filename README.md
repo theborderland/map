@@ -44,7 +44,7 @@ npm run dev
 This starts both apps using [concurrently](https://www.npmjs.com/package/concurrently):
 
 * **Admin (React)** runs on Vite dev server
-* **Map (vanilla)** rebuilds on file changes via esbuild
+* **Map (vanilla)** rebuilds on file changes via esbuild (is served via proxy from Vite)
 
 ### Local URLs
 
@@ -88,14 +88,10 @@ This folder can be deployed to any static hosting provider (e.g. GitHub Pages).
 ## Routing
 
 The admin app is served under `/admin`.
+* On prod its currently `/map/admin`
+* On dev its just `/admin`
 
-If using React Router, ensure it is configured correctly:
-
-```tsx
-<BrowserRouter basename="/admin">
-```
-
-Alternatively, you can use `HashRouter` for simpler static hosting compatibility.
+This is mapped in `vite.config.ts`
 
 ---
 
