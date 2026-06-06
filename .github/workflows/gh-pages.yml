@@ -24,8 +24,11 @@ jobs:
                   node-version: 20
                   cache: npm
 
-            - name: Install dependencies
-              run: npm ci --include=optional
+            - name: Clean install (IMPORTANT)
+              run: |
+                rm -rf node_modules
+                rm -rf apps/**/node_modules
+                npm ci --include=optional
 
             - name: Build
               run: npm run build
