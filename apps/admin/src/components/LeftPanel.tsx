@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import type { Tab } from "../types";
 import AreasTab from "../tabs/AreasTab";
 import RoadsTab from "../tabs/RoadsTab";
@@ -11,9 +11,15 @@ interface Props {
   setActiveTab: (tab: Tab) => void;
 }
 
+type ChildPage = {
+  parent: Tab;
+  title: string;
+  content: ReactNode;
+};
+
 type ViewState =
   | { type: "root" }
-  | { type: "child"; parent: Tab; content: string };
+  | { type: "child"; stack: ChildPage[] };
 
 export default function LeftPanel({ activeTab, setActiveTab }: Props) {
   const [view, setView] = useState<ViewState>({ type: "root" });
@@ -25,12 +31,22 @@ export default function LeftPanel({ activeTab, setActiveTab }: Props) {
     setView({ type: "root" });
   };
 
-  const openChild = (content: string) => {
-    setView({ type: "child", parent: activeTab, content });
+  const openChild = (content: ReactNode, title = "Details") => {
+    setView((prev) => {
+      const page: ChildPage = { parent: activeTab, title, content };
+      if (prev.type === "child") {
+        return { type: "child", stack: [...prev.stack, page] };
+      }
+      return { type: "child", stack: [page] };
+    });
   };
 
   const goBack = () => {
-    setView({ type: "root" });
+    setView((prev) => {
+      if (prev.type !== "child") return prev;
+      if (prev.stack.length <= 1) return { type: "root" };
+      return { type: "child", stack: prev.stack.slice(0, -1) };
+    });
   };
 
   const renderTab = () => {
@@ -84,9 +100,11 @@ export default function LeftPanel({ activeTab, setActiveTab }: Props) {
 
         {view.type === "child" && (
           <div>
-            <button onClick={goBack}>⬅ Back</button>
-            <h3>{view.parent}</h3>
-            <p>{view.content}</p>
+            <div style={{ position: "relative", marginBottom: "1rem" }}>
+              <button onClick={goBack} style={{ position: "absolute", left: 0 }}>⬅ Back</button>
+              <h3 style={{ textAlign: "center", margin: 0 }}>{view.stack[view.stack.length - 1].title}</h3>
+            </div>
+            <div>{view.stack[view.stack.length - 1].content}</div>
           </div>
         )}
       </div>
