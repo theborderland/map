@@ -5,7 +5,7 @@
       "type": "Feature",
       "properties": {
         "fid": 1,
-        "type": null
+        "type": "fireroad"
       },
       "geometry": {
         "type": "MultiLineString",
