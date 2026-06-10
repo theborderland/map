@@ -10,9 +10,9 @@ export default function RoadsTab({
       <h2>Roads</h2>
       <p>Manage road network.</p>
 
-      <button onClick={() => openChild("Edit road properties", "Road Properties")}>
+      <wa-button size="s" onClick={() => openChild("Edit road properties", "Road Properties")}>
         Edit Roads
-      </button>
+      </wa-button>
     </div>
   );
 }

@@ -101,7 +101,9 @@ export default function LeftPanel({ activeTab, setActiveTab }: Props) {
         {view.type === "child" && (
           <div>
             <div style={{ position: "relative", marginBottom: "1rem" }}>
-              <button onClick={goBack} style={{ position: "absolute", left: 0 }}>⬅ Back</button>
+              <wa-button size="xs" onClick={goBack} style={{ position: "absolute", left: 0 }}>
+                <wa-icon name="caret-left"></wa-icon>
+              </wa-button>
               <h3 style={{ textAlign: "center", margin: 0 }}>{view.stack[view.stack.length - 1].title}</h3>
             </div>
             <div>{view.stack[view.stack.length - 1].content}</div>

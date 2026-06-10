@@ -11,14 +11,14 @@ export default function RulesTab({
       <p>Configure rules.</p>
       <ul>
         <li>
-          <button onClick={() => openChild("1", "Title 1")}>
+          <wa-button size="s" onClick={() => openChild("1", "Title 1")}>
             Edit rule #1
-          </button>
+          </wa-button>
         </li>
         <li>
-          <button onClick={() => openChild("2", "Title 2")}>
+          <wa-button size="s" onClick={() => openChild("2", "Title 2")}>
             Edit rule #2
-          </button>
+          </wa-button>
         </li>
       </ul>
     </div>

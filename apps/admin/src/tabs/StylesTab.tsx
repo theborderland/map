@@ -10,9 +10,9 @@ export default function StylesTab({
       <h2>Styles</h2>
       <p>Customize map styles.</p>
 
-      <button onClick={() => openChild("Style editor panel", "Style Editor")}>
+      <wa-button size="s" onClick={() => openChild("Style editor panel", "Style Editor")}>
         Edit Styles
-      </button>
+      </wa-button>
     </div>
   );
 }

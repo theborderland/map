@@ -15,9 +15,9 @@ export default function AreasTab({
   const childAreaContent = (
     <div>
       <p>Child page here</p>
-      <button onClick={() => openChild(specificAreaContent, "Artic Chill Area")}>
+      <wa-button size="s" onClick={() => openChild(specificAreaContent, "Artic Chill Area")}>
         Open Artic Chill area
-      </button>
+      </wa-button>
     </div>
   );
 
@@ -25,10 +25,9 @@ export default function AreasTab({
     <div>
       <h2>Areas</h2>
       <p>Manage geographic areas.</p>
-
-      <button onClick={() => openChild(childAreaContent, "Neighborhoods")}>
+      <wa-button size="s" onClick={() => openChild(childAreaContent, "Neighborhoods")}>
         Open Neighborhoods page
-      </button>
+      </wa-button>
     </div>
   );
 }
