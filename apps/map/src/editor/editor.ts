@@ -669,16 +669,36 @@ export class Editor {
             this.keyEscapeListener(evt);
         };
 
-        // Add search control
+        // Add search control. We feed the entities through sourceData/formatData
+        // (instead of `layer`) so we can control the result keys: the plugin keys
+        // results by name and silently drops duplicates, so same-named camps after
+        // the first are suffixed with [1] [2] [3]... to keep them distinct.
         if (!this._isCleanAndQuietMode) {
+            const revisions = this._currentRevisions;
             //@ts-ignore
-            map.addControl(new L.Control.Search({
-                layer: this._placementLayers,
-                propertyName: 'name',
+            const search = new L.Control.Search({
+                sourceData: (_text, cb) => (cb(Object.values(revisions)), { abort() {} }),
+                formatData: (entities) => {
+                    const seen: Record<string, number> = {};
+                    const result: Record<string, L.LatLng> = {};
+                    for (const e of entities) {
+                        const n = (seen[e.name] = (seen[e.name] || 0) + 1);
+                        const key = n > 1 ? `${e.name} [${n - 1}]` : e.name;
+                        const latlng: any = e.layer.getBounds().getCenter();
+                        latlng.layer = e.layer;
+                        latlng.name = e.name;
+                        result[key] = latlng;
+                    }
+                    return result;
+                },
                 marker: false,
                 zoom: SHOW_NAME_TOOLTIP_ZOOM_LEVEL,
                 initial: false,
-            }));
+            });
+            search.on('search:locationfound', (e: any) => {
+                search.searchText(e.latlng.name);
+            });
+            map.addControl(search);
         }
     }
 
