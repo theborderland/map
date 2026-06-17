@@ -4,6 +4,9 @@ import { buffer } from "@turf/turf";
 import L from "leaflet";
 import type { EntityRecord, StyleRecord } from "../db/types";
 
+const DEFAULT_COLOR = "#2563eb";
+const SELECTED_BORDER_COLOR = "#fff";
+
 interface Props {
   entities: EntityRecord[];
   styles: StyleRecord[];
@@ -32,7 +35,7 @@ const featureToEntity = (entity: EntityRecord) => ({
 
 const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryType: string) => {
   const common = {
-    color: selected ? "#fff" : style?.borderColor ?? "#1d4ed8",
+    color: selected ? SELECTED_BORDER_COLOR : style?.borderColor ?? DEFAULT_COLOR,
     opacity: 1,
     dashArray: style?.dashPattern || undefined,
   };
@@ -41,7 +44,7 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryTyp
     return {
       ...common,
       radius: 7,
-      fillColor: style?.fillColor ?? "#2563eb",
+      fillColor: style?.fillColor ?? DEFAULT_COLOR,
       weight: style?.borderWidth ?? 2,
       fillOpacity: style?.fillOpacity ?? 0.75,
     };
@@ -50,7 +53,7 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryTyp
   return {
     ...common,
     weight: selected ? (style?.borderWidth ?? 2) + 2 : style?.borderWidth ?? 2,
-    fillColor: style?.fillColor ?? "#2563eb",
+    fillColor: style?.fillColor ?? DEFAULT_COLOR,
     fillOpacity: style?.fillOpacity ?? 0.35,
   };
 };
