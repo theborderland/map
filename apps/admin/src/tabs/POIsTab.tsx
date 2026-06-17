@@ -1,25 +1,27 @@
 import type { ReactNode } from "react";
+import type { EntityRecord, StyleRecord } from "../db/types";
+import EntityList from "../components/EntityList";
 
 export default function POIsTab({
+  entities,
+  styles,
   openChild,
+  onSelectEntity,
 }: {
+  entities: EntityRecord[];
+  styles: StyleRecord[];
   openChild: (content: ReactNode, title?: string) => void;
+  onSelectEntity?: (entityId: string) => void;
 }) {
+  const poiEntities = entities.filter((entity) => entity.geometry.type === "Point");
+
   return (
-    <div>
-      <h2>POI list</h2>
-      <ul>
-        <li>
-          <a href="#" onClick={() => openChild("1", "Title 1")}>
-            POI #1
-          </a>
-        </li>
-        <li>
-          <a href="#" onClick={() => openChild("2", "Title 2")}>
-            POI #2
-          </a>
-        </li>
-      </ul>
-    </div>
+    <EntityList
+      subtitle="List points of interest and service locations."
+      entities={poiEntities}
+      styles={styles}
+      openChild={openChild}
+      onSelectEntity={onSelectEntity}
+    />
   );
 }

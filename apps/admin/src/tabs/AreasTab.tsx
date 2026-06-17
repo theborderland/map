@@ -1,33 +1,31 @@
 import type { ReactNode } from "react";
+import type { EntityRecord, StyleRecord } from "../db/types";
+import EntityList from "../components/EntityList";
 
 export default function AreasTab({
+  entities,
+  styles,
   openChild,
+  onSelectEntity,
 }: {
+  entities: EntityRecord[];
+  styles: StyleRecord[];
   openChild: (content: ReactNode, title?: string) => void;
+  onSelectEntity?: (entityId: string) => void;
 }) {
 
-  const specificAreaContent = (
-    <div>
-      <p>Content goes here</p>
-    </div>
-  );
-
-  const childAreaContent = (
-    <div>
-      <p>Child page here</p>
-      <wa-button size="s" onClick={() => openChild(specificAreaContent, "Artic Chill Area")}>
-        Open Artic Chill area
-      </wa-button>
-    </div>
+  const areaEntities = entities.filter((entity) =>
+    entity.geometry.type === "Polygon" || entity.geometry.type === "MultiPolygon"
   );
 
   return (
-    <div>
-      <h2>Areas</h2>
-      <p>Manage geographic areas.</p>
-      <wa-button size="s" onClick={() => openChild(childAreaContent, "Neighborhoods")}>
-        Open Neighborhoods page
-      </wa-button>
-    </div>
+    <EntityList
+      subtitle="Manage geographic areas and polygons on the map."
+      entities={areaEntities}
+      styles={styles}
+      openChild={openChild}
+      onSelectEntity={onSelectEntity}
+      groupByStyleType={true}
+    />
   );
 }

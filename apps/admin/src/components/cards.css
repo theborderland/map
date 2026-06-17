@@ -1,0 +1,45 @@
+.card {
+  padding: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.card .card-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.swatch {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.35rem;
+  background: var(--swatch-fill, #e5e7eb);
+  border: 1.5px solid var(--swatch-border, #d1d5db);
+  flex-shrink: 0;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.card-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.card .action-button {
+  padding: 0 0.5rem;
+}
+
