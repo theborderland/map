@@ -63,7 +63,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         placement: new L.LayerGroup(),
         mapstuff: new L.LayerGroup(),
         neighbourhoods: new L.LayerGroup(),
-        ok_to_camp: new L.LayerGroup(),
+        neighbourhoods_merged: new L.LayerGroup(),
         plazas: new L.LayerGroup(),
         poi: new L.LayerGroup(),
         powergrid: new L.LayerGroup(),

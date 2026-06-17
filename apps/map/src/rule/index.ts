@@ -120,7 +120,7 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big). <a href="#page:guide-rules">Read more</a>',
         ),
         Rules.isNotInsideBoundaries(
-            groups.ok_to_camp,
+            groups.neighbourhoods_merged,
             Severity.Medium,
             'Outside placement areas.',
             'You are outside the main placement area. Make sure you know what you are doing.',
