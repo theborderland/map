@@ -99,7 +99,7 @@ export default function MapView({ entities, styles, selectedEntityId, onSelectEn
     [entities]
   );
   // Property borders are rendered separately to ensure they appear below other areas and roads.
-  const propertyBorderFeature = useMemo(
+  const propertyBorderFeatures = useMemo(
     () => ({
       type: "FeatureCollection" as const,
       features: entities.filter((entity) =>
@@ -153,13 +153,15 @@ export default function MapView({ entities, styles, selectedEntityId, onSelectEn
         url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
         subdomains={["mt0", "mt1", "mt2", "mt3"]}
       />
-      <Pane name="areas">
+      <Pane name="property-borders">
         {/* Render property borders in a separate pane to ensure they are below other areas and roads. */}
         <GeoJSON
-          data={propertyBorderFeature}
+          data={propertyBorderFeatures}
           style={styleFeature}
           onEachFeature={onEachFeature}
         />
+      </Pane>
+      <Pane name="areas">
         <GeoJSON
           data={areaFeatures}
           style={styleFeature}
