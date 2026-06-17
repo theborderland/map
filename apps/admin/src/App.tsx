@@ -7,7 +7,7 @@ import type { Tab } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord } from "./db/types";
 import {
   isAuthenticated,
-  seedIfEmpty,
+  resetAndReseed,
   getEntities, getStyles, getRules,
 } from './db';
 
@@ -33,7 +33,9 @@ function App() {
     const initializeApp = async () => {
       if (authenticated) {
         setIsLoading(true);
-        await seedIfEmpty();
+
+        // During development its nice to reset and reseed the database on each load to have a consistent starting point. :)
+        await resetAndReseed();
         const [entitiesData, stylesData, rulesData] = await Promise.all([
           getEntities(), getStyles(), getRules(),
         ]);
