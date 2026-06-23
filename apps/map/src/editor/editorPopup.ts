@@ -3,14 +3,16 @@ import { MapEntity, MapEntityRepository } from "../entities";
 import L from "leaflet";
 import { EditorDrawer } from "./editorDrawer";
 import { AreaTypeToText } from "../entities/enums";
+import { getGridReference } from '../utils/gridUtils';
 
 export class EditorPopup {
     public Create(
         entity: MapEntity,
         isEditMode: boolean,
-        setMode: (nextMode: string, nextEntity?: MapEntity) => void,
+        setMode: (nextMode: any, nextEntity?: MapEntity) => void,
         repository: MapEntityRepository,
         compareRevDiffLayer: L.LayerGroup<any>,
+        map: L.Map,
         editEntityCallback: (...args: any[]) => void
     ): HTMLElement {
         const content = document.createElement('div');
@@ -38,13 +40,15 @@ export class EditorPopup {
             replacePattern1,
             '<a href="$1" target="_blank">$1</a>'
         );
-
-        content.innerHTML += `<div class="flex-column">
-                                <header class="flex-row">
+        content.className = 'flex-column';
+        content.innerHTML += `<header class="flex-row">
                                     <h3 class="flex-fill" style="margin: 0px; overflow-wrap:anywhere">${DOMPurify.sanitize(entityName)}</h3>
-                                    <a href="?id=${entity.id}" style="margin: 5px 0 0 0;">
-                                        <sl-icon name="share" title="Direct link to this area (right click & copy)" style="font-size: 18px;"></sl-icon>
-                                    </a>
+                                    <div class="flex-column">
+                                        <a href="?id=${entity.id}" style="align-self:center; height: 18px; width: 18px;" target="_blank" title="Direct link to this area (right click & copy)">
+                                            <sl-icon name="share" style="font-size: 18px;"></sl-icon>
+                                        </a>
+                                        <span id="grid-reference">${getGridReference(entity.layer.getBounds().getCenter(), map)}</span>
+                                    </div>
                                 </header>
                                 <p class="scrollable" style="margin: 0;">${descriptionWithLinks}</p>
                                 <div class="flex-column" style="font-weight:200; margin:5px 0;">
@@ -68,8 +72,7 @@ export class EditorPopup {
                                     ${entity.areaType ? `<sl-button class="cursor-pointer ${entity.areaType}" size="small" pill href="#page:guide-areatypes" title="Click for more info on area types" >
                                         ${AreaTypeToText[entity.areaType]}
                                     </sl-button>` : ''}
-                                </div>
-                            </div>`;
+                                </div>`;
 
         const sortedRules = entity.getAllTriggeredRules().sort((a, b) => b.severity - a.severity);
 

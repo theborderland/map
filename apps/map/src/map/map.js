@@ -11,6 +11,7 @@ import { addPolygonFeatureLabelOverlayToMap } from './_addLabels';
 import { loadBaseLayers } from '../loaders/loadBaseLayers';
 import { soundLayers } from '../utils/soundData';
 import { initMario } from './mario';
+import { ReferenceGridLayer } from './referenceGridLayer.js';
 
 /** Initializes the leaflet map and load data to create layers */
 export const createMap = async (_isCleanAndQuietMode) => {
@@ -72,6 +73,8 @@ export const createMap = async (_isCleanAndQuietMode) => {
         names: new L.LayerGroup(),
         kidszones: new L.LayerGroup(),
     };
+    
+    const referenceGridLayer = new ReferenceGridLayer();
 
     // Load all layers and stuff
     await loadBaseLayers(map, _isCleanAndQuietMode);
@@ -104,6 +107,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         { name: LAYER_NAMES.aftermath24, layer: map.groups.aftermath24, type: 'Background' },
         { name: LAYER_NAMES.aftermath25, layer: map.groups.aftermath25, type: 'Background' },
         { name: LAYER_NAMES.warnings, layer: L.layerGroup(), type: 'Misc.' }, // Dummy layer for toggling warnings
+        { name: "Grid", layer: referenceGridLayer, type: 'Misc.' }, // Grid layer for toggling grid
     ];
 
     // Make all layers in the URL hash visible on load
@@ -263,9 +267,9 @@ export const createMap = async (_isCleanAndQuietMode) => {
     function toggleLayerByName(name, visible) {
         const entry = availableLayers.find(l => l.name === name);
         if (!entry) return;
-        
+
         const shouldBeVisible = visible !== undefined ? visible : !visibleLayers.has(name);
-        
+
         if (shouldBeVisible) {
             map.addLayer(entry.layer);
             visibleLayers.add(name);
