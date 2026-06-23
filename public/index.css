@@ -548,3 +548,7 @@ body,
     z-index: 1000;
     transform: translate(12px, 12px);
 }
+
+.leaflet-popup-content {
+    margin: 13px !important;
+}

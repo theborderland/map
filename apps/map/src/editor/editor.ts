@@ -230,6 +230,7 @@ export class Editor {
                 this.setMode.bind(this),
                 this._repository,
                 this._compareRevDiffLayer,
+                this._map,
                 editEntityCallback.bind(this),
             );
             this._popup.setContent(content).openOn(this._map);
@@ -245,9 +246,10 @@ export class Editor {
                 this.setMode.bind(this),
                 this._repository,
                 this._compareRevDiffLayer,
+                this._map,
                 editEntityCallback.bind(this),
             );
-            var fullScreenPopup = document.getElementById("fullScreenPopup");
+            var fullScreenPopup: HTMLElement = document.getElementById("fullScreenPopup")!;
             fullScreenPopup.innerHTML = ""; // Need to remove the old info
             fullScreenPopup.appendChild(contentFullScreenPopup);
             fullScreenPopup.classList.remove('hidden');
@@ -260,7 +262,7 @@ export class Editor {
             closeButton.onclick = () => {
                 this.setMode("none");
             };
-            let header = fullScreenPopup.querySelector("header");
+            let header: HTMLElement = fullScreenPopup.querySelector("header")!;
             span.appendChild(closeButton);
             header.appendChild(span);
 
