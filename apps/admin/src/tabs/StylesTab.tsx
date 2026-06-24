@@ -10,7 +10,7 @@ export default function StylesTab({
 }) {
   const showDetail = (style: StyleRecord) => {
     const detail = (
-      <div className="item-card">
+      <div className="card">
         <h3>{style.displayName}</h3>
         <p className="item-meta">{style.type}</p>
         <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", margin: "1rem 0" }}>
@@ -34,9 +34,9 @@ export default function StylesTab({
       {styles.length === 0 ? (
         <p>No styles found.</p>
       ) : (
-        <div className="tab-list">
+        <div className="grid">
           {styles.map((style) => (
-            <div key={style.id} className="item-card">
+            <div key={style.id} className="card">
               <div className="item-head">
                 <div>
                   <h3 className="item-title">{style.displayName}</h3>

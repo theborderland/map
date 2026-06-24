@@ -94,7 +94,7 @@ export default function EntityList({
         {entities.length === 0 ? (
           <p>No items found yet.</p>
         ) : (
-          <div style={{ display: "grid", gap: "0.75rem" }}>
+          <div className="grid">
             {entities.map((entity) => {
               const style = styleByType.get(entity.styleType);
               return (
@@ -133,7 +133,7 @@ export default function EntityList({
     const style = styleByType.get(styleType);
 
     openChild(
-      <div style={{ display: "grid", gap: "0.75rem" }}>
+      <div className="grid">
         {groupEntities.map((entity) => (
           <EntityCard key={entity.id} entity={entity} style={style} onOpen={() => handleOpen(entity)} />
         ))}
@@ -149,7 +149,7 @@ export default function EntityList({
       {entities.length === 0 ? (
         <p>No items found yet.</p>
       ) : (
-        <div style={{ display: "grid", gap: "0.75rem" }}>
+        <div className="grid">
           {sortedGroups.map(([styleType, groupEntities]) => {
             const style = styleByType.get(styleType);
             const groupName = style?.displayName ?? styleType;

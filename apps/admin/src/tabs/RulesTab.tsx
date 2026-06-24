@@ -10,14 +10,14 @@ export default function RulesTab({
 }) {
   const showDetail = (rule: RuleRecord) => {
     const ruleDetails = (
-      <div className="item-card">
+      <div className="card">
         <h3>{rule.name}</h3>
         <p className="item-meta">{rule.ruleType} · {rule.severity}</p>
         <p>{rule.message}</p>
         {rule.styleOverride && (
           <div>
             <p><strong>Style override</strong></p>
-            <div className="tab-list" style={{ gridTemplateColumns: "auto auto", gap: "0.5rem" }}>
+            <div className="grid" style={{ gridTemplateColumns: "auto auto" }}>
               <div className="badge">Fill: {rule.styleOverride.fillColor}</div>
               <div className="badge">Opacity: {rule.styleOverride.fillOpacity}</div>
             </div>
@@ -37,9 +37,9 @@ export default function RulesTab({
       {rules.length === 0 ? (
         <p>No rules available.</p>
       ) : (
-        <div className="tab-list">
+        <div className="grid">
           {rules.map((rule) => (
-            <div key={rule.id} className="item-card">
+            <div key={rule.id} className="card">
               <div className="item-head">
                 <div>
                   <h3 className="item-title">{rule.name}</h3>

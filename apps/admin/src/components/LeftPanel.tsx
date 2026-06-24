@@ -129,10 +129,6 @@ export default function LeftPanel({
     });
   }, [activeTab]);
 
-  // const openSelectedEntityChild = useCallback((content: ReactNode, title = "Details") => {
-  //   setView({ type: "child", stack: [{ parent: activeTab, title, content }] });
-  // }, [activeTab]);
-
   const buildSelectionStack = useCallback((entity: EntityRecord, style?: StyleRecord) => {
     const targetTab = getTabForEntity(entity);
     const shouldGroup = targetTab === "Areas" || targetTab === "Roads";
@@ -241,10 +237,8 @@ export default function LeftPanel({
 
   return (
     <>
-      {/* Menu */}
       <LeftPanelMenu tabs={TABS} activeTab={activeTab} onTabClick={handleTabClick} activeRef={activeRef} />
 
-      {/* Content area: header (shared for root + child pages) and the body */}
       <div className="content">
         <LeftPanelHeader
           title={view.type === "root" ? activeTab : view.stack[view.stack.length - 1].title}

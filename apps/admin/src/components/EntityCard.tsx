@@ -1,4 +1,3 @@
-// EntityCard
 // Small, reusable card used to present a single entity in lists.
 // - Uses CSS variables `--swatch-fill` and `--swatch-border` to render the color swatch.
 // - Shows the entity name, and meta text.
@@ -23,7 +22,7 @@ export default function EntityCard({
   } as CSSProperties;
 
   return (
-    <div className="card card--entity" style={vars}>
+    <div className="card cursor-pointer" style={vars} onClick={onOpen}>
       <div className="card-content">
         <div className="swatch" />
         <div>
@@ -31,10 +30,6 @@ export default function EntityCard({
           <p className="card-sub">{entity.geometry.type} · {entity.rules.length} drawn</p>
         </div>
       </div>
-      <wa-button size="xs" appearance="outlined" className="action-button" onClick={onOpen}>
-        <wa-icon slot="start" name="pen"></wa-icon>
-        Edit
-      </wa-button>
     </div>
   );
 }

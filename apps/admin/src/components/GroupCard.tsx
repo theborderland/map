@@ -4,7 +4,6 @@
 // - Clicking the card triggers `onOpen` to open the group's child list.
 import type { StyleRecord } from "../db/types";
 import type { CSSProperties } from "react";
-import "./cards.css";
 
 export default function GroupCard({
   groupName,
@@ -25,7 +24,7 @@ export default function GroupCard({
   } as CSSProperties;
 
   return (
-    <div className="card card--group" style={vars} onClick={onOpen}>
+    <div className="card" style={vars} onClick={onOpen}>
       <div className="card-content">
         <div className="swatch" />
         <div>
@@ -33,9 +32,6 @@ export default function GroupCard({
           <p className="card-sub">{groupCount} item{groupCount === 1 ? "" : "s"}</p>
         </div>
       </div>
-      <wa-button size="xs" appearance="outlined" className="action-button">
-        <wa-icon name="caret-right"></wa-icon>
-      </wa-button>
     </div>
   );
 }

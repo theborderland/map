@@ -1,15 +1,28 @@
+.grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .card {
   padding: 0.45rem;
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: white;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   justify-content: space-between;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.card .card-content {
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.grouped-card {
+  display: flex;
+}
+
+.card-content {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -38,8 +51,3 @@
   font-size: 0.8rem;
   color: #666;
 }
-
-.card .action-button {
-  padding: 0 0.5rem;
-}
-

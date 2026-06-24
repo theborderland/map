@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "./App.css";
 import LeftPanel from "./components/LeftPanel";
 import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
