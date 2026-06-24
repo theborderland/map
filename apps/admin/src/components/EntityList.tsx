@@ -1,4 +1,3 @@
-// EntityList
 // Responsible for rendering lists of entities. Supports two modes:
 // - Flat list (groupByStyleType = false): renders a grid of `EntityCard` items.
 // - Grouped list (groupByStyleType = true): shows `GroupCard` entries that open
@@ -36,7 +35,7 @@ const formatGeometry = (type: string) => {
 };
  
 
-export default function EntityList({
+export default function GroupedEntityList({
   subtitle,
   entities,
   styles,

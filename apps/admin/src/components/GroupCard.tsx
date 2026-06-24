@@ -1,4 +1,3 @@
-// GroupCard
 // Compact card representing a group of entities that share a style type.
 // - Uses CSS variables `--swatch-fill` and `--swatch-border` to render the color swatch.
 // - Clicking the card triggers `onOpen` to open the group's child list.
@@ -24,7 +23,7 @@ export default function GroupCard({
   } as CSSProperties;
 
   return (
-    <div className="card" style={vars} onClick={onOpen}>
+    <div className="card grouped-card cursor-pointer" style={vars} onClick={onOpen}>
       <div className="card-content">
         <div className="swatch" />
         <div>

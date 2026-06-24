@@ -39,7 +39,7 @@ export default function RulesTab({
       ) : (
         <div className="grid">
           {rules.map((rule) => (
-            <div key={rule.id} className="card">
+            <div key={rule.id} className="card cursor-pointer" onClick={() => showDetail(rule)}>
               <div className="item-head">
                 <div>
                   <h3 className="item-title">{rule.name}</h3>
@@ -50,9 +50,6 @@ export default function RulesTab({
               <p className="tagline">{rule.id}</p>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem" }}>
                 <span className="badge">{rule.ruleType}</span>
-                <wa-button size="s" onClick={() => showDetail(rule)}>
-                  Details
-                </wa-button>
               </div>
             </div>
           ))}

@@ -36,7 +36,7 @@ export default function StylesTab({
       ) : (
         <div className="grid">
           {styles.map((style) => (
-            <div key={style.id} className="card">
+            <div key={style.id} className="card cursor-pointer" onClick={() => showDetail(style)}>
               <div className="item-head">
                 <div>
                   <h3 className="item-title">{style.displayName}</h3>
@@ -48,9 +48,6 @@ export default function StylesTab({
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.75rem" }}>
                 <span className="color-swatch" style={{ background: style.fillColor, borderColor: style.borderColor }} />
                 <span>{style.fillColor} / {style.borderColor}</span>
-                <wa-button size="s" onClick={() => showDetail(style)}>
-                  Details
-                </wa-button>
               </div>
             </div>
           ))}
