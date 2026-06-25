@@ -671,16 +671,41 @@ export class Editor {
             this.keyEscapeListener(evt);
         };
 
-        // Add search control
+        // Add search control. We feed the entities through sourceData/formatData
+        // (instead of `layer`) so we can control the result keys: the plugin keys
+        // results by name and silently drops duplicates. We give same-named camps a
+        // unique internal key (a [n] suffix) so all of them survive, but buildTip
+        // renders the clean name, so the dropdown shows the duplicates unaltered.
         if (!this._isCleanAndQuietMode) {
+            const revisions = this._currentRevisions;
             //@ts-ignore
-            map.addControl(new L.Control.Search({
-                layer: this._placementLayers,
-                propertyName: 'name',
+            const search = new L.Control.Search({
+                sourceData: (_text, cb) => (cb(Object.values(revisions)), { abort() {} }),
+                formatData: (entities) => {
+                    const seen: Record<string, number> = {};
+                    const result: Record<string, L.LatLng> = {};
+                    for (const e of entities) {
+                        const n = (seen[e.name] = (seen[e.name] || 0) + 1);
+                        const key = `${e.name} [${n}]`;
+                        const latlng: any = e.layer.getBounds().getCenter();
+                        latlng.layer = e.layer;
+                        latlng.name = e.name;
+                        result[key] = latlng;
+                    }
+                    return result;
+                },
+                // Show the clean name (not the internal [n] key) for each result.
+                buildTip: (_key, latlng) => `<li>${latlng.name}</li>`,
                 marker: false,
                 zoom: SHOW_NAME_TOOLTIP_ZOOM_LEVEL,
                 initial: false,
-            }));
+                // Internal keys carry the [n] suffix; don't let autotype pull it into the box.
+                autoType: false,
+            });
+            search.on('search:locationfound', (e: any) => {
+                search.searchText(e.latlng.name);
+            });
+            map.addControl(search);
         }
     }
 
