@@ -11,7 +11,7 @@ export default function LeftPanelHeader({
   onBack?: () => void;
 }) {
   return (
-    <div style={{ position: "relative", marginBottom: "1rem" }}>
+    <div className="left-panel-header">
       {showBack ? (
         <wa-button size="xs" appearance="outlined" onClick={onBack} style={{ position: "absolute", left: 0 }}>
           <wa-icon name="caret-left"></wa-icon>

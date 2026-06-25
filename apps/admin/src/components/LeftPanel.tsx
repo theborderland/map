@@ -8,7 +8,9 @@ import RulesTab from "../tabs/RulesTab";
 import StylesTab from "../tabs/StylesTab";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
-import EntityList from "../components/EntityList";
+import GroupedEntityList from "./GroupedEntityList";
+import EntityDetail from '../components/EntityDetail'
+import { useMapStore } from "../store/mapStore";
 
 interface Props {
   activeTab: Tab;
@@ -19,6 +21,7 @@ interface Props {
   styles: StyleRecord[];
   selectedEntity: { id: string; key: number } | null;
   onSelectEntity?: (entityId: string) => void;
+  setEntities: any
 }
 
 type ChildPage = {
@@ -43,6 +46,7 @@ export default function LeftPanel({
   styles,
   selectedEntity,
   onSelectEntity,
+  setEntities
 }: Props) {
   /**
    * `view` holds either the root view (main tab) or a stack of child pages.
@@ -50,23 +54,7 @@ export default function LeftPanel({
    */
   const [view, setView] = useState<ViewState>({ type: "root" });
   const [pendingSelection, setPendingSelection] = useState<{ entityId: string; tab: Tab } | null>(null);
-
-  const formatGeometry = (type: string) => {
-    switch (type) {
-      case "Point":
-        return "Point";
-      case "LineString":
-        return "Line";
-      case "MultiLineString":
-        return "Multi-line";
-      case "Polygon":
-        return "Polygon";
-      case "MultiPolygon":
-        return "Multi-polygon";
-      default:
-        return type;
-    }
-  };
+  const { isEditing, canChangeSelection } = useMapStore();
 
   const getTabForEntity = (entity: EntityRecord): Tab => {
     switch (entity.geometry.type) {
@@ -81,42 +69,12 @@ export default function LeftPanel({
     }
   };
 
-  const createEntityDetail = (entity: EntityRecord, style?: StyleRecord) => (
-    <div className="item-card">
-      <h3>{entity.name || entity.id}</h3>
-      <p className="item-meta">
-        {style?.displayName ?? entity.styleType} · {formatGeometry(entity.geometry.type)}
-      </p>
-      {entity.tagline && <p className="tagline">{entity.tagline}</p>}
-      {entity.description && <p>{entity.description}</p>}
-      {entity.link && (
-        <p>
-          <a href={entity.link} target="_blank" rel="noreferrer">
-            {entity.link}
-          </a>
-        </p>
-      )}
-      <p>
-        <strong>Rule references:</strong> {entity.rules.length}
-      </p>
-      {entity.rules.length > 0 && (
-        <ul>
-          {entity.rules.map((rule) => (
-            <li key={rule.ruleId}>
-              {rule.ruleId}{rule.distanceMeters ? ` (${rule.distanceMeters}m)` : ""}
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
-    </div>
-  );
-
   // Switch to a primary tab via user interaction and reset any child stack.
   const handleTabClick = useCallback((tab: Tab) => {
-    onUserTabChange(tab);
-    setView({ type: "root" });
-  }, [onUserTabChange]);
+    if (!canChangeSelection()) return;
+    onUserTabChange(tab)
+    setView({ type: 'root' })
+  }, [canChangeSelection, onUserTabChange])
 
   // Push a new child page onto the stack. The `title` is shown in the header.
   const openChild = useCallback((content: ReactNode, title = "Details") => {
@@ -134,23 +92,32 @@ export default function LeftPanel({
     const shouldGroup = targetTab === "Areas" || targetTab === "Roads";
 
     if (!shouldGroup) {
-      return [{ parent: targetTab, title: entity.name || entity.id, content: createEntityDetail(entity, style) }];
+      return [{
+        parent: targetTab,
+        title: entity.name || entity.id,
+        content: (
+          <EntityDetail
+            entity={entity}
+            style={style}
+            setEntities={setEntities}
+          />
+        )
+      }];
     }
 
     const groupEntities = entities.filter((item) => getTabForEntity(item) === targetTab && item.styleType === entity.styleType);
     const groupName = style?.displayName ?? entity.styleType;
-
     const groupPage = {
       parent: targetTab,
       title: groupName,
       content: (
-        <EntityList
+        <GroupedEntityList
           subtitle=""
           entities={groupEntities}
           styles={styles}
           openChild={openChild}
           onSelectEntity={onSelectEntity}
-          groupByStyleType={false}
+          setEntities={setEntities}
         />
       ),
     };
@@ -158,14 +125,21 @@ export default function LeftPanel({
     const detailPage = {
       parent: targetTab,
       title: entity.name || entity.id,
-      content: createEntityDetail(entity, style),
+      content: (
+        <EntityDetail
+          entity={entity}
+          style={style}
+          setEntities={setEntities}
+        />
+      )
     };
 
     return [groupPage, detailPage];
-  }, [entities, styles, getTabForEntity, openChild, createEntityDetail]);
+  }, [entities, styles, getTabForEntity, openChild]);
 
   // Pop the active child page. If the stack is empty, return to root.
   const goBack = useCallback(() => {
+    if (!canChangeSelection()) return;
     setView((prev) => {
       if (prev.type !== "child") return prev;
       if (prev.stack.length <= 1) return { type: "root" };
@@ -208,6 +182,7 @@ export default function LeftPanel({
       setView({ type: "root" });
       return;
     }
+    if (isEditing) return;  // don't rebuild while editing
 
     const entity = entities.find((item) => item.id === selectedEntity.id);
     if (!entity) return;
@@ -217,7 +192,7 @@ export default function LeftPanel({
     if (activeTab !== targetTab) {
       setActiveTabDirect(targetTab);
     }
-  }, [selectedEntity, entities, activeTab, setActiveTabDirect]);
+  }, [selectedEntity, entities, activeTab, setActiveTabDirect, isEditing]);
 
   useEffect(() => {
     if (!pendingSelection) return;

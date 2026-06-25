@@ -27,7 +27,7 @@ export default function EntityCard({
         <div className="swatch" />
         <div>
           <h3 className="card-title">{entity.name || entity.id}</h3>
-          <p className="card-sub">{entity.geometry.type} · {entity.rules.length} drawn</p>
+          <p className="card-sub">{entity.geometry.type} · {entity.rules.length} rule{entity.rules.length === 1 ? "" : "s"}</p>
         </div>
       </div>
     </div>

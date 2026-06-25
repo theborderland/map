@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { EntityRecord, StyleRecord } from "../db/types";
-import EntityList from "../components/EntityList";
+import GroupedEntityList from "../components/GroupedEntityList";
 
 export default function RoadsTab({
   entities,
@@ -18,7 +18,7 @@ export default function RoadsTab({
   );
 
   return (
-    <EntityList
+    <GroupedEntityList
       subtitle="Browse and inspect road features for routing and access."
       entities={roadEntities}
       styles={styles}

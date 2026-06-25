@@ -112,7 +112,7 @@ body {
 
 .content {
   flex: 1;
-  padding: 16px;
+  padding: 8px;
   overflow: auto;
 }
 
@@ -199,11 +199,24 @@ body {
   cursor: pointer;
 }
 
+.left-panel-header {
+  margin-bottom: 0.5rem;
+}
 .grouped-entity-subtitle {
   text-align: center;
+  margin-bottom: 1rem;
 }
 
 .edit-controls {
   display: flex; 
   justify-content: flex-end;
+}
+
+/* show/hide toolbar in edit mode */
+.leaflet-pm-toolbar {
+  display: none;
+}
+
+.is-editing .leaflet-pm-toolbar {
+  display: block;
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { EntityRecord, StyleRecord } from "../db/types";
-import EntityList from "../components/EntityList";
+import GroupedEntityList from "../components/GroupedEntityList";
 
 export default function AreasTab({
   entities,
@@ -19,7 +19,7 @@ export default function AreasTab({
   );
 
   return (
-    <EntityList
+    <GroupedEntityList
       subtitle="Manage geographic areas and polygons on the map."
       entities={areaEntities}
       styles={styles}

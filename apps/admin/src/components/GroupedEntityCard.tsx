@@ -4,7 +4,7 @@
 import type { StyleRecord } from "../db/types";
 import type { CSSProperties } from "react";
 
-export default function GroupCard({
+export default function GroupedEntityCard({
   groupName,
   groupCount,
   style,

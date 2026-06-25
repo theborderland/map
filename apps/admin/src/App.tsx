@@ -69,6 +69,7 @@ function App() {
           styles={styles}
           selectedEntity={selectedEntity}
           onSelectEntity={(entityId: string) => setSelectedEntity({ id: entityId, key: Date.now() })}
+          setEntities={setEntities}
         />
       </div>
 

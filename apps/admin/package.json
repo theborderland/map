@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@awesome.me/webawesome": "^3.8.0",
+    "@geoman-io/leaflet-geoman-free": "^2.19.3",
     "@turf/turf": "^7.3.5",
     "@types/leaflet": "^1.9.21",
     "dexie": "^4.4.3",
@@ -18,7 +19,9 @@
     "leaflet": "^1.9.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-leaflet": "^5.0.0"
+    "react-leaflet": "^5.0.0",
+    "react-leaflet-geoman-v2": "^1.1.1",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { EntityRecord, StyleRecord } from "../db/types";
-import EntityList from "../components/EntityList";
+import GroupedEntityList from "../components/GroupedEntityList";
 
 export default function POIsTab({
   entities,
@@ -16,7 +16,7 @@ export default function POIsTab({
   const poiEntities = entities.filter((entity) => entity.geometry.type === "Point");
 
   return (
-    <EntityList
+    <GroupedEntityList
       subtitle="List points of interest and service locations."
       entities={poiEntities}
       styles={styles}
