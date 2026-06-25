@@ -1,15 +1,16 @@
 import { useMap } from "react-leaflet"
 import { useMapStore } from "../store/mapStore"
 import { useEffect, useRef } from "react"
+import L from "leaflet"
 
 type GeomanLayer = L.Layer & {
-  pm: {
-    enable:           (opts?: { allowSelfIntersection?: boolean }) => void
-    disable:          () => void
-    enableLayerDrag:  () => void
-    disableLayerDrag: () => void
-  }
-  toGeoJSON: () => GeoJSON.Feature
+    pm: {
+        enable: (opts?: { allowSelfIntersection?: boolean }) => void
+        disable: () => void
+        enableLayerDrag: () => void
+        disableLayerDrag: () => void
+    }
+    toGeoJSON: () => GeoJSON.Feature
 }
 
 export default function MapCustomControls({
@@ -17,33 +18,78 @@ export default function MapCustomControls({
     layerRegistry,
 }: {
     selectedEntityId: string | null
-    layerRegistry: React.MutableRefObject<Map<string, L.Layer>>
+    layerRegistry: React.RefObject<Map<string, L.Layer>>
 }) {
-    const map = useMap()
-    const setPendingGeometry = useMapStore(s => s.setPendingGeometry)
-    const isEditing = useMapStore(s => s.isEditing)
+    const map = useMap();
+    const { isEditing, originalGeometry, setPendingGeometry } = useMapStore();
+    // Track active sub-mode locally — just needed for the toggle behaviour
+    const activeMode = useRef<'vertices' | 'drag' | null>(null);
 
     // Always-current ref so Geoman button callbacks never have stale closures
-    const ref = useRef({ selectedEntityId, layerRegistry, setPendingGeometry })
+    const ref = useRef({ selectedEntityId, layerRegistry, setPendingGeometry });
     useEffect(() => {
-        ref.current = { selectedEntityId, layerRegistry, setPendingGeometry }
-    })
-
-    // Track active sub-mode locally — just needed for the toggle behaviour
-    const activeMode = useRef<'vertices' | 'drag' | null>(null)
+        ref.current = { selectedEntityId, layerRegistry, setPendingGeometry };
+    });
 
     // Clean up when user hits Save or Cancel
     useEffect(() => {
-        if (isEditing) return
-        const { selectedEntityId: id, layerRegistry: reg } = ref.current
-        if (!id) return
-        const layer = reg.current.get(id) as GeomanLayer | undefined
-        layer?.pm.disable()
-        layer?.pm.disableLayerDrag()
-            ; (layer as L.Layer | undefined)?.off('pm:edit')
-            ; (layer as L.Layer | undefined)?.off('pm:dragend')
-        activeMode.current = null
-    }, [isEditing])
+        if (isEditing) return;
+
+        const { selectedEntityId: id, layerRegistry: reg } = ref.current;
+        if (!id) return;
+
+        const layer = reg.current.get(id) as GeomanLayer | undefined;
+        if (!layer) return;
+
+        layer.pm.disable();
+        layer.pm.disableLayerDrag();
+        (layer as L.Layer).off('pm:edit');
+        (layer as L.Layer).off('pm:dragend');
+        activeMode.current = null;
+
+        /** 
+         * Restore original geometry if it exists (i.e. cancel was pressed)
+         * 
+         * Quite advanced way to restore, but I tried with re-rendering by
+         * triggering a React state update with original geometry, but it 
+         * just got messy because react saw the same <GeoJSON> component
+         * with same key and didn't remount it.
+         * React tries to diff and update the existing Leaflet layer in place, 
+         * which doesn't work because Leaflet manages the DOM directly.
+         * 
+         * But in the end the code go too messy.
+         * This here works and is in only one place. 
+         * */
+        if (originalGeometry) {
+            const geoJsonLayer = layer as unknown as L.GeoJSON
+
+            if (typeof geoJsonLayer.clearLayers === 'function') {
+                // L.GeoJSON layer group
+                geoJsonLayer.clearLayers()
+                geoJsonLayer.addData(originalGeometry as GeoJSON.GeoJsonObject)
+
+            } else if (originalGeometry.type === 'Point') {
+                // CircleMarker — uses setLatLng (singular)
+                const coords = (originalGeometry as GeoJSON.Point).coordinates
+                const latlng = L.latLng(coords[1]!, coords[0]!)
+                const marker = layer as unknown as L.CircleMarker
+                marker.setLatLng(latlng)
+                marker.redraw()
+
+            } else {
+                // Polygon / LineString / MultiLineString — uses setLatLngs (plural)
+                const path = layer as unknown as L.Path & {
+                    setLatLngs: (latlngs: L.LatLngExpression[] | L.LatLngExpression[][]) => void
+                }
+                const restored = L.geoJSON(originalGeometry)
+                const restoredLayer = restored.getLayers()[0] as L.Path & {
+                    getLatLngs: () => L.LatLng[] | L.LatLng[][]
+                }
+                path.setLatLngs(restoredLayer.getLatLngs())
+                path.redraw()
+            }
+        }
+    }, [isEditing, originalGeometry])
 
     useEffect(() => {
         const toolbar = map.pm.Toolbar;

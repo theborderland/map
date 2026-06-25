@@ -2,9 +2,13 @@ import { create } from 'zustand'
 
 interface MapStore {
   isEditing: boolean
-  startEditing: () => void
-  stopEditing: () => void
   pendingGeometry: GeoJSON.Geometry | null
+  originalGeometry: GeoJSON.Geometry | null
+  startEditing: (geometry: GeoJSON.Geometry) => void
+  /** Keep entity and stop editing */
+  stopEditing: () => void
+  /** Restore entity and stop editing */
+  cancelEditing: () => void
   setPendingGeometry: (g: GeoJSON.Geometry | null) => void
   canChangeSelection: () => boolean
 }
@@ -12,10 +16,25 @@ interface MapStore {
 export const useMapStore = create<MapStore>((set, get) => ({
   isEditing: false,
   pendingGeometry: null,
+  originalGeometry: null,
 
-  startEditing: () => set({ isEditing: true, pendingGeometry: null }),
-  stopEditing: () => set({ isEditing: false, pendingGeometry: null }),
+  startEditing: (geometry) => set({
+    isEditing: true,
+    pendingGeometry: null,
+    originalGeometry: geometry, // snapshot taken here so we can restore if user cancels editing
+  }),
+  stopEditing: () => set({
+    isEditing: false,
+    pendingGeometry: null,
+    originalGeometry: null,
+  }),
+  cancelEditing: () => set({
+    isEditing: false,
+    pendingGeometry: null,
+    // originalGeometry intentionally kept — MapCustomControls reads it to restore
+    // It gets cleared in the next startEditing() call
+  }),
+
   setPendingGeometry: (g) => set({ pendingGeometry: g }),
-  // Single place to ask "should I allow a selection change right now?"
-  canChangeSelection: () => get().isEditing == false,
+  canChangeSelection: () => !get().isEditing,
 }))

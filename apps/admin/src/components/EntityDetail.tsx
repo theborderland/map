@@ -8,17 +8,17 @@ interface Props {
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>
 }
 export default function EntityDetail({ entity, style, setEntities }: Props) {
-  const { isEditing, startEditing, stopEditing, pendingGeometry } = useMapStore();
+  const { isEditing, startEditing, stopEditing, cancelEditing, pendingGeometry } = useMapStore();
 
   const handleSave = async () => {
     if (!pendingGeometry) return;
     const updated = await updateEntity(entity.id, { geometry: pendingGeometry });
-    stopEditing();  // stop first, so the store is idle before entities updates
+    stopEditing();  // stop + keep. Stop should be called before save, so the store is idle before entities updates
     setEntities(prev => prev.map(e => e.id === updated.id ? updated : e));
   }
 
   const handleCancel = () => {
-    stopEditing();
+    cancelEditing(); // stop + restore
   }
 
   return (
@@ -36,7 +36,7 @@ export default function EntityDetail({ entity, style, setEntities }: Props) {
             </wa-button>
           </>
         ) : (
-          <wa-button key="edit" onClick={startEditing} size="xs" appearance="outlined">
+          <wa-button key="edit" onClick={() => startEditing(entity.geometry)} size="xs" appearance="outlined">
             <wa-icon slot="start" name="pen"></wa-icon>
             Edit
           </wa-button>

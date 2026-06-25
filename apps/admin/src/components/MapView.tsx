@@ -138,11 +138,11 @@ export default function MapView({
   const onEachFeature = (feature: any, layer: L.Layer) => {
     if (!feature.properties?.id) return;
 
-    layerRegistry.current.set(feature.properties.id, layer)
+    layerRegistry.current.set(feature.properties.id, layer);
 
     layer.on("click", (event: L.LeafletMouseEvent) => {
       if (event.originalEvent) L.DomEvent.stopPropagation(event);
-      handleSelectEntity(feature.properties.id)
+      handleSelectEntity(feature.properties.id);
     });
 
     if (feature.properties.name) {
