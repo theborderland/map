@@ -32,7 +32,7 @@ export default function RulesTab({
 
   return (
     <div>
-      <p>Review and inspect the rule set that governs placement and safety.</p>
+      <p className="grouped-entity-subtitle">Review and inspect the rule set that governs placement and safety.</p>
 
       {rules.length === 0 ? (
         <p>No rules available.</p>

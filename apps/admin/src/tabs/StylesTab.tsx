@@ -1,25 +1,33 @@
 import type { ReactNode } from "react";
-import type { StyleRecord } from "../db/types";
+import type { EntityRecord, StyleRecord } from "../db/types";
+import StyleCard from "../components/StyleCard";
 
 export default function StylesTab({
+  entities,
   styles,
   openChild,
 }: {
+  entities: EntityRecord[];
   styles: StyleRecord[];
   openChild: (content: ReactNode, title?: string) => void;
 }) {
   const showDetail = (style: StyleRecord) => {
     const detail = (
-      <div className="card">
-        <h3>{style.displayName}</h3>
-        <p className="item-meta">{style.type}</p>
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", margin: "1rem 0" }}>
-          <div className="badge" style={{ background: style.fillColor, color: "white" }}>Fill</div>
-          <div className="badge" style={{ background: style.borderColor, color: "white" }}>Border</div>
-          <div className="badge">Opacity {style.fillOpacity}</div>
-          <div className="badge">Width {style.borderWidth}px</div>
+      <div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", flexWrap: "wrap", margin: "1rem 0" }}>
+          <div style={{ display: "flex", gap: '0.75rem' }}>
+            <wa-color-picker value={style.fillColor} label="Fill color"></wa-color-picker>
+            <wa-slider label="Opacity" size="s" min={0} max={1} step={0.05} value={style.fillOpacity} with-tooltip style={{ flexGrow: 1, alignSelf: 'end' }}>
+              <span slot="reference">0</span>
+              <span slot="reference">1</span>
+            </wa-slider>
+          </div>
+          <wa-color-picker value={style.borderColor} label="Border color"></wa-color-picker>
+
+          <div className="badge">Border width {style.borderWidth}px</div>
           <div className="badge">Dash {style.dashPattern || "solid"}</div>
         </div>
+        <p className="item-meta">{style.type}</p>
         <p className="tagline">Created: {new Date(style.createdAt).toLocaleString()}</p>
       </div>
     );
@@ -29,27 +37,19 @@ export default function StylesTab({
 
   return (
     <div>
-      <p>Browse the map style definitions used by entities.</p>
+      <p className="grouped-entity-subtitle">Browse the map style definitions used by entities.</p>
 
       {styles.length === 0 ? (
         <p>No styles found.</p>
       ) : (
         <div className="grid">
           {styles.map((style) => (
-            <div key={style.id} className="card cursor-pointer" onClick={() => showDetail(style)}>
-              <div className="item-head">
-                <div>
-                  <h3 className="item-title">{style.displayName}</h3>
-                  <p className="item-meta">{style.type}</p>
-                </div>
-                <span className="badge">{style.borderWidth}px</span>
-              </div>
-              <p className="tagline">{style.dashPattern ? `Dash ${style.dashPattern}` : "Solid"}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.75rem" }}>
-                <span className="color-swatch" style={{ background: style.fillColor, borderColor: style.borderColor }} />
-                <span>{style.fillColor} / {style.borderColor}</span>
-              </div>
-            </div>
+            <StyleCard
+              key={style.id}
+              style={style}
+              entityCount={entities.filter(e => e.styleType === style.type).length}
+              onOpen={() => showDetail(style)}
+            />
           ))}
         </div>
       )}

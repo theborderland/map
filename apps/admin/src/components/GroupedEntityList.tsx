@@ -9,7 +9,7 @@ import GroupedEntityCard from "./GroupedEntityCard";
 import EntityDetail from "./EntityDetail";
 
 interface Props {
-  subtitle: string;
+  subtitle?: string;
   entities: EntityRecord[];
   styles: StyleRecord[];
   openChild: (content: ReactNode, title?: string) => void;
@@ -98,7 +98,6 @@ export default function GroupedEntityList({
               // open this list again with the entities of the group
               openChild(
                 <GroupedEntityList
-                  subtitle={groupName}
                   entities={groupEntities}
                   styles={styles}
                   openChild={openChild}

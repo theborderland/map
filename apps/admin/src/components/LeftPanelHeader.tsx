@@ -13,11 +13,11 @@ export default function LeftPanelHeader({
   return (
     <div className="left-panel-header">
       {showBack ? (
-        <wa-button size="xs" appearance="outlined" onClick={onBack} style={{ position: "absolute", left: 0 }}>
-          <wa-icon name="caret-left"></wa-icon>
+        <wa-button size="xs" appearance="outlined" onClick={onBack} className="back-button">
+          <wa-icon name="chevron-left"></wa-icon>
         </wa-button>
       ) : null}
-      <h2 style={{ textAlign: "center", margin: 0 }}>{title}</h2>
+      <h2 className="title">{title}</h2>
     </div>
   );
 }

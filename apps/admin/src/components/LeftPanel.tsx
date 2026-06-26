@@ -76,7 +76,8 @@ export default function LeftPanel({
     setView({ type: 'root' })
   }, [canChangeSelection, onUserTabChange])
 
-  // Push a new child page onto the stack. The `title` is shown in the header.
+  // Push a new child page onto the stack, which will be rendered in the left panel.
+  // The `title` is shown in the header.
   const openChild = useCallback((content: ReactNode, title = "Details") => {
     setView((prev) => {
       const page: ChildPage = { parent: activeTab, title, content };
@@ -160,7 +161,7 @@ export default function LeftPanel({
       case "Rules":
         return <RulesTab rules={rules} openChild={openChild} />;
       case "Styles":
-        return <StylesTab styles={styles} openChild={openChild} />;
+        return <StylesTab entities={entities} styles={styles} openChild={openChild} />;
       default:
         return null;
     }

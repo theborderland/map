@@ -200,15 +200,29 @@ body {
 }
 
 .left-panel-header {
-  margin-bottom: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
 }
+
+.left-panel-header .back-button {
+  grid-column: 1;
+  justify-self: start;
+}
+
+.left-panel-header .title {
+  grid-column: 2;
+  justify-self: center;
+  width: max-content;
+}
+
 .grouped-entity-subtitle {
   text-align: center;
   margin-bottom: 1rem;
 }
 
 .edit-controls {
-  display: flex; 
+  display: flex;
   justify-content: flex-end;
 }
 
