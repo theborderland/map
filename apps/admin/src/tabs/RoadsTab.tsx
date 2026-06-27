@@ -1,16 +1,16 @@
-import type { ReactNode } from "react";
+import type { PanelView } from "../types";
 import type { EntityRecord, StyleRecord } from "../db/types";
 import GroupedEntityList from "../components/GroupedEntityList";
 
 export default function RoadsTab({
   entities,
   styles,
-  openChild,
+  navigate,
   onSelectEntity,
 }: {
   entities: EntityRecord[];
   styles: StyleRecord[];
-  openChild: (content: ReactNode, title?: string) => void;
+  navigate: (view: PanelView) => void;
   onSelectEntity?: (entityId: string) => void;
 }) {
   const roadEntities = entities.filter((entity) =>
@@ -22,7 +22,7 @@ export default function RoadsTab({
       subtitle="Browse and inspect road features for routing and access."
       entities={roadEntities}
       styles={styles}
-      openChild={openChild}
+      navigate={navigate}
       onSelectEntity={onSelectEntity}
       groupByStyleType={true}
     />
