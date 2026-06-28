@@ -3,6 +3,12 @@ import { useMapStore } from "../store/mapStore"
 import { useEffect, useRef } from "react"
 import L from "leaflet"
 
+const BUTTONS = {
+    EDIT_SHAPE: "editVertices-custom",
+    MOVE_SHAPE: "dragSelected-custom",
+    DELETE_SHAPE: "deleteSelected-custom"
+}
+
 type GeomanLayer = L.Layer & {
     pm: {
         enable: (opts?: { allowSelfIntersection?: boolean }) => void
@@ -46,6 +52,10 @@ export default function MapCustomControls({
         (layer as L.Layer).off('pm:edit');
         (layer as L.Layer).off('pm:dragend');
         activeMode.current = null;
+
+        map.pm.Toolbar.buttons[BUTTONS.EDIT_SHAPE].toggle(false);
+        map.pm.Toolbar.buttons[BUTTONS.MOVE_SHAPE].toggle(false);
+
 
         /** 
          * Restore original geometry if it exists (i.e. cancel was pressed)
@@ -94,11 +104,11 @@ export default function MapCustomControls({
     useEffect(() => {
         const toolbar = map.pm.Toolbar;
 
-        if (!toolbar.buttons['editVertices-custom']) {
+        if (!toolbar.buttons[BUTTONS.EDIT_SHAPE]) {
             map.pm.Toolbar.createCustomControl({
-                name: 'editVertices-custom',
+                name: BUTTONS.EDIT_SHAPE,
                 block: 'edit',
-                title: 'Edit vertices of shape',
+                title: 'Edit shape',
                 className: 'leaflet-pm-icon-edit',
                 toggle: true,
                 onClick: () => {
@@ -126,9 +136,9 @@ export default function MapCustomControls({
             })
         }
 
-        if (!toolbar.buttons['dragSelected-custom']) {
+        if (!toolbar.buttons[BUTTONS.MOVE_SHAPE]) {
             map.pm.Toolbar.createCustomControl({
-                name: 'dragSelected-custom',
+                name: BUTTONS.MOVE_SHAPE,
                 block: 'edit',
                 title: 'Drag shape',
                 className: 'leaflet-pm-icon-drag',
@@ -158,12 +168,12 @@ export default function MapCustomControls({
             })
         }
 
-        if (!toolbar.buttons['deleteSelected-custom']) {
+        if (!toolbar.buttons[BUTTONS.DELETE_SHAPE]) {
             map.pm.Toolbar.createCustomControl({
-                name: 'deleteSelected-custom',
+                name: BUTTONS.DELETE_SHAPE,
                 block: 'edit',
                 title: 'Delete shape',
-                className: 'leaflet-pm-icon-delete',
+                className: 'leaflet-pm-icon-trash',
                 onClick: () => {
                     const { selectedEntityId: id, layerRegistry: reg } = ref.current
 
@@ -176,13 +186,16 @@ export default function MapCustomControls({
                     map.removeLayer(layer)
                     reg.current.delete(id)
                 },
+                afterClick: () => {
+                    map.pm.Toolbar.buttons[BUTTONS.DELETE_SHAPE].toggle(false);
+                }
             })
         }
 
         return () => {
-            try { map.pm.Toolbar.removeButton('editVertices-custom') } catch { /* no-op */ }
-            try { map.pm.Toolbar.removeButton('dragSelected-custom') } catch { /* no-op */ }
-            try { map.pm.Toolbar.removeButton('deleteSelected-custom') } catch { }
+            try { map.pm.Toolbar.removeButton(BUTTONS.EDIT_SHAPE) } catch { }
+            try { map.pm.Toolbar.removeButton(BUTTONS.MOVE_SHAPE) } catch { }
+            try { map.pm.Toolbar.removeButton(BUTTONS.DELETE_SHAPE) } catch { }
         }
     }, [map]) // Only runs once on mount — ref keeps callbacks current
 

@@ -15,8 +15,7 @@ export default function RuleCard({
       <div className="item-head">
         <div>
           <h3 className="item-title">{rule.name}</h3>
-          <span>Used in {entityCount} place{entityCount === 1 ? "" : "s"}</span>
-          <p className="item-meta">{rule.ruleType} · {rule.message}</p>
+          <p className="item-meta">Used in {entityCount} place{entityCount === 1 ? "" : "s"}</p>
         </div>
         <span className={`badge severity-${rule.severity}`}>{rule.severity}</span>
       </div>

@@ -188,7 +188,8 @@ export default function MapView({
             dragMode: false,
             rotateMode: false,
             cutPolygon: false,
-            removalMode: false
+            removalMode: false,
+            drawRectangle: false
           }}
           globalOptions={{ snappable: false }}
         />

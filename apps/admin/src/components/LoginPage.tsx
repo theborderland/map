@@ -4,7 +4,7 @@
 // - Calls `onLoginSuccess` when login succeeds
 import { useState } from "react";
 import { login } from "../db";
-import "./LoginPage.css";
+import "../css/LoginPage.css";
 
 interface LoginPageProps {
   onLoginSuccess: () => void;
