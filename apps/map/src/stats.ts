@@ -2,10 +2,11 @@ import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
 import { REPOSITORY_URL, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
 import * as Turf from '@turf/turf';
+import L from 'leaflet';
+import { getGridReference } from './utils/gridUtils';
 
 /** The URL to the API */
 const ENTITIES_URL = REPOSITORY_URL + '/api/v1/mapentities';
-
 /** Any ID selected in the URL as search parameter */
 const ID = new URLSearchParams(window.location.search).get('id');
 const IsSingleEntity = ID && !isNaN(Number(ID));
@@ -23,6 +24,7 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
         },
         tooltip: 'Click to see this shape on the map',
     },
+    { title: 'Grid', field: 'gridAddress' },
     {
         title: 'Name',
         field: 'name',
@@ -52,8 +54,9 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
     },
     { title: 'People', field: 'nrOfPeople' },
     { title: 'Vehicles', field: 'nrOfVehicles' },
-    { title: 'Color', field: 'color', formatter: 'color' },
+    { title: 'Area type', field: 'areaType' },
     { title: 'Size (m2)', field: 'sizeSqm' },
+    { title: 'Size other (m2)', field: 'additionalSqm' },
     { title: 'Sound (watts)', field: 'amplifiedSound' },
     { title: 'Power need (watts)', field: 'powerNeed' },
     {
@@ -75,9 +78,11 @@ type Entity = {
     timeStamp: Date;
     isDeleted: boolean;
     deleteReason: string;
+    gridAddress: string;
     sizeSqm: number;
+    additionalSqm: number;
     amplifiedSound: number;
-    color: string;
+    areaType: string;
     contactInfo: string;
     techContactInfo: string;
     description: string;
@@ -108,16 +113,23 @@ function parseEntries(entries: any[]): Entity[] {
     const parsedEntries: Entity[] = [];
 
     for (const entry of entries) {
-        const { properties, geometry } = JSON.parse(entry.geoJson);
+        const geoJson = JSON.parse(entry.geoJson);
+        const { properties, geometry } = geoJson;
+        const layer = L.geoJSON(geoJson);
+        const center = layer.getBounds().getCenter();
+        const gridRef = getGridReference(center);
+
         const entity: Entity = {
             id: Number(entry.id),
             name: String(properties.name),
             timeStamp: new Date(entry.timeStamp),
             isDeleted: Boolean(entry.isDeleted),
             deleteReason: String(entry.deleteReason),
+            gridAddress: gridRef ?? "",
             sizeSqm: Math.round(Turf.area(geometry)),
+            additionalSqm: Number(properties.additionalSqm),
             amplifiedSound: Number(properties.amplifiedSound),
-            color: String(properties.color),
+            areaType: String(properties.areaType),
             contactInfo: String(properties.contactInfo),
             techContactInfo: String(properties.techContactInfo),
             description: String(properties.description),
@@ -271,7 +283,7 @@ export const createStats = async () => {
     const entries = await fetchEntries(ENTITIES_URL, ID);
     const stats = createOverviewStats(entries, IsSingleEntity);
     const table: TabulatorFull = createTable(entries);
-    
+
     writeOverviewStatsToDOM(stats);
 
     const workbook = createExcelFile(entries);

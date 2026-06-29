@@ -7,7 +7,7 @@ import L, { Map, Point, LatLng } from 'leaflet';
  * This scale factor compensates so 1 "grid meter"
  * ≈ 1 real-world meter at the origin latitude.
  */
-const origin: LatLng = L.latLng([ 57.6290247508, 14.9139136076]);
+const origin: LatLng = L.latLng([57.6290247508, 14.9139136076]);
 const scale: number = Math.cos(origin.lat * Math.PI / 180);
 const cellSize: number = 50 / scale; // 50m × 50m in Web Mercator at latitude 57.6°
 
@@ -57,10 +57,7 @@ export function rotate(
  * Returns grid reference like A01, C12, Z30
  * based on centroid lat/lng.
  */
-export function getGridReference(
-    latlng: LatLng,
-    map: Map
-): string | null {
+export function getGridReference(latlng: LatLng): string | null {
 
     const {
         origin,
@@ -71,8 +68,10 @@ export function getGridReference(
     } = GRID_CONFIG;
 
     // Project to Web Mercator meters
-    const originProjected: Point = map.options.crs!.project(origin);
-    const p: Point = map.options.crs!.project(latlng);
+    const crs = L.CRS.EPSG3857;
+
+    const originProjected: Point = crs.project(origin);
+    const p: Point = crs.project(latlng);
 
     const dx = p.x - originProjected.x;
     const dy = p.y - originProjected.y;
