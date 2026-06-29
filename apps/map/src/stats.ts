@@ -4,6 +4,10 @@ import { REPOSITORY_URL, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
 import * as Turf from '@turf/turf';
 import L from 'leaflet';
 import { getGridReference } from './utils/gridUtils';
+import { NeighbourhoodLookup } from './utils/neighborhoodLookup';
+import { AreaTypesColor } from './entities';
+
+const neighbourhoodLookup = new NeighbourhoodLookup();
 
 /** The URL to the API */
 const ENTITIES_URL = REPOSITORY_URL + '/api/v1/mapentities';
@@ -14,7 +18,7 @@ const IsSingleEntity = ID && !isNaN(Number(ID));
 /** Columns visible on the /stats url and in the excel export */
 const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> = [
     {
-        title: 'Location',
+        title: 'ID',
         field: 'id',
         formatter: 'link',
         formatterParams: {
@@ -23,8 +27,9 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
             target: '_blank',
         },
         tooltip: 'Click to see this shape on the map',
+        width: 70
     },
-    { title: 'Grid', field: 'gridAddress' },
+    { title: 'Grid', field: 'gridAddress', width: 70 },
     {
         title: 'Name',
         field: 'name',
@@ -39,22 +44,51 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
         width: 200,
     },
     {
+        title: 'Neighbourhood',
+        field: 'neighbourhood',
+        headerFilter: 'list',
+        headerFilterPlaceholder: 'Select',
+        headerFilterParams: {
+            valuesLookup: true,
+            clearable: true,
+            sort: 'asc'
+        },
+    },
+    {
         title: 'Contact Info',
         field: 'contactInfo',
         headerFilter: true,
         headerFilterPlaceholder: 'Search...',
-        width: 100,
     },
     {
         title: 'Technical Contact Info',
         field: 'techContactInfo',
         headerFilter: true,
         headerFilterPlaceholder: 'Search...',
-        width: 100,
     },
     { title: 'People', field: 'nrOfPeople' },
     { title: 'Vehicles', field: 'nrOfVehicles' },
-    { title: 'Area type', field: 'areaType' },
+    {
+        title: 'Area type',
+        field: 'areaType',
+        headerFilter: 'list',
+        headerFilterPlaceholder: 'Select',
+        headerFilterParams: {
+            valuesLookup: true,
+            clearable: true,
+            sort: 'asc'
+        },
+        formatter: function (cell: any) {
+            const value = cell.getValue() as keyof typeof AreaTypesColor;
+            const color: string = AreaTypesColor[value];
+
+            if (color) {
+                cell.getElement().style.backgroundColor = color;
+            }
+
+            return value;
+        }
+    },
     { title: 'Size (m2)', field: 'sizeSqm' },
     { title: 'Size other (m2)', field: 'additionalSqm' },
     { title: 'Sound (watts)', field: 'amplifiedSound' },
@@ -69,12 +103,13 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
         headerFilter: 'input',
         headerFilterPlaceholder: 'Search...',
     },
-    { title: 'Timestamp', field: 'timeStamp' }
+    { title: 'Timestamp', field: 'timeStamp', width: 200 }
 ];
 
 type Entity = {
     id: number;
     name: string;
+    neighbourhood: string;
     timeStamp: Date;
     isDeleted: boolean;
     deleteReason: string;
@@ -118,6 +153,7 @@ function parseEntries(entries: any[]): Entity[] {
         const layer = L.geoJSON(geoJson);
         const center = layer.getBounds().getCenter();
         const gridRef = getGridReference(center);
+        const neighbourhood = neighbourhoodLookup.getNeighbourhood(center.lat, center.lng);
 
         const entity: Entity = {
             id: Number(entry.id),
@@ -126,6 +162,7 @@ function parseEntries(entries: any[]): Entity[] {
             isDeleted: Boolean(entry.isDeleted),
             deleteReason: String(entry.deleteReason),
             gridAddress: gridRef ?? "",
+            neighbourhood: neighbourhood ?? "(no neighbourhood)",
             sizeSqm: Math.round(Turf.area(geometry)),
             additionalSqm: Number(properties.additionalSqm),
             amplifiedSound: Number(properties.amplifiedSound),
@@ -191,6 +228,7 @@ function createTable(entries: any[]): TabulatorFull {
         columns: COLUMNS,
         layout: 'fitColumns',
         columnDefaults: {
+            width: 100,
             headerTooltip: function (e, cell, onRendered) {
                 let el = document.createElement("div");
                 el.innerText = cell.getDefinition().title;
@@ -279,6 +317,7 @@ export const createStats = async () => {
             field: 'deleteReason',
         });
     }
+    await neighbourhoodLookup.load("./data/bl26/neighbourhoods.geojson");
 
     const entries = await fetchEntries(ENTITIES_URL, ID);
     const stats = createOverviewStats(entries, IsSingleEntity);
