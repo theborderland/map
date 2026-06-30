@@ -8,7 +8,7 @@ import {
   isAuthenticated,
   resetAndReseed,
   getEntities, getStyles, getRules,
-} from './db';
+} from "./db";
 
 function App() {
   const [authenticated, setAuthenticated] = useState(isAuthenticated());

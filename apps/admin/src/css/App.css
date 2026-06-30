@@ -203,6 +203,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
+  margin-bottom: 0.5rem;
 }
 
 .left-panel-header .back-button {
@@ -214,6 +215,10 @@ body {
   grid-column: 2;
   justify-self: center;
   width: max-content;
+}
+.left-panel-header .create-button {
+  grid-column: 3;
+  justify-self: end;
 }
 
 .grouped-entity-subtitle {

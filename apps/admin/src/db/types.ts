@@ -1,9 +1,9 @@
-import type { Geometry } from 'geojson'
+import type { Geometry } from "geojson"
 
 // ── Primitives ────────────────────────────────────────────
 
-export type RuleType = 'overlap' | 'proximity'
-export type Severity = 'low' | 'medium' | 'high'
+export type RuleType = "overlap" | "proximity"
+export type Severity = "low" | "medium" | "high"
 
 /** A rule reference stored inside an entity record. */
 export interface AttachedRule {
@@ -62,9 +62,9 @@ export interface RuleRecord {
 
 // ── Payload types (fields the caller provides; id + createdAt are generated) ─
 
-export type StylePayload  = Omit<StyleRecord,  'id' | 'createdAt'>
-export type EntityPayload = Omit<EntityRecord, 'id' | 'createdAt'>
-export type RulePayload   = Omit<RuleRecord,   'id' | 'createdAt'>
+export type StylePayload  = Omit<StyleRecord,  "id" | "createdAt">
+export type EntityPayload = Omit<EntityRecord, "id" | "createdAt">
+export type RulePayload   = Omit<RuleRecord,   "id" | "createdAt">
 
 // ── Export shape ──────────────────────────────────────────
 

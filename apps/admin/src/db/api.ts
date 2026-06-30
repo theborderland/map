@@ -1,6 +1,6 @@
-import type { FeatureCollection, Feature } from 'geojson'
-import { db } from './db'
-import { SEED_STYLES, SEED_RULES, SEED_ENTITIES } from './seed'
+import type { FeatureCollection, Feature } from "geojson"
+import { db } from "./db"
+import { SEED_STYLES, SEED_RULES, SEED_ENTITIES } from "./seed"
 import type {
   StyleRecord,
   EntityRecord,
@@ -9,7 +9,7 @@ import type {
   EntityPayload,
   RulePayload,
   FeatureProperties,
-} from './types'
+} from "./types"
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ export async function seedIfEmpty(): Promise<void> {
   const count = await db.styles.count()
   if (count > 0) return
 
-  await db.transaction('rw', [db.styles, db.entities, db.rules], async () => {
+  await db.transaction("rw", [db.styles, db.entities, db.rules], async () => {
     await db.styles.bulkAdd(SEED_STYLES)
     await db.rules.bulkAdd(SEED_RULES)
     await db.entities.bulkAdd(SEED_ENTITIES)
@@ -51,7 +51,7 @@ export async function seedIfEmpty(): Promise<void> {
  * Useful during development when you want a clean known state.
  */
 export async function resetAndReseed(): Promise<void> {
-  await db.transaction('rw', [db.styles, db.entities, db.rules], async () => {
+  await db.transaction("rw", [db.styles, db.entities, db.rules], async () => {
     await db.styles.clear()
     await db.entities.clear()
     await db.rules.clear()
@@ -76,7 +76,7 @@ export async function getStyle(id: string): Promise<StyleRecord | undefined> {
 
 /** Return a style by its type slug (e.g. 'neighbourhood'), or undefined. */
 export async function getStyleByType(type: string): Promise<StyleRecord | undefined> {
-  return db.styles.where('type').equals(type).first()
+  return db.styles.where("type").equals(type).first()
 }
 
 /**
@@ -101,10 +101,10 @@ export async function createStyle(payload: StylePayload): Promise<StyleRecord> {
  */
 export async function updateStyle(
   id: string,
-  changes: Partial<Omit<StylePayload, 'type'>>,
+  changes: Partial<Omit<StylePayload, "type">>,
 ): Promise<StyleRecord> {
   const existing = await db.styles.get(id)
-  if (!existing) throw notFound('styles', id)
+  if (!existing) throw notFound("styles", id)
 
   const updated: StyleRecord = { ...existing, ...changes }
   await db.styles.put(updated)
@@ -117,7 +117,7 @@ export async function updateStyle(
  */
 export async function deleteStyle(id: string): Promise<void> {
   const existing = await db.styles.get(id)
-  if (!existing) throw notFound('styles', id)
+  if (!existing) throw notFound("styles", id)
   await db.styles.delete(id)
 }
 
@@ -134,7 +134,7 @@ export async function getEntities(): Promise<EntityRecord[]> {
  * Uses the indexed 'styleType' column for an efficient lookup.
  */
 export async function getEntitiesByType(styleType: string): Promise<EntityRecord[]> {
-  return db.entities.where('styleType').equals(styleType).sortBy('createdAt')
+  return db.entities.where("styleType").equals(styleType).sortBy("createdAt")
 }
 
 /**
@@ -143,9 +143,9 @@ export async function getEntitiesByType(styleType: string): Promise<EntityRecord
  */
 export async function getEntitiesByTypes(styleTypes: string[]): Promise<EntityRecord[]> {
   return db.entities
-    .where('styleType')
+    .where("styleType")
     .anyOf(styleTypes)
-    .sortBy('createdAt')
+    .sortBy("createdAt")
 }
 
 /** Return a single entity by its primary key, or undefined. */
@@ -169,7 +169,7 @@ export async function updateEntity(
   changes: Partial<EntityPayload>,
 ): Promise<EntityRecord> {
   const existing = await db.entities.get(id)
-  if (!existing) throw notFound('entities', id)
+  if (!existing) throw notFound("entities", id)
 
   const updated: EntityRecord = { ...existing, ...changes }
   await db.entities.put(updated)
@@ -182,7 +182,7 @@ export async function updateEntity(
  */
 export async function deleteEntity(id: string): Promise<void> {
   const existing = await db.entities.get(id)
-  if (!existing) throw notFound('entities', id)
+  if (!existing) throw notFound("entities", id)
   await db.entities.delete(id)
 }
 
@@ -219,7 +219,7 @@ export async function updateRule(
   changes: Partial<RulePayload>,
 ): Promise<RuleRecord> {
   const existing = await db.rules.get(id)
-  if (!existing) throw notFound('rules', id)
+  if (!existing) throw notFound("rules", id)
 
   const updated: RuleRecord = { ...existing, ...changes }
   await db.rules.put(updated)
@@ -236,7 +236,7 @@ export async function updateRule(
  */
 export async function deleteRule(id: string): Promise<void> {
   const existing = await db.rules.get(id)
-  if (!existing) throw notFound('rules', id)
+  if (!existing) throw notFound("rules", id)
   await db.rules.delete(id)
 }
 
@@ -283,8 +283,8 @@ export async function exportGeoJSON(): Promise<FeatureCollection> {
       rules:       embeddedRules,
     }
 
-    return { type: 'Feature', geometry: entity.geometry, properties }
+    return { type: "Feature", geometry: entity.geometry, properties }
   })
 
-  return { type: 'FeatureCollection', features }
+  return { type: "FeatureCollection", features }
 }

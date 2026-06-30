@@ -6,14 +6,13 @@
   "scripts": {
     "dev": "concurrently \"npm run dev -w map\" \"npm run dev -w admin\"",
     "build": "npm run build -w map && npm run build -w admin",
-
     "dev:admin": "npm run dev -w admin",
     "dev:map": "npm run dev -w map",
-
     "build:admin": "npm run build -w admin",
     "build:map": "npm run build -w map"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "concurrently": "^10.0.3",
+    "eslint": "^10.6.0"
   }
 }

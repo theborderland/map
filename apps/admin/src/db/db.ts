@@ -1,5 +1,5 @@
-import Dexie, { type Table } from 'dexie'
-import type { StyleRecord, EntityRecord, RuleRecord } from './types'
+import Dexie, { type Table } from "dexie"
+import type { StyleRecord, EntityRecord, RuleRecord } from "./types"
 
 /**
  * MapAdminDB
@@ -24,13 +24,13 @@ class MapAdminDB extends Dexie {
   rules!:    Table<RuleRecord,   string>
 
   constructor() {
-    super('MapAdminDB');
+    super("MapAdminDB");
 
     this.version(1).stores({
       // Primary key first, then any secondary indexes we want to query on
-      styles:   'id, type',
-      entities: 'id, styleType',
-      rules:    'id, ruleType, severity',
+      styles:   "id, type",
+      entities: "id, styleType",
+      rules:    "id, ruleType, severity",
     })
   }
 }

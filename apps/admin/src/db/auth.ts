@@ -8,8 +8,8 @@
  * module and will be replaced by real API calls before any deployment.
  */
 
-const DEV_PASSWORD  = 'dev'
-const SESSION_KEY   = '__map_admin_auth__'
+const DEV_PASSWORD  = "dev"
+const SESSION_KEY   = "__map_admin_auth__"
 
 /**
  * Attempt login with the given password.
@@ -17,7 +17,7 @@ const SESSION_KEY   = '__map_admin_auth__'
  */
 export function login(password: string): boolean {
   if (password !== DEV_PASSWORD) return false
-  sessionStorage.setItem(SESSION_KEY, '1')
+  sessionStorage.setItem(SESSION_KEY, "1")
   return true
 }
 
@@ -33,5 +33,5 @@ export function logout(): void {
  * Call this on app boot to decide whether to show the login screen.
  */
 export function isAuthenticated(): boolean {
-  return sessionStorage.getItem(SESSION_KEY) === '1'
+  return sessionStorage.getItem(SESSION_KEY) === "1"
 }

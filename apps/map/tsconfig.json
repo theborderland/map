@@ -2,7 +2,7 @@
     "compilerOptions": {
         "lib": ["es2020", "dom"],
         "module": "NodeNext",
-        "moduleResolution": "nodenext",
+        "moduleResolution": "bundler",
         "target": "es2020",
         "allowSyntheticDefaultImports": true
     }
