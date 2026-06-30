@@ -18,8 +18,8 @@ export default function GroupedEntityCard({
   // Set CSS variables for the swatch colors, allowing each group card to
   // display its style's fill and border colors dynamically.
   const vars: CSSProperties = {
-    ["--swatch-fill" as any]: style?.fillColor ?? "#e5e7eb",
-    ["--swatch-border" as any]: style?.borderColor ?? "#d1d5db",
+    ["--swatch-fill" as string]: style?.fillColor ?? "#e5e7eb",
+    ["--swatch-border" as string]: style?.borderColor ?? "#d1d5db",
   } as CSSProperties;
 
   return (

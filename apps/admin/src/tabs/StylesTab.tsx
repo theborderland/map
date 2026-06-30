@@ -23,7 +23,7 @@ export default function StylesTab({
               key={style.id}
               style={style}
               entityCount={entities.filter(e => e.styleType === style.type).length}
-              onOpen={() => navigate({ type: 'style-detail', styleId: style.id })}
+              onOpen={() => navigate({ type: "style-detail", styleId: style.id })}
             />
           ))}
         </div>

@@ -1,12 +1,13 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, } from "react";
 import { MapContainer, TileLayer, GeoJSON, Pane, useMapEvent } from "react-leaflet";
 import { buffer } from "@turf/turf";
-import L from "leaflet";
+import L, { circleMarker } from "leaflet";
 import type { EntityRecord, StyleRecord } from "../db/types";
 import "@geoman-io/leaflet-geoman-free";
 import { GeomanControls } from "react-leaflet-geoman-v2";
 import { useMapStore } from "../store/mapStore";
 import MapCustomControls from "./MapCustomControls";
+import MapCreateHandler from "./MapCreateHandler";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -19,6 +20,23 @@ interface Props {
   onClearSelection: () => void;
 }
 
+type FeatureProperties = {
+  id: string;
+  name: string | undefined;
+  styleType: string;
+  geometryType: string;
+};
+
+type MapFeature = {
+  type: "Feature";
+  properties: FeatureProperties;
+  geometry: EntityRecord["geometry"];
+};
+type FeatureCollection = {
+  type: "FeatureCollection";
+  features: MapFeature[];
+};
+
 function MapClickHandler({ onClearSelection }: { onClearSelection: () => void }) {
   useMapEvent("click", () => {
     onClearSelection();
@@ -26,7 +44,7 @@ function MapClickHandler({ onClearSelection }: { onClearSelection: () => void })
   return null;
 }
 
-const featureToEntity = (entity: EntityRecord) => ({
+const featureToEntity = (entity: EntityRecord): MapFeature => ({
   type: "Feature",
   properties: {
     id: entity.id,
@@ -87,31 +105,31 @@ export default function MapView({
     [styles]
   );
 
-  const poiFeatures = useMemo(
+  const poiFeatures: FeatureCollection = useMemo(
     () => ({
-      type: "FeatureCollection" as const,
+      type: "FeatureCollection",
       features: entities.filter((entity) => entity.geometry.type === "Point").map(featureToEntity),
     }),
     [entities]
   );
 
-  const roadFeatures = useMemo(
+  const roadFeatures: FeatureCollection = useMemo(
     () => ({
-      type: "FeatureCollection" as const,
+      type: "FeatureCollection",
       features: entities
         .filter((entity) => entity.geometry.type === "LineString" || entity.geometry.type === "MultiLineString")
         .map(featureToEntity)
         .map((entity) => {
           if (entity.properties.styleType !== "fireroad") return entity;
-          return buffer(entity as any, 2.5, { units: "meters" });
+          return buffer(entity, 2.5, { units: "meters" }) as MapFeature;
         }),
     }),
     [entities]
   );
 
-  const areaFeatures = useMemo(
+  const areaFeatures: FeatureCollection = useMemo(
     () => ({
-      type: "FeatureCollection" as const,
+      type: "FeatureCollection",
       features: entities.filter((entity) =>
         entity.styleType !== "propertyborder" && (
           entity.geometry.type === "Polygon" ||
@@ -122,9 +140,9 @@ export default function MapView({
     [entities]
   );
   // Property borders are rendered separately to ensure they appear below other areas and roads.
-  const propertyBorderFeatures = useMemo(
+  const propertyBorderFeatures: FeatureCollection = useMemo(
     () => ({
-      type: "FeatureCollection" as const,
+      type: "FeatureCollection",
       features: entities.filter((entity) =>
         entity.styleType === "propertyborder" && (
           entity.geometry.type === "Polygon" ||
@@ -135,7 +153,7 @@ export default function MapView({
     [entities]
   );
 
-  const onEachFeature = (feature: any, layer: L.Layer) => {
+  const onEachFeature = (feature: MapFeature, layer: L.Layer) => {
     if (!feature.properties?.id) return;
 
     layerRegistry.current.set(feature.properties.id, layer);
@@ -150,7 +168,7 @@ export default function MapView({
     }
   };
 
-  const pointToLayer = (feature: any, latlng: L.LatLng) => {
+  const pointToLayer = (feature: MapFeature, latlng: L.LatLng) => {
     const entity = entities.find((item) => item.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
@@ -160,24 +178,43 @@ export default function MapView({
     });
   };
 
-  const styleFeature = (feature: any) => {
+  const styleFeature = (feature: MapFeature) => {
     const entity = entities.find((item) => item.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
     return getStyle(style, selected, feature.properties.geometryType);
   };
 
+  const areaKey = useMemo(
+    () => areaFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
+    [areaFeatures]
+  )
+  const roadKey = useMemo(
+    () => roadFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
+    [roadFeatures]
+  )
+  const poiKey = useMemo(
+    () => poiFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
+    [poiFeatures]
+  )
+  const propertyBorderKey = useMemo(
+    () => propertyBorderFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
+    [propertyBorderFeatures]
+  )
+
   return (
     <div
-      className={isEditing ? 'is-editing' : ''}
-      style={{ height: '100%', width: '100%' }}
+      className={isEditing ? "is-editing" : ""}
+      style={{ height: "100%", width: "100%" }}
     >
       <MapContainer
+        // @ts-ignore
         center={[57.6226, 14.9276]}
         zoom={15}
         style={{ height: "100%", width: "100%" }}
-        className={isEditing ? 'is-editing' : ''}
+        className={isEditing ? "is-editing" : ""}
       >
+        <MapCreateHandler layerRegistry={layerRegistry} styles={styles} />
         <MapCustomControls
           selectedEntityId={selectedEntityId}
           layerRegistry={layerRegistry}
@@ -189,40 +226,50 @@ export default function MapView({
             rotateMode: false,
             cutPolygon: false,
             removalMode: false,
-            drawRectangle: false
+            drawRectangle: false,
+            drawCircleMarker: false
           }}
           globalOptions={{ snappable: false }}
         />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+          // @ts-ignore
           subdomains={["mt0", "mt1", "mt2", "mt3"]}
         />
         <Pane name="property-borders">
           {/* Render property borders in a separate pane to ensure they are below other areas and roads. */}
           <GeoJSON
+            key={propertyBorderKey}
             data={propertyBorderFeatures}
+            // @ts-ignore
             style={styleFeature}
             onEachFeature={onEachFeature}
           />
         </Pane>
         <Pane name="areas">
           <GeoJSON
+            key={areaKey}
             data={areaFeatures}
+            // @ts-ignore
             style={styleFeature}
             onEachFeature={onEachFeature}
           />
         </Pane>
         <Pane name="roads">
           <GeoJSON
+            key={roadKey}
             data={roadFeatures}
+            // @ts-ignore
             style={styleFeature}
             onEachFeature={onEachFeature}
           />
         </Pane>
         <Pane name="pois">
           <GeoJSON
+            key={poiKey}
             data={poiFeatures}
-            style={styleFeature}
+            // @ts-ignore
+            tyle={styleFeature}
             pointToLayer={pointToLayer}
             onEachFeature={onEachFeature}
           />

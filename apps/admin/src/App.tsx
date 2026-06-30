@@ -70,6 +70,8 @@ function App() {
           selectedEntity={selectedEntity}
           onSelectEntity={(entityId: string) => setSelectedEntity({ id: entityId, key: Date.now() })}
           setEntities={setEntities}
+          setRules={setRules}
+          setStyles={setStyles}
         />
       </div>
 

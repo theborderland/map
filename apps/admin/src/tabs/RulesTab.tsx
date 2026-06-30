@@ -24,7 +24,7 @@ export default function RulesTab({
               key={rule.id}
               rule={rule}
               entityCount={entities.filter(e => e.rules.some(r => r.ruleId == rule.id)).length}
-              onOpen={() => navigate({ type: 'rule-detail', ruleId: rule.id })}
+              onOpen={() => navigate({ type: "rule-detail", ruleId: rule.id })}
             />
           ))}
         </div>

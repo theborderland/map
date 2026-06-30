@@ -17,8 +17,8 @@ export default function EntityCard({
   // Set CSS variables for the swatch colors. Allows each card to display its
   // own style's fill and border colors without hardcoding them.
   const vars: CSSProperties = {
-    ["--swatch-fill" as any]: style?.fillColor ?? "#e5e7eb",
-    ["--swatch-border" as any]: style?.borderColor ?? "#d1d5db",
+    ["--swatch-fill" as string]: style?.fillColor ?? "#e5e7eb",
+    ["--swatch-border" as string]: style?.borderColor ?? "#d1d5db",
   } as CSSProperties;
 
   return (
