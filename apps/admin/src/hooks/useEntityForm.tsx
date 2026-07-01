@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { EntityRecord } from "../db/types";
 import { useMapStore } from "../store/mapStore";
-import { updateEntity, createEntity } from "../db";
+import { updateEntity, createEntity, deleteEntity } from "../db";
 
 interface Props {
     entity?: EntityRecord;
@@ -9,16 +9,20 @@ interface Props {
     setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
     onCancel?: () => void;
     onAfterCreate?: (id: string) => void;
+    /** Called after successful delete so LeftPanel can navigate back. */
+    onDelete?: () => void;
 }
 
+/** Custom hook to manage the state and actions for an entity form (Area, Road, POI). */
 export function useEntityForm({
     entity,
     defaultStyleType,
     setEntities,
     onCancel,
     onAfterCreate,
+    onDelete,
 }: Props) {
-    const isCreate = !entity
+    const isCreate = !entity;
 
     const {
         isEditing,
@@ -27,7 +31,7 @@ export function useEntityForm({
         cancelEditing,
         pendingGeometry,
         setCreatingStyleType,
-    } = useMapStore()
+    } = useMapStore();
 
     const [name, setName] = useState(entity?.name ?? "");
     const [tagline, setTagline] = useState(entity?.tagline ?? "");
@@ -37,10 +41,9 @@ export function useEntityForm({
         entity?.styleType ?? defaultStyleType ?? ""
     );
 
-    // Keep the store in sync so MapCreateHandler can style the layer being drawn
     useEffect(() => {
-        if (isCreate) setCreatingStyleType(selectedStyleType || null)
-    }, [isCreate, selectedStyleType, setCreatingStyleType])
+        if (isCreate) setCreatingStyleType(selectedStyleType || null);
+    }, [isCreate, selectedStyleType, setCreatingStyleType]);
 
     const handleSave = async (extra?: { icon?: string }) => {
         if (entity) {
@@ -56,8 +59,7 @@ export function useEntityForm({
                 ...(extra?.icon !== undefined ? { icon: extra.icon } : {}),
             });
             if (isEditing) stopEditing();
-            setEntities(prev => prev.map(e => e.id === updated.id ? updated : e));
-
+            setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
         } else {
             if (!pendingGeometry || !selectedStyleType) return;
             const created = await createEntity({
@@ -71,15 +73,24 @@ export function useEntityForm({
                 ...(extra?.icon !== undefined ? { icon: extra.icon } : {}),
             });
             stopEditing();
-            setEntities(prev => [...prev, created]);
+            setEntities((prev) => [...prev, created]);
             onAfterCreate?.(created.id);
         }
-    }
+    };
+
+    /** Deletes the entity (Area, Road, POI) from the DB, removes it from state, then navigates back. */
+    const handleDelete = async () => {
+        if (!entity) return;
+        if (isEditing) stopEditing();
+        await deleteEntity(entity.id);
+        setEntities((prev) => prev.filter((e) => e.id !== entity.id));
+        onDelete?.();
+    };
 
     const handleCancelGeometry = () => {
         cancelEditing();
         if (isCreate) onCancel?.();
-    }
+    };
 
     return {
         isCreate,
@@ -87,6 +98,7 @@ export function useEntityForm({
         pendingGeometry,
         startEditing,
         handleSave,
+        handleDelete,
         handleCancelGeometry,
         name, setName,
         tagline, setTagline,

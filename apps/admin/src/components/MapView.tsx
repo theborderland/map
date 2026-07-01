@@ -193,9 +193,12 @@ export default function MapView({
     () => roadFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
     [roadFeatures]
   )
+  
+  // Include selectedEntityId in the POI key to force a remount when selection changes.
+  // Unlike polygons/lines, CircleMarker styles are baked in at creation via pointToLayer and won't update via setStyle.
   const poiKey = useMemo(
-    () => poiFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
-    [poiFeatures]
+    () => poiFeatures.features.map((f: MapFeature) => f.properties.id).join(",") + "|" + (selectedEntityId ?? ""),
+    [poiFeatures, selectedEntityId]
   )
   const propertyBorderKey = useMemo(
     () => propertyBorderFeatures.features.map((f: MapFeature) => f.properties.id).join(","),

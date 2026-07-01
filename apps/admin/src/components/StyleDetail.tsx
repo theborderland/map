@@ -1,14 +1,16 @@
 import { useState } from "react"
 import type { StyleRecord } from "../db/types"
-import { createStyle, updateStyle } from "../db"
+import { createStyle, deleteStyle, updateStyle } from "../db"
+import DeleteButton from "./DeleteButton"
 
 interface Props {
   style?: StyleRecord   // undefined = create mode
   setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>
   onAfterCreate?: (id: string) => void
+  onDelete?: () => void;
 }
 
-export default function StyleDetail({ style, setStyles, onAfterCreate }: Props) {
+export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete }: Props) {
   const isCreate = !style
 
   const [typeKey, setTypeKey] = useState(style?.type ?? "")
@@ -45,6 +47,14 @@ export default function StyleDetail({ style, setStyles, onAfterCreate }: Props) 
       onAfterCreate?.(created.id)
     }
   }
+  
+   /** Deletes the style from DB, removes from state, navigates back. */
+  const handleDelete = async () => {
+    if (!style) return;
+    await deleteStyle(style.id);
+    setStyles((prev) => prev.filter((s) => s.id !== style.id));
+    onDelete?.();
+  };
 
   return (
     <div className="style-detail">
@@ -55,7 +65,7 @@ export default function StyleDetail({ style, setStyles, onAfterCreate }: Props) 
           <label className="form-label">
             Type key
             {isCreate
-              ? <span className="form-hint"> — slug, no spaces, e.g. neighbourhood</span>
+              ? <span className="form-hint"> — slug, spaces will be removed</span>
               : <span className="form-hint"> — read-only after creation</span>}
           </label>
           <input
@@ -151,6 +161,7 @@ export default function StyleDetail({ style, setStyles, onAfterCreate }: Props) 
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
           {isCreate ? "Create" : "Save changes"}
         </wa-button>
+        <DeleteButton onDelete={handleDelete} />
       </div>
 
       {style && (

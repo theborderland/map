@@ -1,22 +1,24 @@
 import { useState } from "react"
 import type { RuleRecord } from "../db/types"
-import { createRule, updateRule } from "../db"
+import { createRule, deleteRule, updateRule } from "../db"
+import DeleteButton from "./DeleteButton"
 
 interface Props {
-  rule?:          RuleRecord   // undefined = create mode
-  setRules:       React.Dispatch<React.SetStateAction<RuleRecord[]>>
+  rule?: RuleRecord   // undefined = create mode
+  setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>
   onAfterCreate?: (id: string) => void
+  onDelete?: () => void;
 }
 
-export default function RuleDetail({ rule, setRules, onAfterCreate }: Props) {
+export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: Props) {
   const isCreate = !rule
 
-  const [name,        setName]       = useState(rule?.name     ?? "")
-  const [ruleType,    setRuleType]   = useState(rule?.ruleType ?? "overlap")
-  const [severity,    setSeverity]   = useState(rule?.severity ?? "medium")
-  const [message,     setMessage]    = useState(rule?.message  ?? "")
+  const [name, setName] = useState(rule?.name ?? "")
+  const [ruleType, setRuleType] = useState(rule?.ruleType ?? "overlap")
+  const [severity, setSeverity] = useState(rule?.severity ?? "medium")
+  const [message, setMessage] = useState(rule?.message ?? "")
   const [hasOverride, setHasOverride] = useState(!!rule?.styleOverride)
-  const [overrideColor,   setOverrideColor]   = useState(rule?.styleOverride?.fillColor   ?? "#ff0000")
+  const [overrideColor, setOverrideColor] = useState(rule?.styleOverride?.fillColor ?? "#ff0000")
   const [overrideOpacity, setOverrideOpacity] = useState(rule?.styleOverride?.fillOpacity ?? 0.6)
 
   const canSave = !!name.trim() && !!message.trim()
@@ -25,10 +27,10 @@ export default function RuleDetail({ rule, setRules, onAfterCreate }: Props) {
     if (!canSave) return
 
     const payload = {
-      name:      name.trim(),
-      ruleType:  ruleType as RuleRecord["ruleType"],
-      severity:  severity as RuleRecord["severity"],
-      message:   message.trim(),
+      name: name.trim(),
+      ruleType: ruleType as RuleRecord["ruleType"],
+      severity: severity as RuleRecord["severity"],
+      message: message.trim(),
       styleOverride: hasOverride
         ? { fillColor: overrideColor, fillOpacity: overrideOpacity }
         : undefined,
@@ -43,6 +45,14 @@ export default function RuleDetail({ rule, setRules, onAfterCreate }: Props) {
       onAfterCreate?.(created.id)
     }
   }
+
+  /** Deletes the rule from DB, removes from state, navigates back. */
+  const handleDelete = async () => {
+    if (!rule) return;
+    await deleteRule(rule.id);
+    setRules((prev) => prev.filter((r) => r.id !== rule.id));
+    onDelete?.();
+  };
 
   return (
     <div className="rule-detail">
@@ -125,6 +135,7 @@ export default function RuleDetail({ rule, setRules, onAfterCreate }: Props) {
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
           {isCreate ? "Create" : "Save changes"}
         </wa-button>
+        <DeleteButton onDelete={handleDelete} />
       </div>
 
       {rule && (

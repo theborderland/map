@@ -177,7 +177,12 @@ export default function LeftPanel({
         const entity = entities.find(e => e.id === view.entityId)
         if (!entity) return null
         const Detail = DETAIL_COMPONENTS[getEntityKind(entity)]
-        return <Detail entity={entity} styles={styles} setEntities={setEntities} />
+        return <Detail
+          entity={entity}
+          styles={styles}
+          setEntities={setEntities}
+          onDelete={goBack}
+        />
       }
 
       case "entity-create": {
@@ -198,7 +203,11 @@ export default function LeftPanel({
       case "style-detail": {
         const style = styles.find(s => s.id === view.styleId)
         if (!style) return null
-        return <StyleDetail style={style} setStyles={setStyles} />
+        return <StyleDetail
+          style={style}
+          setStyles={setStyles}
+          onDelete={goBack}
+        />
       }
 
       case "style-create":
@@ -217,7 +226,11 @@ export default function LeftPanel({
       case "rule-detail": {
         const rule = rules.find(r => r.id === view.ruleId)
         if (!rule) return null
-        return <RuleDetail rule={rule} setRules={setRules} />
+        return <RuleDetail
+          rule={rule}
+          setRules={setRules}
+          onDelete={goBack}
+        />
       }
 
       case "rule-create":
