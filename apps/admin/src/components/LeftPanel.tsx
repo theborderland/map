@@ -252,13 +252,13 @@ export default function LeftPanel({
 
   useEffect(() => {
     // Never navigate away from a create form via map click
-    if (currentViewTypeRef.current === "entity-create") return
+    if (currentViewTypeRef.current === "entity-create") return;
+    if (isEditing) return;  // don't disrupt active edit/create
 
     if (!selectedEntity) {
-      setNavStack([{ type: "root" }])
-      return
+      setNavStack([{ type: "root" }]);
+      return;
     }
-    if (isEditing) return  // don't disrupt active edit/create
 
     const entity = entities.find(e => e.id === selectedEntity.id)
     if (!entity) return

@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react"
-import type { EntityRecord } from "../db/types"
-import { useMapStore } from "../store/mapStore"
-import { updateEntity, createEntity } from "../db"
+import { useState, useEffect } from "react";
+import type { EntityRecord } from "../db/types";
+import { useMapStore } from "../store/mapStore";
+import { updateEntity, createEntity } from "../db";
 
-interface UseEntityFormArgs {
-    entity?: EntityRecord
-    defaultStyleType?: string
-    setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>
-    onCancel?: () => void
-    onAfterCreate?: (id: string) => void
+interface Props {
+    entity?: EntityRecord;
+    defaultStyleType?: string;
+    setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+    onCancel?: () => void;
+    onAfterCreate?: (id: string) => void;
 }
 
 export function useEntityForm({
@@ -17,7 +17,7 @@ export function useEntityForm({
     setEntities,
     onCancel,
     onAfterCreate,
-}: UseEntityFormArgs) {
+}: Props) {
     const isCreate = !entity
 
     const {
@@ -29,13 +29,14 @@ export function useEntityForm({
         setCreatingStyleType,
     } = useMapStore()
 
-    const [name, setName] = useState(entity?.name ?? "")
-    const [tagline, setTagline] = useState(entity?.tagline ?? "")
-    const [description, setDescription] = useState(entity?.description ?? "")
-    const [link, setLink] = useState(entity?.link ?? "")
+    const [name, setName] = useState(entity?.name ?? "");
+    const [tagline, setTagline] = useState(entity?.tagline ?? "");
+    const [description, setDescription] = useState(entity?.description ?? "");
+    const [link, setLink] = useState(entity?.link ?? "");
     const [selectedStyleType, setSelectedStyleType] = useState(
         entity?.styleType ?? defaultStyleType ?? ""
-    )
+    );
+
     // Keep the store in sync so MapCreateHandler can style the layer being drawn
     useEffect(() => {
         if (isCreate) setCreatingStyleType(selectedStyleType || null)
@@ -43,7 +44,7 @@ export function useEntityForm({
 
     const handleSave = async (extra?: { icon?: string }) => {
         if (entity) {
-            const geometry = pendingGeometry ?? entity.geometry
+            const geometry = pendingGeometry ?? entity.geometry;
             const updated = await updateEntity(entity.id, {
                 name: name.trim(),
                 tagline: tagline.trim(),
@@ -53,11 +54,12 @@ export function useEntityForm({
                 geometry,
                 rules: entity.rules,
                 ...(extra?.icon !== undefined ? { icon: extra.icon } : {}),
-            })
-            if (isEditing) stopEditing()
-            setEntities(prev => prev.map(e => e.id === updated.id ? updated : e))
+            });
+            if (isEditing) stopEditing();
+            setEntities(prev => prev.map(e => e.id === updated.id ? updated : e));
+
         } else {
-            if (!pendingGeometry || !selectedStyleType) return
+            if (!pendingGeometry || !selectedStyleType) return;
             const created = await createEntity({
                 styleType: selectedStyleType,
                 name: name.trim(),
@@ -67,16 +69,16 @@ export function useEntityForm({
                 geometry: pendingGeometry,
                 rules: [],
                 ...(extra?.icon !== undefined ? { icon: extra.icon } : {}),
-            })
-            stopEditing()
-            setEntities(prev => [...prev, created])
-            onAfterCreate?.(created.id)
+            });
+            stopEditing();
+            setEntities(prev => [...prev, created]);
+            onAfterCreate?.(created.id);
         }
     }
 
     const handleCancelGeometry = () => {
-        cancelEditing()
-        if (isCreate) onCancel?.()
+        cancelEditing();
+        if (isCreate) onCancel?.();
     }
 
     return {
@@ -91,5 +93,5 @@ export function useEntityForm({
         description, setDescription,
         link, setLink,
         selectedStyleType, setSelectedStyleType,
-    }
+    };
 }

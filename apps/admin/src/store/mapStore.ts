@@ -1,23 +1,23 @@
-import { create } from "zustand"
+import { create } from "zustand";
 
 /** Temp registry key used while a new entity is being drawn on the map. */
-export const CREATING_LAYER_ID = "__creating__"
+export const CREATING_LAYER_ID = "__creating__";
 
 interface MapStore {
-  isEditing: boolean
-  isCreating: boolean
-  createEntityKind: "area" | "road" | "poi" | null
-  pendingGeometry: GeoJSON.Geometry | null
-  originalGeometry: GeoJSON.Geometry | null
-  creatingStyleType: string | null
+  isEditing: boolean;
+  isCreating: boolean;
+  createEntityKind: "area" | "road" | "poi" | null;
+  pendingGeometry: GeoJSON.Geometry | null;
+  originalGeometry: GeoJSON.Geometry | null;
+  creatingStyleType: string | null;
 
-  setCreatingStyleType: (type: string | null) => void
-  startEditing: (geometry: GeoJSON.Geometry) => void
-  startCreating: (kind: "area" | "road" | "poi") => void
-  stopEditing: () => void
-  cancelEditing: () => void
-  setPendingGeometry: (g: GeoJSON.Geometry | null) => void
-  canChangeSelection: () => boolean
+  setCreatingStyleType: (type: string | null) => void;
+  startEditing: (geometry: GeoJSON.Geometry) => void;
+  startCreating: (kind: "area" | "road" | "poi") => void;
+  stopEditing: () => void;
+  cancelEditing: () => void;
+  setPendingGeometry: (g: GeoJSON.Geometry | null) => void;
+  canChangeSelection: () => boolean;
 }
 
 export const useMapStore = create<MapStore>((set, get) => ({
@@ -27,8 +27,6 @@ export const useMapStore = create<MapStore>((set, get) => ({
   pendingGeometry: null,
   originalGeometry: null,
   creatingStyleType: null,
-
-  setCreatingStyleType: (type) => set({ creatingStyleType: type }),
 
   startEditing: (geometry) => set({
     isEditing: true,
@@ -67,4 +65,5 @@ export const useMapStore = create<MapStore>((set, get) => ({
 
   setPendingGeometry: (g) => set({ pendingGeometry: g }),
   canChangeSelection: () => !get().isEditing,
-}))
+  setCreatingStyleType: (type) => set({ creatingStyleType: type }),
+}));

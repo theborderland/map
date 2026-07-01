@@ -113,6 +113,7 @@ export default function MapView({
     [entities]
   );
 
+  const isFireRoad = (entity: MapFeature): boolean => entity.properties.styleType === "fireroad";
   const roadFeatures: FeatureCollection = useMemo(
     () => ({
       type: "FeatureCollection",
@@ -120,8 +121,7 @@ export default function MapView({
         .filter((entity) => entity.geometry.type === "LineString" || entity.geometry.type === "MultiLineString")
         .map(featureToEntity)
         .map((entity) => {
-          if (entity.properties.styleType !== "fireroad") return entity;
-          return buffer(entity, 2.5, { units: "meters" }) as MapFeature;
+          return buffer(entity, isFireRoad(entity) ? 2.5 : 0.5, { units: "meters" }) as MapFeature;
         }),
     }),
     [entities]

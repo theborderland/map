@@ -1,4 +1,5 @@
 export type Tab = "Areas" | "Roads" | "POIs" | "Rules" | "Styles";
+export const ROAD_TYPES = new Set(["fireroad", "minorroad"]);
 
 export type PanelView =
   | { type: "root" }

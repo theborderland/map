@@ -3,8 +3,7 @@ import { useMapStore } from "../store/mapStore"
 import { useEntityForm } from "../hooks/useEntityForm"
 import { EntityFormFields } from "./EntityFormFields"
 import { EntityGeometrySection } from "./EntityGeometrySection"
-
-const ROAD_TYPES = new Set(["fireroad", "minorroad"])
+import { ROAD_TYPES } from "../types"
 
 interface Props {
   entity?: EntityRecord
