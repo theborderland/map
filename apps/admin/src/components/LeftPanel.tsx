@@ -3,7 +3,7 @@ import {
 } from "react"
 import type { Tab, PanelView } from "../types"
 import type { EntityRecord, RuleRecord, StyleRecord } from "../db/types"
-import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab } from "../tabs";
+import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader"
 import LeftPanelMenu from "./LeftPanelMenu"
 import GroupedEntityList from "./GroupedEntityList"

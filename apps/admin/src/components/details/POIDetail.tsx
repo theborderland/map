@@ -1,9 +1,9 @@
 import type { EntityRecord, StyleRecord } from "../../db/types"
 import { useEntityForm } from "../../hooks/useEntityForm"
-import { EntityFormFields } from "../EntityFormFields"
-import { EntityGeometrySection } from "../EntityGeometrySection"
+import { EntityFormFields } from "./EntityFormFields"
+import { EntityGeometrySection } from "./EntityGeometrySection"
 import { ROAD_TYPES } from "../../types"
-import DeleteButton from "../DeleteButton"
+import DeleteButton from "./DeleteButton"
 
 interface Props {
   entity?: EntityRecord

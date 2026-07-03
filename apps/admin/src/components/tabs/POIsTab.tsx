@@ -1,6 +1,6 @@
-import type { PanelView } from "../types";
-import type { EntityRecord, StyleRecord } from "../db/types";
-import GroupedEntityList from "../components/GroupedEntityList";
+import type { PanelView } from "../../types";
+import type { EntityRecord, StyleRecord } from "../../db/types";
+import GroupedEntityList from "../GroupedEntityList";
 
 export default function POIsTab({
   entities,

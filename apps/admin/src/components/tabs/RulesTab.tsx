@@ -1,6 +1,6 @@
-import type { PanelView } from "../types";
-import type { EntityRecord, RuleRecord } from "../db/types";
-import RuleCard from "../components/RuleCard";
+import type { PanelView } from "../../types";
+import type { EntityRecord, RuleRecord } from "../../db/types";
+import RuleCard from "../RuleCard";
 
 export default function RulesTab({
   entities,

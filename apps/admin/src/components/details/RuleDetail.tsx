@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { RuleRecord } from "../../db/types";
 import { createRule, deleteRule, updateRule } from "../../db";
-import DeleteButton from "../DeleteButton";
+import DeleteButton from "./DeleteButton";
 
 interface Props {
   rule?: RuleRecord;

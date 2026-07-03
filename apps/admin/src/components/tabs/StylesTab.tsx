@@ -1,6 +1,6 @@
-import type { PanelView } from "../types";
-import type { EntityRecord, StyleRecord } from "../db/types";
-import StyleCard from "../components/StyleCard";
+import type { PanelView } from "../../types";
+import type { EntityRecord, StyleRecord } from "../../db/types";
+import StyleCard from "../StyleCard";
 
 export default function StylesTab({
   entities,

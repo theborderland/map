@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { StyleRecord } from "../../db/types";
 import { createStyle, deleteStyle, updateStyle } from "../../db";
-import DeleteButton from "../DeleteButton";
+import DeleteButton from "./DeleteButton";
 
 interface Props {
   style?: StyleRecord;

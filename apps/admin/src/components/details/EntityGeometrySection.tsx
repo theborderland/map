@@ -1,4 +1,4 @@
-import type { EntityRecord } from "../db/types";
+import type { EntityRecord } from "../../db/types";
 
 export function EntityGeometrySection({
   isCreate,

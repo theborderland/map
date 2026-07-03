@@ -24,7 +24,6 @@ export default function GroupedEntityList({
   groupByStyleType = false,
 }: Props) {
   const styleByType = new Map(styles.map((s) => [s.type, s]));
-
   const openEntity = (entity: EntityRecord) => {
     onSelectEntity?.(entity.id);
     navigate({ type: "entity-detail", entityId: entity.id });

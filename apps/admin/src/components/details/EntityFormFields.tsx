@@ -1,4 +1,4 @@
-import type { StyleRecord } from "../db/types"
+import type { StyleRecord } from "../../db/types"
 
 export function EntityFormFields({
   name, setName,
