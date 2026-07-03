@@ -1,10 +1,9 @@
-import type { EntityRecord, StyleRecord } from "../db/types"
-import { useMapStore } from "../store/mapStore"
-import { useEntityForm } from "../hooks/useEntityForm"
-import { EntityFormFields } from "./EntityFormFields"
-import { EntityGeometrySection } from "./EntityGeometrySection"
-import { ROAD_TYPES } from "../types"
-import DeleteButton from "./DeleteButton"
+import type { EntityRecord, StyleRecord } from "../../db/types"
+import { useEntityForm } from "../../hooks/useEntityForm"
+import { EntityFormFields } from "../EntityFormFields"
+import { EntityGeometrySection } from "../EntityGeometrySection"
+import { ROAD_TYPES } from "../../types"
+import DeleteButton from "../DeleteButton"
 
 interface Props {
   entity?: EntityRecord
@@ -19,7 +18,6 @@ interface Props {
 export default function POIDetail({
   entity, styles, defaultStyleType, setEntities, onCancel, onAfterCreate, onDelete
 }: Props) {
-  const { startCreating } = useMapStore()
   const entityForm = useEntityForm({ entity, defaultStyleType, setEntities, onCancel, onAfterCreate, onDelete })
 
   const compatibleStyles = styles.filter(s => !ROAD_TYPES.has(s.type))
@@ -60,15 +58,17 @@ export default function POIDetail({
         </div>
       </div>
 
-      <EntityGeometrySection
-        isCreate={entityForm.isCreate}
-        entity={entity}
-        isEditing={entityForm.isEditing}
-        pendingGeometry={entityForm.pendingGeometry}
-        startEditing={entityForm.startEditing}
-        startCreatingKind={() => startCreating("poi")}
-        handleCancelGeometry={entityForm.handleCancelGeometry}
-      />
+      {/* Create mode needs the geometry section above the actions for the status message */}
+      {entityForm.isCreate && (
+        <EntityGeometrySection
+          isCreate={true}
+          entity={entity}
+          isEditing={entityForm.isEditing}
+          pendingGeometry={entityForm.pendingGeometry}
+          startEditing={entityForm.startEditing}
+          handleCancelGeometry={entityForm.handleCancelGeometry}
+        />
+      )}
 
       <div className="form-actions">
         {entityForm.isCreate ? (
@@ -88,6 +88,15 @@ export default function POIDetail({
               <wa-icon slot="start" name="floppy-disk"></wa-icon>
               Save changes
             </wa-button>
+            {/* Edit geometry / Cancel shape edit sits alongside Save and Delete */}
+            <EntityGeometrySection
+              isCreate={false}
+              entity={entity}
+              isEditing={entityForm.isEditing}
+              pendingGeometry={entityForm.pendingGeometry}
+              startEditing={entityForm.startEditing}
+              handleCancelGeometry={entityForm.handleCancelGeometry}
+            />
             <DeleteButton onDelete={entityForm.handleDelete} />
           </>
         )}

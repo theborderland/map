@@ -1,7 +1,7 @@
 import { useState } from "react"
-import type { RuleRecord } from "../db/types"
-import { createRule, deleteRule, updateRule } from "../db"
-import DeleteButton from "./DeleteButton"
+import type { RuleRecord } from "../../db/types"
+import { createRule, deleteRule, updateRule } from "../../db"
+import DeleteButton from "../DeleteButton"
 
 interface Props {
   rule?: RuleRecord   // undefined = create mode
@@ -109,13 +109,15 @@ export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: 
           </label>
 
           {hasOverride && (
+            <>
             <div className="form-field" style={{ marginTop: "0.5rem" }}>
               <label className="form-label">Override fill colour</label>
-              <input
-                type="color"
-                value={overrideColor}
-                onChange={e => setOverrideColor(e.target.value)}
-              />
+              <wa-color-picker value={overrideColor} onChange={
+                // @ts-ignore
+                (e) => setOverrideColor(e.target.value)
+              } />
+            </div>
+            <div className="form-field" style={{ marginTop: "0.5rem" }}>
               <label className="form-label" style={{ marginTop: "0.5rem" }}>
                 Override opacity: {overrideOpacity.toFixed(2)}
               </label>
@@ -126,6 +128,7 @@ export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: 
                 onChange={e => setOverrideOpacity(Number(e.target.value))}
               />
             </div>
+            </>
           )}
         </div>
       </div>

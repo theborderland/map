@@ -1,5 +1,5 @@
 import {
-  useState, useRef, useEffect, useCallback, useMemo, type ReactNode
+  useState, useRef, useEffect, useCallback, type ReactNode
 } from "react"
 import type { Tab, PanelView } from "../types"
 import type { EntityRecord, RuleRecord, StyleRecord } from "../db/types"
@@ -7,11 +7,7 @@ import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab } from "../tabs";
 import LeftPanelHeader from "./LeftPanelHeader"
 import LeftPanelMenu from "./LeftPanelMenu"
 import GroupedEntityList from "./GroupedEntityList"
-import AreaDetail from "./AreaDetail"
-import RoadDetail from "./RoadDetail"
-import POIDetail from "./POIDetail"
-import RuleDetail from "./RuleDetail"
-import StyleDetail from "./StyleDetail"
+import { AreaDetail, RoadDetail, POIDetail, RuleDetail, StyleDetail } from "./details"
 import { useMapStore } from "../store/mapStore"
 
 interface Props {
@@ -51,7 +47,7 @@ export default function LeftPanel({
 }: Props) {
   const [navStack, setNavStack] = useState<PanelView[]>([{ type: "root" }])
   const currentView = navStack[navStack.length - 1]!
-  const { isEditing, canChangeSelection, cancelEditing } = useMapStore()
+  const { isEditing, canChangeSelection, cancelEditing, startCreating } = useMapStore()
   const currentViewTypeRef = useRef(currentView.type)
 
   // ── Navigation ─────────────────────────────────────────
@@ -118,30 +114,45 @@ export default function LeftPanel({
   // Returns undefined when creating isn't meaningful in the current context.
 
   const getCreateClick = (): (() => void) | undefined => {
-    if (isEditing) return undefined
+    if (isEditing) return undefined;
 
     switch (currentView.type) {
       case "root":
         switch (activeTab) {
-          case "Areas": return () => navigate({ type: "entity-create", entityKind: "area" })
-          case "Roads": return () => navigate({ type: "entity-create", entityKind: "road" })
-          case "POIs": return () => navigate({ type: "entity-create", entityKind: "poi" })
-          case "Rules": return () => navigate({ type: "rule-create" })
-          case "Styles": return () => navigate({ type: "style-create" })
+          case "Areas":
+            return () => {
+              startCreating("area");
+              navigate({ type: "entity-create", entityKind: "area" });
+            };
+          case "Roads":
+            return () => {
+              startCreating("road");
+              navigate({ type: "entity-create", entityKind: "road" });
+            };
+          case "POIs":
+            return () => {
+              startCreating("poi");
+              navigate({ type: "entity-create", entityKind: "poi" });
+            };
+          case "Rules": return () => navigate({ type: "rule-create" });
+          case "Styles": return () => navigate({ type: "style-create" });
         }
-        break
+        break;
       case "entity-group": {
         const kind = activeTab === "Areas" ? "area" as const
           : activeTab === "Roads" ? "road" as const
             : "poi" as const
-        return () => navigate({
-          type: "entity-create",
-          entityKind: kind,
-          styleType: currentView.styleType,  // pre-selected
-        })
-      }
+        return () => {
+          startCreating(kind);
+          navigate({
+            type: "entity-create",
+            entityKind: kind,
+            styleType: currentView.styleType,  // pre-selected
+          });
+        }
+      };
     }
-    return undefined
+    return undefined;
   }
 
   // ── Render current view ────────────────────────────────
@@ -178,6 +189,7 @@ export default function LeftPanel({
         if (!entity) return null
         const Detail = DETAIL_COMPONENTS[getEntityKind(entity)]
         return <Detail
+          key={entity.id}  // force remount when switching between entities
           entity={entity}
           styles={styles}
           setEntities={setEntities}
@@ -204,6 +216,7 @@ export default function LeftPanel({
         const style = styles.find(s => s.id === view.styleId)
         if (!style) return null
         return <StyleDetail
+          key={style.id}  // force remount when switching between entities
           style={style}
           setStyles={setStyles}
           onDelete={goBack}
@@ -227,6 +240,7 @@ export default function LeftPanel({
         const rule = rules.find(r => r.id === view.ruleId)
         if (!rule) return null
         return <RuleDetail
+          key={rule.id}  // force remount when switching between entities
           rule={rule}
           setRules={setRules}
           onDelete={goBack}
@@ -257,7 +271,7 @@ export default function LeftPanel({
       case "POIs": return <POIsTab entities={entities} styles={styles} navigate={navigate} onSelectEntity={onSelectEntity} />
       case "Rules": return <RulesTab entities={entities} rules={rules} navigate={navigate} />
       case "Styles": return <StylesTab entities={entities} styles={styles} navigate={navigate} />
-      default: return null
+      default: return null;
     }
   };
 
@@ -268,38 +282,43 @@ export default function LeftPanel({
     if (currentViewTypeRef.current === "entity-create") return;
     if (isEditing) return;  // don't disrupt active edit/create
 
+    // Avoid calling setState synchronously inside the effect body to prevent
+    // cascading renders. Schedule state updates asynchronously.
     if (!selectedEntity) {
-      setNavStack([{ type: "root" }]);
+      Promise.resolve().then(() => setNavStack([{ type: "root" }]));
       return;
     }
 
-    const entity = entities.find(e => e.id === selectedEntity.id)
-    if (!entity) return
+    const entity = entities.find(e => e.id === selectedEntity.id);
+    if (!entity) return;
 
-    const targetTab = getTabForEntity(entity)
-    if (activeTab !== targetTab) setActiveTabDirect(targetTab)
+    const targetTab = getTabForEntity(entity);
 
-    const shouldGroup = targetTab === "Areas" || targetTab === "Roads"
-    setNavStack(
-      shouldGroup
-        ? [
-          { type: "root" },
-          { type: "entity-group", styleType: entity.styleType },
-          { type: "entity-detail", entityId: entity.id },
-        ]
-        : [
-          { type: "root" },
-          { type: "entity-detail", entityId: entity.id },
-        ]
-    )
+    Promise.resolve().then(() => {
+      if (activeTab !== targetTab) setActiveTabDirect(targetTab);
+
+      const shouldGroup = targetTab === "Areas" || targetTab === "Roads";
+      setNavStack(
+        shouldGroup
+          ? [
+            { type: "root" },
+            { type: "entity-group", styleType: entity.styleType },
+            { type: "entity-detail", entityId: entity.id },
+          ]
+          : [
+            { type: "root" },
+            { type: "entity-detail", entityId: entity.id },
+          ]
+      )
+    });
   }, [selectedEntity?.id, selectedEntity?.key, isEditing])
 
   // ── Auto-scroll active tab ─────────────────────────────
 
-  const activeRef = useRef<HTMLDivElement | null>(null)
+  const activeRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
-  }, [activeTab])
+    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activeTab]);
 
   // ── Render ─────────────────────────────────────────────
 

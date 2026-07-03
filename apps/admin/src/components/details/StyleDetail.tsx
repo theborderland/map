@@ -1,7 +1,7 @@
 import { useState } from "react"
-import type { StyleRecord } from "../db/types"
-import { createStyle, deleteStyle, updateStyle } from "../db"
-import DeleteButton from "./DeleteButton"
+import type { StyleRecord } from "../../db/types"
+import { createStyle, deleteStyle, updateStyle } from "../../db"
+import DeleteButton from "../DeleteButton"
 
 interface Props {
   style?: StyleRecord   // undefined = create mode
@@ -47,8 +47,8 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete 
       onAfterCreate?.(created.id)
     }
   }
-  
-   /** Deletes the style from DB, removes from state, navigates back. */
+
+  /** Deletes the style from DB, removes from state, navigates back. */
   const handleDelete = async () => {
     if (!style) return;
     await deleteStyle(style.id);
@@ -90,23 +90,23 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete 
           />
         </div>
 
-        <div className="form-field">
-          <label className="form-label">Fill colour</label>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <wa-color-picker value={fillColor} label="Fill" onChange={
-              // @ts-ignore
-              (e) => setFillColor(e.target.value)
-            } />
+        <div style={{ display: "flex", gap: "1rem" }}>
+          <div className="form-field">
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <wa-color-picker value={fillColor} label="Fill color" onChange={
+                // @ts-ignore
+                (e) => setFillColor(e.target.value)
+              } />
+            </div>
           </div>
-        </div>
 
-        <div className="form-field">
-          <label className="form-label">Border colour</label>
-          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <wa-color-picker value={borderColor} label="Border" onChange={
-              // @ts-ignore
-              (e) => setFillColor(e.target.value)
-            } />
+          <div className="form-field">
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <wa-color-picker value={borderColor} label="Border color" onChange={
+                // @ts-ignore
+                (e) => setBorderColor(e.target.value)
+              } />
+            </div>
           </div>
         </div>
 
