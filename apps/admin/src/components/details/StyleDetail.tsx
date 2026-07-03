@@ -1,66 +1,64 @@
-import { useState } from "react"
-import type { StyleRecord } from "../../db/types"
-import { createStyle, deleteStyle, updateStyle } from "../../db"
-import DeleteButton from "../DeleteButton"
+import { useState } from "react";
+import type { StyleRecord } from "../../db/types";
+import { createStyle, deleteStyle, updateStyle } from "../../db";
+import DeleteButton from "../DeleteButton";
 
 interface Props {
-  style?: StyleRecord   // undefined = create mode
-  setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>
-  onAfterCreate?: (id: string) => void
-  onDelete?: () => void;
+  style?: StyleRecord;
+  setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
+  onAfterCreate?: (id: string) => void;
+  goBack?: () => void;
 }
 
-export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete }: Props) {
-  const isCreate = !style
+export default function StyleDetail({ style, setStyles, onAfterCreate, goBack }: Props) {
+  const isCreate = !style;
 
-  const [typeKey, setTypeKey] = useState(style?.type ?? "")
-  const [displayName, setDisplayName] = useState(style?.displayName ?? "")
-  const [fillColor, setFillColor] = useState(style?.fillColor ?? "#3b82f6")
-  const [borderColor, setBorderColor] = useState(style?.borderColor ?? "#1d4ed8")
-  const [fillOpacity, setFillOpacity] = useState(style?.fillOpacity ?? 0.3)
-  const [borderWidth, setBorderWidth] = useState(style?.borderWidth ?? 2)
-  const [dashPattern, setDashPattern] = useState(style?.dashPattern ?? "")
+  const [typeKey, setTypeKey] = useState(style?.type ?? "");
+  const [displayName, setDisplayName] = useState(style?.displayName ?? "");
+  const [fillColor, setFillColor] = useState(style?.fillColor ?? "#3b82f6");
+  const [borderColor, setBorderColor] = useState(style?.borderColor ?? "#1d4ed8");
+  const [fillOpacity, setFillOpacity] = useState(style?.fillOpacity ?? 0.3);
+  const [borderWidth, setBorderWidth] = useState(style?.borderWidth ?? 2);
+  const [dashPattern, setDashPattern] = useState(style?.dashPattern ?? "");
 
   const canSave = isCreate
     ? !!typeKey.trim() && !!displayName.trim()
-    : !!displayName.trim()
+    : !!displayName.trim();
 
   const handleSave = async () => {
-    if (!canSave) return
+    if (!canSave) return;
 
     const payload = {
-      type: typeKey.trim().replace(/\s+/g, ""),  // slugify
+      type: typeKey.trim().replace(/\s+/g, ""),  // Slugify: remove whitespace from type key.
       displayName: displayName.trim(),
       fillColor,
       borderColor,
       fillOpacity,
       borderWidth,
       dashPattern,
-    }
+    };
 
     if (style) {
-      const updated = await updateStyle(style.id, payload)
-      setStyles(prev => prev.map(s => s.id === updated.id ? updated : s))
+      const updated = await updateStyle(style.id, payload);
+      setStyles(prev => prev.map(s => s.id === updated.id ? updated : s));
     } else {
-      const created = await createStyle(payload)
-      setStyles(prev => [...prev, created])
-      onAfterCreate?.(created.id)
+      const created = await createStyle(payload);
+      setStyles(prev => [...prev, created]);
+      onAfterCreate?.(created.id);
     }
-  }
+  };
 
   /** Deletes the style from DB, removes from state, navigates back. */
   const handleDelete = async () => {
     if (!style) return;
     await deleteStyle(style.id);
-    setStyles((prev) => prev.filter((s) => s.id !== style.id));
-    onDelete?.();
+    setStyles(prev => prev.filter(s => s.id !== style.id));
+    goBack?.();
   };
 
   return (
     <div className="style-detail">
-
       <div className="form-fields">
-
         <div className="form-field">
           <label className="form-label">
             Type key
@@ -92,21 +90,16 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete 
 
         <div style={{ display: "flex", gap: "1rem" }}>
           <div className="form-field">
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-              <wa-color-picker value={fillColor} label="Fill color" onChange={
-                // @ts-ignore
-                (e) => setFillColor(e.target.value)
-              } />
-            </div>
+            <wa-color-picker value={fillColor} label="Fill color" onChange={
+              // @ts-ignore
+              (e) => setFillColor(e.target.value)
+            } />
           </div>
-
           <div className="form-field">
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-              <wa-color-picker value={borderColor} label="Border color" onChange={
-                // @ts-ignore
-                (e) => setBorderColor(e.target.value)
-              } />
-            </div>
+            <wa-color-picker value={borderColor} label="Border color" onChange={
+              // @ts-ignore
+              (e) => setBorderColor(e.target.value)
+            } />
           </div>
         </div>
 
@@ -143,7 +136,6 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete 
           />
         </div>
 
-        {/* Live preview */}
         <div className="form-field">
           <label className="form-label">Preview</label>
           <div style={{
@@ -157,11 +149,27 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete 
       </div>
 
       <div className="form-actions">
-        <wa-button onClick={handleSave} size="xs" appearance={isCreate ? "filled" : "outlined"} disabled={!canSave}>
+        <wa-button
+          onClick={handleSave}
+          size="xs"
+          appearance={isCreate ? "filled" : "outlined"}
+          disabled={!canSave}
+        >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
           {isCreate ? "Create" : "Save changes"}
         </wa-button>
-        <DeleteButton onDelete={handleDelete} />
+
+        {isCreate ? (
+          <wa-button onClick={goBack} size="xs" appearance="outlined">
+            <wa-icon slot="start" name="x"></wa-icon>
+            Cancel
+          </wa-button>
+        ) : (
+          <DeleteButton
+            message={`Delete "${style.displayName}"? This cannot be undone.`}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
       {style && (
@@ -170,5 +178,5 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, onDelete 
         </p>
       )}
     </div>
-  )
+  );
 }

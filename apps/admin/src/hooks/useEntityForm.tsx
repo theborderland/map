@@ -7,10 +7,8 @@ interface Props {
     entity?: EntityRecord;
     defaultStyleType?: string;
     setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
-    onCancel?: () => void;
+    goBack?: () => void;
     onAfterCreate?: (id: string) => void;
-    /** Called after successful delete so LeftPanel can navigate back. */
-    onDelete?: () => void;
 }
 
 /** Custom hook to manage the state and actions for an entity form (Area, Road, POI). */
@@ -18,9 +16,8 @@ export function useEntityForm({
     entity,
     defaultStyleType,
     setEntities,
-    onCancel,
+    goBack,
     onAfterCreate,
-    onDelete,
 }: Props) {
     const isCreate = !entity;
 
@@ -84,12 +81,12 @@ export function useEntityForm({
         if (isEditing) stopEditing();
         await deleteEntity(entity.id);
         setEntities((prev) => prev.filter((e) => e.id !== entity.id));
-        onDelete?.();
+        goBack?.();
     };
 
     const handleCancelGeometry = () => {
         cancelEditing();
-        if (isCreate) onCancel?.();
+        if (isCreate) goBack?.();
     };
 
     return {

@@ -1,30 +1,30 @@
-import { useState } from "react"
-import type { RuleRecord } from "../../db/types"
-import { createRule, deleteRule, updateRule } from "../../db"
-import DeleteButton from "../DeleteButton"
+import { useState } from "react";
+import type { RuleRecord } from "../../db/types";
+import { createRule, deleteRule, updateRule } from "../../db";
+import DeleteButton from "../DeleteButton";
 
 interface Props {
-  rule?: RuleRecord   // undefined = create mode
-  setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>
-  onAfterCreate?: (id: string) => void
-  onDelete?: () => void;
+  rule?: RuleRecord;
+  setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
+  onAfterCreate?: (id: string) => void;
+  goBack?: () => void;
 }
 
-export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: Props) {
-  const isCreate = !rule
+export default function RuleDetail({ rule, setRules, onAfterCreate, goBack }: Props) {
+  const isCreate = !rule;
 
-  const [name, setName] = useState(rule?.name ?? "")
-  const [ruleType, setRuleType] = useState(rule?.ruleType ?? "overlap")
-  const [severity, setSeverity] = useState(rule?.severity ?? "medium")
-  const [message, setMessage] = useState(rule?.message ?? "")
-  const [hasOverride, setHasOverride] = useState(!!rule?.styleOverride)
-  const [overrideColor, setOverrideColor] = useState(rule?.styleOverride?.fillColor ?? "#ff0000")
-  const [overrideOpacity, setOverrideOpacity] = useState(rule?.styleOverride?.fillOpacity ?? 0.6)
+  const [name, setName] = useState(rule?.name ?? "");
+  const [ruleType, setRuleType] = useState(rule?.ruleType ?? "overlap");
+  const [severity, setSeverity] = useState(rule?.severity ?? "medium");
+  const [message, setMessage] = useState(rule?.message ?? "");
+  const [hasOverride, setHasOverride] = useState(!!rule?.styleOverride);
+  const [overrideColor, setOverrideColor] = useState(rule?.styleOverride?.fillColor ?? "#ff0000");
+  const [overrideOpacity, setOverrideOpacity] = useState(rule?.styleOverride?.fillOpacity ?? 0.6);
 
-  const canSave = !!name.trim() && !!message.trim()
+  const canSave = !!name.trim() && !!message.trim();
 
   const handleSave = async () => {
-    if (!canSave) return
+    if (!canSave) return;
 
     const payload = {
       name: name.trim(),
@@ -34,29 +34,28 @@ export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: 
       styleOverride: hasOverride
         ? { fillColor: overrideColor, fillOpacity: overrideOpacity }
         : undefined,
-    }
+    };
 
     if (rule) {
-      const updated = await updateRule(rule.id, payload)
-      setRules(prev => prev.map(r => r.id === updated.id ? updated : r))
+      const updated = await updateRule(rule.id, payload);
+      setRules(prev => prev.map(r => r.id === updated.id ? updated : r));
     } else {
-      const created = await createRule(payload)
-      setRules(prev => [...prev, created])
-      onAfterCreate?.(created.id)
+      const created = await createRule(payload);
+      setRules(prev => [...prev, created]);
+      onAfterCreate?.(created.id);
     }
-  }
+  };
 
   /** Deletes the rule from DB, removes from state, navigates back. */
   const handleDelete = async () => {
     if (!rule) return;
     await deleteRule(rule.id);
-    setRules((prev) => prev.filter((r) => r.id !== rule.id));
-    onDelete?.();
+    setRules(prev => prev.filter(r => r.id !== rule.id));
+    goBack?.();
   };
 
   return (
     <div className="rule-detail">
-
       <div className="form-fields">
         <div className="form-field">
           <label className="form-label">Name</label>
@@ -110,35 +109,51 @@ export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: 
 
           {hasOverride && (
             <>
-            <div className="form-field" style={{ marginTop: "0.5rem" }}>
-              <label className="form-label">Override fill colour</label>
-              <wa-color-picker value={overrideColor} onChange={
-                // @ts-ignore
-                (e) => setOverrideColor(e.target.value)
-              } />
-            </div>
-            <div className="form-field" style={{ marginTop: "0.5rem" }}>
-              <label className="form-label" style={{ marginTop: "0.5rem" }}>
-                Override opacity: {overrideOpacity.toFixed(2)}
-              </label>
-              <input
-                type="range"
-                min={0} max={1} step={0.05}
-                value={overrideOpacity}
-                onChange={e => setOverrideOpacity(Number(e.target.value))}
-              />
-            </div>
+              <div className="form-field" style={{ marginTop: "0.5rem" }}>
+                <label className="form-label">Override fill colour</label>
+                <wa-color-picker value={overrideColor} onChange={
+                  // @ts-ignore
+                  (e) => setOverrideColor(e.target.value)
+                } />
+              </div>
+              <div className="form-field" style={{ marginTop: "0.5rem" }}>
+                <label className="form-label">
+                  Override opacity: {overrideOpacity.toFixed(2)}
+                </label>
+                <input
+                  type="range"
+                  min={0} max={1} step={0.05}
+                  value={overrideOpacity}
+                  onChange={e => setOverrideOpacity(Number(e.target.value))}
+                />
+              </div>
             </>
           )}
         </div>
       </div>
 
       <div className="form-actions">
-        <wa-button onClick={handleSave} size="xs" appearance={isCreate ? "filled" : "outlined"} disabled={!canSave}>
+        <wa-button
+          onClick={handleSave}
+          size="xs"
+          appearance={isCreate ? "filled" : "outlined"}
+          disabled={!canSave}
+        >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
           {isCreate ? "Create" : "Save changes"}
         </wa-button>
-        <DeleteButton onDelete={handleDelete} />
+
+        {isCreate ? (
+          <wa-button onClick={goBack} size="xs" appearance="outlined">
+            <wa-icon slot="start" name="x"></wa-icon>
+            Cancel
+          </wa-button>
+        ) : (
+          <DeleteButton
+            message={`Delete "${rule.name}"? This cannot be undone.`}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
       {rule && (
@@ -147,5 +162,5 @@ export default function RuleDetail({ rule, setRules, onAfterCreate, onDelete }: 
         </p>
       )}
     </div>
-  )
+  );
 }

@@ -10,15 +10,14 @@ interface Props {
   styles: StyleRecord[]
   defaultStyleType?: string
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>
-  onCancel?: () => void
+  goBack?: () => void
   onAfterCreate?: (id: string) => void
-  onDelete?: () => void;
 }
 
 export default function POIDetail({
-  entity, styles, defaultStyleType, setEntities, onCancel, onAfterCreate, onDelete
+  entity, styles, defaultStyleType, setEntities, goBack, onAfterCreate
 }: Props) {
-  const entityForm = useEntityForm({ entity, defaultStyleType, setEntities, onCancel, onAfterCreate, onDelete })
+  const entityForm = useEntityForm({ entity, defaultStyleType, setEntities, goBack, onAfterCreate })
 
   const compatibleStyles = styles.filter(s => !ROAD_TYPES.has(s.type))
   const canSave = entityForm.isCreate

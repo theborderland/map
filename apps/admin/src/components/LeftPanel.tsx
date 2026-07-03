@@ -193,7 +193,7 @@ export default function LeftPanel({
           entity={entity}
           styles={styles}
           setEntities={setEntities}
-          onDelete={goBack}
+          goBack={goBack}
         />
       }
 
@@ -204,7 +204,7 @@ export default function LeftPanel({
             styles={styles}
             defaultStyleType={view.styleType}
             setEntities={setEntities}
-            onCancel={goBack}
+            goBack={goBack}
             onAfterCreate={(entityId) => {
               setNavStack(prev => [...prev.slice(0, -1), { type: "entity-detail", entityId }])
             }}
@@ -219,7 +219,7 @@ export default function LeftPanel({
           key={style.id}  // force remount when switching between entities
           style={style}
           setStyles={setStyles}
-          onDelete={goBack}
+          goBack={goBack}
         />
       }
 
@@ -227,6 +227,7 @@ export default function LeftPanel({
         return (
           <StyleDetail
             setStyles={setStyles}
+            goBack={goBack}
             onAfterCreate={(styleId) => {
               setNavStack(prev => [
                 ...prev.slice(0, -1),
@@ -243,7 +244,7 @@ export default function LeftPanel({
           key={rule.id}  // force remount when switching between entities
           rule={rule}
           setRules={setRules}
-          onDelete={goBack}
+          goBack={goBack}
         />
       }
 
@@ -251,6 +252,7 @@ export default function LeftPanel({
         return (
           <RuleDetail
             setRules={setRules}
+            goBack={goBack}
             onAfterCreate={(ruleId) => {
               setNavStack(prev => [
                 ...prev.slice(0, -1),
