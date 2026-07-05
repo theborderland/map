@@ -15,9 +15,16 @@ interface Props {
 }
 
 export default function RoadDetail({
-  entity, styles, defaultStyleType, setEntities, goBack, onAfterCreate, onDelete
+  entity, styles, defaultStyleType, setEntities, goBack, onAfterCreate
 }: Props) {
-  const entityForm = useEntityForm({ entity, defaultStyleType, setEntities, goBack, onAfterCreate, onDelete })
+  const entityForm = useEntityForm({
+    entity, 
+    defaultStyleType, 
+    setEntities, 
+    goBack, 
+    onAfterCreate, 
+    entityKind: "road"
+  })
 
   const compatibleStyles = styles.filter(s => ROAD_TYPES.has(s.type))
   const canSave = entityForm.isCreate
@@ -38,17 +45,17 @@ export default function RoadDetail({
       <div className="form-actions">
         {entityForm.isCreate ? (
           <>
-          {/* Create mode needs the geometry section above the actions for the status message */}
-      {entityForm.isCreate && (
-        <EntityGeometrySection
-          isCreate={true}
-          entity={entity}
-          isEditing={entityForm.isEditing}
-          pendingGeometry={entityForm.pendingGeometry}
-          startEditing={entityForm.startEditing}
-          handleCancelGeometry={entityForm.handleCancelGeometry}
-        />
-      )}
+            {/* Create mode needs the geometry section above the actions for the status message */}
+            {entityForm.isCreate && (
+              <EntityGeometrySection
+                isCreate={true}
+                entity={entity}
+                isEditing={entityForm.isEditing}
+                pendingGeometry={entityForm.pendingGeometry}
+                startEditing={entityForm.startEditing}
+                handleCancelGeometry={entityForm.handleCancelGeometry}
+              />
+            )}
             <wa-button onClick={() => entityForm.handleSave()} size="xs" appearance="filled" disabled={!canSave}>
               <wa-icon slot="start" name="floppy-disk"></wa-icon>
               Create

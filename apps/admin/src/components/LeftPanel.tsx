@@ -45,17 +45,22 @@ export default function LeftPanel({
   setRules,
   setStyles,
 }: Props) {
+  // Navigation history for the left panel, used to render the current view and back navigation.
   const [navStack, setNavStack] = useState<PanelView[]>([{ type: "root" }])
   const currentView = navStack[navStack.length - 1]!
+  // Read edit/selection state from the map store to gate navigation behavior.
   const { isEditing, canChangeSelection, cancelEditing, startCreating } = useMapStore()
+  // Mutable ref for the current view type so effects can read it without re-running unnecessarily.
   const currentViewTypeRef = useRef(currentView.type)
 
   // ── Navigation ─────────────────────────────────────────
 
+  // Navigation callback that pushes a new panel view onto the stack.
   const navigate = useCallback((view: PanelView) => {
     setNavStack(prev => [...prev, view])
   }, [])
 
+  // Navigation callback that goes back one view, respecting edit/create blocking.
   const goBack = useCallback(() => {
     const isEntityCreate =
       currentView.type === "entity-create"
@@ -72,6 +77,7 @@ export default function LeftPanel({
     setNavStack(prev => prev.length > 1 ? prev.slice(0, -1) : prev)
   }, [canChangeSelection, currentView, isEditing, cancelEditing])
 
+  // Callback for switching tabs, only allowed when selection/editing is not blocked.
   const handleTabClick = useCallback((tab: Tab) => {
     if (!canChangeSelection()) return
     onUserTabChange(tab)
@@ -279,6 +285,7 @@ export default function LeftPanel({
 
   // ── Map entity selection — one effect ──────────────────
 
+  // Keep the panel navigation in sync with the selected entity, unless editing or creating.
   useEffect(() => {
     // Never navigate away from a create form via map click
     if (currentViewTypeRef.current === "entity-create") return;
@@ -317,6 +324,7 @@ export default function LeftPanel({
 
   // ── Auto-scroll active tab ─────────────────────────────
 
+  // Ref to the active tab button so we can auto-scroll it into view when the active tab changes.
   const activeRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });

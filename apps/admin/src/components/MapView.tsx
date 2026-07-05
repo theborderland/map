@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, } from "react";
 import { MapContainer, TileLayer, GeoJSON, Pane, useMapEvent } from "react-leaflet";
 import { buffer } from "@turf/turf";
-import L, { circleMarker } from "leaflet";
+import L from "leaflet";
 import type { EntityRecord, StyleRecord } from "../db/types";
 import "@geoman-io/leaflet-geoman-free";
 import { GeomanControls } from "react-leaflet-geoman-v2";
@@ -38,6 +38,7 @@ type FeatureCollection = {
 };
 
 function MapClickHandler({ onClearSelection }: { onClearSelection: () => void }) {
+  // Detect map clicks outside features and clear the current selection.
   useMapEvent("click", () => {
     onClearSelection();
   });
@@ -86,25 +87,39 @@ export default function MapView({
   selectedEntityId,
   onSelectEntity,
   onClearSelection }: Props) {
-  const { isEditing, canChangeSelection } = useMapStore();
+  const { isEditing, canChangeSelection, mapVersion } = useMapStore();
 
+  // Selection handler that only forwards the event when selection changes are allowed.
   const handleSelectEntity = useCallback((entityId: string) => {
     if (!canChangeSelection()) return;
     onSelectEntity(entityId)
   }, [canChangeSelection, onSelectEntity])
 
+  // Clear selection handler that respects edit/create blocking.
   const handleClearSelection = useCallback(() => {
     if (!canChangeSelection()) return;
     onClearSelection()
   }, [canChangeSelection, onClearSelection])
 
+  // Registry of map layers keyed by entity id, used by Geoman and selection logic.
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map())
 
+  // Tracks all layers drawn during create/edit for multi-line cleanup.
+  const creatingLayersRef = useRef<L.Layer[]>([]);
+
+  // Memoize the selected entity's style type so edit-mode drawing can apply the correct style.
+  const selectedEntityStyleType = useMemo(
+    () => entities.find(e => e.id === selectedEntityId)?.styleType ?? null,
+    [entities, selectedEntityId]
+  );
+
+  // Memoized lookup table for style records by type.
   const styleByType = useMemo(
     () => new Map(styles.map((style) => [style.type, style])),
     [styles]
   );
 
+  // GeoJSON features for points, recalculated only when entities change.
   const poiFeatures: FeatureCollection = useMemo(
     () => ({
       type: "FeatureCollection",
@@ -114,6 +129,7 @@ export default function MapView({
   );
 
   const isFireRoad = (entity: MapFeature): boolean => entity.properties.styleType === "fireroad";
+  // Buffered GeoJSON features for road display, recalculated only when entities change.
   const roadFeatures: FeatureCollection = useMemo(
     () => ({
       type: "FeatureCollection",
@@ -127,6 +143,7 @@ export default function MapView({
     [entities]
   );
 
+  // GeoJSON features for area entities, recalculated only when entities change.
   const areaFeatures: FeatureCollection = useMemo(
     () => ({
       type: "FeatureCollection",
@@ -140,6 +157,7 @@ export default function MapView({
     [entities]
   );
   // Property borders are rendered separately to ensure they appear below other areas and roads.
+  // GeoJSON features for property border entities, recalculated only when entities change.
   const propertyBorderFeatures: FeatureCollection = useMemo(
     () => ({
       type: "FeatureCollection",
@@ -185,25 +203,28 @@ export default function MapView({
     return getStyle(style, selected, feature.properties.geometryType);
   };
 
+  // Include mapVersion so GeoJSON layers remount after a geometry save.
   const areaKey = useMemo(
-    () => areaFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
-    [areaFeatures]
-  )
+    () => areaFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapVersion,
+    [areaFeatures, mapVersion]
+  );
   const roadKey = useMemo(
-    () => roadFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
-    [roadFeatures]
-  )
-  
+    () => roadFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapVersion,
+    [roadFeatures, mapVersion]
+  );
+
   // Include selectedEntityId in the POI key to force a remount when selection changes.
   // Unlike polygons/lines, CircleMarker styles are baked in at creation via pointToLayer and won't update via setStyle.
   const poiKey = useMemo(
-    () => poiFeatures.features.map((f: MapFeature) => f.properties.id).join(",") + "|" + (selectedEntityId ?? ""),
-    [poiFeatures, selectedEntityId]
-  )
+    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + (selectedEntityId ?? "") + "|" + mapVersion,
+    [poiFeatures, selectedEntityId, mapVersion]
+  );
+
+  // Property border layer key, including mapVersion so it remounts after geometry changes.
   const propertyBorderKey = useMemo(
-    () => propertyBorderFeatures.features.map((f: MapFeature) => f.properties.id).join(","),
-    [propertyBorderFeatures]
-  )
+    () => propertyBorderFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapVersion,
+    [propertyBorderFeatures, mapVersion]
+  );
 
   return (
     <div
@@ -217,10 +238,17 @@ export default function MapView({
         style={{ height: "100%", width: "100%" }}
         className={isEditing ? "is-editing" : ""}
       >
-        <MapCreateHandler layerRegistry={layerRegistry} styles={styles} />
+        <MapCreateHandler
+          layerRegistry={layerRegistry}
+          creatingLayersRef={creatingLayersRef}
+          styles={styles}
+        />
         <MapCustomControls
           selectedEntityId={selectedEntityId}
+          selectedEntityStyleType={selectedEntityStyleType}
           layerRegistry={layerRegistry}
+          creatingLayersRef={creatingLayersRef}
+          styles={styles}
         />
         <GeomanControls
           options={{
@@ -230,7 +258,7 @@ export default function MapView({
             cutPolygon: false,
             removalMode: false,
             drawRectangle: false,
-            drawCircleMarker: false
+            drawCircleMarker: false,
           }}
           globalOptions={{ snappable: false }}
         />

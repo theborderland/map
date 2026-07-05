@@ -10,6 +10,8 @@ interface MapStore {
   pendingGeometry: GeoJSON.Geometry | null;
   originalGeometry: GeoJSON.Geometry | null;
   creatingStyleType: string | null;
+/** Incremented after every geometry save to force GeoJSON remount in MapView. */
+  mapVersion: number;
 
   setCreatingStyleType: (type: string | null) => void;
   startEditing: (geometry: GeoJSON.Geometry) => void;
@@ -17,6 +19,7 @@ interface MapStore {
   stopEditing: () => void;
   cancelEditing: () => void;
   setPendingGeometry: (g: GeoJSON.Geometry | null) => void;
+  incrementMapVersion: () => void;
   canChangeSelection: () => boolean;
 }
 
@@ -27,6 +30,7 @@ export const useMapStore = create<MapStore>((set, get) => ({
   pendingGeometry: null,
   originalGeometry: null,
   creatingStyleType: null,
+  mapVersion: 0,
 
   startEditing: (geometry) => set({
     isEditing: true,
@@ -64,6 +68,8 @@ export const useMapStore = create<MapStore>((set, get) => ({
   }),
 
   setPendingGeometry: (g) => set({ pendingGeometry: g }),
+  // Bumped after every entity save so MapView GeoJSON keys change and layers remount.
+  incrementMapVersion: () => set((state) => ({ mapVersion: state.mapVersion + 1 })),
   canChangeSelection: () => !get().isEditing,
   setCreatingStyleType: (type) => set({ creatingStyleType: type }),
 }));
