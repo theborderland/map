@@ -1,96 +1,64 @@
-import type { EntityRecord, StyleRecord } from "../../db/types"
-import { useEntityForm } from "../../hooks/useEntityForm"
-import { EntityFormFields } from "./EntityFormFields"
-import { EntityGeometrySection } from "./EntityGeometrySection"
-import { ROAD_TYPES } from "../../types"
-import DeleteButton from "./DeleteButton"
+import type { EntityRecord, StyleRecord } from "../../db/types";
+import { deleteEntity } from "../../db";
+import DeleteButton from "./DeleteButton";
 
 interface Props {
-  entity?: EntityRecord
-  styles: StyleRecord[]
-  defaultStyleType?: string
-  setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>
-  goBack?: () => void
-  onAfterCreate?: (id: string) => void
+  entity: EntityRecord;
+  styles: StyleRecord[];
+  setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+  goBack?: () => void;
 }
 
-export default function RoadDetail({
-  entity, styles, defaultStyleType, setEntities, goBack, onAfterCreate
-}: Props) {
-  const entityForm = useEntityForm({
-    entity, 
-    defaultStyleType, 
-    setEntities, 
-    goBack, 
-    onAfterCreate, 
-    entityKind: "road"
-  })
+export default function RoadDetail({ entity, styles, setEntities, goBack }: Props) {
+  const style = styles.find((s) => s.type === entity.styleType);
 
-  const compatibleStyles = styles.filter(s => ROAD_TYPES.has(s.type))
-  const canSave = entityForm.isCreate
-    ? !!entityForm.name.trim() && !!entityForm.selectedStyleType && !!entityForm.pendingGeometry
-    : !!entityForm.name.trim()
+  const handleDelete = async () => {
+    await deleteEntity(entity.id);
+    setEntities((prev) => prev.filter((e) => e.id !== entity.id));
+    goBack?.();
+  };
 
   return (
     <div className="entity-detail">
       <div className="form-fields">
-        <EntityFormFields
-          name={entityForm.name} setName={entityForm.setName}
-          selectedStyleType={entityForm.selectedStyleType} setSelectedStyleType={entityForm.setSelectedStyleType}
-          tagline={entityForm.tagline} setTagline={entityForm.setTagline}
-          compatibleStyles={compatibleStyles}
-        />
-      </div>
-
-      <div className="form-actions">
-        {entityForm.isCreate ? (
-          <>
-            {/* Create mode needs the geometry section above the actions for the status message */}
-            {entityForm.isCreate && (
-              <EntityGeometrySection
-                isCreate={true}
-                entity={entity}
-                isEditing={entityForm.isEditing}
-                pendingGeometry={entityForm.pendingGeometry}
-                startEditing={entityForm.startEditing}
-                handleCancelGeometry={entityForm.handleCancelGeometry}
-              />
-            )}
-            <wa-button onClick={() => entityForm.handleSave()} size="xs" appearance="filled" disabled={!canSave}>
-              <wa-icon slot="start" name="floppy-disk"></wa-icon>
-              Create
-            </wa-button>
-            <wa-button onClick={entityForm.handleCancelGeometry} size="xs" appearance="outlined">
-              <wa-icon slot="start" name="x"></wa-icon>
-              Cancel
-            </wa-button>
-          </>
-        ) : (
-          <>
-            <wa-button onClick={() => entityForm.handleSave()} size="xs" appearance="outlined" disabled={!canSave}>
-              <wa-icon slot="start" name="floppy-disk"></wa-icon>
-              Save changes
-            </wa-button>
-            {/* Edit geometry / Cancel shape edit sits alongside Save and Delete */}
-            <EntityGeometrySection
-              isCreate={false}
-              entity={entity}
-              isEditing={entityForm.isEditing}
-              pendingGeometry={entityForm.pendingGeometry}
-              startEditing={entityForm.startEditing}
-              handleCancelGeometry={entityForm.handleCancelGeometry}
-            />
-            <DeleteButton onDelete={entityForm.handleDelete} />
-          </>
+        <div className="form-field">
+          <label className="form-label">Name</label>
+          <p>{entity.name ?? "—"}</p>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Type</label>
+          <p>{style?.displayName ?? entity.styleType}</p>
+        </div>
+        {entity.tagline && (
+          <div className="form-field">
+            <label className="form-label">Tagline</label>
+            <p>{entity.tagline}</p>
+          </div>
+        )}
+        <div className="form-field">
+          <label className="form-label">Geometry</label>
+          <p className="item-meta">{entity.geometry.type}</p>
+        </div>
+        {entity.rules.length > 0 && (
+          <div className="form-field">
+            <label className="form-label">Rules</label>
+            <ul>
+              {entity.rules.map((r) => (
+                <li key={r.ruleId} className="item-meta">
+                  {r.ruleId}{r.distanceMeters ? ` (${r.distanceMeters} m)` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
-
-      {entity && (
-        <div className="entity-meta">
-          <p className="item-meta">{entity.geometry.type}</p>
-          <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
-        </div>
-      )}
+      <div className="form-actions">
+        <DeleteButton
+          message={`Delete "${entity.name ?? "this road"}"? This cannot be undone.`}
+          onDelete={handleDelete}
+        />
+      </div>
+      <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
     </div>
-  )
+  );
 }

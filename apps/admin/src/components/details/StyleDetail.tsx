@@ -1,58 +1,17 @@
-import { useState } from "react";
 import type { StyleRecord } from "../../db/types";
-import { createStyle, deleteStyle, updateStyle } from "../../db";
+import { deleteStyle } from "../../db";
 import DeleteButton from "./DeleteButton";
 
 interface Props {
-  style?: StyleRecord;
+  style: StyleRecord;
   setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
-  onAfterCreate?: (id: string) => void;
   goBack?: () => void;
 }
 
-export default function StyleDetail({ style, setStyles, onAfterCreate, goBack }: Props) {
-  const isCreate = !style;
-
-  const [typeKey, setTypeKey] = useState(style?.type ?? "");
-  const [displayName, setDisplayName] = useState(style?.displayName ?? "");
-  const [fillColor, setFillColor] = useState(style?.fillColor ?? "#3b82f6");
-  const [borderColor, setBorderColor] = useState(style?.borderColor ?? "#1d4ed8");
-  const [fillOpacity, setFillOpacity] = useState(style?.fillOpacity ?? 0.3);
-  const [borderWidth, setBorderWidth] = useState(style?.borderWidth ?? 2);
-  const [dashPattern, setDashPattern] = useState(style?.dashPattern ?? "");
-
-  const canSave = isCreate
-    ? !!typeKey.trim() && !!displayName.trim()
-    : !!displayName.trim();
-
-  const handleSave = async () => {
-    if (!canSave) return;
-
-    const payload = {
-      type: typeKey.trim().replace(/\s+/g, ""),  // Slugify: remove whitespace from type key.
-      displayName: displayName.trim(),
-      fillColor,
-      borderColor,
-      fillOpacity,
-      borderWidth,
-      dashPattern,
-    };
-
-    if (style) {
-      const updated = await updateStyle(style.id, payload);
-      setStyles(prev => prev.map(s => s.id === updated.id ? updated : s));
-    } else {
-      const created = await createStyle(payload);
-      setStyles(prev => [...prev, created]);
-      onAfterCreate?.(created.id);
-    }
-  };
-
-  /** Deletes the style from DB, removes from state, navigates back. */
+export default function StyleDetail({ style, setStyles, goBack }: Props) {
   const handleDelete = async () => {
-    if (!style) return;
     await deleteStyle(style.id);
-    setStyles(prev => prev.filter(s => s.id !== style.id));
+    setStyles((prev) => prev.filter((s) => s.id !== style.id));
     goBack?.();
   };
 
@@ -60,123 +19,39 @@ export default function StyleDetail({ style, setStyles, onAfterCreate, goBack }:
     <div className="style-detail">
       <div className="form-fields">
         <div className="form-field">
-          <label className="form-label">
-            Type key
-            {isCreate
-              ? <span className="form-hint"> — slug, spaces will be removed</span>
-              : <span className="form-hint"> — read-only after creation</span>}
-          </label>
-          <input
-            className="form-input"
-            type="text"
-            value={typeKey}
-            onChange={e => setTypeKey(e.target.value)}
-            placeholder="e.g. neighbourhood"
-            readOnly={!isCreate}
-            style={{ opacity: isCreate ? 1 : 0.5 }}
-          />
+          <label className="form-label">Type key</label>
+          <p className="item-meta" style={{ fontFamily: "monospace" }}>{style.type}</p>
         </div>
-
         <div className="form-field">
           <label className="form-label">Display name</label>
-          <input
-            className="form-input"
-            type="text"
-            value={displayName}
-            onChange={e => setDisplayName(e.target.value)}
-            placeholder="e.g. Neighbourhood"
-          />
+          <p>{style.displayName}</p>
         </div>
-
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <div className="form-field">
-            <wa-color-picker value={fillColor} label="Fill color" onChange={
-              // @ts-ignore
-              (e) => setFillColor(e.target.value)
-            } />
-          </div>
-          <div className="form-field">
-            <wa-color-picker value={borderColor} label="Border color" onChange={
-              // @ts-ignore
-              (e) => setBorderColor(e.target.value)
-            } />
-          </div>
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">Fill opacity: {fillOpacity.toFixed(2)}</label>
-          <input
-            type="range" min={0} max={1} step={0.05}
-            value={fillOpacity}
-            onChange={e => setFillOpacity(Number(e.target.value))}
-          />
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">Border width (px)</label>
-          <input
-            className="form-input"
-            type="number" min={0} max={20}
-            value={borderWidth}
-            onChange={e => setBorderWidth(Number(e.target.value))}
-          />
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            Dash pattern
-            <span className="form-hint"> — e.g. 5,5 or empty for solid</span>
-          </label>
-          <input
-            className="form-input"
-            type="text"
-            value={dashPattern}
-            onChange={e => setDashPattern(e.target.value)}
-            placeholder="5,5"
-          />
-        </div>
-
         <div className="form-field">
           <label className="form-label">Preview</label>
           <div style={{
             height: 40,
             borderRadius: 6,
-            background: fillColor,
-            opacity: fillOpacity + 0.3,
-            border: `${borderWidth}px ${dashPattern ? "dashed" : "solid"} ${borderColor}`,
+            background: style.fillColor,
+            opacity: style.fillOpacity + 0.3,
+            border: `${style.borderWidth}px ${style.dashPattern ? "dashed" : "solid"} ${style.borderColor}`,
           }} />
         </div>
+        <div className="form-field">
+          <label className="form-label">Dash pattern</label>
+          <p className="item-meta">{style.dashPattern || "solid"}</p>
+        </div>
+        <div className="form-field">
+          <label className="form-label">Border width</label>
+          <p className="item-meta">{style.borderWidth} px</p>
+        </div>
       </div>
-
       <div className="form-actions">
-        <wa-button
-          onClick={handleSave}
-          size="xs"
-          appearance={isCreate ? "filled" : "outlined"}
-          disabled={!canSave}
-        >
-          <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isCreate ? "Create" : "Save changes"}
-        </wa-button>
-
-        {isCreate ? (
-          <wa-button onClick={goBack} size="xs" appearance="outlined">
-            <wa-icon slot="start" name="x"></wa-icon>
-            Cancel
-          </wa-button>
-        ) : (
-          <DeleteButton
-            message={`Delete "${style.displayName}"? This cannot be undone.`}
-            onDelete={handleDelete}
-          />
-        )}
+        <DeleteButton
+          message={`Delete "${style.displayName}"? Entities using it will fall back to the default style.`}
+          onDelete={handleDelete}
+        />
       </div>
-
-      {style && (
-        <p className="tagline" style={{ marginTop: "1rem" }}>
-          Created: {new Date(style.createdAt).toLocaleString()}
-        </p>
-      )}
+      <p className="tagline">Created: {new Date(style.createdAt).toLocaleString()}</p>
     </div>
   );
 }

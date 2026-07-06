@@ -1,17 +1,17 @@
-import type { PanelView } from "../../types";
+import type { Tab } from "../../types";
 import type { EntityRecord, StyleRecord } from "../../db/types";
 import GroupedEntityList from "../GroupedEntityList";
 
 export default function AreasTab({
   entities,
   styles,
-  navigate,
-  onSelectEntity,
+  openGroup,
+  openEntity,
 }: {
   entities: EntityRecord[];
   styles: StyleRecord[];
-  navigate: (view: PanelView) => void;
-  onSelectEntity?: (entityId: string) => void;
+  openGroup: (tab: Tab, styleType: string) => void;
+  openEntity: (entity: EntityRecord) => void;
 }) {
   const areaEntities = entities.filter(
     (entity) => entity.geometry.type === "Polygon" || entity.geometry.type === "MultiPolygon"
@@ -22,8 +22,8 @@ export default function AreasTab({
       subtitle="Manage geographic areas and polygons on the map."
       entities={areaEntities}
       styles={styles}
-      navigate={navigate}
-      onSelectEntity={onSelectEntity}
+      openGroup={(styleType) => openGroup("Areas", styleType)}
+      openEntity={openEntity}
       groupByStyleType={true}
     />
   );

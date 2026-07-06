@@ -1,15 +1,14 @@
-import type { PanelView } from "../../types";
 import type { EntityRecord, StyleRecord } from "../../db/types";
 import StyleCard from "../StyleCard";
 
 export default function StylesTab({
   entities,
   styles,
-  navigate,
+  openStyle,
 }: {
   entities: EntityRecord[];
   styles: StyleRecord[];
-  navigate: (view: PanelView) => void;
+  openStyle: (id: string) => void;
 }) {
   return (
     <div>
@@ -23,7 +22,7 @@ export default function StylesTab({
               key={style.id}
               style={style}
               entityCount={entities.filter(e => e.styleType === style.type).length}
-              onOpen={() => navigate({ type: "style-detail", styleId: style.id })}
+              onOpen={() => openStyle(style.id)}
             />
           ))}
         </div>

@@ -1,13 +1,10 @@
-import { useCallback, useMemo, useRef, } from "react";
-import { MapContainer, TileLayer, GeoJSON, Pane, useMapEvent } from "react-leaflet";
+import { useMemo } from "react";
+import { MapContainer, TileLayer, GeoJSON, Pane } from "react-leaflet";
 import { buffer } from "@turf/turf";
 import L from "leaflet";
 import type { EntityRecord, StyleRecord } from "../db/types";
-import "@geoman-io/leaflet-geoman-free";
-import { GeomanControls } from "react-leaflet-geoman-v2";
-import { useMapStore } from "../store/mapStore";
-import MapCustomControls from "./MapCustomControls";
-import MapCreateHandler from "./MapCreateHandler";
+import "leaflet/dist/leaflet.css";
+import { MapClickHandler } from "./MapClickHandler";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -16,8 +13,7 @@ interface Props {
   entities: EntityRecord[];
   styles: StyleRecord[];
   selectedEntityId: string | null;
-  onSelectEntity: (entityId: string) => void;
-  onClearSelection: () => void;
+  openEntity: (entityId: string | null) => void;
 }
 
 type FeatureProperties = {
@@ -32,20 +28,13 @@ type MapFeature = {
   properties: FeatureProperties;
   geometry: EntityRecord["geometry"];
 };
+
 type FeatureCollection = {
   type: "FeatureCollection";
   features: MapFeature[];
 };
 
-function MapClickHandler({ onClearSelection }: { onClearSelection: () => void }) {
-  // Detect map clicks outside features and clear the current selection.
-  useMapEvent("click", () => {
-    onClearSelection();
-  });
-  return null;
-}
-
-const featureToEntity = (entity: EntityRecord): MapFeature => ({
+const EntityToFeature = (entity: EntityRecord): MapFeature => ({
   type: "Feature",
   properties: {
     id: entity.id,
@@ -56,9 +45,11 @@ const featureToEntity = (entity: EntityRecord): MapFeature => ({
   geometry: entity.geometry,
 });
 
+const isFireRoad = (feature: MapFeature) => feature.properties.styleType === "fireroad";
+
 const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryType: string) => {
   const common = {
-    color: selected ? SELECTED_BORDER_COLOR : style?.borderColor ?? DEFAULT_COLOR,
+    color: selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
     opacity: 1,
     dashArray: style?.dashPattern || undefined,
   };
@@ -75,110 +66,61 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryTyp
 
   return {
     ...common,
-    weight: selected ? (style?.borderWidth ?? 2) + 2 : style?.borderWidth ?? 2,
+    weight: selected ? (style?.borderWidth ?? 2) + 2 : (style?.borderWidth ?? 2),
     fillColor: style?.fillColor ?? DEFAULT_COLOR,
     fillOpacity: style?.fillOpacity ?? 0.35,
   };
 };
 
-export default function MapView({
-  entities,
-  styles,
-  selectedEntityId,
-  onSelectEntity,
-  onClearSelection }: Props) {
-  const { isEditing, canChangeSelection, mapVersion } = useMapStore();
-
-  // Selection handler that only forwards the event when selection changes are allowed.
-  const handleSelectEntity = useCallback((entityId: string) => {
-    if (!canChangeSelection()) return;
-    onSelectEntity(entityId)
-  }, [canChangeSelection, onSelectEntity])
-
-  // Clear selection handler that respects edit/create blocking.
-  const handleClearSelection = useCallback(() => {
-    if (!canChangeSelection()) return;
-    onClearSelection()
-  }, [canChangeSelection, onClearSelection])
-
-  // Registry of map layers keyed by entity id, used by Geoman and selection logic.
-  const layerRegistry = useRef<Map<string, L.Layer>>(new Map())
-
-  // Tracks all layers drawn during create/edit for multi-line cleanup.
-  const creatingLayersRef = useRef<L.Layer[]>([]);
-
-  // Memoize the selected entity's style type so edit-mode drawing can apply the correct style.
-  const selectedEntityStyleType = useMemo(
-    () => entities.find(e => e.id === selectedEntityId)?.styleType ?? null,
-    [entities, selectedEntityId]
-  );
-
-  // Memoized lookup table for style records by type.
+export default function MapView({ entities, styles, selectedEntityId, openEntity }: Props) {
   const styleByType = useMemo(
-    () => new Map(styles.map((style) => [style.type, style])),
+    () => new Map(styles.map((s) => [s.type, s])),
     [styles]
   );
 
-  // GeoJSON features for points, recalculated only when entities change.
-  const poiFeatures: FeatureCollection = useMemo(
-    () => ({
-      type: "FeatureCollection",
-      features: entities.filter((entity) => entity.geometry.type === "Point").map(featureToEntity),
-    }),
-    [entities]
-  );
+  const poiFeatures: FeatureCollection = useMemo(() => ({
+    type: "FeatureCollection",
+    features: entities
+      .filter((e) => e.geometry.type === "Point")
+      .map(EntityToFeature),
+  }), [entities]);
 
-  const isFireRoad = (entity: MapFeature): boolean => entity.properties.styleType === "fireroad";
-  // Buffered GeoJSON features for road display, recalculated only when entities change.
-  const roadFeatures: FeatureCollection = useMemo(
-    () => ({
-      type: "FeatureCollection",
-      features: entities
-        .filter((entity) => entity.geometry.type === "LineString" || entity.geometry.type === "MultiLineString")
-        .map(featureToEntity)
-        .map((entity) => {
-          return buffer(entity, isFireRoad(entity) ? 2.5 : 0.5, { units: "meters" }) as MapFeature;
-        }),
-    }),
-    [entities]
-  );
+  const roadFeatures: FeatureCollection = useMemo(() => ({
+    type: "FeatureCollection",
+    features: entities
+      .filter((e) => e.geometry.type === "LineString" || e.geometry.type === "MultiLineString")
+      .map(EntityToFeature)
+      .map((e) => buffer(e, isFireRoad(e) ? 2.5 : 0.5, { units: "meters" }) as MapFeature),
+  }), [entities]);
 
-  // GeoJSON features for area entities, recalculated only when entities change.
-  const areaFeatures: FeatureCollection = useMemo(
-    () => ({
-      type: "FeatureCollection",
-      features: entities.filter((entity) =>
-        entity.styleType !== "propertyborder" && (
-          entity.geometry.type === "Polygon" ||
-          entity.geometry.type === "MultiPolygon"
-        )
-      ).map(featureToEntity),
-    }),
-    [entities]
-  );
-  // Property borders are rendered separately to ensure they appear below other areas and roads.
-  // GeoJSON features for property border entities, recalculated only when entities change.
-  const propertyBorderFeatures: FeatureCollection = useMemo(
-    () => ({
-      type: "FeatureCollection",
-      features: entities.filter((entity) =>
-        entity.styleType === "propertyborder" && (
-          entity.geometry.type === "Polygon" ||
-          entity.geometry.type === "MultiPolygon"
-        )
-      ).map(featureToEntity),
-    }),
-    [entities]
-  );
+  const areaFeatures: FeatureCollection = useMemo(() => ({
+    type: "FeatureCollection",
+    features: entities
+      .filter((e) =>
+        e.styleType !== "propertyborder" &&
+        (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
+      )
+      .map(EntityToFeature),
+  }), [entities]);
 
+  // Rendered in a separate pane so it draws below areas and roads.
+  const propertyBorderFeatures: FeatureCollection = useMemo(() => ({
+    type: "FeatureCollection",
+    features: entities
+      .filter((e) =>
+        e.styleType === "propertyborder" &&
+        (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
+      )
+      .map(EntityToFeature),
+  }), [entities]);
+
+  // Binds click handler and tooltip to each rendered layer.
   const onEachFeature = (feature: MapFeature, layer: L.Layer) => {
     if (!feature.properties?.id) return;
 
-    layerRegistry.current.set(feature.properties.id, layer);
-
     layer.on("click", (event: L.LeafletMouseEvent) => {
       if (event.originalEvent) L.DomEvent.stopPropagation(event);
-      handleSelectEntity(feature.properties.id);
+      openEntity(feature.properties.id);
     });
 
     if (feature.properties.name) {
@@ -186,8 +128,9 @@ export default function MapView({
     }
   };
 
+  // POIs use L.circleMarker so style options must be passed at creation time.
   const pointToLayer = (feature: MapFeature, latlng: L.LatLng) => {
-    const entity = entities.find((item) => item.id === feature.properties.id);
+    const entity = entities.find((e) => e.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
     return L.circleMarker(latlng, {
@@ -197,78 +140,48 @@ export default function MapView({
   };
 
   const styleFeature = (feature: MapFeature) => {
-    const entity = entities.find((item) => item.id === feature.properties.id);
+    const entity = entities.find((e) => e.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
     return getStyle(style, selected, feature.properties.geometryType);
   };
 
-  // Include mapVersion so GeoJSON layers remount after a geometry save.
   const areaKey = useMemo(
-    () => areaFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapVersion,
-    [areaFeatures, mapVersion]
+    () => areaFeatures.features.map((f) => f.properties.id).join(","),
+    [areaFeatures]
   );
+
   const roadKey = useMemo(
-    () => roadFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapVersion,
-    [roadFeatures, mapVersion]
+    () => roadFeatures.features.map((f) => f.properties.id).join(","),
+    [roadFeatures]
   );
 
-  // Include selectedEntityId in the POI key to force a remount when selection changes.
-  // Unlike polygons/lines, CircleMarker styles are baked in at creation via pointToLayer and won't update via setStyle.
+  // selectedEntityId included so POI layers remount on selection change —
+  // circleMarker style is baked in at creation and won't update via setStyle.
   const poiKey = useMemo(
-    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + (selectedEntityId ?? "") + "|" + mapVersion,
-    [poiFeatures, selectedEntityId, mapVersion]
+    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + (selectedEntityId ?? ""),
+    [poiFeatures, selectedEntityId]
   );
 
-  // Property border layer key, including mapVersion so it remounts after geometry changes.
   const propertyBorderKey = useMemo(
-    () => propertyBorderFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapVersion,
-    [propertyBorderFeatures, mapVersion]
+    () => propertyBorderFeatures.features.map((f) => f.properties.id).join(","),
+    [propertyBorderFeatures]
   );
 
   return (
-    <div
-      className={isEditing ? "is-editing" : ""}
-      style={{ height: "100%", width: "100%" }}
-    >
+    <div style={{ height: "100%", width: "100%" }}>
       <MapContainer
         // @ts-ignore
         center={[57.6226, 14.9276]}
         zoom={15}
         style={{ height: "100%", width: "100%" }}
-        className={isEditing ? "is-editing" : ""}
       >
-        <MapCreateHandler
-          layerRegistry={layerRegistry}
-          creatingLayersRef={creatingLayersRef}
-          styles={styles}
-        />
-        <MapCustomControls
-          selectedEntityId={selectedEntityId}
-          selectedEntityStyleType={selectedEntityStyleType}
-          layerRegistry={layerRegistry}
-          creatingLayersRef={creatingLayersRef}
-          styles={styles}
-        />
-        <GeomanControls
-          options={{
-            editMode: false,
-            dragMode: false,
-            rotateMode: false,
-            cutPolygon: false,
-            removalMode: false,
-            drawRectangle: false,
-            drawCircleMarker: false,
-          }}
-          globalOptions={{ snappable: false }}
-        />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
           // @ts-ignore
           subdomains={["mt0", "mt1", "mt2", "mt3"]}
         />
         <Pane name="property-borders">
-          {/* Render property borders in a separate pane to ensure they are below other areas and roads. */}
           <GeoJSON
             key={propertyBorderKey}
             data={propertyBorderFeatures}
@@ -300,12 +213,12 @@ export default function MapView({
             key={poiKey}
             data={poiFeatures}
             // @ts-ignore
-            tyle={styleFeature}
+            style={styleFeature}
             pointToLayer={pointToLayer}
             onEachFeature={onEachFeature}
           />
         </Pane>
-        <MapClickHandler onClearSelection={handleClearSelection} />
+        <MapClickHandler onClearSelection={() => openEntity(null)} />
       </MapContainer>
     </div>
   );

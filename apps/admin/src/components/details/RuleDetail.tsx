@@ -1,56 +1,17 @@
-import { useState } from "react";
 import type { RuleRecord } from "../../db/types";
-import { createRule, deleteRule, updateRule } from "../../db";
+import { deleteRule } from "../../db";
 import DeleteButton from "./DeleteButton";
 
 interface Props {
-  rule?: RuleRecord;
+  rule: RuleRecord;
   setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
-  onAfterCreate?: (id: string) => void;
   goBack?: () => void;
 }
 
-export default function RuleDetail({ rule, setRules, onAfterCreate, goBack }: Props) {
-  const isCreate = !rule;
-
-  const [name, setName] = useState(rule?.name ?? "");
-  const [ruleType, setRuleType] = useState(rule?.ruleType ?? "overlap");
-  const [severity, setSeverity] = useState(rule?.severity ?? "medium");
-  const [message, setMessage] = useState(rule?.message ?? "");
-  const [hasOverride, setHasOverride] = useState(!!rule?.styleOverride);
-  const [overrideColor, setOverrideColor] = useState(rule?.styleOverride?.fillColor ?? "#ff0000");
-  const [overrideOpacity, setOverrideOpacity] = useState(rule?.styleOverride?.fillOpacity ?? 0.6);
-
-  const canSave = !!name.trim() && !!message.trim();
-
-  const handleSave = async () => {
-    if (!canSave) return;
-
-    const payload = {
-      name: name.trim(),
-      ruleType: ruleType as RuleRecord["ruleType"],
-      severity: severity as RuleRecord["severity"],
-      message: message.trim(),
-      styleOverride: hasOverride
-        ? { fillColor: overrideColor, fillOpacity: overrideOpacity }
-        : undefined,
-    };
-
-    if (rule) {
-      const updated = await updateRule(rule.id, payload);
-      setRules(prev => prev.map(r => r.id === updated.id ? updated : r));
-    } else {
-      const created = await createRule(payload);
-      setRules(prev => [...prev, created]);
-      onAfterCreate?.(created.id);
-    }
-  };
-
-  /** Deletes the rule from DB, removes from state, navigates back. */
+export default function RuleDetail({ rule, setRules, goBack }: Props) {
   const handleDelete = async () => {
-    if (!rule) return;
     await deleteRule(rule.id);
-    setRules(prev => prev.filter(r => r.id !== rule.id));
+    setRules((prev) => prev.filter((r) => r.id !== rule.id));
     goBack?.();
   };
 
@@ -59,108 +20,37 @@ export default function RuleDetail({ rule, setRules, onAfterCreate, goBack }: Pr
       <div className="form-fields">
         <div className="form-field">
           <label className="form-label">Name</label>
-          <input
-            className="form-input"
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Rule name"
-          />
+          <p>{rule.name}</p>
         </div>
-
         <div className="form-field">
           <label className="form-label">Type</label>
-          <select className="form-select" value={ruleType} onChange={e => setRuleType(e.target.value)}>
-            <option value="overlap">Overlap — camp cannot overlap this area</option>
-            <option value="proximity">Proximity — camp cannot be within X metres</option>
-          </select>
+          <p>{rule.ruleType === "overlap" ? "Overlap" : "Proximity"}</p>
         </div>
-
         <div className="form-field">
           <label className="form-label">Severity</label>
-          <select className="form-select" value={severity} onChange={e => setSeverity(e.target.value)}>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+          <span className={`badge severity-${rule.severity}`}>{rule.severity}</span>
         </div>
-
         <div className="form-field">
           <label className="form-label">Message</label>
-          <textarea
-            className="form-input"
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            placeholder="Shown to the visitor when this rule is violated"
-            rows={3}
-          />
+          <p>{rule.message}</p>
         </div>
-
-        <div className="form-field">
-          <label className="form-label">
-            <input
-              type="checkbox"
-              checked={hasOverride}
-              onChange={e => setHasOverride(e.target.checked)}
-              style={{ marginRight: "0.4rem" }}
-            />
-            Apply style override on violation
-          </label>
-
-          {hasOverride && (
-            <>
-              <div className="form-field" style={{ marginTop: "0.5rem" }}>
-                <label className="form-label">Override fill colour</label>
-                <wa-color-picker value={overrideColor} onChange={
-                  // @ts-ignore
-                  (e) => setOverrideColor(e.target.value)
-                } />
-              </div>
-              <div className="form-field" style={{ marginTop: "0.5rem" }}>
-                <label className="form-label">
-                  Override opacity: {overrideOpacity.toFixed(2)}
-                </label>
-                <input
-                  type="range"
-                  min={0} max={1} step={0.05}
-                  value={overrideOpacity}
-                  onChange={e => setOverrideOpacity(Number(e.target.value))}
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="form-actions">
-        <wa-button
-          onClick={handleSave}
-          size="xs"
-          appearance={isCreate ? "filled" : "outlined"}
-          disabled={!canSave}
-        >
-          <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isCreate ? "Create" : "Save changes"}
-        </wa-button>
-
-        {isCreate ? (
-          <wa-button onClick={goBack} size="xs" appearance="outlined">
-            <wa-icon slot="start" name="x"></wa-icon>
-            Cancel
-          </wa-button>
-        ) : (
-          <DeleteButton
-            message={`Delete "${rule.name}"? This cannot be undone.`}
-            onDelete={handleDelete}
-          />
+        {rule.styleOverride && (
+          <div className="form-field">
+            <label className="form-label">Style override</label>
+            <div className="grid" style={{ gridTemplateColumns: "auto auto" }}>
+              <span className="badge">Fill: {rule.styleOverride.fillColor}</span>
+              <span className="badge">Opacity: {rule.styleOverride.fillOpacity}</span>
+            </div>
+          </div>
         )}
       </div>
-
-      {rule && (
-        <p className="tagline" style={{ marginTop: "1rem" }}>
-          Created: {new Date(rule.createdAt).toLocaleString()}
-        </p>
-      )}
+      <div className="form-actions">
+        <DeleteButton
+          message={`Delete "${rule.name}"? It will be detached from all entities.`}
+          onDelete={handleDelete}
+        />
+      </div>
+      <p className="tagline">Created: {new Date(rule.createdAt).toLocaleString()}</p>
     </div>
   );
 }

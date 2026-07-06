@@ -1,13 +1,13 @@
+// Header shown at the top of the left panel content area.
+// Shows the current view title and an optional back button for child views.
 export default function LeftPanelHeader({
   title,
   showBack,
   onBack,
-  onCreateClick,
 }: {
-  title: string
-  showBack?: boolean
-  onBack?: () => void
-  onCreateClick?: () => void     // undefined = hide the button
+  title: string;
+  showBack?: boolean;
+  onBack?: () => void;
 }) {
   return (
     <div className="left-panel-header">
@@ -22,16 +22,6 @@ export default function LeftPanelHeader({
         </>
       )}
       <h2 className="title">{title}</h2>
-      {onCreateClick && (
-        <>
-        <wa-button id="tooltip-left" size="xs" appearance="outlined" onClick={onCreateClick} className="create-button">
-          <wa-icon name="plus"></wa-icon>
-        </wa-button>
-        <wa-tooltip placement="left" for="tooltip-left">
-            Create new
-          </wa-tooltip>
-        </>
-      )}
     </div>
-  )
+  );
 }

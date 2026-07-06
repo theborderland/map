@@ -2,7 +2,6 @@
 // - Flat list (groupByStyleType = false): renders a grid of `EntityCard` items.
 // - Grouped list (groupByStyleType = true): shows `GroupedEntityCard` entries that open
 import type { EntityRecord, StyleRecord } from "../db/types";
-import type { PanelView } from "../types";
 import EntityCard from "./EntityCard";
 import GroupedEntityCard from "./GroupedEntityCard";
 
@@ -10,8 +9,8 @@ interface Props {
   subtitle?: string;
   entities: EntityRecord[];
   styles: StyleRecord[];
-  navigate: (view: PanelView) => void;
-  onSelectEntity?: (entityId: string) => void;
+  openGroup?: (styleType: string) => void;
+  openEntity: (entity: EntityRecord) => void;
   groupByStyleType?: boolean;
 }
 
@@ -19,15 +18,11 @@ export default function GroupedEntityList({
   subtitle,
   entities,
   styles,
-  navigate,
-  onSelectEntity,
-  groupByStyleType = false,
+  openGroup,
+  openEntity,
+  groupByStyleType = false, // false renders EntityCard, true renders GroupedEntityCard
 }: Props) {
   const styleByType = new Map(styles.map((s) => [s.type, s]));
-  const openEntity = (entity: EntityRecord) => {
-    onSelectEntity?.(entity.id);
-    navigate({ type: "entity-detail", entityId: entity.id });
-  };
 
   const renderEntityList = (entities: EntityRecord[], fixedStyle?: StyleRecord) => (
     <div className="grid">
@@ -69,7 +64,7 @@ export default function GroupedEntityList({
               groupName={style?.displayName ?? styleType}
               groupCount={groupEntities.length}
               style={style}
-              onOpen={() => navigate({ type: "entity-group", styleType })}
+              onOpen={() => openGroup?.(styleType)}
             />
           );
         })}

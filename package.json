@@ -12,6 +12,7 @@
     "build:map": "npm run build -w map"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.21",
     "concurrently": "^10.0.3",
     "eslint": "^10.6.0"
   }

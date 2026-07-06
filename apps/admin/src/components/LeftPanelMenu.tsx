@@ -4,13 +4,13 @@
 import type { Tab } from "../types";
 import type { RefObject } from "react";
 
+const TABS: Tab[] = ["Areas", "Roads", "POIs", "Rules", "Styles"];
+
 export default function LeftPanelMenu({
-  tabs,
   activeTab,
   onTabClick,
   activeRef,
 }: {
-  tabs: Tab[];
   activeTab: Tab;
   onTabClick: (tab: Tab) => void;
   activeRef: RefObject<HTMLDivElement | null>;
@@ -19,7 +19,7 @@ export default function LeftPanelMenu({
   return (
     <div className="menu">
       <div className="menu-inner">
-        {tabs.map((tab: Tab) => (
+        {TABS.map((tab: Tab) => (
           <div
             key={tab}
             ref={activeTab === tab ? activeRef : null}

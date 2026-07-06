@@ -1,15 +1,14 @@
-import type { PanelView } from "../../types";
 import type { EntityRecord, RuleRecord } from "../../db/types";
 import RuleCard from "../RuleCard";
 
 export default function RulesTab({
   entities,
   rules,
-  navigate,
+  openRule,
 }: {
   entities: EntityRecord[];
   rules: RuleRecord[];
-  navigate: (view: PanelView) => void;
+  openRule: (id: string) => void;
 }) {
   return (
     <div>
@@ -24,7 +23,7 @@ export default function RulesTab({
               key={rule.id}
               rule={rule}
               entityCount={entities.filter(e => e.rules.some(r => r.ruleId == rule.id)).length}
-              onOpen={() => navigate({ type: "rule-detail", ruleId: rule.id })}
+              onOpen={() => openRule(rule.id)}
             />
           ))}
         </div>

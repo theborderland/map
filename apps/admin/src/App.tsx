@@ -2,30 +2,40 @@ import { useState, useEffect } from "react";
 import LeftPanel from "./components/LeftPanel";
 import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
-import type { Tab } from "./types";
+import type { PanelView, Tab } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord } from "./db/types";
 import {
   isAuthenticated,
   resetAndReseed,
   getEntities, getStyles, getRules,
 } from "./db";
+import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 
 function App() {
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [entities, setEntities] = useState<EntityRecord[]>([]);
   const [styles, setStyles] = useState<StyleRecord[]>([]);
   const [rules, setRules] = useState<RuleRecord[]>([]);
-  const [activeTab, setActiveTab] = useState<Tab>("Areas");
-  const [selectedEntity, setSelectedEntity] = useState<{ id: string; key: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [navStack, setNavStack] = useState<PanelView[]>([createRoot("Areas")]);
 
-  const handleUserTabChange = (tab: Tab) => {
-    setSelectedEntity(null);
-    setActiveTab(tab);
-  };
+  const currentView = navStack[navStack.length - 1];
+  const activeTab: Tab = getActiveTabFromNav(navStack, entities);
 
-  const setActiveTabDirect = (tab: Tab) => {
-    setActiveTab(tab);
+  const selectedEntityId =
+    currentView.type === "entity-detail"
+      ? currentView.entityId
+      : null;
+
+  const openEntity = (entityId: string | null) => {
+    if (entityId === null) {
+      setNavStack([createRoot(activeTab)]);
+      return;
+    }
+    const entity = entities.find(e => e.id === entityId);
+    if (!entity) return;
+
+    setNavStack(buildEntityNavigation(entity));
   };
 
   useEffect(() => {
@@ -62,16 +72,14 @@ function App() {
       <div className="left">
         <LeftPanel
           activeTab={activeTab}
-          onUserTabChange={handleUserTabChange}
-          setActiveTabDirect={setActiveTabDirect}
           entities={entities}
           rules={rules}
           styles={styles}
-          selectedEntity={selectedEntity}
-          onSelectEntity={(entityId: string) => setSelectedEntity({ id: entityId, key: Date.now() })}
           setEntities={setEntities}
           setRules={setRules}
           setStyles={setStyles}
+          navStack={navStack}
+          setNavStack={setNavStack}
         />
       </div>
 
@@ -79,9 +87,8 @@ function App() {
         <MapView
           entities={entities}
           styles={styles}
-          selectedEntityId={selectedEntity?.id ?? null}
-          onSelectEntity={(entityId: string) => setSelectedEntity({ id: entityId, key: Date.now() })}
-          onClearSelection={() => setSelectedEntity(null)}
+          selectedEntityId={selectedEntityId ?? null}
+          openEntity={openEntity}
         />
       </div>
     </div>
