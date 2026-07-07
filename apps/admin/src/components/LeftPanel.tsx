@@ -1,5 +1,5 @@
 import {
-  useRef, useEffect, useCallback, type ReactNode
+  useRef, useEffect, type ReactNode
 } from "react";
 import type { Tab, PanelView } from "../types";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../db/types";
@@ -22,6 +22,7 @@ interface Props {
   setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
   navStack: PanelView[];
   setNavStack: React.Dispatch<React.SetStateAction<PanelView[]>>;
+  bumpMapKey: () => void;
 }
 
 export default function LeftPanel({
@@ -34,6 +35,7 @@ export default function LeftPanel({
   setStyles,
   navStack,
   setNavStack,
+  bumpMapKey
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
 
@@ -89,24 +91,30 @@ export default function LeftPanel({
               key={entity.id}
               entity={entity}
               styles={styles}
+              rules={rules}
               setEntities={setEntities}
               goBack={goBack}
+              bumpMapKey={bumpMapKey}
             />;
           case "Roads":
             return <RoadDetail
               key={entity.id}
               entity={entity}
               styles={styles}
+              rules={rules}
               setEntities={setEntities}
               goBack={goBack}
+              bumpMapKey={bumpMapKey}
             />;
           case "POIs":
             return <POIDetail
               key={entity.id}
               entity={entity}
               styles={styles}
+              rules={rules}
               setEntities={setEntities}
               goBack={goBack}
+              bumpMapKey={bumpMapKey}
             />;
         };
         break;

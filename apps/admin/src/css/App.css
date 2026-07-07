@@ -250,6 +250,17 @@ body {
   gap: 0.5rem;
   margin-top: 1rem;
 }
+
+.form-field {
+  margin-bottom: 0.25rem;
+}
+
+.form-textarea-geojson {
+  font-family: monospace;
+  font-size: 0.78rem;
+  line-height: normal;
+}
+
 wa-dialog {
   /* 
   Stop the dialog from taking up space (when opened) where the element is defined, for example in the button row.

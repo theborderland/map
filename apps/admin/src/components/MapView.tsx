@@ -12,6 +12,7 @@ const SELECTED_BORDER_COLOR = "#fff";
 interface Props {
   entities: EntityRecord[];
   styles: StyleRecord[];
+  mapKey: number;
   selectedEntityId: string | null;
   openEntity: (entityId: string | null) => void;
 }
@@ -72,7 +73,7 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryTyp
   };
 };
 
-export default function MapView({ entities, styles, selectedEntityId, openEntity }: Props) {
+export default function MapView({ entities, styles, mapKey, selectedEntityId, openEntity }: Props) {
   const styleByType = useMemo(
     () => new Map(styles.map((s) => [s.type, s])),
     [styles]
@@ -146,26 +147,27 @@ export default function MapView({ entities, styles, selectedEntityId, openEntity
     return getStyle(style, selected, feature.properties.geometryType);
   };
 
+  // mapKey included so layers remount after a geometry save.
   const areaKey = useMemo(
-    () => areaFeatures.features.map((f) => f.properties.id).join(","),
-    [areaFeatures]
+    () => areaFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
+    [areaFeatures, mapKey]
   );
 
   const roadKey = useMemo(
-    () => roadFeatures.features.map((f) => f.properties.id).join(","),
-    [roadFeatures]
+    () => roadFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
+    [roadFeatures, mapKey]
   );
 
   // selectedEntityId included so POI layers remount on selection change —
   // circleMarker style is baked in at creation and won't update via setStyle.
   const poiKey = useMemo(
-    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + (selectedEntityId ?? ""),
-    [poiFeatures, selectedEntityId]
+    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + (selectedEntityId ?? "") + "|" + mapKey,
+    [poiFeatures, selectedEntityId, mapKey]
   );
 
   const propertyBorderKey = useMemo(
-    () => propertyBorderFeatures.features.map((f) => f.properties.id).join(","),
-    [propertyBorderFeatures]
+    () => propertyBorderFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
+    [propertyBorderFeatures, mapKey]
   );
 
   return (

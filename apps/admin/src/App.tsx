@@ -18,23 +18,26 @@ function App() {
   const [rules, setRules] = useState<RuleRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [navStack, setNavStack] = useState<PanelView[]>([createRoot("Areas")]);
+  // Incrementing this forces all GeoJSON layers in MapView to remount,
+  // picking up geometry changes that Leaflet wouldn't detect otherwise.
+  const [mapKey, setMapKey] = useState(0);
 
   const currentView = navStack[navStack.length - 1];
   const activeTab: Tab = getActiveTabFromNav(navStack, entities);
 
   const selectedEntityId =
-    currentView.type === "entity-detail"
-      ? currentView.entityId
-      : null;
+    currentView.type === "entity-detail" ? currentView.entityId : null;
+
+  /** Bumps mapKey so MapView GeoJSON layers remount after a geometry save. */
+  const bumpMapKey = () => setMapKey((k) => k + 1);
 
   const openEntity = (entityId: string | null) => {
     if (entityId === null) {
       setNavStack([createRoot(activeTab)]);
       return;
     }
-    const entity = entities.find(e => e.id === entityId);
+    const entity = entities.find((e) => e.id === entityId);
     if (!entity) return;
-
     setNavStack(buildEntityNavigation(entity));
   };
 
@@ -48,7 +51,6 @@ function App() {
         const [entitiesData, stylesData, rulesData] = await Promise.all([
           getEntities(), getStyles(), getRules(),
         ]);
-        // await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate loading delay
         setEntities(entitiesData);
         setStyles(stylesData);
         setRules(rulesData);
@@ -80,6 +82,7 @@ function App() {
           setStyles={setStyles}
           navStack={navStack}
           setNavStack={setNavStack}
+          bumpMapKey={bumpMapKey}
         />
       </div>
 
@@ -87,6 +90,7 @@ function App() {
         <MapView
           entities={entities}
           styles={styles}
+          mapKey={mapKey}
           selectedEntityId={selectedEntityId ?? null}
           openEntity={openEntity}
         />

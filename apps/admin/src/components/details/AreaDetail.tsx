@@ -1,16 +1,47 @@
-import type { EntityRecord, StyleRecord } from "../../db/types";
-import { deleteEntity } from "../../db";
+import { useState } from "react";
+import type { Geometry } from "geojson";
+import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
+import { updateEntity, deleteEntity } from "../../db";
+import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
+import GeometryEditor from "./GeometryEditor";
+import RulesSelector from "./RulesSelector";
 
 interface Props {
   entity: EntityRecord;
   styles: StyleRecord[];
+  rules: RuleRecord[];
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
+  bumpMapKey: () => void;
 }
 
-export default function AreaDetail({ entity, styles, setEntities, goBack }: Props) {
-  const style = styles.find((s) => s.type === entity.styleType);
+export default function AreaDetail({ entity, styles, rules, setEntities, goBack, bumpMapKey }: Props) {
+  const [name, setName] = useState(entity.name ?? "");
+  const [tagline, setTagline] = useState(entity.tagline ?? "");
+  const [styleType, setStyleType] = useState(entity.styleType);
+  const [attachedRules, setAttachedRules] = useState(entity.rules);
+  const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Exclude road-specific styles from the dropdown.
+  const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const geometry = pendingGeometry ?? entity.geometry;
+    const updated = await updateEntity(entity.id, {
+      name: name.trim(),
+      tagline: tagline.trim(),
+      styleType,
+      rules: attachedRules,
+      geometry,
+    });
+    setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
+    // Bump map version so GeoJSON layers remount with the new geometry.
+    if (pendingGeometry) bumpMapKey();
+    setIsSaving(false);
+  };
 
   const handleDelete = async () => {
     await deleteEntity(entity.id);
@@ -23,41 +54,62 @@ export default function AreaDetail({ entity, styles, setEntities, goBack }: Prop
       <div className="form-fields">
         <div className="form-field">
           <label className="form-label">Name</label>
-          <p>{entity.name ?? "—"}</p>
+          <wa-input
+            value={name}
+            placeholder="Name"
+            onInput={(e: Event) => setName((e.target as HTMLInputElement).value)}
+          />
         </div>
+
         <div className="form-field">
           <label className="form-label">Style</label>
-          <p>{style?.displayName ?? entity.styleType}</p>
+          <wa-select
+            value={styleType}
+            onChange={(e: Event) => setStyleType((e.target as HTMLSelectElement).value)}
+          >
+            {compatibleStyles.map((s) => (
+              <wa-option key={s.id} value={s.type}>{s.displayName}</wa-option>
+            ))}
+          </wa-select>
         </div>
-        {entity.tagline && (
-          <div className="form-field">
-            <label className="form-label">Tagline</label>
-            <p>{entity.tagline}</p>
-          </div>
-        )}
+
         <div className="form-field">
-          <label className="form-label">Geometry</label>
-          <p className="item-meta">{entity.geometry.type}</p>
+          <label className="form-label">Tagline</label>
+          <wa-input
+            value={tagline}
+            placeholder="Short tagline (optional)"
+            onInput={(e: Event) => setTagline((e.target as HTMLInputElement).value)}
+          />
         </div>
-        {entity.rules.length > 0 && (
-          <div className="form-field">
-            <label className="form-label">Rules</label>
-            <ul>
-              {entity.rules.map((r) => (
-                <li key={r.ruleId} className="item-meta">
-                  {r.ruleId}{r.distanceMeters ? ` (${r.distanceMeters} m)` : ""}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+
+        <RulesSelector
+          attachedRules={attachedRules}
+          allRules={rules}
+          onChange={setAttachedRules}
+        />
+
+        <GeometryEditor
+          geometry={pendingGeometry ?? entity.geometry}
+          onChange={setPendingGeometry}
+        />
       </div>
+
       <div className="form-actions">
+        <wa-button
+          size="xs"
+          appearance="outlined"
+          disabled={isSaving || undefined}
+          onClick={handleSave}
+        >
+          <wa-icon slot="start" name="floppy-disk"></wa-icon>
+          {isSaving ? "Saving…" : "Save changes"}
+        </wa-button>
         <DeleteButton
           message={`Delete "${entity.name ?? "this area"}"? This cannot be undone.`}
           onDelete={handleDelete}
         />
       </div>
+
       <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
     </div>
   );
