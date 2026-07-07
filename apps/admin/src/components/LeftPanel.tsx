@@ -110,7 +110,6 @@ export default function LeftPanel({
             return <POIDetail
               key={entity.id}
               entity={entity}
-              styles={styles}
               rules={rules}
               setEntities={setEntities}
               goBack={goBack}

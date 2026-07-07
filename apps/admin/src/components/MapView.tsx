@@ -5,6 +5,7 @@ import L from "leaflet";
 import type { EntityRecord, StyleRecord } from "../db/types";
 import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
+import { DEFAULT_POI_ICON, getIconPath } from "../utils/Icons";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -22,6 +23,7 @@ type FeatureProperties = {
   name: string | undefined;
   styleType: string;
   geometryType: string;
+  icon: string | undefined;
 };
 
 type MapFeature = {
@@ -42,28 +44,19 @@ const EntityToFeature = (entity: EntityRecord): MapFeature => ({
     name: entity.name,
     styleType: entity.styleType,
     geometryType: entity.geometry.type,
+    icon: entity.icon,
   },
   geometry: entity.geometry,
 });
 
 const isFireRoad = (feature: MapFeature) => feature.properties.styleType === "fireroad";
 
-const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryType: string) => {
+const getStyle = (style: StyleRecord | undefined, selected: boolean) => {
   const common = {
     color: selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
     opacity: 1,
     dashArray: style?.dashPattern || undefined,
   };
-
-  if (geometryType === "Point") {
-    return {
-      ...common,
-      radius: 7,
-      fillColor: style?.fillColor ?? DEFAULT_COLOR,
-      weight: style?.borderWidth ?? 2,
-      fillOpacity: style?.fillOpacity ?? 0.75,
-    };
-  }
 
   return {
     ...common,
@@ -72,6 +65,22 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean, geometryTyp
     fillOpacity: style?.fillOpacity ?? 0.35,
   };
 };
+
+/**
+ * Creates a divIcon wrapping the entity's PNG icon image.
+ * The --selected modifier adds a highlight ring via CSS.
+ * Remove the `poi-marker--selected` class in your stylesheet if you
+ * decide the ring doesn't look good over the satellite tiles.
+ */
+const createPOIIcon = (iconName: string, selected: boolean): L.DivIcon =>
+  L.divIcon({
+    className: "",   // Prevents Leaflet adding its own default-icon class
+    html: `<div class="poi-marker${selected ? " poi-marker--selected" : ""}">
+      <img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
 
 export default function MapView({ entities, styles, mapKey, selectedEntityId, openEntity }: Props) {
   const styleByType = useMemo(
@@ -129,22 +138,18 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
     }
   };
 
-  // POIs use L.circleMarker so style options must be passed at creation time.
-  const pointToLayer = (feature: MapFeature, latlng: L.LatLng) => {
-    const entity = entities.find((e) => e.id === feature.properties.id);
-    const style = entity ? styleByType.get(entity.styleType) : undefined;
+  /** POIs use L.marker with a divIcon so the PNG is rendered correctly. */
+  const pointToLayer = (feature: MapFeature, latlng: L.LatLng): L.Marker => {
     const selected = selectedEntityId === feature.properties.id;
-    return L.circleMarker(latlng, {
-      ...getStyle(style, selected, "Point"),
-      pane: "pois",
-    });
+    const iconName = feature.properties.icon ?? DEFAULT_POI_ICON;
+    return L.marker(latlng, { icon: createPOIIcon(iconName, selected) });
   };
 
   const styleFeature = (feature: MapFeature) => {
     const entity = entities.find((e) => e.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
-    return getStyle(style, selected, feature.properties.geometryType);
+    return getStyle(style, selected);
   };
 
   // mapKey included so layers remount after a geometry save.
@@ -158,10 +163,13 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
     [roadFeatures, mapKey]
   );
 
-  // selectedEntityId included so POI layers remount on selection change —
-  // circleMarker style is baked in at creation and won't update via setStyle.
+  // selectedEntityId included so POI markers remount on selection change,
+  // updating the divIcon's selected CSS class.
   const poiKey = useMemo(
-    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + (selectedEntityId ?? "") + "|" + mapKey,
+    () =>
+      poiFeatures.features.map((f) => f.properties.id).join(",") +
+      "|" + (selectedEntityId ?? "") +
+      "|" + mapKey,
     [poiFeatures, selectedEntityId, mapKey]
   );
 
@@ -214,8 +222,6 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
           <GeoJSON
             key={poiKey}
             data={poiFeatures}
-            // @ts-ignore
-            style={styleFeature}
             pointToLayer={pointToLayer}
             onEachFeature={onEachFeature}
           />

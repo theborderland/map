@@ -23,7 +23,7 @@ export default function GroupedEntityCard({
   } as CSSProperties;
 
   return (
-    <div className="card grouped-card cursor-pointer" style={vars} onClick={onOpen}>
+    <div className="card cursor-pointer" style={vars} onClick={onOpen}>
       <div className="card-content">
         <div className="swatch" />
         <div>

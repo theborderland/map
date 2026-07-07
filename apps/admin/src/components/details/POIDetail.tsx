@@ -1,32 +1,31 @@
 import { useState } from "react";
 import type { Geometry } from "geojson";
-import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
+import type { EntityRecord, RuleRecord } from "../../db/types";
 import { updateEntity, deleteEntity } from "../../db";
-import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
+import IconPicker from "./IconPicker";
+import { DEFAULT_POI_ICON } from "../../utils/Icons";
+
 
 interface Props {
   entity: EntityRecord;
-  styles: StyleRecord[];
   rules: RuleRecord[];
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
 }
 
-export default function POIDetail({ entity, styles, rules, setEntities, goBack, bumpMapKey }: Props) {
+export default function POIDetail({ entity, rules, setEntities, goBack, bumpMapKey }: Props) {
   const [name, setName] = useState(entity.name ?? "");
   const [tagline, setTagline] = useState(entity.tagline ?? "");
   const [description, setDescription] = useState(entity.description ?? "");
   const [link, setLink] = useState(entity.link ?? "");
-  const [styleType, setStyleType] = useState(entity.styleType);
+  const [icon, setIcon] = useState(entity.icon ?? DEFAULT_POI_ICON);
   const [attachedRules, setAttachedRules] = useState(entity.rules);
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -36,7 +35,7 @@ export default function POIDetail({ entity, styles, rules, setEntities, goBack, 
       tagline: tagline.trim(),
       description: description.trim(),
       link: link.trim(),
-      styleType,
+      icon,
       rules: attachedRules,
       geometry,
     });
@@ -61,18 +60,6 @@ export default function POIDetail({ entity, styles, rules, setEntities, goBack, 
             placeholder="Name"
             onInput={(e: Event) => setName((e.target as HTMLInputElement).value)}
           />
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">Style</label>
-          <wa-select
-            value={styleType}
-            onChange={(e: Event) => setStyleType((e.target as HTMLSelectElement).value)}
-          >
-            {compatibleStyles.map((s) => (
-              <wa-option key={s.id} value={s.type}>{s.displayName}</wa-option>
-            ))}
-          </wa-select>
         </div>
 
         <div className="form-field">
@@ -103,6 +90,8 @@ export default function POIDetail({ entity, styles, rules, setEntities, goBack, 
             onInput={(e: Event) => setLink((e.target as HTMLInputElement).value)}
           />
         </div>
+
+        <IconPicker value={icon} onChange={setIcon} />
 
         <RulesSelector
           attachedRules={attachedRules}
