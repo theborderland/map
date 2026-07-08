@@ -55,7 +55,6 @@ export class Editor {
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
 
-    private campWarningTooltip: L.Tooltip; //The tooltip that shows some warning messages under the name and area size.
     private _nameTooltips: Record<number, L.Marker>;
     private _shapeEditTooltip: ShapeEditTooltip;
     private stopwatch: number;
@@ -144,7 +143,7 @@ export class Editor {
         if (this._mode == 'moving-shape' && nextEntity) {
             this.setSelected(nextEntity);
             this.setPopup('none');
-            this.UpdateOnScreenDisplay(nextEntity, 'Drag to move');
+            this.refreshEntityTooltip(nextEntity, 'Drag to move');
             nextEntity.layer._layers[nextEntity.layer._leaflet_id - 1].dragging.enable();
             return;
         }
@@ -162,7 +161,7 @@ export class Editor {
             await this.saveEntity(prevEntity);
         }
         if (this._isEditMode || nextEntity == null) {
-            this.UpdateOnScreenDisplay(nextEntity);
+            this.UpdateEntityTooltipWithRuleMessages(nextEntity);
         }
 
         // Select the next entity
@@ -305,8 +304,6 @@ export class Editor {
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
-        this.UpdateOnScreenDisplay(null); // null hides tooltip text
-
         // Redraw shape efter a successful update.
         // Because the repository updates the revision by 1, otherwise we'll get diff warnings when trying to edit it further
         if (entityInResponse) {
@@ -396,21 +393,27 @@ export class Editor {
         this._nameTooltips[entity.id] = this.createEntityTooltip(entity);
         this._nameTooltips[entity.id].addTo(this._groups['names']);
 
-        // Update the buffered layer when the layer is being edited
+        // Dragging a vertex of a camp, also known as edit shape :)
         entity.layer.on('pm:markerdrag', () => {
-            entity.updateBufferedLayer();
             this.refreshEntityLite(entity);
-            this.UpdateOnScreenDisplay(entity);
+            entity.updateBufferedLayer();
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
         entity.layer.on('pm:markerdragend', () => {
             this.refreshEntity(entity);
             this.isAreaTooBig(entity.toGeoJSON());
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
+        // Dragging a camp
         entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
+            this.refreshEntityLite(entity);
             entity.updateBufferedLayer();
-            this.UpdateOnScreenDisplay(null);
+        });
+        entity.layer._layers[entity.layer._leaflet_id - 1].on('dragend', () => {
+            this.refreshEntity(entity);
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
         // Update the buffered layer when the layer has a vertex removed
@@ -422,7 +425,7 @@ export class Editor {
 
             entity.updateBufferedLayer();
             this.refreshEntity(entity); //important that the buffer get updated before the rules are checked
-            this.UpdateOnScreenDisplay(entity);
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
         //Instead of adding directly to the map, add the layer and its buffer to the layergroups
@@ -440,14 +443,13 @@ export class Editor {
         if (checkRules) this.refreshEntity(entity);
     }
     /**
-     * Check rules, update area and update warning color.
+     * Check rules and update warning color.
      */
     private refreshEntityLite(entity: MapEntity) {
         if (entity == null) {
             return;
         }
 
-        this.refreshEntityTooltip(entity);
         entity.checkAllRules();
         let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         entity.setLayerStyle('severity', hideWarnings);
@@ -463,7 +465,6 @@ export class Editor {
         let posEntity = entity.layer.getBounds().getCenter();
 
         if (posEntity.lat != posMarker.lat || posEntity.lng != posMarker.lng) {
-            // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
         this.refreshEntityTooltip(entity);
@@ -493,12 +494,13 @@ export class Editor {
         }
     }
 
-    private refreshEntityTooltip(entity: MapEntity | null) {
-        if (!entity || !entity.nameMarker) {
+    private refreshEntityTooltip(entity: MapEntity | null, customMsg: string | null = null) {
+        if (!entity?.nameMarker) {
             return;
         }
+        const tooltipContent = this.buildTooltipName(entity) + (customMsg ? `<br>${customMsg}` : '');
 
-        entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
+        entity.nameMarker.setTooltipContent(tooltipContent);
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
@@ -654,15 +656,6 @@ export class Editor {
 
         this.setupMapEvents(this._map);
 
-        this.campWarningTooltip = new L.Tooltip({
-            permanent: true,
-            interactive: false,
-            direction: 'center',
-            className: 'shape-tooltip',
-        });
-        this.campWarningTooltip.setLatLng([0, 0]);
-        this.campWarningTooltip.addTo(this._map);
-        this.campWarningTooltip.closeTooltip();
         this._nameTooltips = {};
         this._shapeEditTooltip = new ShapeEditTooltip(this._map);
         this.stopwatch = 0;
@@ -740,7 +733,7 @@ export class Editor {
 
         this._isEditMode = !this._isEditMode;
 
-        // Refresh tooltips for all entities, because edit mode changes the tooltip text.
+        // Refresh tooltips for all entities, because edit mode adds the size to the tooltip text.
         for (const entityId in this._currentRevisions) {
             this.refreshEntityTooltip(this._currentRevisions[entityId]);
         }
@@ -924,25 +917,16 @@ export class Editor {
         this._mapControls.forEach(control => this._map.removeControl(control));
     }
 
-    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string | null = null) {
-        if (entity || customMsg) {
-            let tooltipText = '';
+    /** Update area (if in edit mode) and show triggered rule messages */
+    private UpdateEntityTooltipWithRuleMessages(entity: MapEntity | null) {
+        if (entity) {
+            const tooltipText = entity
+                .getAllTriggeredRules()
+                .filter(rule => rule.severity >= 2)
+                .map(rule => rule.shortMessage)
+                .join('<br>');
 
-            if (customMsg) {
-                tooltipText = customMsg;
-            } else {
-                for (const rule of entity!.getAllTriggeredRules()) {
-                    if (rule.severity >= 2) {
-                        tooltipText += '<br>' + rule.shortMessage;
-                    }
-                }
-            }
-
-            this.campWarningTooltip.openOn(this._map);
-            this.campWarningTooltip.setLatLng(entity!.layer.getBounds().getCenter());
-            this.campWarningTooltip.setContent(tooltipText);
-        } else {
-            this.campWarningTooltip.close();
+            this.refreshEntityTooltip(entity, tooltipText);
         }
     }
 

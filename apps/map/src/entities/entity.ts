@@ -184,23 +184,25 @@ export class MapEntity implements EntityDTO {
         // Update the buffer layer so that its geometry is the same as this.layers geometry
         const geoJson = this.layer.toGeoJSON();
         const buffered = Turf.buffer(geoJson, this._bufferWidth, { units: 'meters' });
-        const weight = this.getAllTriggeredRules().some((r) => r.shouldShowFireBuffer) ? 1 : 0;
+        const shouldShowFireBuffer = this.getAllTriggeredRules().some((r) => r.shouldShowFireBuffer);
         if (!this.bufferLayer) {
             this.bufferLayer = L.geoJSON(buffered, {
                 style: {
                     color: 'red',
                     fillOpacity: 0.0,
-                    weight, // outline width
+                    weight: shouldShowFireBuffer ? 1 : 0, // outline width
                     dashArray: '5, 5', // outline dashed,
                 },
                 interactive: false,
             });
         } else {
             this.bufferLayer.clearLayers();
-            if (weight === 0) return;
+            if (!shouldShowFireBuffer) return;
             this.bufferLayer.addData(buffered);
             //@ts-ignore
-            this.bufferLayer.options.style.weight = weight;
+            this.bufferLayer.options.style.weight = shouldShowFireBuffer ? 1 : 0;
+            //@ts-ignore
+            this.bufferLayer.options.style.fillOpacity = shouldShowFireBuffer ? 0.3 : 0;
         }
     }
 
