@@ -40,7 +40,7 @@ export default function POIDetail({ entity, rules, setEntities, goBack, bumpMapK
       geometry,
     });
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
-    if (pendingGeometry) bumpMapKey();
+    bumpMapKey();
     setIsSaving(false);
   };
 
