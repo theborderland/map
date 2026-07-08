@@ -2,8 +2,8 @@
  * Configuration file for variables that can be changed
  */
 
-// Repository
-export const REPOSITORY_URL: string = 'https://robnowa.runasp.net';
+// Repository url override for development purposes
+export const REPOSITORY_URL_OVERRIDE: string = '';
 
 // Rules
 export const MAX_CLUSTER_SIZE: number = 1250;

@@ -58,6 +58,7 @@ export class Editor {
     private _nameTooltips: Record<number, L.Marker>;
     private _shapeEditTooltip: ShapeEditTooltip;
     private stopwatch: number;
+    private _adminApi: AdminAPI;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -588,6 +589,7 @@ export class Editor {
     }
 
     constructor(map: L.Map, hideWarningColors: boolean, isCleanAndQuietMode: boolean = false) {
+        this._adminApi = new AdminAPI();
         // Keep track of the map
         this._map = map;
         this._hideWarningColors = hideWarningColors;
@@ -687,18 +689,18 @@ export class Editor {
 
     private async addToggleEditButton() {
         // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
-        if (await AdminAPI.isEditAllowed()) {
+        if (await this._adminApi.isEditAllowed()) {
             this._map.addControl(ButtonsFactory.edit(this._isEditMode, async () => {
                 // This callback should return true if edit mode should be toggled on, false if not.
                 if (!this._isEditMode) {
-                    const isSecretSet = await AdminAPI.isEditButtonSecretSet();
+                    const isSecretSet = await this._adminApi.isEditButtonSecretSet();
 
                     if (isSecretSet) {
                         const pw = prompt('Password? 🤐');
                         if (pw == null || pw.trim() === '')
                             return false;
 
-                        const success = await AdminAPI.CheckIfSecretIsSet(pw);
+                        const success = await this._adminApi.CheckIfSecretIsSet(pw);
                         if (!success) {
                             alert('Wrong password! 😢');
                             return false;
@@ -717,7 +719,7 @@ export class Editor {
     }
 
     private async addEditButtonText() {
-        let editText = await AdminAPI.getEditText();
+        let editText = await this._adminApi.getEditText();
         if (editText) {
             this._map.addControl(Messages.editing(editText));
         }
@@ -725,7 +727,7 @@ export class Editor {
 
     public async toggleEditMode() {
         // Doublecheck if editing still is allowed.
-        if (!await AdminAPI.isEditAllowed()) {
+        if (!await this._adminApi.isEditAllowed()) {
             this._isEditMode = false;
             return;
             // Perhaps remove the button or show a message?

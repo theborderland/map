@@ -23,7 +23,9 @@ jobs:
               run: npm ci --include=optional
 
             - name: Build
-              run: npm run build
+              env:
+                API_URL: ${{ vars.API_URL }}
+              run: npm run build 
 
             - name: Deploy to Pages
               uses: peaceiris/actions-gh-pages@v3

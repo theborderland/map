@@ -1,6 +1,6 @@
 import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
-import { REPOSITORY_URL, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
+import { REPOSITORY_URL_OVERRIDE, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
 import * as Turf from '@turf/turf';
 import L from 'leaflet';
 import { getGridReference } from './utils/gridUtils';
@@ -9,8 +9,6 @@ import { AreaTypesColor } from './entities';
 
 const neighbourhoodLookup = new NeighbourhoodLookup();
 
-/** The URL to the API */
-const ENTITIES_URL = REPOSITORY_URL + '/api/v1/mapentities';
 /** Any ID selected in the URL as search parameter */
 const ID = new URLSearchParams(window.location.search).get('id');
 const IsSingleEntity = ID && !isNaN(Number(ID));
@@ -327,6 +325,7 @@ export const createStats = async () => {
     }
     await neighbourhoodLookup.load("./data/bl26/neighbourhoods.geojson");
 
+    const ENTITIES_URL = (REPOSITORY_URL_OVERRIDE ? REPOSITORY_URL_OVERRIDE : process.env.API_URL) + '/api/v1/mapentities';
     const entries = await fetchEntries(ENTITIES_URL, ID);
     const stats = createOverviewStats(entries, IsSingleEntity);
     const table: TabulatorFull = createTable(entries);

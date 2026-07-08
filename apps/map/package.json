@@ -4,7 +4,7 @@
     "description": "A borderland map interface in Javascript",
     "main": "index.js",
     "scripts": {
-        "build": "esbuild src/main.js --minify --format=iife --bundle --outdir=../../public",
+        "build": "esbuild src/main.js --minify --format=iife --bundle --outdir=../../public --define:process.env.API_URL=\\\"$API_URL\\\"",
         "dev": "esbuild src/main.js --sourcemap --format=iife --bundle --outdir=../../public --watch --servedir=../../public --serve=127.0.0.1:3000",
         "serve": "esbuild src/main.js --sourcemap --format=iife --bundle --outdir=../../public --servedir=../../public --serve=127.0.0.1:3000"
     },
