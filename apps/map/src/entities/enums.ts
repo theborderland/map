@@ -15,7 +15,7 @@ export enum AreaTypesColor {
     'sound-camp' = '#fc90e5',
     'normal-camp' = Colors.Default,
     'art' = '#ffffff',
-    'other' = '#909090',
+    'other' = '#494949',
 }
 export enum AreaTypeToText {
     'public-offering' = 'Public Offering',
