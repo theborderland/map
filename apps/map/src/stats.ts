@@ -66,6 +66,12 @@ const COLUMNS: Array<{ title: String; field: keyof Entity;[key: string]: any }> 
         headerFilter: true,
         headerFilterPlaceholder: 'Search...',
     },
+    {
+        title: "Consent contact",
+        field: "contactConsent",
+        headerFilter: true,
+        headerFilterPlaceholder: 'Search...',
+    },
     { title: 'People', field: 'nrOfPeople' },
     { title: 'Vehicles', field: 'nrOfVehicles' },
     {
@@ -120,6 +126,7 @@ type Entity = {
     areaType: string;
     contactInfo: string;
     techContactInfo: string;
+    contactConsent: string;
     description: string;
     nrOfPeople: number;
     nrOfVehicles: number;
@@ -169,6 +176,7 @@ function parseEntries(entries: any[]): Entity[] {
             areaType: String(properties.areaType),
             contactInfo: String(properties.contactInfo),
             techContactInfo: String(properties.techContactInfo),
+            contactConsent: String(properties.contactConsent),
             description: String(properties.description),
             nrOfPeople: Number(properties.nrOfPeople),
             nrOfVehicles: Number(properties.nrOfVehicles),
