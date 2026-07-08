@@ -8,10 +8,10 @@ import { setCookie, getCookie } from "./utils/cookie";
 async function index() {
     // Simple way of seeing if and API URL is set.
     try {
-        console.log(process.env.API_URL);
+        var checking_for_url = process.env.API_URL;
     } catch (error) {
         if (!REPOSITORY_URL_OVERRIDE)
-            throw new Error("You're need to provide a URL to the API");    
+            throw new Error("You need to provide a URL to the API");
     }
 
     /* 
