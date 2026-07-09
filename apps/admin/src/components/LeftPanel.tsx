@@ -7,16 +7,19 @@ import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
 import GroupedEntityList from "./GroupedEntityList";
-import { AreaDetail, RoadDetail, POIDetail, RuleDetail, StyleDetail } from "./details"
-import { buildEntityNavigation, buildGroupNavigation, buildRuleNavigation, buildStyleNavigation, createRoot, getEntityTab } from "../utils/panelNavigation";
-
+import { AreaDetail, RoadDetail, POIDetail, RuleDetail, StyleDetail } from "./details";
+import {
+  buildEntityNavigation, buildGroupNavigation,
+  buildRuleNavigation, buildStyleNavigation,
+  buildRuleCreateNavigation, buildStyleCreateNavigation,
+  createRoot, getEntityTab,
+} from "../utils/panelNavigation";
 
 interface Props {
   activeTab: Tab;
   entities: EntityRecord[];
   rules: RuleRecord[];
   styles: StyleRecord[];
-  onSelectEntity?: (entityId: string) => void;
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
   setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
@@ -35,22 +38,31 @@ export default function LeftPanel({
   setStyles,
   navStack,
   setNavStack,
-  bumpMapKey
+  bumpMapKey,
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
 
-  // ── Navigation ─────────────────────────────────────────
-  const openGroup       = (tab: Tab, styleType: string) => { setNavStack(buildGroupNavigation(tab, styleType)); };
-  const openStyle       = (styleId: string)             => { setNavStack(buildStyleNavigation(styleId)); };
-  const openRule        = (ruleId: string)              => { setNavStack(buildRuleNavigation(ruleId)); };
-  const goBack          = ()                            => { setNavStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev)); };
-  const handleTabClick  = (tab: Tab)                    => { setNavStack([createRoot(tab)]); };
+  // ── Navigation ──────────────────────────────────────────
 
-  // ── Map entity selection ───────────────────────────────────
-  // When an entity is selected on the map, switch to its tab and open its detail view.
-  const openEntity      = (entity: EntityRecord)        => { setNavStack(buildEntityNavigation(entity)); };
+  const openGroup = (tab: Tab, styleType: string) => setNavStack(buildGroupNavigation(tab, styleType));
+  const openStyle = (styleId: string) => setNavStack(buildStyleNavigation(styleId));
+  const openRule = (ruleId: string) => setNavStack(buildRuleNavigation(ruleId));
+  const openEntity = (entity: EntityRecord) => setNavStack(buildEntityNavigation(entity));
+  const goBack = () => setNavStack((prev) => prev.length > 1 ? prev.slice(0, -1) : prev);
+  const handleTabClick = (tab: Tab) => setNavStack([createRoot(tab)]);
 
-  // ── Helpers ──────────────────────────────────────────────
+  // ── Create button ───────────────────────────────────────
+  // Only shown on root views for Rules and Styles — Areas/Roads/POIs
+  // will get their own create flow when drawing is added later.
+
+  const getCreateClick = (): (() => void) | undefined => {
+    if (currentView.type !== "root") return undefined;
+    if (currentView.tab === "Rules") return () => setNavStack(buildRuleCreateNavigation());
+    if (currentView.tab === "Styles") return () => setNavStack(buildStyleCreateNavigation());
+    return undefined;
+  };
+
+  // ── Title ───────────────────────────────────────────────
 
   const getTitleForView = (view: PanelView): string => {
     switch (view.type) {
@@ -58,12 +70,13 @@ export default function LeftPanel({
       case "entity-group": return styles.find((s) => s.type === view.styleType)?.displayName ?? view.styleType;
       case "entity-detail": return entities.find((e) => e.id === view.entityId)?.name ?? "Detail";
       case "style-detail": return styles.find((s) => s.id === view.styleId)?.displayName ?? "Style";
+      case "style-create": return "New Style";
       case "rule-detail": return rules.find((r) => r.id === view.ruleId)?.name ?? "Rule";
+      case "rule-create": return "New Rule";
     }
   };
 
-  // ── Render current view ───────────────────────────────────
-  // Always renders fresh from current props so content is never stale.
+  // ── Render current view ─────────────────────────────────
 
   const renderCurrentView = (view: PanelView): ReactNode => {
     switch (view.type) {
@@ -115,7 +128,7 @@ export default function LeftPanel({
               goBack={goBack}
               bumpMapKey={bumpMapKey}
             />;
-        };
+        }
         break;
       }
 
@@ -132,6 +145,16 @@ export default function LeftPanel({
         );
       }
 
+      case "style-create":
+        return (
+          <StyleDetail
+            setStyles={setStyles}
+            goBack={goBack}
+            // After create, navigate to the new style's detail view.
+            onAfterCreate={(styleId) => setNavStack(buildStyleNavigation(styleId))}
+          />
+        );
+
       case "rule-detail": {
         const rule = rules.find((r) => r.id === view.ruleId);
         if (!rule) return null;
@@ -144,11 +167,20 @@ export default function LeftPanel({
           />
         );
       }
+
+      case "rule-create":
+        return (
+          <RuleDetail
+            setRules={setRules}
+            goBack={goBack}
+            // After create, navigate to the new rule's detail view.
+            onAfterCreate={(ruleId) => setNavStack(buildRuleNavigation(ruleId))}
+          />
+        );
     }
   };
 
-  // ── Tab content ────────────────────────────────────────
-  // Avoids remounting tab components when only the child stack changes.
+  // ── Tab content ─────────────────────────────────────────
 
   const tabContent = (() => {
     switch (activeTab) {
@@ -180,6 +212,7 @@ export default function LeftPanel({
           title={getTitleForView(currentView)}
           showBack={navStack.length > 1}
           onBack={goBack}
+          onCreateClick={getCreateClick()}
         />
         <div>{renderCurrentView(currentView)}</div>
       </div>

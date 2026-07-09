@@ -1,40 +1,59 @@
 import { useState } from "react";
 import type { RuleRecord } from "../../db/types";
-import { updateRule, deleteRule } from "../../db";
+import { updateRule, createRule, deleteRule } from "../../db";
 import DeleteButton from "./DeleteButton";
 
 interface Props {
-  rule: RuleRecord;
+  /** Undefined in create mode. */
+  rule?: RuleRecord;
   setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
   goBack?: () => void;
+  /** Called with the new rule's id after a successful create. */
+  onAfterCreate?: (ruleId: string) => void;
 }
 
-export default function RuleDetail({ rule, setRules, goBack }: Props) {
-  const [name, setName] = useState(rule.name);
-  const [ruleType, setRuleType] = useState(rule.ruleType);
-  const [severity, setSeverity] = useState(rule.severity);
-  const [message, setMessage] = useState(rule.message);
-  const [hasOverride, setHasOverride] = useState(!!rule.styleOverride);
-  const [overrideColor, setOverrideColor] = useState(rule.styleOverride?.fillColor ?? "#ff0000");
-  const [overrideOpacity, setOverrideOpacity] = useState(rule.styleOverride?.fillOpacity ?? 0.6);
+export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Props) {
+  const isCreate = !rule;
+
+  const [name, setName] = useState(rule?.name ?? "");
+  const [ruleType, setRuleType] = useState(rule?.ruleType ?? "overlap");
+  const [severity, setSeverity] = useState(rule?.severity ?? "medium");
+  const [message, setMessage] = useState(rule?.message ?? "");
+  const [hasOverride, setHasOverride] = useState(!!rule?.styleOverride);
+  const [overrideColor, setOverrideColor] = useState(rule?.styleOverride?.fillColor ?? "#ff0000");
+  const [overrideOpacity, setOverrideOpacity] = useState(rule?.styleOverride?.fillOpacity ?? 0.6);
   const [isSaving, setIsSaving] = useState(false);
 
+  const canSave = !!name.trim() && !!message.trim();
+
   const handleSave = async () => {
+    if (!canSave) return;
     setIsSaving(true);
-    const updated = await updateRule(rule.id, {
+
+    const payload = {
       name: name.trim(),
-      ruleType,
-      severity,
+      ruleType: ruleType as RuleRecord["ruleType"],
+      severity: severity as RuleRecord["severity"],
       message: message.trim(),
       styleOverride: hasOverride
         ? { fillColor: overrideColor, fillOpacity: overrideOpacity }
         : undefined,
-    });
-    setRules((prev) => prev.map((r) => r.id === updated.id ? updated : r));
+    };
+
+    if (rule) {
+      const updated = await updateRule(rule.id, payload);
+      setRules((prev) => prev.map((r) => r.id === updated.id ? updated : r));
+    } else {
+      const created = await createRule(payload);
+      setRules((prev) => [...prev, created]);
+      onAfterCreate?.(created.id);
+    }
+
     setIsSaving(false);
   };
 
   const handleDelete = async () => {
+    if (!rule) return;
     await deleteRule(rule.id);
     setRules((prev) => prev.filter((r) => r.id !== rule.id));
     goBack?.();
@@ -103,7 +122,6 @@ export default function RuleDetail({ rule, setRules, goBack }: Props) {
                 onChange={(e: Event) => setOverrideColor((e.target as HTMLInputElement).value)}
               />
             </div>
-
             <div className="form-field">
               <label className="form-label">
                 Override opacity: {overrideOpacity.toFixed(2)}
@@ -124,19 +142,24 @@ export default function RuleDetail({ rule, setRules, goBack }: Props) {
         <wa-button
           size="xs"
           appearance="outlined"
-          disabled={isSaving || undefined}
+          disabled={(!canSave || isSaving) || undefined}
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? "Saving…" : isCreate ? "Create" : "Save changes"}
         </wa-button>
-        <DeleteButton
-          message={`Delete "${rule.name}"? It will be detached from all entities.`}
-          onDelete={handleDelete}
-        />
+
+        {!isCreate && (
+          <DeleteButton
+            message={`Delete "${rule.name}"? It will be detached from all entities.`}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
-      <p className="tagline">Created: {new Date(rule.createdAt).toLocaleString()}</p>
+      {rule && (
+        <p className="tagline">Created: {new Date(rule.createdAt).toLocaleString()}</p>
+      )}
     </div>
   );
 }

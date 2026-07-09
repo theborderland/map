@@ -1,38 +1,63 @@
 import { useState } from "react";
 import type { StyleRecord } from "../../db/types";
-import { updateStyle, deleteStyle } from "../../db";
+import { updateStyle, createStyle, deleteStyle } from "../../db";
 import DeleteButton from "./DeleteButton";
 
 interface Props {
-  style: StyleRecord;
+  /** Undefined in create mode. */
+  style?: StyleRecord;
   setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
   goBack?: () => void;
+  /** Called with the new style's id after a successful create. */
+  onAfterCreate?: (styleId: string) => void;
 }
 
-export default function StyleDetail({ style, setStyles, goBack }: Props) {
-  const [displayName, setDisplayName] = useState(style.displayName);
-  const [fillColor, setFillColor] = useState(style.fillColor);
-  const [borderColor, setBorderColor] = useState(style.borderColor);
-  const [fillOpacity, setFillOpacity] = useState(style.fillOpacity);
-  const [borderWidth, setBorderWidth] = useState(style.borderWidth);
-  const [dashPattern, setDashPattern] = useState(style.dashPattern);
+export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }: Props) {
+  const isCreate = !style;
+
+  // type key is only editable in create mode — immutable after creation
+  // since entities reference it as a foreign key.
+  const [typeKey, setTypeKey] = useState(style?.type ?? "");
+  const [displayName, setDisplayName] = useState(style?.displayName ?? "");
+  const [fillColor, setFillColor] = useState(style?.fillColor ?? "#3b82f6");
+  const [borderColor, setBorderColor] = useState(style?.borderColor ?? "#1d4ed8");
+  const [fillOpacity, setFillOpacity] = useState(style?.fillOpacity ?? 0.3);
+  const [borderWidth, setBorderWidth] = useState(style?.borderWidth ?? 2);
+  const [dashPattern, setDashPattern] = useState(style?.dashPattern ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
+  const canSave = isCreate
+    ? !!typeKey.trim() && !!displayName.trim()
+    : !!displayName.trim();
+
   const handleSave = async () => {
+    if (!canSave) return;
     setIsSaving(true);
-    const updated = await updateStyle(style.id, {
+
+    const payload = {
+      type: typeKey.trim().replace(/\s+/g, ""),   // Slugify: strip whitespace from type key.
       displayName: displayName.trim(),
       fillColor,
       borderColor,
       fillOpacity,
       borderWidth,
       dashPattern,
-    });
-    setStyles((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+    };
+
+    if (style) {
+      const updated = await updateStyle(style.id, payload);
+      setStyles((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+    } else {
+      const created = await createStyle(payload);
+      setStyles((prev) => [...prev, created]);
+      onAfterCreate?.(created.id);
+    }
+
     setIsSaving(false);
   };
 
   const handleDelete = async () => {
+    if (!style) return;
     await deleteStyle(style.id);
     setStyles((prev) => prev.filter((s) => s.id !== style.id));
     goBack?.();
@@ -41,10 +66,22 @@ export default function StyleDetail({ style, setStyles, goBack }: Props) {
   return (
     <div className="style-detail">
       <div className="form-fields">
-        {/* Type key is read-only after creation — it is used as a foreign key on entities. */}
         <div className="form-field">
-          <label className="form-label">Type key</label>
-          <wa-input value={style.type} disabled />
+          <label className="form-label">
+            Type key
+            {isCreate
+              ? <span className="form-hint"> — slug, no spaces (e.g. neighbourhood)</span>
+              : <span className="form-hint"> — read-only after creation</span>}
+          </label>
+          <wa-input
+            value={isCreate ? typeKey : style.type}
+            placeholder="e.g. neighbourhood"
+            disabled={!isCreate || undefined}
+            style={!isCreate ? { opacity: 0.5 } : undefined}
+            onInput={(e: Event) => {
+              if (isCreate) setTypeKey((e.target as HTMLInputElement).value);
+            }}
+          />
         </div>
 
         <div className="form-field">
@@ -107,7 +144,7 @@ export default function StyleDetail({ style, setStyles, goBack }: Props) {
           />
         </div>
 
-        {/* Live preview updates in real time as the user adjusts style values. */}
+        {/* Live preview updates as the user adjusts style values. */}
         <div className="form-field">
           <label className="form-label">Preview</label>
           <div
@@ -126,19 +163,24 @@ export default function StyleDetail({ style, setStyles, goBack }: Props) {
         <wa-button
           size="xs"
           appearance="outlined"
-          disabled={isSaving || undefined}
+          disabled={(!canSave || isSaving) || undefined}
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? "Saving…" : isCreate ? "Create" : "Save changes"}
         </wa-button>
-        <DeleteButton
-          message={`Delete "${style.displayName}"? Entities using it will fall back to the default style.`}
-          onDelete={handleDelete}
-        />
+
+        {!isCreate && (
+          <DeleteButton
+            message={`Delete "${style.displayName}"? Entities using it will fall back to the default style.`}
+            onDelete={handleDelete}
+          />
+        )}
       </div>
 
-      <p className="tagline">Created: {new Date(style.createdAt).toLocaleString()}</p>
+      {style && (
+        <p className="tagline">Created: {new Date(style.createdAt).toLocaleString()}</p>
+      )}
     </div>
   );
 }

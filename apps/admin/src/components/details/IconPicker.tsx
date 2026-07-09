@@ -44,23 +44,20 @@ export default function IconPicker({ value, onChange }: Props) {
                     const selected = value === name;
                     return (
                         <button
+                            id={"tooltip-" + name}
                             key={name}
                             ref={selected ? selectedRef : null}
-                            title={name}
                             onClick={() => onChange(name)}
                             className={selected ? "selected" : ""}
                         >
                             <img
                                 src={getIconPath(name)}
-                                alt={name}
                                 width={36}
                                 height={36}
-                                style={{ objectFit: "contain" }}
                             />
-                            <span>
-                                {name}
-                            </span>
+                            <wa-tooltip for={"tooltip-" + name} placement="top">{name}</wa-tooltip>
                         </button>
+
                     );
                 })}
             </div>
