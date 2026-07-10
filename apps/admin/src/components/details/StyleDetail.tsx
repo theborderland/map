@@ -160,6 +160,12 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
       </div>
 
       <div className="form-actions">
+        {!isCreate && (
+          <DeleteButton
+            message={`Delete "${style.displayName}"? Entities using it will fall back to the default style.`}
+            onDelete={handleDelete}
+          />
+        )}
         <wa-button
           size="xs"
           appearance="outlined"
@@ -167,15 +173,8 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : isCreate ? "Create" : "Save changes"}
+          {isSaving ? "Saving…" : isCreate ? "Create" : "Save"}
         </wa-button>
-
-        {!isCreate && (
-          <DeleteButton
-            message={`Delete "${style.displayName}"? Entities using it will fall back to the default style.`}
-            onDelete={handleDelete}
-          />
-        )}
       </div>
 
       {style && (

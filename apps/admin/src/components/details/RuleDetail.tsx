@@ -139,6 +139,12 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
       </div>
 
       <div className="form-actions">
+        {!isCreate && (
+          <DeleteButton
+            message={`Delete "${rule.name}"? It will be detached from all entities.`}
+            onDelete={handleDelete}
+          />
+        )}
         <wa-button
           size="xs"
           appearance="outlined"
@@ -146,15 +152,8 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : isCreate ? "Create" : "Save changes"}
+          {isSaving ? "Saving…" : isCreate ? "Create" : "Save"}
         </wa-button>
-
-        {!isCreate && (
-          <DeleteButton
-            message={`Delete "${rule.name}"? It will be detached from all entities.`}
-            onDelete={handleDelete}
-          />
-        )}
       </div>
 
       {rule && (

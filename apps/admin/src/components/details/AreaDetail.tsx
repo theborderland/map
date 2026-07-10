@@ -95,6 +95,10 @@ export default function AreaDetail({ entity, styles, rules, setEntities, goBack,
       </div>
 
       <div className="form-actions">
+        <DeleteButton
+          message={`Delete "${entity.name ?? "this area"}"? This cannot be undone.`}
+          onDelete={handleDelete}
+        />
         <wa-button
           size="xs"
           appearance="outlined"
@@ -102,12 +106,8 @@ export default function AreaDetail({ entity, styles, rules, setEntities, goBack,
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : "Save changes"}
+          {isSaving ? "Saving…" : "Save"}
         </wa-button>
-        <DeleteButton
-          message={`Delete "${entity.name ?? "this area"}"? This cannot be undone.`}
-          onDelete={handleDelete}
-        />
       </div>
 
       <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
