@@ -1,7 +1,7 @@
 import {
   useRef, useEffect, type ReactNode
 } from "react";
-import type { Tab, PanelView } from "../types";
+import type { Tab, PanelView, EditMode } from "../types";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../db/types";
 import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
@@ -26,6 +26,9 @@ interface Props {
   navStack: PanelView[];
   setNavStack: React.Dispatch<React.SetStateAction<PanelView[]>>;
   bumpMapKey: () => void;
+  editMode: EditMode;
+  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
+  onCancelEdit: () => void;
 }
 
 export default function LeftPanel({
@@ -39,23 +42,27 @@ export default function LeftPanel({
   navStack,
   setNavStack,
   bumpMapKey,
+  editMode,
+  pendingGeometryRef,
+  onCancelEdit
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
+  const isEditing = editMode !== "idle";
 
   // ── Navigation ──────────────────────────────────────────
-
-  const openGroup = (tab: Tab, styleType: string) => setNavStack(buildGroupNavigation(tab, styleType));
-  const openStyle = (styleId: string) => setNavStack(buildStyleNavigation(styleId));
-  const openRule = (ruleId: string) => setNavStack(buildRuleNavigation(ruleId));
-  const openEntity = (entity: EntityRecord) => setNavStack(buildEntityNavigation(entity));
-  const goBack = () => setNavStack((prev) => prev.length > 1 ? prev.slice(0, -1) : prev);
-  const handleTabClick = (tab: Tab) => setNavStack([createRoot(tab)]);
+  const openGroup = (tab: Tab, styleType: string) => { if (isEditing) return; setNavStack(buildGroupNavigation(tab, styleType)); };
+  const openStyle = (styleId: string) => { if (isEditing) return; setNavStack(buildStyleNavigation(styleId)); };
+  const openRule = (ruleId: string) => { if (isEditing) return; setNavStack(buildRuleNavigation(ruleId)); };
+  const openEntity = (entity: EntityRecord) => { if (isEditing) return; setNavStack(buildEntityNavigation(entity)); };
+  const goBack = () => { if (isEditing) return; setNavStack((prev) => prev.length > 1 ? prev.slice(0, -1) : prev); };
+  const handleTabClick = (tab: Tab) => { if (isEditing) return; setNavStack([createRoot(tab)]); };
 
   // ── Create button ───────────────────────────────────────
   // Only shown on root views for Rules and Styles — Areas/Roads/POIs
   // will get their own create flow when drawing is added later.
 
   const getCreateClick = (): (() => void) | undefined => {
+    if (isEditing) return undefined;
     if (currentView.type !== "root") return undefined;
     if (currentView.tab === "Rules") return () => setNavStack(buildRuleCreateNavigation());
     if (currentView.tab === "Styles") return () => setNavStack(buildStyleCreateNavigation());
@@ -100,15 +107,19 @@ export default function LeftPanel({
         if (!entity) return null;
         switch (getEntityTab(entity)) {
           case "Areas":
-            return <AreaDetail
-              key={entity.id}
-              entity={entity}
-              styles={styles}
-              rules={rules}
-              setEntities={setEntities}
-              goBack={goBack}
-              bumpMapKey={bumpMapKey}
-            />;
+            return (
+              <AreaDetail
+                key={entity.id}
+                entity={entity}
+                styles={styles}
+                rules={rules}
+                setEntities={setEntities}
+                goBack={goBack}
+                bumpMapKey={bumpMapKey}
+                pendingGeometryRef={pendingGeometryRef}
+                onCancelEdit={onCancelEdit}
+              />
+            );
           case "Roads":
             return <RoadDetail
               key={entity.id}
@@ -201,7 +212,7 @@ export default function LeftPanel({
   }, [activeTab]);
 
   return (
-    <>
+    <div className={isEditing ? "is-editing left-container" : "left-container"}>
       <LeftPanelMenu
         activeTab={activeTab}
         onTabClick={handleTabClick}
@@ -216,6 +227,6 @@ export default function LeftPanel({
         />
         <div>{renderCurrentView(currentView)}</div>
       </div>
-    </>
+    </div>
   );
 }

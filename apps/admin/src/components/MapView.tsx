@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, Pane } from "react-leaflet";
 import { buffer } from "@turf/turf";
 import L from "leaflet";
@@ -6,6 +6,9 @@ import type { EntityRecord, StyleRecord } from "../db/types";
 import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
 import { DEFAULT_POI_ICON, getIconPath } from "../utils/Icons";
+import MapEditController from "./MapEditController";
+import type { EditMode } from "../types";
+import MapGeometryToolbar from "./MapGeometryToolbar";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -16,6 +19,12 @@ interface Props {
   mapKey: number;
   selectedEntityId: string | null;
   openEntity: (entityId: string | null) => void;
+  editMode: EditMode;
+  editingEntityId: string | null;
+  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
+  onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
+  onCancelEdit: () => void;
+  onSaveGeometry: () => Promise<void>;
 }
 
 type FeatureProperties = {
@@ -67,22 +76,36 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean) => {
 };
 
 /**
- * Creates a divIcon wrapping the entity's PNG icon image.
- * The --selected modifier adds a highlight ring via CSS.
- * Remove the `poi-marker--selected` class in your stylesheet if you
- * decide the ring doesn't look good over the satellite tiles.
+ * Creates a divIcon for the entity's PNG icon image.
  */
-const createPOIIcon = (iconName: string, selected: boolean): L.DivIcon =>
+const createPOIIcon = (iconName: string): L.DivIcon =>
   L.divIcon({
     className: "",   // Prevents Leaflet adding its own default-icon class
-    html: `<div class="poi-marker${selected ? " poi-marker--selected" : ""}">
-      <img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />
-    </div>`,
+    html: `<img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />`,
     iconSize: [32, 32],
     iconAnchor: [16, 16],
   });
 
-export default function MapView({ entities, styles, mapKey, selectedEntityId, openEntity }: Props) {
+export default function MapView({
+  entities,
+  styles,
+  mapKey,
+  selectedEntityId,
+  openEntity,
+  editMode,
+  editingEntityId,
+  pendingGeometryRef,
+  onStartEdit,
+  onCancelEdit,
+  onSaveGeometry
+}: Props) {
+  const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
+
+  // Always holds the current editMode so onEachFeature click handlers
+  // read the live value rather than the stale closure from layer creation.
+  const editModeRef = useRef(editMode);
+  useEffect(() => { editModeRef.current = editMode; }, [editMode]);
+
   const styleByType = useMemo(
     () => new Map(styles.map((s) => [s.type, s])),
     [styles]
@@ -128,8 +151,15 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
   const onEachFeature = (feature: MapFeature, layer: L.Layer) => {
     if (!feature.properties?.id) return;
 
+    // Register every rendered layer so MapEditController can find it by entity id.
+    layerRegistry.current.set(feature.properties.id, layer);
+
     layer.on("click", (event: L.LeafletMouseEvent) => {
       if (event.originalEvent) L.DomEvent.stopPropagation(event);
+      // Block entity selection while a geometry edit is active.
+      // Read from ref so we always get the current editMode,
+      // not the stale value captured when this layer was created.
+      if (editModeRef.current !== "idle") return;
       openEntity(feature.properties.id);
     });
 
@@ -140,12 +170,12 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
 
   /** POIs use L.marker with a divIcon so the PNG is rendered correctly. */
   const pointToLayer = (feature: MapFeature, latlng: L.LatLng): L.Marker => {
-    const selected = selectedEntityId === feature.properties.id;
     const iconName = feature.properties.icon ?? DEFAULT_POI_ICON;
-    return L.marker(latlng, { icon: createPOIIcon(iconName, selected) });
+    return L.marker(latlng, { icon: createPOIIcon(iconName) });
   };
 
   const styleFeature = (feature: MapFeature) => {
+    if (editMode !== "idle") return;
     const entity = entities.find((e) => e.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
@@ -167,10 +197,8 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
   // updating the divIcon's selected CSS class.
   const poiKey = useMemo(
     () =>
-      poiFeatures.features.map((f) => f.properties.id).join(",") +
-      "|" + (selectedEntityId ?? "") +
-      "|" + mapKey,
-    [poiFeatures, selectedEntityId, mapKey]
+      poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
+    [poiFeatures, mapKey]
   );
 
   const propertyBorderKey = useMemo(
@@ -179,13 +207,21 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
   );
 
   return (
-    <div style={{ height: "100%", width: "100%" }}>
+    <div className="map-container" style={{ height: "100%", width: "100%" }}>
       <MapContainer
         // @ts-ignore
         center={[57.6226, 14.9276]}
         zoom={15}
         style={{ height: "100%", width: "100%" }}
       >
+        <MapGeometryToolbar
+          editMode={editMode}
+          editingEntityId={editingEntityId}
+          selectedEntityId={selectedEntityId}
+          onStartEdit={onStartEdit}
+          onSaveGeometry={onSaveGeometry}
+          onCancelEdit={onCancelEdit}
+        />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
           // @ts-ignore
@@ -226,7 +262,20 @@ export default function MapView({ entities, styles, mapKey, selectedEntityId, op
             onEachFeature={onEachFeature}
           />
         </Pane>
-        <MapClickHandler onClearSelection={() => openEntity(null)} />
+        <MapEditController
+          editMode={editMode}
+          editingEntityId={editingEntityId}
+          layerRegistry={layerRegistry}
+          pendingGeometryRef={pendingGeometryRef}
+          entities={entities}
+          onCancelEdit={onCancelEdit}
+        />
+        <MapClickHandler
+          onClearSelection={() => {
+            if (editModeRef.current !== "idle") return;
+            openEntity(null);
+          }}
+        />
       </MapContainer>
     </div>
   );

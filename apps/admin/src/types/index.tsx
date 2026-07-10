@@ -1,5 +1,7 @@
 export type Tab = "Areas" | "Roads" | "POIs" | "Rules" | "Styles";
 
+export type EditMode = "idle" | "vertices" | "drag" | "draw";
+
 export const ROAD_TYPES = new Set(["fireroad", "minorroad"]);
 
 export type PanelView =

@@ -14,9 +14,20 @@ interface Props {
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
+  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
+  onCancelEdit: () => void;
 }
 
-export default function AreaDetail({ entity, styles, rules, setEntities, goBack, bumpMapKey }: Props) {
+export default function AreaDetail({
+  entity,
+  styles,
+  rules,
+  setEntities,
+  goBack,
+  bumpMapKey,
+  pendingGeometryRef,
+  onCancelEdit
+}: Props) {
   const [name, setName] = useState(entity.name ?? "");
   const [tagline, setTagline] = useState(entity.tagline ?? "");
   const [styleType, setStyleType] = useState(entity.styleType);
@@ -24,12 +35,13 @@ export default function AreaDetail({ entity, styles, rules, setEntities, goBack,
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Exclude road-specific styles from the dropdown.
   const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
 
   const handleSave = async () => {
     setIsSaving(true);
-    const geometry = pendingGeometry ?? entity.geometry;
+    // Prefer local GeometryEditor edits, then map tool edits (vertex/drag),
+    // then fall back to the entity's existing geometry.
+    const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity.geometry;
     const updated = await updateEntity(entity.id, {
       name: name.trim(),
       tagline: tagline.trim(),
@@ -37,9 +49,17 @@ export default function AreaDetail({ entity, styles, rules, setEntities, goBack,
       rules: attachedRules,
       geometry,
     });
+
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
-    // Bump map version so GeoJSON layers remount with the new geometry.
-    if (pendingGeometry) bumpMapKey();
+    if (pendingGeometry || pendingGeometryRef.current) {
+      // Bump map version so GeoJSON layers remount with the new geometry.
+      bumpMapKey();
+      // Clear the map edit ref so it isn't accidentally reused on next save.
+      pendingGeometryRef.current = null;
+    }
+
+    // Exit geometry edit mode if it was active when the user clicked Save changes.
+    onCancelEdit();
     setIsSaving(false);
   };
 
@@ -47,6 +67,7 @@ export default function AreaDetail({ entity, styles, rules, setEntities, goBack,
     await deleteEntity(entity.id);
     setEntities((prev) => prev.filter((e) => e.id !== entity.id));
     goBack?.();
+    onCancelEdit();
   };
 
   return (
