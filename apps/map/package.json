@@ -33,6 +33,7 @@
         "leaflet-search": "^4.0.0",
         "leaflet.locatecontrol": "^0.84.2",
         "leaflet.path.drag": "^0.0.6",
+        "leaflet.pattern": "^0.1.0",
         "leaflet.polylinemeasure": "^3.0.0",
         "tabulator-tables": "^6.3.1"
     },
