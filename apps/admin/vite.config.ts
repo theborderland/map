@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
 
+    publicDir: isProd ? false : "../../public/admin",
     base: isProd ? "/map/admin/" : "/admin/",
     server: {
       proxy: {
@@ -24,8 +25,9 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: "../../public/admin", // IMPORTANT
-      emptyOutDir: true,
+      emptyOutDir: false,
       target: "es2020",
+      chunkSizeWarningLimit: 2000,
       rollupOptions: {
         output: {
           entryFileNames: "[name].js",
