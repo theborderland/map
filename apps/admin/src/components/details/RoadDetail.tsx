@@ -50,14 +50,13 @@ export default function RoadDetail({
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
 
     if (pendingGeometry || pendingGeometryRef.current) {
-      bumpMapKey();
       // Clear so it isn't reused on a subsequent save.
       pendingGeometryRef.current = null;
     }
-
+    
+    bumpMapKey();
     // Exit geometry edit mode if active — restores buffered display.
     onCancelEdit();
-
     setIsSaving(false);
   };
 

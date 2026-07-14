@@ -140,6 +140,8 @@ export default function LeftPanel({
               setEntities={setEntities}
               goBack={goBack}
               bumpMapKey={bumpMapKey}
+              pendingGeometryRef={pendingGeometryRef}
+              onCancelEdit={onCancelEdit}
             />;
         }
         break;

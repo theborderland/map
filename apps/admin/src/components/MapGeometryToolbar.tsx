@@ -10,7 +10,7 @@ const BUTTONS = {
   CANCEL:        "geo-cancel",
 };
 
-type EntityType = "area" | "road" | null;
+type EntityType = "area" | "road" | "poi" | null;
 
 interface Props {
   editMode:           EditMode;
@@ -94,14 +94,17 @@ export default function MapGeometryToolbar({
       });
 
     } else if (!isEditing && hasSelection) {
-      // ── Idle with selection: show mode buttons ───────────
       const type = selectedEntityType;
 
+      // POIs don't have a vertex-edit mode so MOVE maps to their primary action above.
+      // Only show the separate Move button for areas and roads.
+      if (type !== "poi") {
       toolbar.createCustomControl({
         name:      BUTTONS.EDIT_VERTICES,
         block:     "custom",
-        title:     type === "road" ? "Edit line" : "Edit shape",
-        className: "leaflet-pm-icon-edit",     // Geoman's pencil icon
+        title:     type === "road" ? "Edit line"
+                 : "Edit vertices",
+        className: "leaflet-pm-icon-edit",
         toggle:    false,
         onClick: () => {
           const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
@@ -109,31 +112,37 @@ export default function MapGeometryToolbar({
           start(id, t === "road" ? "editLine" : "vertices");
         },
       });
-
-      toolbar.createCustomControl({
-        name:      BUTTONS.MOVE,
-        block:     "custom",
-        title:     type === "road" ? "Move line" : "Move shape",
-        className: "leaflet-toolbar-icon-move",
-        toggle:    false,
-        onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
-          if (!id) return;
-          start(id, t === "road" ? "dragLine" : "drag");
-        },
-      });
+    }
+      
+        toolbar.createCustomControl({
+          name:      BUTTONS.MOVE,
+          block:     "custom",
+          title:     type === "road" ? "Move line" 
+                    : type === "poi"  ? "Move point(s)"
+                    : "Move shape",
+          className: "leaflet-toolbar-icon-move",
+          toggle:    false,
+          onClick: () => {
+            const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
+            if (!id) return;
+            start(id, t === "road" ? "dragLine" : t === "poi" ? "movePOI" : "drag");
+          },
+        });
 
       toolbar.createCustomControl({
         name:      BUTTONS.ADD_SHAPE,
         block:     "custom",
-        title:     type === "road" ? "Add line" : "Add shape",
-        // Polyline icon for roads, polygon icon for areas.
-        className: type === "road" ? "leaflet-pm-icon-polyline" : "leaflet-pm-icon-polygon",
+        title:     type === "road" ? "Add line"
+                 : type === "poi"  ? "Add point"
+                 : "Add shape",
+        className: type === "road" ? "leaflet-pm-icon-polyline" 
+                  : type == "poi" ? "leaflet-pm-icon-marker"
+                  : "leaflet-pm-icon-polygon",
         toggle:    false,
         onClick: () => {
           const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
           if (!id) return;
-          start(id, t === "road" ? "drawLine" : "draw");
+          start(id, t === "road" ? "drawLine" : t === "poi" ? "drawPOI" : "draw");
         },
       });
     }

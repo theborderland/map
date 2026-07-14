@@ -14,17 +14,17 @@ const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
 
 interface Props {
-  entities:           EntityRecord[];
-  styles:             StyleRecord[];
-  mapKey:             number;
-  selectedEntityId:   string | null;
-  openEntity:         (entityId: string | null) => void;
-  editMode:           EditMode;
-  editingEntityId:    string | null;
+  entities: EntityRecord[];
+  styles: StyleRecord[];
+  mapKey: number;
+  selectedEntityId: string | null;
+  openEntity: (entityId: string | null) => void;
+  editMode: EditMode;
+  editingEntityId: string | null;
   pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
-  onStartEdit:        (entityId: string, mode: Exclude<EditMode, "idle">) => void;
-  onCancelEdit:       () => void;
-  onSaveGeometry:     () => Promise<void>;
+  onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
+  onCancelEdit: () => void;
+  onSaveGeometry: () => Promise<void>;
 }
 
 type FeatureProperties = {
@@ -61,19 +61,19 @@ const EntityToFeature = (entity: EntityRecord): MapFeature => ({
 const isFireRoad = (feature: MapFeature) => feature.properties.styleType === "fireroad";
 
 const getStyle = (style: StyleRecord | undefined, selected: boolean) => ({
-  color:       selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
-  opacity:     1,
-  dashArray:   style?.dashPattern || undefined,
-  weight:      selected ? (style?.borderWidth ?? 2) + 2 : (style?.borderWidth ?? 2),
-  fillColor:   style?.fillColor   ?? DEFAULT_COLOR,
+  color: selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
+  opacity: 1,
+  dashArray: style?.dashPattern || undefined,
+  weight: selected ? (style?.borderWidth ?? 2) + 2 : (style?.borderWidth ?? 2),
+  fillColor: style?.fillColor ?? DEFAULT_COLOR,
   fillOpacity: style?.fillOpacity ?? 0.35,
 });
 
 const createPOIIcon = (iconName: string): L.DivIcon =>
   L.divIcon({
-    className:  "", // Prevents Leaflet adding its own default-icon class
-    html:       `<img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />`,
-    iconSize:   [32, 32],
+    className: "", // Prevents Leaflet adding its own default-icon class
+    html: `<img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />`,
+    iconSize: [32, 32],
     iconAnchor: [16, 16],
   });
 
@@ -104,13 +104,14 @@ export default function MapView({
 
   // Derive the type of the selected entity so the toolbar knows which
   // button set to show. Returns null for POIs — no geometry toolbar yet.
-  const selectedEntityType = useMemo((): "area" | "road" | null => {
+  const selectedEntityType = useMemo((): "area" | "road" | "poi" | null => {
     if (!selectedEntityId) return null;
     const entity = entities.find((e) => e.id === selectedEntityId);
     if (!entity) return null;
     const t = entity.geometry.type;
     if (t === "LineString" || t === "MultiLineString") return "road";
-    if (t === "Polygon"    || t === "MultiPolygon")    return "area";
+    if (t === "Polygon" || t === "MultiPolygon") return "area";
+    if (t === "Point" || t === "MultiPoint") return "poi";
     return null;
   }, [selectedEntityId, entities]);
 
@@ -119,7 +120,7 @@ export default function MapView({
   const poiFeatures: FeatureCollection = useMemo(() => ({
     type: "FeatureCollection",
     features: entities
-      .filter((e) => e.geometry.type === "Point")
+      .filter((e) => e.geometry.type === "Point" || e.geometry.type === "MultiPoint")
       .map(EntityToFeature),
   }), [entities]);
 
@@ -187,7 +188,7 @@ export default function MapView({
 
   const styleFeature = (feature: MapFeature) => {
     const entity = entities.find((e) => e.id === feature.properties.id);
-    const style  = entity ? styleByType.get(entity.styleType) : undefined;
+    const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
     return getStyle(style, selected);
   };

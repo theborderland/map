@@ -15,9 +15,19 @@ interface Props {
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
+  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
+  onCancelEdit:() => void;
 }
 
-export default function POIDetail({ entity, rules, setEntities, goBack, bumpMapKey }: Props) {
+export default function POIDetail({ 
+  entity, 
+  rules, 
+  setEntities, 
+  goBack, 
+  bumpMapKey, 
+  pendingGeometryRef, 
+  onCancelEdit }
+  : Props) {
   const [name, setName] = useState(entity.name ?? "");
   const [tagline, setTagline] = useState(entity.tagline ?? "");
   const [description, setDescription] = useState(entity.description ?? "");
@@ -29,7 +39,7 @@ export default function POIDetail({ entity, rules, setEntities, goBack, bumpMapK
 
   const handleSave = async () => {
     setIsSaving(true);
-    const geometry = pendingGeometry ?? entity.geometry;
+    const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity.geometry;
     const updated = await updateEntity(entity.id, {
       name: name.trim(),
       tagline: tagline.trim(),
@@ -40,7 +50,13 @@ export default function POIDetail({ entity, rules, setEntities, goBack, bumpMapK
       geometry,
     });
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
+    if (pendingGeometry || pendingGeometryRef.current) {
+      pendingGeometryRef.current = null;
+    }
+    
     bumpMapKey();
+    // Exit geometry edit mode if active.
+    onCancelEdit();
     setIsSaving(false);
   };
 

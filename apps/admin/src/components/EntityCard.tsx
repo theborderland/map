@@ -15,7 +15,7 @@ export default function EntityCard({
   style: StyleRecord | undefined;
   onOpen: () => void;
 }) {
-  const isPOI = entity.geometry.type === "Point";
+  const isPOI = entity.geometry.type === "Point" || entity.geometry.type === "MultiPoint";
 
   // Set CSS variables for the swatch colors. Allows each card to display its
   // own style's fill and border colors without hardcoding them.

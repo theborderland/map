@@ -52,12 +52,12 @@ export default function AreaDetail({
 
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
     if (pendingGeometry || pendingGeometryRef.current) {
-      // Bump map version so GeoJSON layers remount with the new geometry.
-      bumpMapKey();
       // Clear the map edit ref so it isn't accidentally reused on next save.
       pendingGeometryRef.current = null;
     }
-
+    
+    // Bump map version so GeoJSON layers remount with the new geometry.
+    bumpMapKey();
     // Exit geometry edit mode if it was active when the user clicked Save changes.
     onCancelEdit();
     setIsSaving(false);

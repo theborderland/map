@@ -13,7 +13,7 @@ export default function POIsTab({
   openGroup: (tab: Tab, styleType: string) => void;
   openEntity: (entity: EntityRecord) => void;
 }) {
-  const poiEntities = entities.filter((entity) => entity.geometry.type === "Point");
+  const poiEntities = entities.filter((entity) => entity.geometry.type === "Point" || entity.geometry.type === "MultiPoint");
 
   return (
     <GroupedEntityList

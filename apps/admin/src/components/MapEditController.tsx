@@ -8,9 +8,9 @@ import "@geoman-io/leaflet-geoman-free";
 
 type GeomanLayer = L.Layer & {
   pm: {
-    enable:           (opts?: { allowSelfIntersection?: boolean }) => void;
-    disable:          () => void;
-    enableLayerDrag:  () => void;
+    enable: (opts?: { allowSelfIntersection?: boolean }) => void;
+    disable: () => void;
+    enableLayerDrag: () => void;
     disableLayerDrag: () => void;
   };
   toGeoJSON: () => GeoJSON.Feature;
@@ -21,12 +21,12 @@ type GeomanCreateEvent = {
 };
 
 interface Props {
-  editMode:           EditMode;
-  editingEntityId:    string | null;
-  layerRegistry:      React.RefObject<Map<string, L.Layer>>;
+  editMode: EditMode;
+  editingEntityId: string | null;
+  layerRegistry: React.RefObject<Map<string, L.Layer>>;
   pendingGeometryRef: React.RefObject<Geometry | null>;
-  entities:           EntityRecord[];
-  onCancelEdit:       () => void;
+  entities: EntityRecord[];
+  onCancelEdit: () => void;
 }
 
 function getSubLayers(layer: L.Layer): L.Layer[] {
@@ -60,6 +60,19 @@ function collectLineGeometry(layer: L.GeoJSON): Geometry | null {
       (l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.LineString).coordinates
     ),
   };
+}
+
+// Reads current positions from point marker(s) after dragging.
+// Returns Point for a single marker, MultiPoint for several.
+function collectPointGeometry(layer: L.Layer): Geometry | null {
+  const subLayers = getSubLayers(layer);
+  if (!subLayers.length) return null;
+  const coords = subLayers.map((l) => {
+    const ll = (l as L.Marker).getLatLng();
+    return [ll.lng, ll.lat] as [number, number];
+  });
+  if (coords.length === 1) return { type: "Point", coordinates: coords[0]! };
+  return { type: "MultiPoint", coordinates: coords };
 }
 
 // Restores a Leaflet layer to its original geometry.
@@ -106,6 +119,18 @@ function mergeLine(base: Geometry, newLine: GeoJSON.LineString): GeoJSON.MultiLi
   return { type: "MultiLineString", coordinates: [newLine.coordinates] };
 }
 
+// Merges a newly placed point into existing POI geometry.
+// Single Point + new point becomes MultiPoint.
+function mergePoint(base: Geometry, newPoint: GeoJSON.Point): GeoJSON.MultiPoint {
+  if (base.type === "Point") {
+    return { type: "MultiPoint", coordinates: [(base as GeoJSON.Point).coordinates, newPoint.coordinates] };
+  }
+  if (base.type === "MultiPoint") {
+    return { type: "MultiPoint", coordinates: [...(base as GeoJSON.MultiPoint).coordinates, newPoint.coordinates] };
+  }
+  return { type: "MultiPoint", coordinates: [newPoint.coordinates] };
+}
+
 // Visual style for the temporary source line layer shown during road editing.
 // Shows the raw LineString instead of the buffered polygon.
 const SOURCE_LINE_STYLE = { color: "#3b82f6", weight: 3, opacity: 1, fillOpacity: 0 };
@@ -128,17 +153,17 @@ export default function MapEditController({
     if (!map.pm?.Toolbar) return;
     try {
       map.pm.addControls({
-        position:         "topleft",
-        drawText:         false,
-        drawPolygon:      false,
-        drawCircle:       false,
-        drawMarker:       false,
-        drawPolyline:     false,
-        drawRectangle:    false,
+        position: "topleft",
+        drawText: false,
+        drawPolygon: false,
+        drawCircle: false,
+        drawMarker: false,
+        drawPolyline: false,
+        drawRectangle: false,
         drawCircleMarker: false,
-        removalMode:      false,
-        editControls:     false,
-        snappable:        false,
+        removalMode: false,
+        editControls: false,
+        snappable: false,
       });
     } catch { /* already initialised */ }
   }, [map]);
@@ -278,7 +303,7 @@ export default function MapEditController({
     return () => {
       // Disable all Geoman interactions on the temp layer before removing it.
       tempLayer.getLayers().forEach((l) => {
-        try { (l as GeomanLayer).pm.disable(); }          catch { /* no-op */ }
+        try { (l as GeomanLayer).pm.disable(); } catch { /* no-op */ }
         try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
         l.off("pm:edit");
         l.off("pm:dragend");
@@ -296,6 +321,68 @@ export default function MapEditController({
       // On cancel, the road was already excluded from roadFeatures so
       // nothing visible is lost until mapKey bumps on the next interaction.
       map.removeLayer(tempLayer);
+    };
+  }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── POI: drag existing point markers ─────────────────────
+  // Enables Geoman drag on the marker(s) that are already on the map.
+  // Snapshots original positions so cancel can restore them without a remount.
+  useEffect(() => {
+    if (editMode !== "movePOI" || !editingEntityId) return;
+
+    const layer = layerRegistry.current.get(editingEntityId);
+    const entity = entities.find((e) => e.id === editingEntityId);
+    if (!layer || !entity) return;
+
+    // Snapshot original LatLng per sub-layer for cancel restore.
+    const originalPositions = new Map<L.Layer, L.LatLng>();
+    const handleDragEnd = () => {
+      pendingGeometryRef.current = collectPointGeometry(layer);
+    };
+
+    getSubLayers(layer).forEach((l) => {
+      originalPositions.set(l, (l as L.Marker).getLatLng());
+      (l as GeomanLayer).pm.enableLayerDrag();
+      l.on("pm:dragend", handleDragEnd);
+    });
+
+    return () => {
+      getSubLayers(layer).forEach((l) => {
+        try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
+        l.off("pm:dragend", handleDragEnd);
+        // Restore original position on cancel. On save, bumpMapKey()
+        // remounts the layer so this restore is immediately overridden.
+        const orig = originalPositions.get(l);
+        if (orig) (l as L.Marker).setLatLng(orig);
+      });
+    };
+  }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── POI: draw additional point, merging into MultiPoint ───
+  useEffect(() => {
+    if (editMode !== "drawPOI" || !editingEntityId) return;
+
+    const entity = entities.find((e) => e.id === editingEntityId);
+    if (!entity) return;
+
+    map.pm.enableDraw("Marker", { continueDrawing: false });
+
+    const handleCreate = (event: GeomanCreateEvent) => {
+      const drawnLayer = event.layer;
+      drawnLayersRef.current.push(drawnLayer);
+      const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.Point;
+      const base = pendingGeometryRef.current ?? entity.geometry;
+      pendingGeometryRef.current = mergePoint(base, drawnGeom);
+    };
+
+    map.on("pm:create", handleCreate);
+
+    return () => {
+      map.pm.disableDraw();
+      map.off("pm:create", handleCreate);
+      // Remove drawn markers. On save, bumpMapKey() remounts with merged geometry.
+      drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+      drawnLayersRef.current = [];
     };
   }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 

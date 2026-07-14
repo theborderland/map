@@ -9,7 +9,10 @@ export type EditMode =
   // Road modes
   | "editLine"
   | "dragLine"
-  | "drawLine";
+  | "drawLine"
+  // POIs
+  | "movePOI"
+  | "drawPOI"; // place a new point, merging into MultiPoint
 
 export const ROAD_TYPES = new Set(["fireroad", "minorroad"]);
 

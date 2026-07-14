@@ -29,7 +29,7 @@ export default function IconPicker({ value, onChange }: Props) {
             <wa-input
                 value={search}
                 placeholder="Search icons…"
-                size="small"
+                size="s"
                 onInput={(e: Event) => setSearch((e.target as HTMLInputElement).value)}
             />
 
