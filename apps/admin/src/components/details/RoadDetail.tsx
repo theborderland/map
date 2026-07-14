@@ -8,28 +8,37 @@ import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
 
 interface Props {
-  entity: EntityRecord;
-  styles: StyleRecord[];
-  rules: RuleRecord[];
-  setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
-  goBack?: () => void;
-  bumpMapKey: () => void;
+  entity:             EntityRecord;
+  styles:             StyleRecord[];
+  rules:              RuleRecord[];
+  setEntities:        React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+  goBack?:            () => void;
+  bumpMapKey:         () => void;
+  pendingGeometryRef: React.MutableRefObject<Geometry | null>;
+  onCancelEdit:       () => void;
 }
 
-export default function RoadDetail({ entity, styles, rules, setEntities, goBack, bumpMapKey }: Props) {
-  const [name, setName] = useState(entity.name ?? "");
-  const [tagline, setTagline] = useState(entity.tagline ?? "");
-  const [styleType, setStyleType] = useState(entity.styleType);
-  const [attachedRules, setAttachedRules] = useState(entity.rules);
+export default function RoadDetail({
+  entity, styles, rules, setEntities, goBack, bumpMapKey,
+  pendingGeometryRef, onCancelEdit,
+}: Props) {
+  const [name,            setName]            = useState(entity.name ?? "");
+  const [tagline,         setTagline]         = useState(entity.tagline ?? "");
+  const [styleType,       setStyleType]       = useState(entity.styleType);
+  const [attachedRules,   setAttachedRules]   = useState(entity.rules);
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving,        setIsSaving]        = useState(false);
 
   // Only show road-specific styles in the dropdown.
   const compatibleStyles = styles.filter((s) => ROAD_TYPES.has(s.type));
 
   const handleSave = async () => {
     setIsSaving(true);
-    const geometry = pendingGeometry ?? entity.geometry;
+
+    // Prefer GeometryEditor paste, then map tool edits (vertex/drag/draw),
+    // then fall back to the entity's existing geometry.
+    const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity.geometry;
+
     const updated = await updateEntity(entity.id, {
       name: name.trim(),
       tagline: tagline.trim(),
@@ -37,8 +46,18 @@ export default function RoadDetail({ entity, styles, rules, setEntities, goBack,
       rules: attachedRules,
       geometry,
     });
+
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
-    if (pendingGeometry) bumpMapKey();
+
+    if (pendingGeometry || pendingGeometryRef.current) {
+      bumpMapKey();
+      // Clear so it isn't reused on a subsequent save.
+      pendingGeometryRef.current = null;
+    }
+
+    // Exit geometry edit mode if active — restores buffered display.
+    onCancelEdit();
+
     setIsSaving(false);
   };
 
@@ -94,10 +113,6 @@ export default function RoadDetail({ entity, styles, rules, setEntities, goBack,
       </div>
 
       <div className="form-actions">
-        <DeleteButton
-          message={`Delete "${entity.name ?? "this road"}"? This cannot be undone.`}
-          onDelete={handleDelete}
-        />
         <wa-button
           size="xs"
           appearance="outlined"
@@ -105,8 +120,12 @@ export default function RoadDetail({ entity, styles, rules, setEntities, goBack,
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : "Save"}
+          {isSaving ? "Saving…" : "Save changes"}
         </wa-button>
+        <DeleteButton
+          message={`Delete "${entity.name ?? "this road"}"? This cannot be undone.`}
+          onDelete={handleDelete}
+        />
       </div>
 
       <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>

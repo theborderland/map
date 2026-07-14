@@ -5,44 +5,46 @@ import type { EditMode } from "../types";
 const BUTTONS = {
   EDIT_VERTICES: "geo-edit-vertices",
   MOVE:          "geo-move",
-  ADD_POLYGON:   "geo-add-polygon",
+  ADD_SHAPE:     "geo-add-shape",
   SAVE:          "geo-save",
   CANCEL:        "geo-cancel",
 };
 
+type EntityType = "area" | "road" | null;
+
 interface Props {
-  editMode:         EditMode;
-  editingEntityId:  string | null;
-  selectedEntityId: string | null;
-  onStartEdit:      (entityId: string, mode: Exclude<EditMode, "idle">) => void;
-  onSaveGeometry:   () => Promise<void>;
-  onCancelEdit:     () => void;
+  editMode:           EditMode;
+  editingEntityId:    string | null;
+  selectedEntityId:   string | null;
+  selectedEntityType: EntityType;
+  onStartEdit:        (entityId: string, mode: Exclude<EditMode, "idle">) => void;
+  onSaveGeometry:     () => Promise<void>;
+  onCancelEdit:       () => void;
 }
 
 /**
  * Adds geometry edit controls to Geoman's native toolbar.
- * Buttons appear under the zoom controls and look consistent with
- * any other Geoman toolbar buttons. No absolute positioning needed.
- *
- * Buttons are recreated whenever the selected entity or edit mode changes
- * so their onClick closures always have fresh references.
+ * Shows area or road specific buttons depending on the selected entity type.
+ * Uses only valid leaflet-pm-icon-* class names so buttons render correctly.
  */
 export default function MapGeometryToolbar({
   editMode,
   editingEntityId,
   selectedEntityId,
+  selectedEntityType,
   onStartEdit,
   onSaveGeometry,
   onCancelEdit,
 }: Props) {
   const map = useMap();
 
-  // Keep a stable ref so button callbacks always read the latest props
-  // without needing to recreate the buttons on every render.
+  // Stable ref so button callbacks always read the latest props
+  // without needing to recreate buttons on every render.
   const ref = useRef({
     editMode,
     editingEntityId,
     selectedEntityId,
+    selectedEntityType,
     onStartEdit,
     onSaveGeometry,
     onCancelEdit,
@@ -52,30 +54,27 @@ export default function MapGeometryToolbar({
       editMode,
       editingEntityId,
       selectedEntityId,
+      selectedEntityType,
       onStartEdit,
       onSaveGeometry,
       onCancelEdit,
     };
   });
 
-  // Recreate the toolbar buttons whenever the visible set changes
-  // (idle with selection → three edit buttons; active edit → save + cancel).
   useEffect(() => {
-    const toolbar   = map.pm.Toolbar;
-    const isEditing = editMode !== "idle";
-    const hasSelection = !!selectedEntityId;
+    const toolbar      = map.pm.Toolbar;
+    const isEditing    = editMode !== "idle";
+    const hasSelection = !!selectedEntityId && selectedEntityType !== null;
 
-    // Clean up all our buttons before rebuilding the correct set.
+    // Remove all our buttons before rebuilding the correct set.
     Object.values(BUTTONS).forEach((name) => {
       try { toolbar.deleteControl(name); } catch { /* already absent */ }
     });
 
-    // Nothing selected and not editing — no buttons needed.
     if (!hasSelection && !isEditing) return;
 
     if (isEditing && editingEntityId === selectedEntityId) {
-      // ── Active edit mode: Save + Cancel ─────────────────
-
+      // ── Active edit: Save + Cancel ───────────────────────
       toolbar.createCustomControl({
         name:      BUTTONS.SAVE,
         block:     "custom",
@@ -93,42 +92,48 @@ export default function MapGeometryToolbar({
         toggle:    false,
         onClick: () => { ref.current.onCancelEdit(); },
       });
+
     } else if (!isEditing && hasSelection) {
-      // ── Idle with a selected entity: three edit modes ────
+      // ── Idle with selection: show mode buttons ───────────
+      const type = selectedEntityType;
 
       toolbar.createCustomControl({
         name:      BUTTONS.EDIT_VERTICES,
         block:     "custom",
-        title:     "Edit shape",
-        className: "leaflet-pm-icon-edit", // leaflet/geoman default icon
+        title:     type === "road" ? "Edit line" : "Edit shape",
+        className: "leaflet-pm-icon-edit",     // Geoman's pencil icon
         toggle:    false,
         onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start } = ref.current;
-          if (id) start(id, "vertices");
+          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
+          if (!id) return;
+          start(id, t === "road" ? "editLine" : "vertices");
         },
       });
 
       toolbar.createCustomControl({
         name:      BUTTONS.MOVE,
         block:     "custom",
-        title:     "Move shape",
+        title:     type === "road" ? "Move line" : "Move shape",
         className: "leaflet-toolbar-icon-move",
         toggle:    false,
         onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start } = ref.current;
-          if (id) start(id, "drag");
+          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
+          if (!id) return;
+          start(id, t === "road" ? "dragLine" : "drag");
         },
       });
 
       toolbar.createCustomControl({
-        name:      BUTTONS.ADD_POLYGON,
+        name:      BUTTONS.ADD_SHAPE,
         block:     "custom",
-        title:     "Add shape",
-        className: "leaflet-toolbar-icon-add",
+        title:     type === "road" ? "Add line" : "Add shape",
+        // Polyline icon for roads, polygon icon for areas.
+        className: type === "road" ? "leaflet-pm-icon-polyline" : "leaflet-pm-icon-polygon",
         toggle:    false,
         onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start } = ref.current;
-          if (id) start(id, "draw");
+          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
+          if (!id) return;
+          start(id, t === "road" ? "drawLine" : "draw");
         },
       });
     }
@@ -139,7 +144,7 @@ export default function MapGeometryToolbar({
         try { toolbar.deleteControl(name); } catch { /* already absent */ }
       });
     };
-  }, [map, editMode, editingEntityId, selectedEntityId]);
+  }, [map, editMode, editingEntityId, selectedEntityId, selectedEntityType]);
 
   return null;
 }
