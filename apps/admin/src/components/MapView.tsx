@@ -167,16 +167,20 @@ export default function MapView({
     layerRegistry.current.set(feature.properties.id, layer);
 
     layer.on("click", (event: L.LeafletMouseEvent) => {
-      if (event.originalEvent) L.DomEvent.stopPropagation(event);
       // Block entity selection while a geometry edit is active.
       // Read from ref so we always get the current editMode,
       // not the stale value captured when this layer was created.
       if (editModeRef.current !== "idle") return;
+      if (event.originalEvent) L.DomEvent.stopPropagation(event);
       openEntity(feature.properties.id);
     });
 
     if (feature.properties.name) {
-      layer.bindTooltip(feature.properties.name);
+      layer.bindTooltip(feature.properties.name, { 
+        sticky: true, // tooltip will follow cursor
+        direction: "bottom",
+        offset: L.point(0, 20), // 20px lower
+      });
     }
   };
 
