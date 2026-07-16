@@ -163,8 +163,8 @@ export default function MapEditController({
         drawCircleMarker: false,
         removalMode: false,
         editControls: false,
-        snappable: false,
       });
+      map.pm.setGlobalOptions({ snappable: true, snapDistance: 10 /* px */ });
     } catch { /* already initialised */ }
   }, [map]);
 

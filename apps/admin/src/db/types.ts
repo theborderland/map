@@ -31,18 +31,20 @@ export interface StyleRecord {
 }
 
 export interface EntityRecord {
-  id: string
+  id: string;
   /** References StyleRecord.type */
-  styleType: string
-  name?: string
-  tagline?: string
-  description?: string
+  styleType: string;
+  name?: string;
+  tagline?: string;
+  description?: string;
   /** Icon filename without extension, e.g. 'toilet' → /icons/toilet.png */
-  icon?: string
-  link?: string
-  geometry: Geometry
-  rules: AttachedRule[]
-  createdAt: string
+  icon?: string;
+  link?: string;
+  /** Total road width in metres. Buffer applied = bufferMeters / 2 on each side. Only used for road entities. */
+  bufferMeters?: number;
+  geometry: Geometry;
+  rules: AttachedRule[];
+  createdAt: string;
 }
 
 export interface RuleRecord {
@@ -62,9 +64,9 @@ export interface RuleRecord {
 
 // ── Payload types (fields the caller provides; id + createdAt are generated) ─
 
-export type StylePayload  = Omit<StyleRecord,  "id" | "createdAt">
+export type StylePayload = Omit<StyleRecord, "id" | "createdAt">
 export type EntityPayload = Omit<EntityRecord, "id" | "createdAt">
-export type RulePayload   = Omit<RuleRecord,   "id" | "createdAt">
+export type RulePayload = Omit<RuleRecord, "id" | "createdAt">
 
 // ── Export shape ──────────────────────────────────────────
 

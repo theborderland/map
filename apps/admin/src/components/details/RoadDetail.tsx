@@ -28,6 +28,7 @@ export default function RoadDetail({
   const [attachedRules,   setAttachedRules]   = useState(entity.rules);
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
   const [isSaving,        setIsSaving]        = useState(false);
+  const [bufferMeters, setBufferMeters]       = useState(entity.bufferMeters ?? (entity.styleType === "fireroad" ? 5 : 2));
 
   // Only show road-specific styles in the dropdown.
   const compatibleStyles = styles.filter((s) => ROAD_TYPES.has(s.type));
@@ -45,6 +46,7 @@ export default function RoadDetail({
       styleType,
       rules: attachedRules,
       geometry,
+      bufferMeters,
     });
 
     setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
@@ -96,6 +98,18 @@ export default function RoadDetail({
             value={tagline}
             placeholder="Short tagline (optional)"
             onInput={(e: Event) => setTagline((e.target as HTMLInputElement).value)}
+          />
+        </div>
+
+        <div className="form-field">
+          <label className="form-label">Road width (metres)</label>
+          <wa-input
+            type="number"
+            value={bufferMeters.toString()}
+            min={1}
+            max={100}
+            step={1}
+            onInput={(e: Event) => setBufferMeters(Number((e.target as HTMLInputElement).value))}
           />
         </div>
 

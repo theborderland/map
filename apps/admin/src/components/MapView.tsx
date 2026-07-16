@@ -33,6 +33,7 @@ type FeatureProperties = {
   styleType: string;
   geometryType: string;
   icon: string | undefined;
+  bufferMeters: number;
 };
 
 type MapFeature = {
@@ -54,11 +55,10 @@ const EntityToFeature = (entity: EntityRecord): MapFeature => ({
     styleType: entity.styleType,
     geometryType: entity.geometry.type,
     icon: entity.icon,
+    bufferMeters: entity.bufferMeters ?? 0,
   },
   geometry: entity.geometry,
 });
-
-const isFireRoad = (feature: MapFeature) => feature.properties.styleType === "fireroad";
 
 const getStyle = (style: StyleRecord | undefined, selected: boolean) => ({
   color: selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
@@ -135,7 +135,10 @@ export default function MapView({
         return true;
       })
       .map(EntityToFeature)
-      .map((e) => buffer(e, isFireRoad(e) ? 2.5 : 0.5, { units: "meters" }) as MapFeature),
+      .map((e) =>
+        // bufferMeters is total road width — halve it since turf.buffer adds
+        // the given distance on each side of the line.
+        buffer(e, e.properties.bufferMeters / 2, { units: "meters" }) as MapFeature),
   }), [entities, isRoadEditMode, editingEntityId]);
 
   const areaFeatures: FeatureCollection = useMemo(() => ({
@@ -176,10 +179,10 @@ export default function MapView({
     });
 
     if (feature.properties.name) {
-      layer.bindTooltip(feature.properties.name, { 
+      layer.bindTooltip(feature.properties.name, {
         sticky: true, // tooltip will follow cursor
-        direction: "bottom",
-        offset: L.point(0, 20), // 20px lower
+        direction: "top",
+        offset: L.point(0, -5), // 5px higher
       });
     }
   };

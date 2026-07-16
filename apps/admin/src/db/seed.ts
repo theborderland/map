@@ -732,6 +732,7 @@ export const SEED_ENTITIES: EntityRecord[] = [
     id: "entity-fireroad-main",
     styleType: "fireroad",
     name: "Main Artery",
+    bufferMeters: 5,
     geometry: {
       // Fire roads are saved as MultiLineString
       type: "MultiLineString",
@@ -749,6 +750,7 @@ export const SEED_ENTITIES: EntityRecord[] = [
     id: "entity-fireroad-north",
     styleType: "fireroad",
     name: "North Perimeter Road",
+    bufferMeters: 5,
     geometry: {
       type: "MultiLineString",
       coordinates: [
@@ -765,6 +767,7 @@ export const SEED_ENTITIES: EntityRecord[] = [
     id: "entity-minorroad-forest",
     styleType: "minorroad",
     name: "Forest Trail",
+    bufferMeters: 2,
     geometry: {
       type: "LineString",
       coordinates: [
@@ -782,6 +785,7 @@ export const SEED_ENTITIES: EntityRecord[] = [
     id: "entity-minorroad-plaza",
     styleType: "minorroad",
     name: "Plaza Path",
+    bufferMeters: 2,
     geometry: {
       type: "LineString",
       coordinates: [
