@@ -50,6 +50,9 @@ export {
   deleteRule,
 } from "./api"
 
+// Settings
+export { getSettings, updateSettings } from "./api"
+
 // Export
 export { exportGeoJSON } from "./api"
 
@@ -58,10 +61,12 @@ export type {
   StyleRecord,
   EntityRecord,
   RuleRecord,
+  SettingsRecord,
   AttachedRule,
   StylePayload,
   EntityPayload,
   RulePayload,
+  SettingsPayload,
   FeatureProperties,
   RuleType,
   Severity,

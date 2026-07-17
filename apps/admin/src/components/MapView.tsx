@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, Pane } from "react-leaflet";
 import { buffer } from "@turf/turf";
 import L from "leaflet";
-import type { EntityRecord, StyleRecord } from "../db/types";
+import type { EntityRecord, SettingsRecord, StyleRecord } from "../db/types";
 import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
 import { DEFAULT_POI_ICON, getIconPath } from "../utils/Icons";
@@ -25,6 +25,7 @@ interface Props {
   onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
   onCancelEdit: () => void;
   onSaveGeometry: () => Promise<void>;
+  settings: SettingsRecord;
 }
 
 type FeatureProperties = {
@@ -89,6 +90,7 @@ export default function MapView({
   onStartEdit,
   onCancelEdit,
   onSaveGeometry,
+  settings
 }: Props) {
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
 
@@ -287,6 +289,7 @@ export default function MapView({
           pendingGeometryRef={pendingGeometryRef}
           entities={entities}
           onCancelEdit={onCancelEdit}
+          settings={settings}
         />
         <MapClickHandler
           onClearSelection={() => {

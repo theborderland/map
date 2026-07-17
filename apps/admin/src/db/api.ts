@@ -5,9 +5,11 @@ import type {
   StyleRecord,
   EntityRecord,
   RuleRecord,
+  SettingsRecord,
   StylePayload,
   EntityPayload,
   RulePayload,
+  SettingsPayload,
   FeatureProperties,
 } from "./types"
 
@@ -238,6 +240,41 @@ export async function deleteRule(id: string): Promise<void> {
   const existing = await db.rules.get(id)
   if (!existing) throw notFound("rules", id)
   await db.rules.delete(id)
+}
+
+// ── Settings ──────────────────────────────────────────────
+
+const SETTINGS_ID = "app-settings";
+
+const DEFAULT_SETTINGS: SettingsPayload = {
+  snapDistance: 0, // 0 = disabled
+  editButtonInfoText: "",
+  editModePassword: "",
+  mapEditModeEnabled: true,
+  adminLoginPassword: "dev",
+  autoDeleteEnabled: false,
+  autoDeleteTime: "03:00",
+};
+
+/**
+ * Return the singleton settings record, creating it with defaults
+ * on first access if it doesn't exist yet.
+ */
+export async function getSettings(): Promise<SettingsRecord> {
+  const existing = await db.settings.get(SETTINGS_ID);
+  if (existing) return existing;
+
+  const record: SettingsRecord = { id: SETTINGS_ID, ...DEFAULT_SETTINGS, updatedAt: now() };
+  await db.settings.put(record);
+  return record;
+}
+
+/** Update the settings record. Partial — only provided fields change. */
+export async function updateSettings(changes: Partial<SettingsPayload>): Promise<SettingsRecord> {
+  const existing = await getSettings();
+  const updated: SettingsRecord = { ...existing, ...changes, updatedAt: now() };
+  await db.settings.put(updated);
+  return updated;
 }
 
 // ── GeoJSON Export ────────────────────────────────────────

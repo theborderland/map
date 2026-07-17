@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Geometry } from "geojson";
-import type { EntityRecord } from "../db/types";
+import type { EntityRecord, SettingsRecord } from "../db/types";
 import type { EditMode } from "../types";
 import "@geoman-io/leaflet-geoman-free";
 
@@ -27,6 +27,7 @@ interface Props {
   pendingGeometryRef: React.RefObject<Geometry | null>;
   entities: EntityRecord[];
   onCancelEdit: () => void;
+  settings: SettingsRecord;
 }
 
 function getSubLayers(layer: L.Layer): L.Layer[] {
@@ -142,6 +143,7 @@ export default function MapEditController({
   pendingGeometryRef,
   entities,
   onCancelEdit,
+  settings
 }: Props) {
   const map = useMap();
   // Tracks layers drawn in 'draw' mode so they can be removed on cleanup.
@@ -164,9 +166,12 @@ export default function MapEditController({
         removalMode: false,
         editControls: false,
       });
-      map.pm.setGlobalOptions({ snappable: true, snapDistance: 10 /* px */ });
+      map.pm.setGlobalOptions({
+        snappable: settings.snapDistance > 0,
+        snapDistance: settings.snapDistance // px
+      });
     } catch { /* already initialised */ }
-  }, [map]);
+  }, [map, settings.snapDistance ]);
 
   // Escape key cancels whichever edit mode is active.
   useEffect(() => {

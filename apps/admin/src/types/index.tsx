@@ -1,4 +1,4 @@
-export type Tab = "Areas" | "Roads" | "POIs" | "Rules" | "Styles";
+export type Tab = "Areas" | "Roads" | "POIs" | "Rules" | "Styles" | "Settings";
 
 export type EditMode =
   | "idle"

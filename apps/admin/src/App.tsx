@@ -4,10 +4,11 @@ import LeftPanel from "./components/LeftPanel";
 import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
 import type { EditMode, PanelView, Tab } from "./types";
-import type { EntityRecord, RuleRecord, StyleRecord } from "./db/types";
+import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
 import {
   isAuthenticated, resetAndReseed,
   getEntities, getStyles, getRules, updateEntity,
+  getSettings
 } from "./db";
 import {
   buildEntityNavigation, createRoot, getActiveTabFromNav,
@@ -18,6 +19,7 @@ function App() {
   const [entities, setEntities] = useState<EntityRecord[]>([]);
   const [styles, setStyles] = useState<StyleRecord[]>([]);
   const [rules, setRules] = useState<RuleRecord[]>([]);
+  const [settings, setSettings] = useState<SettingsRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [navStack, setNavStack] = useState<PanelView[]>([createRoot("Areas")]);
   // Incrementing this forces all GeoJSON layers in MapView to remount,
@@ -84,12 +86,13 @@ function App() {
 
         // During development its nice to reset and reseed the database on each load to have a consistent starting point. :)
         await resetAndReseed();
-        const [entitiesData, stylesData, rulesData] = await Promise.all([
-          getEntities(), getStyles(), getRules(),
+        const [entitiesData, stylesData, rulesData, settingsData] = await Promise.all([
+          getEntities(), getStyles(), getRules(), getSettings(),
         ]);
         setEntities(entitiesData);
         setStyles(stylesData);
         setRules(rulesData);
+        setSettings(settingsData);
       }
       setIsLoading(false);
     };
@@ -97,38 +100,41 @@ function App() {
   }, [authenticated]);
 
   if (!authenticated) return <LoginPage onLoginSuccess={() => setAuthenticated(true)} />;
-  if (isLoading) return <div className="loading">Loading data…</div>;
+  // Guard loading until settings is ready too — settings can be null initially:
+  if (isLoading || !settings) return <div className="loading">Loading data…</div>;
 
   return (
     <div className="container">
-        <LeftPanel
-          activeTab={activeTab}
-          entities={entities}
-          rules={rules}
-          styles={styles}
-          setEntities={setEntities}
-          setRules={setRules}
-          setStyles={setStyles}
-          navStack={navStack}
-          setNavStack={setNavStack}
-          bumpMapKey={bumpMapKey}
-          editMode={editMode}
-          pendingGeometryRef={pendingGeometryRef}
-          onCancelEdit={cancelEdit}
-        />
-        <MapView
-          entities={entities}
-          styles={styles}
-          mapKey={mapKey}
-          selectedEntityId={selectedEntityId}
-          openEntity={openEntity}
-          editMode={editMode}
-          editingEntityId={editingEntityId}
-          pendingGeometryRef={pendingGeometryRef}
-          onStartEdit={startEdit}
-          onSaveGeometry={saveGeometry}
-          onCancelEdit={cancelEdit}
-        />
+      <LeftPanel
+        activeTab={activeTab}
+        entities={entities}
+        rules={rules}
+        styles={styles}
+        setEntities={setEntities}
+        setRules={setRules}
+        setStyles={setStyles}
+        navStack={navStack}
+        setNavStack={setNavStack}
+        bumpMapKey={bumpMapKey}
+        editMode={editMode}
+        pendingGeometryRef={pendingGeometryRef}
+        onCancelEdit={cancelEdit}
+        onSettingsSaved={setSettings}
+      />
+      <MapView
+        entities={entities}
+        styles={styles}
+        mapKey={mapKey}
+        selectedEntityId={selectedEntityId}
+        openEntity={openEntity}
+        editMode={editMode}
+        editingEntityId={editingEntityId}
+        pendingGeometryRef={pendingGeometryRef}
+        onStartEdit={startEdit}
+        onSaveGeometry={saveGeometry}
+        onCancelEdit={cancelEdit}
+        settings={settings}
+      />
     </div>
   );
 }

@@ -62,11 +62,28 @@ export interface RuleRecord {
   createdAt: string
 }
 
+// Settings (singleton record)
+export interface SettingsRecord {
+  id: string; // Always "app-settings" — singleton row.
+  /** Pixels. 0 disables snapping entirely; any positive value enables it at that distance. */
+  snapDistance: number;
+  editButtonInfoText: string;
+  /** Empty string means no password required. */
+  editModePassword: string;
+  mapEditModeEnabled: boolean;
+  adminLoginPassword: string;
+  autoDeleteEnabled: boolean;
+  /** 24h "HH:MM" format, Swedish time. */
+  autoDeleteTime: string;
+  updatedAt: string;
+}
+
 // ── Payload types (fields the caller provides; id + createdAt are generated) ─
 
 export type StylePayload = Omit<StyleRecord, "id" | "createdAt">
 export type EntityPayload = Omit<EntityRecord, "id" | "createdAt">
 export type RulePayload = Omit<RuleRecord, "id" | "createdAt">
+export type SettingsPayload = Omit<SettingsRecord, "id" | "updatedAt">;
 
 // ── Export shape ──────────────────────────────────────────
 

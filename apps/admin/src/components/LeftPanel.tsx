@@ -2,8 +2,8 @@ import {
   useRef, useEffect, type ReactNode
 } from "react";
 import type { Tab, PanelView, EditMode } from "../types";
-import type { EntityRecord, RuleRecord, StyleRecord } from "../db/types";
-import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab } from "./tabs";
+import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
+import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, SettingsTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
 import GroupedEntityList from "./GroupedEntityList";
@@ -29,6 +29,7 @@ interface Props {
   editMode: EditMode;
   pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
   onCancelEdit: () => void;
+  onSettingsSaved: (settings: SettingsRecord) => void;
 }
 
 export default function LeftPanel({
@@ -44,7 +45,8 @@ export default function LeftPanel({
   bumpMapKey,
   editMode,
   pendingGeometryRef,
-  onCancelEdit
+  onCancelEdit,
+  onSettingsSaved,
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
   const isEditing = editMode !== "idle";
@@ -204,6 +206,7 @@ export default function LeftPanel({
       case "POIs": return <POIsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
       case "Rules": return <RulesTab entities={entities} rules={rules} openRule={openRule} />;
       case "Styles": return <StylesTab entities={entities} styles={styles} openStyle={openStyle} />;
+      case "Settings": return <SettingsTab onSettingsSaved={onSettingsSaved}/>;
       default: return null;
     }
   })();
