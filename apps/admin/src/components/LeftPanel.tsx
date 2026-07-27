@@ -12,6 +12,7 @@ import {
   buildEntityNavigation, buildGroupNavigation,
   buildRuleNavigation, buildStyleNavigation,
   buildRuleCreateNavigation, buildStyleCreateNavigation,
+  buildPOICreateNavigation, buildPOINavigation,
   createRoot, getEntityTab,
 } from "../utils/panelNavigation";
 
@@ -30,6 +31,8 @@ interface Props {
   pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
   onCancelEdit: () => void;
   onSettingsSaved: (settings: SettingsRecord) => void;
+  selectedPOIIcon: string;
+  onSelectedPOIIconChange: (icon: string) => void;
 }
 
 export default function LeftPanel({
@@ -47,6 +50,8 @@ export default function LeftPanel({
   pendingGeometryRef,
   onCancelEdit,
   onSettingsSaved,
+  selectedPOIIcon,
+  onSelectedPOIIconChange
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
   const isEditing = editMode !== "idle";
@@ -68,6 +73,7 @@ export default function LeftPanel({
     if (currentView.type !== "root") return undefined;
     if (currentView.tab === "Rules") return () => setNavStack(buildRuleCreateNavigation());
     if (currentView.tab === "Styles") return () => setNavStack(buildStyleCreateNavigation());
+    if (currentView.tab === "POIs") return () => setNavStack(buildPOICreateNavigation());
     return undefined;
   };
 
@@ -82,6 +88,7 @@ export default function LeftPanel({
       case "style-create": return "New Style";
       case "rule-detail": return rules.find((r) => r.id === view.ruleId)?.name ?? "Rule";
       case "rule-create": return "New Rule";
+      case "poi-create": return "New POI";
     }
   };
 
@@ -132,7 +139,7 @@ export default function LeftPanel({
               goBack={goBack}
               bumpMapKey={bumpMapKey}
               pendingGeometryRef={pendingGeometryRef}
-              onCancelEdit={onCancelEdit}     
+              onCancelEdit={onCancelEdit}
             />;
           case "POIs":
             return <POIDetail
@@ -144,6 +151,9 @@ export default function LeftPanel({
               bumpMapKey={bumpMapKey}
               pendingGeometryRef={pendingGeometryRef}
               onCancelEdit={onCancelEdit}
+              editMode={editMode}
+              selectedPOIIcon={selectedPOIIcon}
+              onSelectedPOIIconChange={onSelectedPOIIconChange}
             />;
         }
         break;
@@ -194,6 +204,22 @@ export default function LeftPanel({
             onAfterCreate={(ruleId) => setNavStack(buildRuleNavigation(ruleId))}
           />
         );
+
+      case "poi-create":
+        return (
+          <POIDetail
+            rules={rules}
+            setEntities={setEntities}
+            goBack={goBack}
+            bumpMapKey={bumpMapKey}
+            pendingGeometryRef={pendingGeometryRef}
+            onCancelEdit={onCancelEdit}
+            editMode={editMode}
+            selectedPOIIcon={selectedPOIIcon}
+            onSelectedPOIIconChange={onSelectedPOIIconChange}
+            onAfterCreate={(entityId) => setNavStack(buildPOINavigation(entityId))}
+          />
+        );
     }
   };
 
@@ -206,7 +232,7 @@ export default function LeftPanel({
       case "POIs": return <POIsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
       case "Rules": return <RulesTab entities={entities} rules={rules} openRule={openRule} />;
       case "Styles": return <StylesTab entities={entities} styles={styles} openStyle={openStyle} />;
-      case "Settings": return <SettingsTab onSettingsSaved={onSettingsSaved}/>;
+      case "Settings": return <SettingsTab onSettingsSaved={onSettingsSaved} />;
       default: return null;
     }
   })();

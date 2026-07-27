@@ -13,13 +13,15 @@ const BUTTONS = {
 type EntityType = "area" | "road" | "poi" | null;
 
 interface Props {
-  editMode:           EditMode;
-  editingEntityId:    string | null;
-  selectedEntityId:   string | null;
+  editMode: EditMode;
+  editingEntityId: string | null;
+  selectedEntityId: string | null;
   selectedEntityType: EntityType;
-  onStartEdit:        (entityId: string, mode: Exclude<EditMode, "idle">) => void;
-  onSaveGeometry:     () => Promise<void>;
-  onCancelEdit:       () => void;
+  onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
+  onSaveGeometry: () => Promise<void>;
+  onCancelEdit: () => void;
+  isCreatingPOI: boolean;
+  onStartCreatePOI: () => void;
 }
 
 /**
@@ -35,6 +37,8 @@ export default function MapGeometryToolbar({
   onStartEdit,
   onSaveGeometry,
   onCancelEdit,
+  isCreatingPOI,
+  onStartCreatePOI,
 }: Props) {
   const map = useMap();
 
@@ -48,6 +52,8 @@ export default function MapGeometryToolbar({
     onStartEdit,
     onSaveGeometry,
     onCancelEdit,
+    isCreatingPOI,
+    onStartCreatePOI
   });
   useEffect(() => {
     ref.current = {
@@ -58,18 +64,60 @@ export default function MapGeometryToolbar({
       onStartEdit,
       onSaveGeometry,
       onCancelEdit,
+      isCreatingPOI,
+      onStartCreatePOI
     };
   });
 
   useEffect(() => {
-    const toolbar      = map.pm.Toolbar;
-    const isEditing    = editMode !== "idle";
+    const toolbar = map.pm.Toolbar;
+    const isEditing = editMode !== "idle";
+    // Actively placing a point for a brand new POI (no entity exists yet).
+    const isCreatingActive = editMode === "drawPOI" && editingEntityId === null;
     const hasSelection = !!selectedEntityId && selectedEntityType !== null;
 
     // Remove all our buttons before rebuilding the correct set.
     Object.values(BUTTONS).forEach((name) => {
       try { toolbar.deleteControl(name); } catch { /* already absent */ }
     });
+    // ── Creating a brand new POI ──────────────────────────
+    // Takes priority over the selection-based buttons below since there's
+    // no selected entity during creation.
+    if (isCreatingPOI || isCreatingActive) {
+      if (isCreatingActive) {
+        toolbar.createCustomControl({
+          name:       BUTTONS.SAVE,
+          block:      "custom",
+          title:      "Save point(s)",
+          className:  "leaflet-toolbar-icon-save",
+          toggle:     false,
+          onClick: () => { void ref.current.onSaveGeometry(); },
+        });
+        toolbar.createCustomControl({
+          name:       BUTTONS.CANCEL,
+          block:      "custom",
+          title:      "Cancel (Esc)",
+          className:  "leaflet-toolbar-icon-cancel",
+          toggle:     false,
+          onClick: () => { ref.current.onCancelEdit(); },
+        });
+      } else {
+        toolbar.createCustomControl({
+          name:       BUTTONS.ADD_SHAPE,
+          block:      "custom",
+          title:      "Add point",
+          className: "leaflet-pm-icon-marker",
+          toggle:     false,
+          onClick: () => { ref.current.onStartCreatePOI(); },
+        });
+      }
+
+      return () => {
+        Object.values(BUTTONS).forEach((name) => {
+          try { toolbar.deleteControl(name); } catch { /* already absent */ }
+        });
+      };
+    }
 
     if (!hasSelection && !isEditing) return;
 
@@ -87,7 +135,7 @@ export default function MapGeometryToolbar({
       toolbar.createCustomControl({
         name:      BUTTONS.CANCEL,
         block:     "custom",
-        title:     "Cancel edit (Esc)",
+        title:     "Cancel (Esc)",
         className: "leaflet-toolbar-icon-cancel",
         toggle:    false,
         onClick: () => { ref.current.onCancelEdit(); },
@@ -99,35 +147,34 @@ export default function MapGeometryToolbar({
       // POIs don't have a vertex-edit mode so MOVE maps to their primary action above.
       // Only show the separate Move button for areas and roads.
       if (type !== "poi") {
-      toolbar.createCustomControl({
-        name:      BUTTONS.EDIT_VERTICES,
-        block:     "custom",
-        title:     type === "road" ? "Edit line"
-                 : "Edit vertices",
-        className: "leaflet-pm-icon-edit",
-        toggle:    false,
-        onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
-          if (!id) return;
-          start(id, t === "road" ? "editLine" : "vertices");
-        },
-      });
-    }
-      
         toolbar.createCustomControl({
-          name:      BUTTONS.MOVE,
-          block:     "custom",
-          title:     type === "road" ? "Move line" 
-                    : type === "poi"  ? "Move point(s)"
-                    : "Move shape",
-          className: "leaflet-toolbar-icon-move",
-          toggle:    false,
+          name:       BUTTONS.EDIT_VERTICES,
+          block:      "custom",
+          title:      type === "road" ? "Edit line" : "Edit vertices",
+          className:  "leaflet-pm-icon-edit",
+          toggle:     false,
           onClick: () => {
             const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
             if (!id) return;
-            start(id, t === "road" ? "dragLine" : t === "poi" ? "movePOI" : "drag");
+            start(id, t === "road" ? "editLine" : "vertices");
           },
         });
+      }
+
+      toolbar.createCustomControl({
+        name:       BUTTONS.MOVE,
+        block:      "custom",
+        title:      type === "road" ? "Move line"
+                  : type === "poi" ? "Move point(s)"
+                  : "Move shape",
+        className:  "leaflet-toolbar-icon-move",
+        toggle:     false,
+        onClick: () => {
+          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
+          if (!id) return;
+          start(id, t === "road" ? "dragLine" : t === "poi" ? "movePOI" : "drag");
+        },
+      });
 
       toolbar.createCustomControl({
         name:      BUTTONS.ADD_SHAPE,
@@ -153,7 +200,7 @@ export default function MapGeometryToolbar({
         try { toolbar.deleteControl(name); } catch { /* already absent */ }
       });
     };
-  }, [map, editMode, editingEntityId, selectedEntityId, selectedEntityType]);
+  }, [map, editMode, editingEntityId, selectedEntityId, selectedEntityType, isCreatingPOI]);
 
   return null;
 }

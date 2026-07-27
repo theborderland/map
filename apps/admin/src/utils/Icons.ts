@@ -1,9 +1,21 @@
+import L from "leaflet";
+
 /**
  * Available POI icon names. Each name maps to /icons/<name>.png.
  */
 export const getIconPath = (iconName?: string) => iconName ? `./icons/${iconName}.png` : "";
 
 export const DEFAULT_POI_ICON = "blank";
+
+/** Builds the divIcon used for POI markers, both saved entities and live draw previews. */
+export function createPOIIcon(iconName: string): L.DivIcon {
+  return L.divIcon({
+    className: "",
+    html: `<img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+};
 
 export const AVAILABLE_ICONS: string[] = [
   "ambulance",

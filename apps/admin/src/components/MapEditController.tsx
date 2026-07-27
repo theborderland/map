@@ -5,6 +5,7 @@ import type { Geometry } from "geojson";
 import type { EntityRecord, SettingsRecord } from "../db/types";
 import type { EditMode } from "../types";
 import "@geoman-io/leaflet-geoman-free";
+import { createPOIIcon } from "../utils/Icons";
 
 type GeomanLayer = L.Layer & {
   pm: {
@@ -16,18 +17,19 @@ type GeomanLayer = L.Layer & {
   toGeoJSON: () => GeoJSON.Feature;
 };
 
-type GeomanCreateEvent = {
-  layer: L.Layer & { toGeoJSON: () => GeoJSON.Feature };
-};
+type GeomanCreateEvent = { layer: L.Layer & { toGeoJSON: () => GeoJSON.Feature } };
 
 interface Props {
   editMode: EditMode;
   editingEntityId: string | null;
   layerRegistry: React.RefObject<Map<string, L.Layer>>;
   pendingGeometryRef: React.RefObject<Geometry | null>;
+  draftActionRef: React.RefObject<"save" | "cancel" | null>;
+  isCreatingPOI: boolean;
   entities: EntityRecord[];
   onCancelEdit: () => void;
   settings: SettingsRecord;
+  selectedPOIIcon: string; // icon name, e.g. "toilet"
 }
 
 function getSubLayers(layer: L.Layer): L.Layer[] {
@@ -42,9 +44,7 @@ function collectPolygonGeometry(layer: L.Layer): Geometry | null {
     if (sub.length === 1) return (sub[0] as GeomanLayer).toGeoJSON().geometry;
     return {
       type: "MultiPolygon",
-      coordinates: sub.map(
-        (l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.Polygon).coordinates
-      ),
+      coordinates: sub.map((l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.Polygon).coordinates),
     };
   }
   return (layer as GeomanLayer).toGeoJSON().geometry;
@@ -57,23 +57,8 @@ function collectLineGeometry(layer: L.GeoJSON): Geometry | null {
   if (sub.length === 1) return (sub[0] as GeomanLayer).toGeoJSON().geometry;
   return {
     type: "MultiLineString",
-    coordinates: sub.map(
-      (l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.LineString).coordinates
-    ),
+    coordinates: sub.map((l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.LineString).coordinates),
   };
-}
-
-// Reads current positions from point marker(s) after dragging.
-// Returns Point for a single marker, MultiPoint for several.
-function collectPointGeometry(layer: L.Layer): Geometry | null {
-  const subLayers = getSubLayers(layer);
-  if (!subLayers.length) return null;
-  const coords = subLayers.map((l) => {
-    const ll = (l as L.Marker).getLatLng();
-    return [ll.lng, ll.lat] as [number, number];
-  });
-  if (coords.length === 1) return { type: "Point", coordinates: coords[0]! };
-  return { type: "MultiPoint", coordinates: coords };
 }
 
 // Restores a Leaflet layer to its original geometry.
@@ -141,16 +126,27 @@ export default function MapEditController({
   editingEntityId,
   layerRegistry,
   pendingGeometryRef,
+  draftActionRef,
+  isCreatingPOI,
   entities,
   onCancelEdit,
-  settings
+  settings,
+  selectedPOIIcon,
 }: Props) {
   const map = useMap();
   // Tracks layers drawn in 'draw' mode so they can be removed on cleanup.
   const drawnLayersRef = useRef<L.Layer[]>([]);
 
-  // Ensure Geoman's toolbar/controls are added to the map so custom
-  // toolbar buttons created elsewhere are visible.
+  // ── Draft-creation-only refs ───────────────────────────────
+  // Layers "saved" (via toolbar Save) during a creation flow, persisted
+  // across multiple draw sessions until the entity is created or the
+  // whole flow is cancelled. Not used for editing existing entities.
+  const draftCommittedLayersRef = useRef<L.Layer[]>([]);
+  // Snapshot of pendingGeometryRef.current taken at the start of each
+  // creation draw session, so Cancel can restore precisely to it.
+  const draftSessionSnapshotRef = useRef<Geometry | null>(null);
+
+  // ── Toolbar init (once) ─────────────────────────────────────
   useEffect(() => {
     if (!map.pm?.Toolbar) return;
     try {
@@ -165,21 +161,45 @@ export default function MapEditController({
         drawCircleMarker: false,
         removalMode: false,
         editControls: false,
-      });
-      map.pm.setGlobalOptions({
-        snappable: settings.snapDistance > 0,
-        snapDistance: settings.snapDistance // px
+        snappable: false,
       });
     } catch { /* already initialised */ }
-  }, [map, settings.snapDistance ]);
+  }, [map]);
 
-  // Escape key cancels whichever edit mode is active.
+  // Applies the configurable snap settings whenever they change.
+  useEffect(() => {
+    map.pm.setGlobalOptions({
+      snappable: settings.snapDistance > 0,
+      snapDistance: settings.snapDistance,
+    });
+  }, [map, settings.snapDistance]);
+
+  // Escape key cancels whichever edit/draw mode is active.
   useEffect(() => {
     if (editMode === "idle") return;
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onCancelEdit(); };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
   }, [editMode, onCancelEdit]);
+
+  // ── Draft creation flow lifecycle (POI for now) ─────────────
+  // Rising edge: fresh start — defensively clear any stale draft state.
+  // Falling edge: flow ended (entity created OR cancelled) — remove every
+  // committed draft layer. On success this avoids duplicate markers once
+  // bumpMapKey() renders the real, DB-backed entity.
+  useEffect(() => {
+    if (!isCreatingPOI) return;
+
+    draftCommittedLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+    draftCommittedLayersRef.current = [];
+    pendingGeometryRef.current = null;
+
+    return () => {
+      draftCommittedLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+      draftCommittedLayersRef.current = [];
+      pendingGeometryRef.current = null;
+    };
+  }, [isCreatingPOI, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Area: vertex editing ──────────────────────────────────
 
@@ -232,7 +252,7 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Area: draw additional polygon ─────────────────────────
+  // ── Area: draw additional polygon (add-to-existing only, for now) ──
   // Each completed polygon is automatically merged into the entity's geometry as a MultiPolygon.
   useEffect(() => {
     if (editMode !== "draw" || !editingEntityId) return;
@@ -260,7 +280,7 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Road: all three line edit modes ──────────────────────
+  // ── Road: editLine / dragLine / drawLine (add-to-existing only, for now) ──
   // All road modes share a temporary source line layer that replaces the
   // buffered polygon (which MapView hides by excluding the entity from
   // roadFeatures while a road edit mode is active). The temp layer shows
@@ -273,9 +293,7 @@ export default function MapEditController({
     if (!entity) return;
 
     // Create a temporary layer showing the source lines (not the buffer).
-    const tempLayer = L.geoJSON(entity.geometry, {
-      style: () => SOURCE_LINE_STYLE,
-    }).addTo(map);
+    const tempLayer = L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map);
 
     if (editMode === "editLine") {
       const handleEdit = () => { pendingGeometryRef.current = collectLineGeometry(tempLayer); };
@@ -329,7 +347,7 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── POI: drag existing point markers ─────────────────────
+  // ── POI: move existing point(s) (add-to-existing only) ────
   // Enables Geoman drag on the marker(s) that are already on the map.
   // Snapshots original positions so cancel can restore them without a remount.
   useEffect(() => {
@@ -342,7 +360,14 @@ export default function MapEditController({
     // Snapshot original LatLng per sub-layer for cancel restore.
     const originalPositions = new Map<L.Layer, L.LatLng>();
     const handleDragEnd = () => {
-      pendingGeometryRef.current = collectPointGeometry(layer);
+      const subLayers = getSubLayers(layer);
+      const coords = subLayers.map((l) => {
+        const ll = (l as L.Marker).getLatLng();
+        return [ll.lng, ll.lat] as [number, number];
+      });
+      pendingGeometryRef.current = coords.length === 1
+        ? { type: "Point", coordinates: coords[0]! }
+        : { type: "MultiPoint", coordinates: coords };
     };
 
     getSubLayers(layer).forEach((l) => {
@@ -363,21 +388,29 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── POI: draw additional point, merging into MultiPoint ───
+  // ── POI: draw a point — both add-to-existing AND brand new creation ──
   useEffect(() => {
-    if (editMode !== "drawPOI" || !editingEntityId) return;
+    if (editMode !== "drawPOI") return;
 
-    const entity = entities.find((e) => e.id === editingEntityId);
-    if (!entity) return;
+    const isCreatingFlow = !editingEntityId;
+    if (isCreatingFlow) {
+      // Snapshot before this session's changes so Cancel can restore precisely.
+      draftSessionSnapshotRef.current = pendingGeometryRef.current;
+    }
 
-    map.pm.enableDraw("Marker", { continueDrawing: false });
+    const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
+
+    map.pm.enableDraw("Marker", {
+      continueDrawing: false,
+      markerStyle: { icon: createPOIIcon(selectedPOIIcon) }
+    });
 
     const handleCreate = (event: GeomanCreateEvent) => {
       const drawnLayer = event.layer;
       drawnLayersRef.current.push(drawnLayer);
       const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.Point;
-      const base = pendingGeometryRef.current ?? entity.geometry;
-      pendingGeometryRef.current = mergePoint(base, drawnGeom);
+      const base = pendingGeometryRef.current ?? entity?.geometry;
+      pendingGeometryRef.current = base ? mergePoint(base, drawnGeom) : drawnGeom;
     };
 
     map.on("pm:create", handleCreate);
@@ -385,11 +418,30 @@ export default function MapEditController({
     return () => {
       map.pm.disableDraw();
       map.off("pm:create", handleCreate);
-      // Remove drawn markers. On save, bumpMapKey() remounts with merged geometry.
-      drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
-      drawnLayersRef.current = [];
+
+      if (isCreatingFlow) {
+        if (draftActionRef.current === "save") {
+          // Graduate this session's layer(s) into the persistent draft set —
+          // they stay visible so the user can keep adding more points.
+          draftCommittedLayersRef.current.push(...drawnLayersRef.current);
+          drawnLayersRef.current = [];
+        } else {
+          // Cancel (or unset) — discard this session only, restore snapshot.
+          drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+          drawnLayersRef.current = [];
+          pendingGeometryRef.current = draftSessionSnapshotRef.current;
+        }
+      } else {
+        // Editing an existing entity — always remove; either the DB was
+        // updated and bumpMapKey() remounts the real markers (save), or
+        // nothing changed and the original layer is still in place (cancel).
+        drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+        drawnLayersRef.current = [];
+      }
+
+      draftActionRef.current = null;
     };
-  }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editMode, editingEntityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }

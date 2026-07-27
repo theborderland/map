@@ -13,6 +13,7 @@ export function getActiveTabFromNav(navStack: PanelView[], entities: EntityRecor
         case "style-create": return "Styles";
         case "rule-detail":
         case "rule-create": return "Rules";
+        case "poi-create": return "POIs";
         case "root": return current.tab;
         default: throw new Error("Unhandled PanelView type");
     }
@@ -63,6 +64,16 @@ export function buildStyleCreateNavigation(): PanelView[] {
 /** Navigates to a blank create form for a new rule. */
 export function buildRuleCreateNavigation(): PanelView[] {
     return [createRoot("Rules"), { type: "rule-create" }];
+}
+
+/** Navigates to a blank create form for a new POI. */
+export function buildPOICreateNavigation(): PanelView[] {
+    return [createRoot("POIs"), { type: "poi-create" }];
+}
+
+/** Navigates to the newly created POI's own detail view. */
+export function buildPOINavigation(entityId: string): PanelView[] {
+    return [createRoot("POIs"), { type: "entity-detail", entityId }];
 }
 
 export function createRoot(tab: Tab): PanelView {

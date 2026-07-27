@@ -5,7 +5,7 @@ import L from "leaflet";
 import type { EntityRecord, SettingsRecord, StyleRecord } from "../db/types";
 import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
-import { DEFAULT_POI_ICON, getIconPath } from "../utils/Icons";
+import { createPOIIcon, DEFAULT_POI_ICON } from "../utils/Icons";
 import MapEditController from "./MapEditController";
 import type { EditMode } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
@@ -26,6 +26,10 @@ interface Props {
   onCancelEdit: () => void;
   onSaveGeometry: () => Promise<void>;
   settings: SettingsRecord;
+  draftActionRef: React.RefObject<"save" | "cancel" | null>;
+  isCreatingPOI: boolean;
+  onStartCreatePOI: () => void;
+  selectedPOIIcon: string;
 }
 
 type FeatureProperties = {
@@ -70,14 +74,6 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean) => ({
   fillOpacity: style?.fillOpacity ?? 0.35,
 });
 
-const createPOIIcon = (iconName: string): L.DivIcon =>
-  L.divIcon({
-    className: "", // Prevents Leaflet adding its own default-icon class
-    html: `<img src="${getIconPath(iconName)}" alt="${iconName}" width="32" height="32" />`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  });
-
 export default function MapView({
   entities,
   styles,
@@ -90,7 +86,11 @@ export default function MapView({
   onStartEdit,
   onCancelEdit,
   onSaveGeometry,
-  settings
+  settings,
+  draftActionRef,
+  isCreatingPOI,
+  onStartCreatePOI,
+  selectedPOIIcon,
 }: Props) {
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
 
@@ -241,6 +241,8 @@ export default function MapView({
           onStartEdit={onStartEdit}
           onSaveGeometry={onSaveGeometry}
           onCancelEdit={onCancelEdit}
+          isCreatingPOI={isCreatingPOI}
+          onStartCreatePOI={onStartCreatePOI}
         />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
@@ -287,9 +289,12 @@ export default function MapView({
           editingEntityId={editingEntityId}
           layerRegistry={layerRegistry}
           pendingGeometryRef={pendingGeometryRef}
+          draftActionRef={draftActionRef}
+          isCreatingPOI={isCreatingPOI}
           entities={entities}
           onCancelEdit={onCancelEdit}
           settings={settings}
+          selectedPOIIcon={selectedPOIIcon}
         />
         <MapClickHandler
           onClearSelection={() => {

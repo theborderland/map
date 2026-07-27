@@ -13,8 +13,10 @@ import {
 import {
   buildEntityNavigation, createRoot, getActiveTabFromNav,
 } from "./utils/panelNavigation";
+import { DEFAULT_POI_ICON } from "./utils/Icons";
 
 function App() {
+  const [selectedPOIIcon, setSelectedPOIIcon] = useState(DEFAULT_POI_ICON);
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [entities, setEntities] = useState<EntityRecord[]>([]);
   const [styles, setStyles] = useState<StyleRecord[]>([]);
@@ -32,10 +34,14 @@ function App() {
 
   // Pending geometry — written on every vertex drag, must not trigger re-renders
   const pendingGeometryRef = useRef<Geometry | null>(null);
+  // Set by saveGeometry/cancelEdit right before flipping editMode, so
+  // MapEditController's cleanup can tell which action just happened.
+  const draftActionRef = useRef<"save" | "cancel" | null>(null);
 
   const currentView = navStack[navStack.length - 1];
   const activeTab: Tab = getActiveTabFromNav(navStack, entities);
   const selectedEntityId = currentView.type === "entity-detail" ? currentView.entityId : null;
+  const isCreatingPOI = currentView.type === "poi-create";
 
   /** Bumps mapKey so MapView GeoJSON layers remount after a geometry save. */
   const bumpMapKey = () => setMapKey((k) => k + 1);
@@ -51,6 +57,13 @@ function App() {
     setNavStack(buildEntityNavigation(entity));
   };
 
+  // Starts a draw session for a brand new POI. Does NOT touch pendingGeometryRef —
+  // earlier committed points (from previous "Add point" cycles) must be preserved.
+  const startCreatingPOI = () => {
+    setEditingEntityId(null);
+    setEditMode("drawPOI");
+  };
+
   // Activates a geometry edit mode for the given entity.
   const startEdit = (entityId: string, mode: Exclude<EditMode, "idle">) => {
     pendingGeometryRef.current = null;
@@ -61,20 +74,30 @@ function App() {
   // Saves the pending geometry to the DB, then exits edit mode.
   // If no geometry was changed (ref is null) edit mode is still exited cleanly.
   const saveGeometry = async () => {
+    draftActionRef.current = "save";
     const geom = pendingGeometryRef.current;
     if (geom && editingEntityId) {
+      // Editing an existing entity — persist immediately.
       const updated = await updateEntity(editingEntityId, { geometry: geom });
       setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
       bumpMapKey();
+      pendingGeometryRef.current = null;
     }
-    pendingGeometryRef.current = null;
+    // Creating a new entity: geom stays in pendingGeometryRef — the entity
+    // doesn't exist yet, it's finalized later via the form's own Save/Create.
     setEditMode("idle");
     setEditingEntityId(null);
   };
 
   // Cancels edit mode. MapEditController's cleanup handles visual restore.
   const cancelEdit = () => {
-    pendingGeometryRef.current = null;
+    draftActionRef.current = "cancel";
+    if (editingEntityId) {
+      // Editing an existing entity — fully discard.
+      pendingGeometryRef.current = null;
+    }
+    // Creating a new entity: MapEditController's cleanup restores
+    // pendingGeometryRef to the pre-session snapshot instead of nulling it.
     setEditMode("idle");
     setEditingEntityId(null);
   };
@@ -120,6 +143,8 @@ function App() {
         pendingGeometryRef={pendingGeometryRef}
         onCancelEdit={cancelEdit}
         onSettingsSaved={setSettings}
+        selectedPOIIcon={selectedPOIIcon}
+        onSelectedPOIIconChange={setSelectedPOIIcon}
       />
       <MapView
         entities={entities}
@@ -130,10 +155,14 @@ function App() {
         editMode={editMode}
         editingEntityId={editingEntityId}
         pendingGeometryRef={pendingGeometryRef}
+        draftActionRef={draftActionRef}
         onStartEdit={startEdit}
         onSaveGeometry={saveGeometry}
         onCancelEdit={cancelEdit}
+        isCreatingPOI={isCreatingPOI}
+        onStartCreatePOI={startCreatingPOI}
         settings={settings}
+        selectedPOIIcon={selectedPOIIcon}
       />
     </div>
   );

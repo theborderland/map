@@ -1,66 +1,110 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Geometry } from "geojson";
 import type { EntityRecord, RuleRecord } from "../../db/types";
-import { updateEntity, deleteEntity } from "../../db";
+import type { EditMode } from "../../types";
+import { updateEntity, createEntity, deleteEntity } from "../../db";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
 import IconPicker from "./IconPicker";
 import { DEFAULT_POI_ICON } from "../../utils/Icons";
 
+const POI_STYLE_TYPE = "poi";
 
 interface Props {
-  entity: EntityRecord;
+  /** Undefined in create mode. */
+  entity?: EntityRecord;
   rules: RuleRecord[];
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
-  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
-  onCancelEdit:() => void;
+  pendingGeometryRef: React.RefObject<Geometry | null>;
+  onCancelEdit: () => void;
+  /** Current global edit mode — used to block Save while an unsaved
+   *  draw session is still open on the map (see toolbar Save/Cancel). */
+  editMode: EditMode;
+  /** Called with the new POI's id after a successful create. */
+  onAfterCreate?: (entityId: string) => void;
+  selectedPOIIcon: string;
+  onSelectedPOIIconChange: (icon: string) => void;
 }
 
-export default function POIDetail({ 
-  entity, 
-  rules, 
-  setEntities, 
-  goBack, 
-  bumpMapKey, 
-  pendingGeometryRef, 
-  onCancelEdit }
-  : Props) {
-  const [name, setName] = useState(entity.name ?? "");
-  const [tagline, setTagline] = useState(entity.tagline ?? "");
-  const [description, setDescription] = useState(entity.description ?? "");
-  const [link, setLink] = useState(entity.link ?? "");
-  const [icon, setIcon] = useState(entity.icon ?? DEFAULT_POI_ICON);
-  const [attachedRules, setAttachedRules] = useState(entity.rules);
+export default function POIDetail({
+  entity,
+  rules,
+  setEntities,
+  goBack,
+  bumpMapKey,
+  pendingGeometryRef,
+  onCancelEdit,
+  editMode,
+  onAfterCreate,
+  selectedPOIIcon,
+  onSelectedPOIIconChange
+}: Props) {
+  const isCreate = !entity;
+
+  const [name, setName] = useState(entity?.name ?? "");
+  const [tagline, setTagline] = useState(entity?.tagline ?? "");
+  const [description, setDescription] = useState(entity?.description ?? "");
+  const [link, setLink] = useState(entity?.link ?? "");
+  const [attachedRules, setAttachedRules] = useState(entity?.rules ?? []);
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
+  const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity?.geometry ?? null;
+
+  // Sync the shared icon state to this entity's icon on mount / when
+  // switching between entities, so the map draw preview matches this POI.
+  useEffect(() => {
+    onSelectedPOIIconChange(entity?.icon ?? DEFAULT_POI_ICON);
+  }, [entity?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+  // Block form save while a draw session is still open (Save/Cancel visible
+  // on the map toolbar) — force the user to confirm that session first so
+  // its temporary layer doesn't get orphaned on the map.
+  const hasOpenDrawSession = editMode !== "idle";
+  const canSave = !hasOpenDrawSession && (isCreate ? (!!name.trim() && !!geometry) : !!name.trim());
+
   const handleSave = async () => {
+    if (!canSave) return;
     setIsSaving(true);
-    const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity.geometry;
-    const updated = await updateEntity(entity.id, {
-      name: name.trim(),
-      tagline: tagline.trim(),
-      description: description.trim(),
-      link: link.trim(),
-      icon,
-      rules: attachedRules,
-      geometry,
-    });
-    setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
-    if (pendingGeometry || pendingGeometryRef.current) {
-      pendingGeometryRef.current = null;
+
+    if (entity) {
+      const updated = await updateEntity(entity.id, {
+        name: name.trim(),
+        tagline: tagline.trim(),
+        description: description.trim(),
+        link: link.trim(),
+        icon: selectedPOIIcon,
+        rules: attachedRules,
+        geometry: geometry!,
+      });
+      setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
+    } else {
+      const created = await createEntity({
+        styleType: POI_STYLE_TYPE,
+        name: name.trim(),
+        tagline: tagline.trim(),
+        description: description.trim(),
+        link: link.trim(),
+        icon: selectedPOIIcon,
+        rules: attachedRules,
+        geometry: geometry!,
+      });
+      setEntities((prev) => [...prev, created]);
+      onAfterCreate?.(created.id);
     }
-    
+
+    pendingGeometryRef.current = null;
     bumpMapKey();
-    // Exit geometry edit mode if active.
     onCancelEdit();
     setIsSaving(false);
   };
 
   const handleDelete = async () => {
+    if (!entity) return;
     await deleteEntity(entity.id);
     setEntities((prev) => prev.filter((e) => e.id !== entity.id));
     goBack?.();
@@ -107,7 +151,7 @@ export default function POIDetail({
           />
         </div>
 
-        <IconPicker value={icon} onChange={setIcon} />
+        <IconPicker value={selectedPOIIcon} onChange={onSelectedPOIIconChange} />
 
         <RulesSelector
           attachedRules={attachedRules}
@@ -115,29 +159,42 @@ export default function POIDetail({
           onChange={setAttachedRules}
         />
 
-        <GeometryEditor
-          geometry={pendingGeometry ?? entity.geometry}
-          onChange={setPendingGeometry}
-        />
+        {geometry ? (
+          <GeometryEditor geometry={geometry} onChange={setPendingGeometry} />
+        ) : (
+          <p className="item-meta">
+            Use the "Add point" button on the map to place this POI.
+          </p>
+        )}
+
+        {hasOpenDrawSession && (
+          <p className="item-meta form-hint-warning">
+            Finish the current point (Save or Cancel on the map) before saving the form.
+          </p>
+        )}
       </div>
 
       <div className="form-actions">
-        <DeleteButton
-          message={`Delete "${entity.name ?? "this POI"}"? This cannot be undone.`}
-          onDelete={handleDelete}
-        />
+        {!isCreate && (
+          <DeleteButton
+            message={`Delete "${entity!.name ?? "this POI"}"? This cannot be undone.`}
+            onDelete={handleDelete}
+          />
+        )}
         <wa-button
           size="xs"
           appearance="outlined"
-          disabled={isSaving || undefined}
+          disabled={(!canSave || isSaving) || undefined}
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : "Save"}
+          {isSaving ? "Saving…" : isCreate ? "Create" : "Save"}
         </wa-button>
       </div>
 
-      <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
+      {entity && (
+        <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
+      )}
     </div>
   );
 }

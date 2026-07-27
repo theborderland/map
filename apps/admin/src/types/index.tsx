@@ -23,4 +23,5 @@ export type PanelView =
   | { type: "style-detail"; styleId: string }
   | { type: "style-create" }
   | { type: "rule-detail"; ruleId: string }
-  | { type: "rule-create" };
+  | { type: "rule-create" }
+  | { type: "poi-create" };
