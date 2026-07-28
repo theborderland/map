@@ -14,6 +14,16 @@ export type EditMode =
   | "movePOI"
   | "drawPOI"; // place a new point, merging into MultiPoint
 
+/** The three entity kinds that can be drawn on the map. */
+export type EntityKind = "poi" | "road" | "area";
+
+/** Maps each entity kind to the EditMode used to draw its geometry from scratch. */
+export const CREATE_DRAW_MODE_BY_KIND: Record<EntityKind, Exclude<EditMode, "idle">> = {
+  poi: "drawPOI",
+  road: "drawLine",
+  area: "draw",
+};
+
 export const ROAD_TYPES = new Set(["fireroad", "minorroad"]);
 
 export type PanelView =
@@ -24,4 +34,5 @@ export type PanelView =
   | { type: "style-create" }
   | { type: "rule-detail"; ruleId: string }
   | { type: "rule-create" }
-  | { type: "poi-create" };
+  | { type: "poi-create" }
+  | { type: "road-create" };

@@ -3,7 +3,7 @@ import { useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Geometry } from "geojson";
 import type { EntityRecord, SettingsRecord } from "../db/types";
-import type { EditMode } from "../types";
+import type { EditMode, EntityKind } from "../types";
 import "@geoman-io/leaflet-geoman-free";
 import { createPOIIcon } from "../utils/Icons";
 
@@ -25,7 +25,7 @@ interface Props {
   layerRegistry: React.RefObject<Map<string, L.Layer>>;
   pendingGeometryRef: React.RefObject<Geometry | null>;
   draftActionRef: React.RefObject<"save" | "cancel" | null>;
-  isCreatingPOI: boolean;
+  creatingKind: EntityKind | null;
   entities: EntityRecord[];
   onCancelEdit: () => void;
   settings: SettingsRecord;
@@ -121,13 +121,55 @@ function mergePoint(base: Geometry, newPoint: GeoJSON.Point): GeoJSON.MultiPoint
 // Shows the raw LineString instead of the buffered polygon.
 const SOURCE_LINE_STYLE = { color: "#3b82f6", weight: 3, opacity: 1, fillOpacity: 0 };
 
+/**
+ * Shared cleanup for any "create from scratch" draw session (POI, Road, and Area). 
+ * On Save, the session's layer(s) graduate into the persistent
+ * draft set so the user can keep adding more before finally creating the
+ * entity. On Cancel, only this session's layer(s) are discarded and
+ * pendingGeometryRef is restored to the pre-session snapshot.
+ */
+function finalizeDrawSession({
+  isCreatingFlow,
+  drawnLayersRef,
+  draftCommittedLayersRef,
+  draftSessionSnapshotRef,
+  pendingGeometryRef,
+  draftActionRef,
+  map,
+}: {
+  isCreatingFlow: boolean;
+  drawnLayersRef: React.RefObject<L.Layer[]>;
+  draftCommittedLayersRef: React.RefObject<L.Layer[]>;
+  draftSessionSnapshotRef: React.RefObject<Geometry | null>;
+  pendingGeometryRef: React.RefObject<Geometry | null>;
+  draftActionRef: React.RefObject<"save" | "cancel" | null>;
+  map: L.Map;
+}) {
+  if (isCreatingFlow) {
+    if (draftActionRef.current === "save") {
+      draftCommittedLayersRef.current.push(...drawnLayersRef.current);
+      drawnLayersRef.current = [];
+    } else {
+      drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+      drawnLayersRef.current = [];
+      pendingGeometryRef.current = draftSessionSnapshotRef.current;
+    }
+  } else {
+    // Editing an existing entity — always remove; bumpMapKey() remounts
+    // the real layer on save, and the original layer is untouched on cancel.
+    drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
+    drawnLayersRef.current = [];
+  }
+  draftActionRef.current = null;
+}
+
 export default function MapEditController({
   editMode,
   editingEntityId,
   layerRegistry,
   pendingGeometryRef,
   draftActionRef,
-  isCreatingPOI,
+  creatingKind,
   entities,
   onCancelEdit,
   settings,
@@ -182,13 +224,13 @@ export default function MapEditController({
     return () => document.removeEventListener("keydown", handleKey);
   }, [editMode, onCancelEdit]);
 
-  // ── Draft creation flow lifecycle (POI for now) ─────────────
+  // ── Draft creation flow lifecycle ─────────────
   // Rising edge: fresh start — defensively clear any stale draft state.
   // Falling edge: flow ended (entity created OR cancelled) — remove every
   // committed draft layer. On success this avoids duplicate markers once
   // bumpMapKey() renders the real, DB-backed entity.
   useEffect(() => {
-    if (!isCreatingPOI) return;
+    if (!creatingKind) return;
 
     draftCommittedLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
     draftCommittedLayersRef.current = [];
@@ -199,9 +241,9 @@ export default function MapEditController({
       draftCommittedLayersRef.current = [];
       pendingGeometryRef.current = null;
     };
-  }, [isCreatingPOI, map]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [creatingKind, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Area: vertex editing ──────────────────────────────────
+  // ── Area: vertex editing (existing entity only) ──────────────────────────────────
 
   // Vertex edit mode — enables Geoman vertex handles on the entity's layer.
   // Supports both Polygon (single layer) and MultiPolygon (layer group).
@@ -228,7 +270,7 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Area: drag / move ─────────────────────────────────────
+  // ── Area: drag / move (existing entity only) ───────────────
   useEffect(() => {
     if (editMode !== "drag" || !editingEntityId) return;
 
@@ -280,22 +322,33 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Road: editLine / dragLine / drawLine (add-to-existing only, for now) ──
-  // All road modes share a temporary source line layer that replaces the
-  // buffered polygon (which MapView hides by excluding the entity from
-  // roadFeatures while a road edit mode is active). The temp layer shows
-  // the raw LineString/MultiLineString for direct editing.
+  // ── Road: editLine / dragLine / drawLine ────────────────────
+  // editLine and dragLine always require an existing entity. drawLine works
+  // both ways: adding a line to an existing road (shows source-line context
+  // via a temp layer) and drawing the very first line(s) of a brand new
+  // road (editingEntityId null — no temp layer, nothing exists yet).
   useEffect(() => {
     const isRoadMode = editMode === "editLine" || editMode === "dragLine" || editMode === "drawLine";
-    if (!isRoadMode || !editingEntityId) return;
+    if (!isRoadMode) return;
 
-    const entity = entities.find((e) => e.id === editingEntityId);
-    if (!entity) return;
+    const requiresExistingEntity = editMode === "editLine" || editMode === "dragLine";
+    if (requiresExistingEntity && !editingEntityId) return;
 
-    // Create a temporary layer showing the source lines (not the buffer).
-    const tempLayer = L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map);
+    const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
+    if (requiresExistingEntity && !entity) return;
 
-    if (editMode === "editLine") {
+    const isCreatingFlow = editMode === "drawLine" && !editingEntityId;
+    if (isCreatingFlow) {
+      draftSessionSnapshotRef.current = pendingGeometryRef.current;
+    }
+
+    // Show existing source lines (thin, unstyled) in place of the buffered
+    // polygon — only relevant when there's an entity to show.
+    const tempLayer = entity
+      ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
+      : null;
+
+    if (editMode === "editLine" && tempLayer) {
       const handleEdit = () => { pendingGeometryRef.current = collectLineGeometry(tempLayer); };
       tempLayer.getLayers().forEach((l) => {
         (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
@@ -303,7 +356,7 @@ export default function MapEditController({
       });
     }
 
-    if (editMode === "dragLine") {
+    if (editMode === "dragLine" && tempLayer) {
       const handleDragEnd = () => { pendingGeometryRef.current = collectLineGeometry(tempLayer); };
       tempLayer.getLayers().forEach((l) => {
         (l as GeomanLayer).pm.enableLayerDrag();
@@ -317,37 +370,42 @@ export default function MapEditController({
         const drawnLayer = event.layer;
         drawnLayersRef.current.push(drawnLayer);
         const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.LineString;
-        const base = pendingGeometryRef.current ?? entity.geometry;
-        pendingGeometryRef.current = mergeLine(base, drawnGeom);
+        const base = pendingGeometryRef.current ?? entity?.geometry;
+        // No base yet (brand new road) → the drawn line is the geometry.
+        pendingGeometryRef.current = base ? mergeLine(base, drawnGeom) : drawnGeom;
       };
       map.on("pm:create", handleCreate);
     }
 
     return () => {
-      // Disable all Geoman interactions on the temp layer before removing it.
-      tempLayer.getLayers().forEach((l) => {
-        try { (l as GeomanLayer).pm.disable(); } catch { /* no-op */ }
-        try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
-        l.off("pm:edit");
-        l.off("pm:dragend");
-      });
+      if (tempLayer) {
+        // Disable all Geoman interactions on the temp layer before removing it.
+        tempLayer.getLayers().forEach((l) => {
+          try { (l as GeomanLayer).pm.disable(); } catch { /* no-op */ }
+          try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
+          l.off("pm:edit");
+          l.off("pm:dragend");
+        });
+        map.removeLayer(tempLayer);
+      }
 
       if (editMode === "drawLine") {
         map.pm.disableDraw();
         map.off("pm:create");
-        drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
-        drawnLayersRef.current = [];
+        finalizeDrawSession({
+          isCreatingFlow,
+          drawnLayersRef,
+          draftCommittedLayersRef,
+          draftSessionSnapshotRef,
+          pendingGeometryRef,
+          draftActionRef,
+          map,
+        });
       }
-
-      // Always remove the temp source line layer on cleanup.
-      // On save, bumpMapKey() remounts the road with its buffer from DB.
-      // On cancel, the road was already excluded from roadFeatures so
-      // nothing visible is lost until mapKey bumps on the next interaction.
-      map.removeLayer(tempLayer);
     };
   }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── POI: move existing point(s) (add-to-existing only) ────
+  // ── POI: move existing point(s) — existing entity only ─────
   // Enables Geoman drag on the marker(s) that are already on the map.
   // Snapshots original positions so cancel can restore them without a remount.
   useEffect(() => {
@@ -418,28 +476,15 @@ export default function MapEditController({
     return () => {
       map.pm.disableDraw();
       map.off("pm:create", handleCreate);
-
-      if (isCreatingFlow) {
-        if (draftActionRef.current === "save") {
-          // Graduate this session's layer(s) into the persistent draft set —
-          // they stay visible so the user can keep adding more points.
-          draftCommittedLayersRef.current.push(...drawnLayersRef.current);
-          drawnLayersRef.current = [];
-        } else {
-          // Cancel (or unset) — discard this session only, restore snapshot.
-          drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
-          drawnLayersRef.current = [];
-          pendingGeometryRef.current = draftSessionSnapshotRef.current;
-        }
-      } else {
-        // Editing an existing entity — always remove; either the DB was
-        // updated and bumpMapKey() remounts the real markers (save), or
-        // nothing changed and the original layer is still in place (cancel).
-        drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
-        drawnLayersRef.current = [];
-      }
-
-      draftActionRef.current = null;
+      finalizeDrawSession({
+        isCreatingFlow,
+        drawnLayersRef,
+        draftCommittedLayersRef,
+        draftSessionSnapshotRef,
+        pendingGeometryRef,
+        draftActionRef,
+        map,
+      });
     };
   }, [editMode, editingEntityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
 

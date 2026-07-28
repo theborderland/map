@@ -14,6 +14,7 @@ export function getActiveTabFromNav(navStack: PanelView[], entities: EntityRecor
         case "rule-detail":
         case "rule-create": return "Rules";
         case "poi-create": return "POIs";
+        case "road-create": return "Roads";
         case "root": return current.tab;
         default: throw new Error("Unhandled PanelView type");
     }
@@ -74,6 +75,16 @@ export function buildPOICreateNavigation(): PanelView[] {
 /** Navigates to the newly created POI's own detail view. */
 export function buildPOINavigation(entityId: string): PanelView[] {
     return [createRoot("POIs"), { type: "entity-detail", entityId }];
+}
+
+/** Navigates to a blank create form for a new road. */
+export function buildRoadCreateNavigation(): PanelView[] {
+    return [createRoot("Roads"), { type: "road-create" }];
+}
+
+/** Navigates directly to the newly created road's detail view. */
+export function buildRoadNavigation(entityId: string): PanelView[] {
+    return [createRoot("Roads"), { type: "entity-detail", entityId }];
 }
 
 export function createRoot(tab: Tab): PanelView {

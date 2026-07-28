@@ -13,6 +13,7 @@ import {
   buildRuleNavigation, buildStyleNavigation,
   buildRuleCreateNavigation, buildStyleCreateNavigation,
   buildPOICreateNavigation, buildPOINavigation,
+  buildRoadCreateNavigation, buildRoadNavigation,
   createRoot, getEntityTab,
 } from "../utils/panelNavigation";
 
@@ -74,6 +75,7 @@ export default function LeftPanel({
     if (currentView.tab === "Rules") return () => setNavStack(buildRuleCreateNavigation());
     if (currentView.tab === "Styles") return () => setNavStack(buildStyleCreateNavigation());
     if (currentView.tab === "POIs") return () => setNavStack(buildPOICreateNavigation());
+    if (currentView.tab === "Roads") return () => setNavStack(buildRoadCreateNavigation());
     return undefined;
   };
 
@@ -89,6 +91,7 @@ export default function LeftPanel({
       case "rule-detail": return rules.find((r) => r.id === view.ruleId)?.name ?? "Rule";
       case "rule-create": return "New Rule";
       case "poi-create": return "New POI";
+      case "road-create": return "New Road";
     }
   };
 
@@ -140,6 +143,7 @@ export default function LeftPanel({
               bumpMapKey={bumpMapKey}
               pendingGeometryRef={pendingGeometryRef}
               onCancelEdit={onCancelEdit}
+              editMode={editMode}
             />;
           case "POIs":
             return <POIDetail
@@ -218,6 +222,21 @@ export default function LeftPanel({
             selectedPOIIcon={selectedPOIIcon}
             onSelectedPOIIconChange={onSelectedPOIIconChange}
             onAfterCreate={(entityId) => setNavStack(buildPOINavigation(entityId))}
+          />
+        );
+
+      case "road-create":
+        return (
+          <RoadDetail
+            styles={styles}
+            rules={rules}
+            setEntities={setEntities}
+            goBack={goBack}
+            bumpMapKey={bumpMapKey}
+            pendingGeometryRef={pendingGeometryRef}
+            onCancelEdit={onCancelEdit}
+            editMode={editMode}
+            onAfterCreate={(entityId) => setNavStack(buildRoadNavigation(entityId))}
           />
         );
     }

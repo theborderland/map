@@ -3,7 +3,8 @@ import type { Geometry } from "geojson";
 import LeftPanel from "./components/LeftPanel";
 import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
-import type { EditMode, PanelView, Tab } from "./types";
+import type { EditMode, PanelView, Tab, EntityKind } from "./types";
+import { CREATE_DRAW_MODE_BY_KIND } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
 import {
   isAuthenticated, resetAndReseed,
@@ -41,7 +42,10 @@ function App() {
   const currentView = navStack[navStack.length - 1];
   const activeTab: Tab = getActiveTabFromNav(navStack, entities);
   const selectedEntityId = currentView.type === "entity-detail" ? currentView.entityId : null;
-  const isCreatingPOI = currentView.type === "poi-create";
+  const creatingKind: EntityKind | null =
+    currentView.type === "poi-create" ? "poi" :
+      currentView.type === "road-create" ? "road" :
+        null;
 
   /** Bumps mapKey so MapView GeoJSON layers remount after a geometry save. */
   const bumpMapKey = () => setMapKey((k) => k + 1);
@@ -57,11 +61,10 @@ function App() {
     setNavStack(buildEntityNavigation(entity));
   };
 
-  // Starts a draw session for a brand new POI. Does NOT touch pendingGeometryRef —
-  // earlier committed points (from previous "Add point" cycles) must be preserved.
-  const startCreatingPOI = () => {
+  const startCreateDraw = () => {
+    if (!creatingKind) return;
     setEditingEntityId(null);
-    setEditMode("drawPOI");
+    setEditMode(CREATE_DRAW_MODE_BY_KIND[creatingKind]);
   };
 
   // Activates a geometry edit mode for the given entity.
@@ -159,8 +162,8 @@ function App() {
         onStartEdit={startEdit}
         onSaveGeometry={saveGeometry}
         onCancelEdit={cancelEdit}
-        isCreatingPOI={isCreatingPOI}
-        onStartCreatePOI={startCreatingPOI}
+        creatingKind={creatingKind}
+        onStartCreate={startCreateDraw}
         settings={settings}
         selectedPOIIcon={selectedPOIIcon}
       />

@@ -224,6 +224,11 @@ body {
   font-weight: 600;
 }
 
+.form-hint {
+  font-weight: 300;
+  font-size: small;
+}
+
 .form-actions {
   display: flex;
   justify-content: space-between;

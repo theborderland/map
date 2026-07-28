@@ -7,7 +7,7 @@ import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
 import { createPOIIcon, DEFAULT_POI_ICON } from "../utils/Icons";
 import MapEditController from "./MapEditController";
-import type { EditMode } from "../types";
+import type { EditMode, EntityKind } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
 
 const DEFAULT_COLOR = "#2563eb";
@@ -27,8 +27,8 @@ interface Props {
   onSaveGeometry: () => Promise<void>;
   settings: SettingsRecord;
   draftActionRef: React.RefObject<"save" | "cancel" | null>;
-  isCreatingPOI: boolean;
-  onStartCreatePOI: () => void;
+  creatingKind: EntityKind | null;
+  onStartCreate: () => void;
   selectedPOIIcon: string;
 }
 
@@ -88,8 +88,8 @@ export default function MapView({
   onSaveGeometry,
   settings,
   draftActionRef,
-  isCreatingPOI,
-  onStartCreatePOI,
+  creatingKind,
+  onStartCreate,
   selectedPOIIcon,
 }: Props) {
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
@@ -106,7 +106,7 @@ export default function MapView({
 
   // Derive the type of the selected entity so the toolbar knows which
   // button set to show. Returns null for POIs — no geometry toolbar yet.
-  const selectedEntityType = useMemo((): "area" | "road" | "poi" | null => {
+  const selectedEntityType = useMemo((): EntityKind | null => {
     if (!selectedEntityId) return null;
     const entity = entities.find((e) => e.id === selectedEntityId);
     if (!entity) return null;
@@ -241,8 +241,8 @@ export default function MapView({
           onStartEdit={onStartEdit}
           onSaveGeometry={onSaveGeometry}
           onCancelEdit={onCancelEdit}
-          isCreatingPOI={isCreatingPOI}
-          onStartCreatePOI={onStartCreatePOI}
+          creatingKind={creatingKind}
+          onStartCreate={onStartCreate}
         />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
@@ -290,7 +290,7 @@ export default function MapView({
           layerRegistry={layerRegistry}
           pendingGeometryRef={pendingGeometryRef}
           draftActionRef={draftActionRef}
-          isCreatingPOI={isCreatingPOI}
+          creatingKind={creatingKind}
           entities={entities}
           onCancelEdit={onCancelEdit}
           settings={settings}

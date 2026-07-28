@@ -1,33 +1,40 @@
 import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
-import type { EditMode } from "../types";
+import type { EditMode, EntityKind } from "../types";
+import { CREATE_DRAW_MODE_BY_KIND } from "../types";
 
 const BUTTONS = {
   EDIT_VERTICES: "geo-edit-vertices",
-  MOVE:          "geo-move",
-  ADD_SHAPE:     "geo-add-shape",
-  SAVE:          "geo-save",
-  CANCEL:        "geo-cancel",
+  MOVE: "geo-move",
+  ADD_SHAPE: "geo-add-shape",
+  SAVE: "geo-save",
+  CANCEL: "geo-cancel",
 };
 
-type EntityType = "area" | "road" | "poi" | null;
+// Per-kind labels for the create flow's "Add …" and "Save …" buttons.
+const CREATE_LABELS: Record<EntityKind, { add: string; }> = {
+  poi: { add: "Add POI" },
+  road: { add: "Add road" },
+  area: { add: "Add area" },
+};
 
 interface Props {
   editMode: EditMode;
   editingEntityId: string | null;
   selectedEntityId: string | null;
-  selectedEntityType: EntityType;
+  selectedEntityType: EntityKind | null;
   onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
   onSaveGeometry: () => Promise<void>;
   onCancelEdit: () => void;
-  isCreatingPOI: boolean;
-  onStartCreatePOI: () => void;
+  creatingKind: EntityKind | null;
+  onStartCreate: () => void;
 }
 
 /**
- * Adds geometry edit controls to Geoman's native toolbar.
- * Shows area or road specific buttons depending on the selected entity type.
- * Uses only valid leaflet-pm-icon-* class names so buttons render correctly.
+ * Adds geometry edit controls to Geoman's native toolbar. Shows different
+ * button sets depending on:
+ *  - a create flow being active (creatingKind), or
+ *  - an existing entity being selected (selectedEntityType).
  */
 export default function MapGeometryToolbar({
   editMode,
@@ -37,78 +44,71 @@ export default function MapGeometryToolbar({
   onStartEdit,
   onSaveGeometry,
   onCancelEdit,
-  isCreatingPOI,
-  onStartCreatePOI,
+  creatingKind,
+  onStartCreate,
 }: Props) {
   const map = useMap();
 
   // Stable ref so button callbacks always read the latest props
   // without needing to recreate buttons on every render.
   const ref = useRef({
-    editMode,
-    editingEntityId,
-    selectedEntityId,
-    selectedEntityType,
-    onStartEdit,
-    onSaveGeometry,
-    onCancelEdit,
-    isCreatingPOI,
-    onStartCreatePOI
+    editMode, editingEntityId, selectedEntityId, selectedEntityType,
+    onStartEdit, onSaveGeometry, onCancelEdit,
+    creatingKind, onStartCreate,
   });
   useEffect(() => {
     ref.current = {
-      editMode,
-      editingEntityId,
-      selectedEntityId,
-      selectedEntityType,
-      onStartEdit,
-      onSaveGeometry,
-      onCancelEdit,
-      isCreatingPOI,
-      onStartCreatePOI
+      editMode, editingEntityId, selectedEntityId, selectedEntityType,
+      onStartEdit, onSaveGeometry, onCancelEdit,
+      creatingKind, onStartCreate,
     };
   });
 
   useEffect(() => {
     const toolbar = map.pm.Toolbar;
     const isEditing = editMode !== "idle";
-    // Actively placing a point for a brand new POI (no entity exists yet).
-    const isCreatingActive = editMode === "drawPOI" && editingEntityId === null;
     const hasSelection = !!selectedEntityId && selectedEntityType !== null;
 
-    // Remove all our buttons before rebuilding the correct set.
+    // A create flow's draw session is "active" once the user has clicked
+    // "Add …" and is mid-draw (editingEntityId is always null during create).
+    const isCreatingActive =
+      creatingKind !== null &&
+      editMode === CREATE_DRAW_MODE_BY_KIND[creatingKind] &&
+      editingEntityId === null;
+
     Object.values(BUTTONS).forEach((name) => {
       try { toolbar.deleteControl(name); } catch { /* already absent */ }
     });
-    // ── Creating a brand new POI ──────────────────────────
-    // Takes priority over the selection-based buttons below since there's
-    // no selected entity during creation.
-    if (isCreatingPOI || isCreatingActive) {
+
+    // ── Create flow (POI, Road, or later Area) ────────────
+    if (creatingKind) {
+      const labels = CREATE_LABELS[creatingKind];
+
       if (isCreatingActive) {
         toolbar.createCustomControl({
-          name:       BUTTONS.SAVE,
-          block:      "custom",
-          title:      "Save point(s)",
-          className:  "leaflet-toolbar-icon-save",
-          toggle:     false,
+          name: BUTTONS.SAVE,
+          block: "custom",
+          title: "Save",
+          className: "leaflet-toolbar-icon-save",
+          toggle: false,
           onClick: () => { void ref.current.onSaveGeometry(); },
         });
         toolbar.createCustomControl({
-          name:       BUTTONS.CANCEL,
-          block:      "custom",
-          title:      "Cancel (Esc)",
-          className:  "leaflet-toolbar-icon-cancel",
-          toggle:     false,
+          name: BUTTONS.CANCEL,
+          block: "custom",
+          title: "Cancel (Esc)",
+          className: "leaflet-toolbar-icon-cancel",
+          toggle: false,
           onClick: () => { ref.current.onCancelEdit(); },
         });
       } else {
         toolbar.createCustomControl({
-          name:       BUTTONS.ADD_SHAPE,
-          block:      "custom",
-          title:      "Add point",
+          name: BUTTONS.ADD_SHAPE,
+          block: "custom",
+          title: labels.add,
           className: "leaflet-pm-icon-marker",
-          toggle:     false,
-          onClick: () => { ref.current.onStartCreatePOI(); },
+          toggle: false,
+          onClick: () => { ref.current.onStartCreate(); },
         });
       }
 
@@ -119,73 +119,65 @@ export default function MapGeometryToolbar({
       };
     }
 
+    // ── Existing selection (edit an already-saved entity) ─
     if (!hasSelection && !isEditing) return;
 
     if (isEditing && editingEntityId === selectedEntityId) {
-      // ── Active edit: Save + Cancel ───────────────────────
       toolbar.createCustomControl({
-        name:      BUTTONS.SAVE,
-        block:     "custom",
-        title:     "Save changes",
+        name: BUTTONS.SAVE, 
+        block: "custom", 
+        title: "Save",
         className: "leaflet-toolbar-icon-save",
-        toggle:    false,
+         toggle: false,
         onClick: () => { void ref.current.onSaveGeometry(); },
       });
-
       toolbar.createCustomControl({
-        name:      BUTTONS.CANCEL,
-        block:     "custom",
-        title:     "Cancel (Esc)",
-        className: "leaflet-toolbar-icon-cancel",
-        toggle:    false,
+        name: BUTTONS.CANCEL, 
+        block: "custom", 
+        title: "Cancel (Esc)",
+        className: "leaflet-toolbar-icon-cancel", 
+        toggle: false,
         onClick: () => { ref.current.onCancelEdit(); },
       });
-
     } else if (!isEditing && hasSelection) {
       const type = selectedEntityType;
 
-      // POIs don't have a vertex-edit mode so MOVE maps to their primary action above.
-      // Only show the separate Move button for areas and roads.
+      toolbar.createCustomControl({
+        name: BUTTONS.EDIT_VERTICES,
+        block: "custom",
+        title: type === "road" ? "Edit road" : type === "poi" ? "Move POI(s)" : "Edit shape",
+        className: type === "poi" ? "leaflet-toolbar-icon-move" : "leaflet-pm-icon-edit",
+        toggle: false,
+        onClick: () => {
+          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
+          if (!id) return;
+          start(id, t === "road" ? "editLine" : t === "poi" ? "movePOI" : "vertices");
+        },
+      });
+
       if (type !== "poi") {
         toolbar.createCustomControl({
-          name:       BUTTONS.EDIT_VERTICES,
-          block:      "custom",
-          title:      type === "road" ? "Edit line" : "Edit vertices",
-          className:  "leaflet-pm-icon-edit",
-          toggle:     false,
+          name: BUTTONS.MOVE,
+          block: "custom",
+          title: type === "road" ? "Move road(s)" : "Move shape(s)",
+          className: "leaflet-toolbar-icon-move",
+          toggle: false,
           onClick: () => {
             const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
             if (!id) return;
-            start(id, t === "road" ? "editLine" : "vertices");
+            start(id, t === "road" ? "dragLine" : "drag");
           },
         });
       }
 
       toolbar.createCustomControl({
-        name:       BUTTONS.MOVE,
-        block:      "custom",
-        title:      type === "road" ? "Move line"
-                  : type === "poi" ? "Move point(s)"
-                  : "Move shape",
-        className:  "leaflet-toolbar-icon-move",
-        toggle:     false,
-        onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
-          if (!id) return;
-          start(id, t === "road" ? "dragLine" : t === "poi" ? "movePOI" : "drag");
-        },
-      });
-
-      toolbar.createCustomControl({
-        name:      BUTTONS.ADD_SHAPE,
-        block:     "custom",
-        title:     type === "road" ? "Add line"
-                 : type === "poi"  ? "Add point"
-                 : "Add shape",
+        name: BUTTONS.ADD_SHAPE,
+        block: "custom",
+        title: type === "road" ? "Add road" : type === "poi" ? "Add POI" : "Add shape",
         className: type === "road" ? "leaflet-pm-icon-polyline" 
                   : type == "poi" ? "leaflet-pm-icon-marker"
                   : "leaflet-pm-icon-polygon",
-        toggle:    false,
+        toggle: false,
         onClick: () => {
           const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
           if (!id) return;
@@ -200,7 +192,7 @@ export default function MapGeometryToolbar({
         try { toolbar.deleteControl(name); } catch { /* already absent */ }
       });
     };
-  }, [map, editMode, editingEntityId, selectedEntityId, selectedEntityType, isCreatingPOI]);
+  }, [map, editMode, editingEntityId, selectedEntityId, selectedEntityType, creatingKind]);
 
   return null;
 }
