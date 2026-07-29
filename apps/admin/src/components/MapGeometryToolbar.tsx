@@ -12,12 +12,11 @@ const BUTTONS = {
 };
 
 // Per-kind labels for the create flow's "Add …" and "Save …" buttons.
-const CREATE_LABELS: Record<EntityKind, { add: string; }> = {
-  poi: { add: "Add POI" },
-  road: { add: "Add road" },
-  area: { add: "Add area" },
+const CREATE_LABELS: Record<EntityKind, { title: string; className: string; }> = {
+  poi: { title: "Add POI", className: "leaflet-pm-icon-marker" },
+  road: { title: "Add road", className: "leaflet-pm-icon-polyline" },
+  area: { title: "Add area", className: "leaflet-pm-icon-polygon" },
 };
-
 interface Props {
   editMode: EditMode;
   editingEntityId: string | null;
@@ -105,8 +104,8 @@ export default function MapGeometryToolbar({
         toolbar.createCustomControl({
           name: BUTTONS.ADD_SHAPE,
           block: "custom",
-          title: labels.add,
-          className: "leaflet-pm-icon-marker",
+          title: labels.title,
+          className: labels.className,
           toggle: false,
           onClick: () => { ref.current.onStartCreate(); },
         });
@@ -124,22 +123,23 @@ export default function MapGeometryToolbar({
 
     if (isEditing && editingEntityId === selectedEntityId) {
       toolbar.createCustomControl({
-        name: BUTTONS.SAVE, 
-        block: "custom", 
+        name: BUTTONS.SAVE,
+        block: "custom",
         title: "Save",
         className: "leaflet-toolbar-icon-save",
-         toggle: false,
+        toggle: false,
         onClick: () => { void ref.current.onSaveGeometry(); },
       });
       toolbar.createCustomControl({
-        name: BUTTONS.CANCEL, 
-        block: "custom", 
+        name: BUTTONS.CANCEL,
+        block: "custom",
         title: "Cancel (Esc)",
-        className: "leaflet-toolbar-icon-cancel", 
+        className: "leaflet-toolbar-icon-cancel",
         toggle: false,
         onClick: () => { ref.current.onCancelEdit(); },
       });
     } else if (!isEditing && hasSelection) {
+      const labels = CREATE_LABELS[selectedEntityType];
       const type = selectedEntityType;
 
       toolbar.createCustomControl({
@@ -173,10 +173,8 @@ export default function MapGeometryToolbar({
       toolbar.createCustomControl({
         name: BUTTONS.ADD_SHAPE,
         block: "custom",
-        title: type === "road" ? "Add road" : type === "poi" ? "Add POI" : "Add shape",
-        className: type === "road" ? "leaflet-pm-icon-polyline" 
-                  : type == "poi" ? "leaflet-pm-icon-marker"
-                  : "leaflet-pm-icon-polygon",
+        title: labels.title,
+        className: labels.className,
         toggle: false,
         onClick: () => {
           const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;

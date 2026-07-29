@@ -44,8 +44,9 @@ function App() {
   const selectedEntityId = currentView.type === "entity-detail" ? currentView.entityId : null;
   const creatingKind: EntityKind | null =
     currentView.type === "poi-create" ? "poi" :
-      currentView.type === "road-create" ? "road" :
-        null;
+    currentView.type === "road-create" ? "road" :
+    currentView.type === "area-create" ? "area" :
+    null;
 
   /** Bumps mapKey so MapView GeoJSON layers remount after a geometry save. */
   const bumpMapKey = () => setMapKey((k) => k + 1);

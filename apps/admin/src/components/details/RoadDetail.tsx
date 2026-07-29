@@ -158,7 +158,7 @@ export default function RoadDetail({
           <GeometryEditor geometry={geometry} onChange={setPendingGeometry} />
         ) : (
           <p className="item-meta">
-            Use the "Add line" button on the map to draw this road.
+            Use the "Add road" button on the map to draw this road.
           </p>
         )}
 

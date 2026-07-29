@@ -1,21 +1,28 @@
 import { useState } from "react";
 import type { Geometry } from "geojson";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import { updateEntity, deleteEntity } from "../../db";
+import type { EditMode } from "../../types";
+import { updateEntity, createEntity, deleteEntity } from "../../db";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
 
 interface Props {
-  entity: EntityRecord;
+  /** Undefined in create mode. */
+  entity?: EntityRecord;
   styles: StyleRecord[];
   rules: RuleRecord[];
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
-  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
+  pendingGeometryRef: React.RefObject<Geometry | null>;
   onCancelEdit: () => void;
+  /** Current global edit mode — used to block Save while an unsaved
+   *  draw session is still open on the map (Save/Cancel on the toolbar). */
+  editMode: EditMode;
+  /** Called with the new area's id after a successful create. */
+  onAfterCreate?: (entityId: string) => void;
 }
 
 export default function AreaDetail({
@@ -26,44 +33,62 @@ export default function AreaDetail({
   goBack,
   bumpMapKey,
   pendingGeometryRef,
-  onCancelEdit
+  onCancelEdit,
+  editMode,
+  onAfterCreate,
 }: Props) {
-  const [name, setName] = useState(entity.name ?? "");
-  const [tagline, setTagline] = useState(entity.tagline ?? "");
-  const [styleType, setStyleType] = useState(entity.styleType);
-  const [attachedRules, setAttachedRules] = useState(entity.rules);
+  const isCreate = !entity;
+
+  const [name, setName] = useState(entity?.name ?? "");
+  const [tagline, setTagline] = useState(entity?.tagline ?? "");
+  const [styleType, setStyleType] = useState(entity?.styleType ?? "");
+  const [attachedRules, setAttachedRules] = useState(entity?.rules ?? []);
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    // Prefer local GeometryEditor edits, then map tool edits (vertex/drag),
-    // then fall back to the entity's existing geometry.
-    const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity.geometry;
-    const updated = await updateEntity(entity.id, {
-      name: name.trim(),
-      tagline: tagline.trim(),
-      styleType,
-      rules: attachedRules,
-      geometry,
-    });
+  const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity?.geometry ?? null;
 
-    setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
-    if (pendingGeometry || pendingGeometryRef.current) {
-      // Clear the map edit ref so it isn't accidentally reused on next save.
-      pendingGeometryRef.current = null;
+  // Block form save while a draw session is still open on the map —
+  // force the user to Save/Cancel that session first.
+  const hasOpenDrawSession = editMode !== "idle";
+  const canSave = !hasOpenDrawSession &&
+    (isCreate ? (!!name.trim() && !!styleType && !!geometry) : !!name.trim());
+
+  const handleSave = async () => {
+    if (!canSave) return;
+    setIsSaving(true);
+
+    if (entity) {
+      const updated = await updateEntity(entity.id, {
+        name: name.trim(),
+        tagline: tagline.trim(),
+        styleType,
+        rules: attachedRules,
+        geometry: geometry!,
+      });
+      setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
+    } else {
+      const created = await createEntity({
+        styleType,
+        name: name.trim(),
+        tagline: tagline.trim(),
+        rules: attachedRules,
+        geometry: geometry!,
+      });
+      setEntities((prev) => [...prev, created]);
+      onAfterCreate?.(created.id);
     }
-    
-    // Bump map version so GeoJSON layers remount with the new geometry.
+
+    pendingGeometryRef.current = null;
     bumpMapKey();
-    // Exit geometry edit mode if it was active when the user clicked Save changes.
     onCancelEdit();
     setIsSaving(false);
   };
 
   const handleDelete = async () => {
+    if (!entity) return;
     await deleteEntity(entity.id);
     setEntities((prev) => prev.filter((e) => e.id !== entity.id));
     goBack?.();
@@ -88,6 +113,7 @@ export default function AreaDetail({
             value={styleType}
             onChange={(e: Event) => setStyleType((e.target as HTMLSelectElement).value)}
           >
+            {isCreate && <wa-option value="">Select style…</wa-option>}
             {compatibleStyles.map((s) => (
               <wa-option key={s.id} value={s.type}>{s.displayName}</wa-option>
             ))}
@@ -109,29 +135,42 @@ export default function AreaDetail({
           onChange={setAttachedRules}
         />
 
-        <GeometryEditor
-          geometry={pendingGeometry ?? entity.geometry}
-          onChange={setPendingGeometry}
-        />
+        {geometry ? (
+          <GeometryEditor geometry={geometry} onChange={setPendingGeometry} />
+        ) : (
+          <p className="item-meta">
+            Use the "Add area" button on the map to draw this area.
+          </p>
+        )}
+
+        {hasOpenDrawSession && (
+          <p className="item-meta form-hint-warning">
+            Finish the current polygon (Save or Cancel on the map) before saving the form.
+          </p>
+        )}
       </div>
 
       <div className="form-actions">
-        <DeleteButton
-          message={`Delete "${entity.name ?? "this area"}"? This cannot be undone.`}
-          onDelete={handleDelete}
-        />
+        {!isCreate && (
+          <DeleteButton
+            message={`Delete "${entity!.name ?? "this area"}"? This cannot be undone.`}
+            onDelete={handleDelete}
+          />
+        )}
         <wa-button
           size="xs"
           appearance="outlined"
-          disabled={isSaving || undefined}
+          disabled={(!canSave || isSaving) || undefined}
           onClick={handleSave}
         >
           <wa-icon slot="start" name="floppy-disk"></wa-icon>
-          {isSaving ? "Saving…" : "Save"}
+          {isSaving ? "Saving…" : isCreate ? "Create" : "Save"}
         </wa-button>
       </div>
 
-      <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
+      {entity && (
+        <p className="tagline">Created: {new Date(entity.createdAt).toLocaleString()}</p>
+      )}
     </div>
   );
 }

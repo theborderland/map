@@ -163,7 +163,7 @@ export default function POIDetail({
           <GeometryEditor geometry={geometry} onChange={setPendingGeometry} />
         ) : (
           <p className="item-meta">
-            Use the "Add point" button on the map to place this POI.
+            Use the "Add POI" button on the map to place this POI.
           </p>
         )}
 

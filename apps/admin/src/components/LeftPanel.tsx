@@ -14,6 +14,7 @@ import {
   buildRuleCreateNavigation, buildStyleCreateNavigation,
   buildPOICreateNavigation, buildPOINavigation,
   buildRoadCreateNavigation, buildRoadNavigation,
+  buildAreaCreateNavigation, buildAreaNavigation,
   createRoot, getEntityTab,
 } from "../utils/panelNavigation";
 
@@ -76,6 +77,7 @@ export default function LeftPanel({
     if (currentView.tab === "Styles") return () => setNavStack(buildStyleCreateNavigation());
     if (currentView.tab === "POIs") return () => setNavStack(buildPOICreateNavigation());
     if (currentView.tab === "Roads") return () => setNavStack(buildRoadCreateNavigation());
+    if (currentView.tab === "Areas") return () => setNavStack(buildAreaCreateNavigation());
     return undefined;
   };
 
@@ -92,6 +94,7 @@ export default function LeftPanel({
       case "rule-create": return "New Rule";
       case "poi-create": return "New POI";
       case "road-create": return "New Road";
+      case "area-create": return "New Area";
     }
   };
 
@@ -130,6 +133,7 @@ export default function LeftPanel({
                 bumpMapKey={bumpMapKey}
                 pendingGeometryRef={pendingGeometryRef}
                 onCancelEdit={onCancelEdit}
+                editMode={editMode}
               />
             );
           case "Roads":
@@ -237,6 +241,21 @@ export default function LeftPanel({
             onCancelEdit={onCancelEdit}
             editMode={editMode}
             onAfterCreate={(entityId) => setNavStack(buildRoadNavigation(entityId))}
+          />
+        );
+        
+      case "area-create":
+        return (
+          <AreaDetail
+            styles={styles}
+            rules={rules}
+            setEntities={setEntities}
+            goBack={goBack}
+            bumpMapKey={bumpMapKey}
+            pendingGeometryRef={pendingGeometryRef}
+            onCancelEdit={onCancelEdit}
+            editMode={editMode}
+            onAfterCreate={(entityId) => setNavStack(buildAreaNavigation(entityId))}
           />
         );
     }

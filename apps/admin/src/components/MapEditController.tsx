@@ -294,31 +294,47 @@ export default function MapEditController({
     };
   }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Area: draw additional polygon (add-to-existing only, for now) ──
-  // Each completed polygon is automatically merged into the entity's geometry as a MultiPolygon.
+  // ── Area: draw polygon — add-to-existing AND brand new creation ──
+  // draw always uses Geoman's Polygon tool. When editingEntityId is set,
+  // each drawn polygon merges into the existing entity's geometry. When
+  // null (brand new area), the first polygon becomes the geometry and
+  // subsequent ones merge, same as roads/POIs during creation.
   useEffect(() => {
-    if (editMode !== "draw" || !editingEntityId) return;
+    if (editMode !== "draw") return;
 
-    const entity = entities.find((e) => e.id === editingEntityId);
-    if (!entity) return;
+    const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
+    if (editingEntityId && !entity) return;
+
+    const isCreatingFlow = !editingEntityId;
+    if (isCreatingFlow) {
+      draftSessionSnapshotRef.current = pendingGeometryRef.current;
+    }
 
     map.pm.enableDraw("Polygon", { continueDrawing: false });
+
     const handleCreate = (event: GeomanCreateEvent) => {
       const drawnLayer = event.layer;
       drawnLayersRef.current.push(drawnLayer);
       const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.Polygon;
-      const base = pendingGeometryRef.current ?? entity.geometry;
-      pendingGeometryRef.current = mergePolygon(base, drawnGeom);
+      const base = pendingGeometryRef.current ?? entity?.geometry;
+      // No base yet (brand new area) → the drawn polygon is the geometry.
+      pendingGeometryRef.current = base ? mergePolygon(base, drawnGeom) : drawnGeom;
     };
+
     map.on("pm:create", handleCreate);
 
     return () => {
       map.pm.disableDraw();
       map.off("pm:create", handleCreate);
-      // Remove all drawn layers — on cancel these disappear, on save
-      // bumpMapKey() remounts the GeoJSON with the merged MultiPolygon from DB.
-      drawnLayersRef.current.forEach((l) => { try { map.removeLayer(l); } catch { /* no-op */ } });
-      drawnLayersRef.current = [];
+      finalizeDrawSession({
+        isCreatingFlow,
+        drawnLayersRef,
+        draftCommittedLayersRef,
+        draftSessionSnapshotRef,
+        pendingGeometryRef,
+        draftActionRef,
+        map,
+      });
     };
   }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 

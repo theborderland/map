@@ -35,4 +35,5 @@ export type PanelView =
   | { type: "rule-detail"; ruleId: string }
   | { type: "rule-create" }
   | { type: "poi-create" }
-  | { type: "road-create" };
+  | { type: "road-create" }
+  | { type: "area-create" };

@@ -229,6 +229,11 @@ body {
   font-size: small;
 }
 
+.form-hint-warning {
+  color: darkred;
+  font-weight: bold;
+}
+
 .form-actions {
   display: flex;
   justify-content: space-between;
