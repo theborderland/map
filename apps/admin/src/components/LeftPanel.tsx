@@ -6,7 +6,7 @@ import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../d
 import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, SettingsTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
-import GroupedEntityList from "./GroupedEntityList";
+import EntityList from "./EntityList";
 import { AreaDetail, RoadDetail, POIDetail, RuleDetail, StyleDetail } from "./details";
 import {
   buildEntityNavigation, buildGroupNavigation,
@@ -108,7 +108,7 @@ export default function LeftPanel({
       case "entity-group": {
         const groupEntities = entities.filter((e) => e.styleType === view.styleType);
         return (
-          <GroupedEntityList
+          <EntityList
             entities={groupEntities}
             styles={styles}
             openEntity={openEntity}

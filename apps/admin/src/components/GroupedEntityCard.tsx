@@ -25,10 +25,10 @@ export default function GroupedEntityCard({
   return (
     <div className="card cursor-pointer" style={vars} onClick={onOpen}>
       <div className="card-content">
-        <div className="swatch" />
+        <div className="color-swatch" />
         <div>
           <h2 className="card-title">{groupName}</h2>
-          <p className="card-sub">{groupCount} item{groupCount === 1 ? "" : "s"}</p>
+          <p className="card-subtitle">{groupCount} item{groupCount === 1 ? "" : "s"}</p>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ export default function EntityCard({
       <div className="card-content">
         {isPOI ? (
           // POIs use their icon image instead of the colour swatch.
-          // Remove this conditional and always render <div className="swatch" />
+          // Remove this conditional and always render <div className="color-swatch" />
           // if you want a uniform look across all entity types.
           <img
             src={getIconPath(entity.icon)}
@@ -39,11 +39,11 @@ export default function EntityCard({
             style={{ objectFit: "contain", flexShrink: 0 }}
           />
         ) : (
-          <div className="swatch" />
+          <div className="color-swatch" />
         )}
         <div>
           <h3 className="card-title">{entity.name || entity.id}</h3>
-          <p className="card-sub">
+          <p className="card-subtitle">
             {entity.geometry.type} · {entity.rules.length} rule{entity.rules.length === 1 ? "" : "s"}
           </p>
         </div>

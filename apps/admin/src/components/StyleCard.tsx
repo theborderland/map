@@ -24,10 +24,10 @@ export default function StyleCard({
   return (
     <div className="card cursor-pointer" style={vars} onClick={onOpen}>
       <div className="card-content">
-        <div className="swatch" />
+        <div className="color-swatch" />
         <div>
           <h3 className="card-title">{style?.displayName || style.id}</h3>
-          <p className="card-sub">
+          <p className="card-subtitle">
             {entityCount} {entityCount === 1 ? "entity" : "entities"}
           </p>
         </div>

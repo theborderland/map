@@ -12,11 +12,11 @@ export default function StylesTab({
 }) {
   return (
     <div>
-      <p className="grouped-entity-subtitle">Browse the map style definitions used by entities.</p>
+      <p className="tab-subtitle">Browse the map style definitions used by entities.</p>
       {styles.length === 0 ? (
         <p>No styles found.</p>
       ) : (
-        <div className="grid">
+        <div className="left-entity-grid">
           {styles.map((style) => (
             <StyleCard
               key={style.id}

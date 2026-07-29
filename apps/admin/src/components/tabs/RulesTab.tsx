@@ -12,12 +12,12 @@ export default function RulesTab({
 }) {
   return (
     <div>
-      <p className="grouped-entity-subtitle">Review and inspect the rule set that governs placement and safety.</p>
+      <p className="tab-subtitle">Review and inspect the rule set that governs placement and safety.</p>
 
       {rules.length === 0 ? (
         <p>No rules available.</p>
       ) : (
-        <div className="grid">
+        <div className="left-entity-grid">
           {rules.map((rule) => (
             <RuleCard
               key={rule.id}

@@ -1,6 +1,6 @@
 /* Left panel grid cards */
 
-.grid {
+.left-entity-grid {
   display: grid;
   gap: 0.3rem;
 }
@@ -28,7 +28,14 @@
   min-width: 0;
 }
 
-.swatch {
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.color-swatch {
   width: 2rem;
   height: 2rem;
   border-radius: 0.35rem;
@@ -44,7 +51,7 @@
   line-height: 1;
 }
 
-.card-sub {
+.card-subtitle {
   margin: 0;
   font-size: 0.8rem;
   color: #666;

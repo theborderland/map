@@ -1,6 +1,6 @@
 import type { Tab } from "../../types";
 import type { EntityRecord, StyleRecord } from "../../db/types";
-import GroupedEntityList from "../GroupedEntityList";
+import EntityList from "../EntityList";
 
 export default function POIsTab({
   entities,
@@ -16,7 +16,7 @@ export default function POIsTab({
   const poiEntities = entities.filter((entity) => entity.geometry.type === "Point" || entity.geometry.type === "MultiPoint");
 
   return (
-    <GroupedEntityList
+    <EntityList
       subtitle="List points of interest and service locations."
       entities={poiEntities}
       styles={styles}

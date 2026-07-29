@@ -4,6 +4,7 @@ import App from "./App.tsx"
 import "./css/App.css";
 import "./css/menu.css";
 import "./css/cards.css";
+import "./css/map.css";
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 

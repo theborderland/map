@@ -12,9 +12,9 @@ export default function RuleCard({
 }) {
   return (
     <div key={rule.id} className="card cursor-pointer" onClick={onOpen}>
-      <div className="item-head">
+      <div className="card-head">
         <div>
-          <h3 className="item-title">{rule.name}</h3>
+          <h3 className="card-title">{rule.name}</h3>
           <p className="item-meta">Used in {entityCount} place{entityCount === 1 ? "" : "s"}</p>
         </div>
         <span className={`badge severity-${rule.severity}`}>{rule.severity}</span>

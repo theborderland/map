@@ -1,6 +1,6 @@
 import type { Tab } from "../../types";
 import type { EntityRecord, StyleRecord } from "../../db/types";
-import GroupedEntityList from "../GroupedEntityList";
+import EntityList from "../EntityList";
 
 export default function AreasTab({
   entities,
@@ -18,7 +18,7 @@ export default function AreasTab({
   );
 
   return (
-    <GroupedEntityList
+    <EntityList
       subtitle="Manage geographic areas and polygons on the map."
       entities={areaEntities}
       styles={styles}

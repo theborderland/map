@@ -14,7 +14,7 @@ interface Props {
   groupByStyleType?: boolean;
 }
 
-export default function GroupedEntityList({
+export default function EntityList({
   subtitle,
   entities,
   styles,
@@ -25,7 +25,7 @@ export default function GroupedEntityList({
   const styleByType = new Map(styles.map((s) => [s.type, s]));
 
   const renderEntityList = (entities: EntityRecord[], fixedStyle?: StyleRecord) => (
-    <div className="grid">
+    <div className="left-entity-grid">
       {entities.map((entity) => (
         <EntityCard
           key={entity.id}
@@ -55,7 +55,7 @@ export default function GroupedEntityList({
     });
 
     return (
-      <div className="grid">
+      <div className="left-entity-grid">
         {sortedGroups.map(([styleType, groupEntities]) => {
           const style = styleByType.get(styleType);
           return (
@@ -74,7 +74,7 @@ export default function GroupedEntityList({
 
   return (
     <div>
-      {subtitle && <p className="grouped-entity-subtitle">{subtitle}</p>}
+      {subtitle && <p className="tab-subtitle">{subtitle}</p>}
       {entities.length === 0 ? (
         <p>No items found yet.</p>
       ) : groupByStyleType ? (
