@@ -7,8 +7,9 @@ import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
 import { createPOIIcon, DEFAULT_POI_ICON } from "../utils/Icons";
 import MapEditController from "./MapEditController";
-import type { EditMode, EntityKind } from "../types";
+import type { EntityKind } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
+import { useMapEditStore } from "../store/mapEditStore";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -19,16 +20,7 @@ interface Props {
   mapKey: number;
   selectedEntityId: string | null;
   openEntity: (entityId: string | null) => void;
-  editMode: EditMode;
-  editingEntityId: string | null;
-  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
-  onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
-  onCancelEdit: () => void;
-  onSaveGeometry: () => Promise<void>;
   settings: SettingsRecord;
-  draftActionRef: React.RefObject<"save" | "cancel" | null>;
-  creatingKind: EntityKind | null;
-  onStartCreate: () => void;
   selectedPOIIcon: string;
 }
 
@@ -80,19 +72,15 @@ export default function MapView({
   mapKey,
   selectedEntityId,
   openEntity,
-  editMode,
-  editingEntityId,
-  pendingGeometryRef,
-  onStartEdit,
-  onCancelEdit,
-  onSaveGeometry,
   settings,
-  draftActionRef,
-  creatingKind,
-  onStartCreate,
   selectedPOIIcon,
 }: Props) {
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
+
+  // Read edit state reactively from the store — these values drive both
+  // this component's own memoized feature filtering and the click-guard ref below.
+  const editMode = useMapEditStore((s) => s.editMode);
+  const editingEntityId = useMapEditStore((s) => s.editingEntityId);
 
   // Ref so onEachFeature click handlers always read the live editMode
   // rather than the stale value captured when each layer was created.
@@ -105,7 +93,7 @@ export default function MapView({
   );
 
   // Derive the type of the selected entity so the toolbar knows which
-  // button set to show. Returns null for POIs — no geometry toolbar yet.
+  // button set to show.
   const selectedEntityType = useMemo((): EntityKind | null => {
     if (!selectedEntityId) return null;
     const entity = entities.find((e) => e.id === selectedEntityId);
@@ -153,7 +141,7 @@ export default function MapView({
       .map(EntityToFeature),
   }), [entities]);
 
-  // Rendered in a separate pane so it draws below areas and roads.
+  // Rendered in a separate pane so it is drawn below areas and roads.
   const propertyBorderFeatures: FeatureCollection = useMemo(() => ({
     type: "FeatureCollection",
     features: entities
@@ -172,9 +160,6 @@ export default function MapView({
     layerRegistry.current.set(feature.properties.id, layer);
 
     layer.on("click", (event: L.LeafletMouseEvent) => {
-      // Block entity selection while a geometry edit is active.
-      // Read from ref so we always get the current editMode,
-      // not the stale value captured when this layer was created.
       if (editModeRef.current !== "idle") return;
       if (event.originalEvent) L.DomEvent.stopPropagation(event);
       openEntity(feature.properties.id);
@@ -189,7 +174,6 @@ export default function MapView({
     }
   };
 
-  /** POIs use L.marker with a divIcon so the PNG is rendered correctly. */
   const pointToLayer = (feature: MapFeature, latlng: L.LatLng): L.Marker => {
     const iconName = feature.properties.icon ?? DEFAULT_POI_ICON;
     return L.marker(latlng, { icon: createPOIIcon(iconName) });
@@ -234,15 +218,8 @@ export default function MapView({
         style={{ height: "100%", width: "100%" }}
       >
         <MapGeometryToolbar
-          editMode={editMode}
-          editingEntityId={editingEntityId}
           selectedEntityId={selectedEntityId}
           selectedEntityType={selectedEntityType}
-          onStartEdit={onStartEdit}
-          onSaveGeometry={onSaveGeometry}
-          onCancelEdit={onCancelEdit}
-          creatingKind={creatingKind}
-          onStartCreate={onStartCreate}
         />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
@@ -285,14 +262,8 @@ export default function MapView({
           />
         </Pane>
         <MapEditController
-          editMode={editMode}
-          editingEntityId={editingEntityId}
           layerRegistry={layerRegistry}
-          pendingGeometryRef={pendingGeometryRef}
-          draftActionRef={draftActionRef}
-          creatingKind={creatingKind}
           entities={entities}
-          onCancelEdit={onCancelEdit}
           settings={settings}
           selectedPOIIcon={selectedPOIIcon}
         />

@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import type { Geometry } from "geojson";
 import type { EntityRecord, RuleRecord } from "../../db/types";
-import type { EditMode } from "../../types";
 import { updateEntity, createEntity, deleteEntity } from "../../db";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
 import IconPicker from "./IconPicker";
 import { DEFAULT_POI_ICON } from "../../utils/Icons";
+import { useMapEditStore } from "../../store/mapEditStore";
 
 const POI_STYLE_TYPE = "poi";
 
@@ -18,11 +18,6 @@ interface Props {
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
-  pendingGeometryRef: React.RefObject<Geometry | null>;
-  onCancelEdit: () => void;
-  /** Current global edit mode — used to block Save while an unsaved
-   *  draw session is still open on the map (see toolbar Save/Cancel). */
-  editMode: EditMode;
   /** Called with the new POI's id after a successful create. */
   onAfterCreate?: (entityId: string) => void;
   selectedPOIIcon: string;
@@ -35,14 +30,13 @@ export default function POIDetail({
   setEntities,
   goBack,
   bumpMapKey,
-  pendingGeometryRef,
-  onCancelEdit,
-  editMode,
   onAfterCreate,
   selectedPOIIcon,
-  onSelectedPOIIconChange
+  onSelectedPOIIconChange,
 }: Props) {
   const isCreate = !entity;
+
+  const editMode = useMapEditStore((s) => s.editMode);
 
   const [name, setName] = useState(entity?.name ?? "");
   const [tagline, setTagline] = useState(entity?.tagline ?? "");
@@ -52,14 +46,13 @@ export default function POIDetail({
   const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity?.geometry ?? null;
+  const geometry = pendingGeometry ?? useMapEditStore.getState().pendingGeometry ?? entity?.geometry ?? null;
 
   // Sync the shared icon state to this entity's icon on mount / when
   // switching between entities, so the map draw preview matches this POI.
   useEffect(() => {
     onSelectedPOIIconChange(entity?.icon ?? DEFAULT_POI_ICON);
   }, [entity?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
 
   // Block form save while a draw session is still open (Save/Cancel visible
   // on the map toolbar) — force the user to confirm that session first so
@@ -97,9 +90,9 @@ export default function POIDetail({
       onAfterCreate?.(created.id);
     }
 
-    pendingGeometryRef.current = null;
+    useMapEditStore.getState().setPendingGeometry(null);
     bumpMapKey();
-    onCancelEdit();
+    useMapEditStore.getState().cancelEdit();
     setIsSaving(false);
   };
 

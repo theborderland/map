@@ -1,7 +1,5 @@
-import {
-  useRef, useEffect, type ReactNode
-} from "react";
-import type { Tab, PanelView, EditMode } from "../types";
+import { useRef, useEffect, type ReactNode } from "react";
+import type { Tab, PanelView } from "../types";
 import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
 import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, SettingsTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
@@ -17,6 +15,7 @@ import {
   buildAreaCreateNavigation, buildAreaNavigation,
   createRoot, getEntityTab,
 } from "../utils/panelNavigation";
+import { useMapEditStore } from "../store/mapEditStore";
 
 interface Props {
   activeTab: Tab;
@@ -29,9 +28,6 @@ interface Props {
   navStack: PanelView[];
   setNavStack: React.Dispatch<React.SetStateAction<PanelView[]>>;
   bumpMapKey: () => void;
-  editMode: EditMode;
-  pendingGeometryRef: React.RefObject<GeoJSON.Geometry | null>;
-  onCancelEdit: () => void;
   onSettingsSaved: (settings: SettingsRecord) => void;
   selectedPOIIcon: string;
   onSelectedPOIIconChange: (icon: string) => void;
@@ -48,15 +44,13 @@ export default function LeftPanel({
   navStack,
   setNavStack,
   bumpMapKey,
-  editMode,
-  pendingGeometryRef,
-  onCancelEdit,
   onSettingsSaved,
   selectedPOIIcon,
-  onSelectedPOIIconChange
+  onSelectedPOIIconChange,
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
-  const isEditing = editMode !== "idle";
+  // Read reactively so the panel-lock className and nav guards update live.
+  const isEditing = useMapEditStore((s) => s.editMode !== "idle");
 
   // ── Navigation ──────────────────────────────────────────
   const openGroup = (tab: Tab, styleType: string) => { if (isEditing) return; setNavStack(buildGroupNavigation(tab, styleType)); };
@@ -81,8 +75,6 @@ export default function LeftPanel({
     return undefined;
   };
 
-  // ── Title ───────────────────────────────────────────────
-
   const getTitleForView = (view: PanelView): string => {
     switch (view.type) {
       case "root": return view.tab;
@@ -97,8 +89,6 @@ export default function LeftPanel({
       case "area-create": return "New Area";
     }
   };
-
-  // ── Render current view ─────────────────────────────────
 
   const renderCurrentView = (view: PanelView): ReactNode => {
     switch (view.type) {
@@ -131,9 +121,6 @@ export default function LeftPanel({
                 setEntities={setEntities}
                 goBack={goBack}
                 bumpMapKey={bumpMapKey}
-                pendingGeometryRef={pendingGeometryRef}
-                onCancelEdit={onCancelEdit}
-                editMode={editMode}
               />
             );
           case "Roads":
@@ -145,9 +132,6 @@ export default function LeftPanel({
               setEntities={setEntities}
               goBack={goBack}
               bumpMapKey={bumpMapKey}
-              pendingGeometryRef={pendingGeometryRef}
-              onCancelEdit={onCancelEdit}
-              editMode={editMode}
             />;
           case "POIs":
             return <POIDetail
@@ -157,9 +141,6 @@ export default function LeftPanel({
               setEntities={setEntities}
               goBack={goBack}
               bumpMapKey={bumpMapKey}
-              pendingGeometryRef={pendingGeometryRef}
-              onCancelEdit={onCancelEdit}
-              editMode={editMode}
               selectedPOIIcon={selectedPOIIcon}
               onSelectedPOIIconChange={onSelectedPOIIconChange}
             />;
@@ -220,9 +201,6 @@ export default function LeftPanel({
             setEntities={setEntities}
             goBack={goBack}
             bumpMapKey={bumpMapKey}
-            pendingGeometryRef={pendingGeometryRef}
-            onCancelEdit={onCancelEdit}
-            editMode={editMode}
             selectedPOIIcon={selectedPOIIcon}
             onSelectedPOIIconChange={onSelectedPOIIconChange}
             onAfterCreate={(entityId) => setNavStack(buildPOINavigation(entityId))}
@@ -237,13 +215,10 @@ export default function LeftPanel({
             setEntities={setEntities}
             goBack={goBack}
             bumpMapKey={bumpMapKey}
-            pendingGeometryRef={pendingGeometryRef}
-            onCancelEdit={onCancelEdit}
-            editMode={editMode}
             onAfterCreate={(entityId) => setNavStack(buildRoadNavigation(entityId))}
           />
         );
-        
+
       case "area-create":
         return (
           <AreaDetail
@@ -252,16 +227,11 @@ export default function LeftPanel({
             setEntities={setEntities}
             goBack={goBack}
             bumpMapKey={bumpMapKey}
-            pendingGeometryRef={pendingGeometryRef}
-            onCancelEdit={onCancelEdit}
-            editMode={editMode}
             onAfterCreate={(entityId) => setNavStack(buildAreaNavigation(entityId))}
           />
         );
     }
   };
-
-  // ── Tab content ─────────────────────────────────────────
 
   const tabContent = (() => {
     switch (activeTab) {

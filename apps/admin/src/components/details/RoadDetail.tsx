@@ -1,34 +1,32 @@
 import { useState } from "react";
 import type { Geometry } from "geojson";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import type { EditMode } from "../../types";
 import { updateEntity, createEntity, deleteEntity } from "../../db";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
+import { useMapEditStore } from "../../store/mapEditStore";
 
 interface Props {
-  entity?:            EntityRecord;
-  styles:             StyleRecord[];
-  rules:              RuleRecord[];
-  setEntities:        React.Dispatch<React.SetStateAction<EntityRecord[]>>;
-  goBack?:            () => void;
-  bumpMapKey:         () => void;
-  pendingGeometryRef: React.MutableRefObject<Geometry | null>;
-  onCancelEdit:       () => void;
-  /** Current global edit mode — used to block Save while an unsaved
-   *  draw session is still open on the map (Save/Cancel on the toolbar). */
-  editMode:           EditMode;
+  entity?: EntityRecord;
+  styles: StyleRecord[];
+  rules: RuleRecord[];
+  setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+  goBack?: () => void;
+  bumpMapKey: () => void;
   /** Called with the new road's id after a successful create. */
-  onAfterCreate?:     (entityId: string) => void;
+  onAfterCreate?: (entityId: string) => void;
 }
 
 export default function RoadDetail({
-  entity, styles, rules, setEntities, goBack, bumpMapKey,
-  pendingGeometryRef, onCancelEdit, editMode, onAfterCreate,
+  entity, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
 }: Props) {
   const isCreate = !entity;
+
+  // Only editMode is subscribed reactively — it drives canSave/hasOpenDrawSession
+  // and needs to trigger a re-render when a draw session starts/ends.
+  const editMode = useMapEditStore((s) => s.editMode);
 
   const [name,            setName]            = useState(entity?.name ?? "");
   const [tagline,         setTagline]         = useState(entity?.tagline ?? "");
@@ -50,10 +48,10 @@ export default function RoadDetail({
     if (isCreate) setBufferMeters(newType === "fireroad" ? 5 : 2);
   };
 
-  // Prefer GeometryEditor paste, then map tool edits (vertex/drag/draw),
+  // Prefer local GeometryEditor edits, then map tool edits from the store
+  // (read imperatively — same non-reactive semantics as the original ref),
   // then fall back to the entity's existing geometry.
-  // NOTE: This was previously just before updateEntity() was called
-  const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity?.geometry ?? null;
+  const geometry = pendingGeometry ?? useMapEditStore.getState().pendingGeometry ?? entity?.geometry ?? null;
 
   // Block form save while a draw session is still open on the map —
   // force the user to Save/Cancel that session first.
@@ -88,10 +86,10 @@ export default function RoadDetail({
       onAfterCreate?.(created.id);
     }
 
-    pendingGeometryRef.current = null;
+    useMapEditStore.getState().setPendingGeometry(null);
     bumpMapKey();
     // Exit geometry edit mode if active — restores buffered display.
-    onCancelEdit();
+    useMapEditStore.getState().cancelEdit();
     setIsSaving(false);
   };
 

@@ -1,20 +1,16 @@
-import { useState, useEffect, useRef } from "react";
-import type { Geometry } from "geojson";
+import { useState, useEffect } from "react";
 import LeftPanel from "./components/LeftPanel";
 import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
-import type { EditMode, PanelView, Tab, EntityKind } from "./types";
-import { CREATE_DRAW_MODE_BY_KIND } from "./types";
+import type { PanelView, Tab, EntityKind } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
 import {
   isAuthenticated, resetAndReseed,
-  getEntities, getStyles, getRules, updateEntity,
-  getSettings
+  getEntities, getStyles, getRules, getSettings,
 } from "./db";
-import {
-  buildEntityNavigation, createRoot, getActiveTabFromNav,
-} from "./utils/panelNavigation";
+import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 import { DEFAULT_POI_ICON } from "./utils/Icons";
+import { useMapEditStore } from "./store/mapEditStore";
 
 function App() {
   const [selectedPOIIcon, setSelectedPOIIcon] = useState(DEFAULT_POI_ICON);
@@ -25,19 +21,7 @@ function App() {
   const [settings, setSettings] = useState<SettingsRecord | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [navStack, setNavStack] = useState<PanelView[]>([createRoot("Areas")]);
-  // Incrementing this forces all GeoJSON layers in MapView to remount,
-  // picking up geometry changes that Leaflet wouldn't detect otherwise.
   const [mapKey, setMapKey] = useState(0);
-
-  // Edit state — low frequency, fine as React state
-  const [editMode, setEditMode] = useState<EditMode>("idle");
-  const [editingEntityId, setEditingEntityId] = useState<string | null>(null);
-
-  // Pending geometry — written on every vertex drag, must not trigger re-renders
-  const pendingGeometryRef = useRef<Geometry | null>(null);
-  // Set by saveGeometry/cancelEdit right before flipping editMode, so
-  // MapEditController's cleanup can tell which action just happened.
-  const draftActionRef = useRef<"save" | "cancel" | null>(null);
 
   const currentView = navStack[navStack.length - 1];
   const activeTab: Tab = getActiveTabFromNav(navStack, entities);
@@ -51,8 +35,22 @@ function App() {
   /** Bumps mapKey so MapView GeoJSON layers remount after a geometry save. */
   const bumpMapKey = () => setMapKey((k) => k + 1);
 
+  // Bind entity update callbacks once so the store's saveGeometry action
+  // can update App's entities state without editMode/pendingGeometry/etc.
+  // being threaded down as props through MapView/LeftPanel/Detail components.
+  useEffect(() => {
+    useMapEditStore.getState().bindEntityCallbacks(setEntities, bumpMapKey);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync the nav-derived creatingKind into the store — navStack itself
+  // stays as App-owned React state, only its derived edit-relevant value
+  // needs to be visible to the map-editing subsystem.
+  useEffect(() => {
+    useMapEditStore.getState().setCreatingKind(creatingKind);
+  }, [creatingKind]);
+
   const openEntity = (entityId: string | null) => {
-    if (editMode !== "idle") return; // Block selection changes during edit
+    if (useMapEditStore.getState().editMode !== "idle") return; // Block selection changes during edit
     if (entityId === null) {
       setNavStack([createRoot(activeTab)]);
       return;
@@ -60,50 +58,6 @@ function App() {
     const entity = entities.find((e) => e.id === entityId);
     if (!entity) return;
     setNavStack(buildEntityNavigation(entity));
-  };
-
-  const startCreateDraw = () => {
-    if (!creatingKind) return;
-    setEditingEntityId(null);
-    setEditMode(CREATE_DRAW_MODE_BY_KIND[creatingKind]);
-  };
-
-  // Activates a geometry edit mode for the given entity.
-  const startEdit = (entityId: string, mode: Exclude<EditMode, "idle">) => {
-    pendingGeometryRef.current = null;
-    setEditingEntityId(entityId);
-    setEditMode(mode);
-  };
-
-  // Saves the pending geometry to the DB, then exits edit mode.
-  // If no geometry was changed (ref is null) edit mode is still exited cleanly.
-  const saveGeometry = async () => {
-    draftActionRef.current = "save";
-    const geom = pendingGeometryRef.current;
-    if (geom && editingEntityId) {
-      // Editing an existing entity — persist immediately.
-      const updated = await updateEntity(editingEntityId, { geometry: geom });
-      setEntities((prev) => prev.map((e) => e.id === updated.id ? updated : e));
-      bumpMapKey();
-      pendingGeometryRef.current = null;
-    }
-    // Creating a new entity: geom stays in pendingGeometryRef — the entity
-    // doesn't exist yet, it's finalized later via the form's own Save/Create.
-    setEditMode("idle");
-    setEditingEntityId(null);
-  };
-
-  // Cancels edit mode. MapEditController's cleanup handles visual restore.
-  const cancelEdit = () => {
-    draftActionRef.current = "cancel";
-    if (editingEntityId) {
-      // Editing an existing entity — fully discard.
-      pendingGeometryRef.current = null;
-    }
-    // Creating a new entity: MapEditController's cleanup restores
-    // pendingGeometryRef to the pre-session snapshot instead of nulling it.
-    setEditMode("idle");
-    setEditingEntityId(null);
   };
 
   useEffect(() => {
@@ -143,9 +97,6 @@ function App() {
         navStack={navStack}
         setNavStack={setNavStack}
         bumpMapKey={bumpMapKey}
-        editMode={editMode}
-        pendingGeometryRef={pendingGeometryRef}
-        onCancelEdit={cancelEdit}
         onSettingsSaved={setSettings}
         selectedPOIIcon={selectedPOIIcon}
         onSelectedPOIIconChange={setSelectedPOIIcon}
@@ -156,15 +107,6 @@ function App() {
         mapKey={mapKey}
         selectedEntityId={selectedEntityId}
         openEntity={openEntity}
-        editMode={editMode}
-        editingEntityId={editingEntityId}
-        pendingGeometryRef={pendingGeometryRef}
-        draftActionRef={draftActionRef}
-        onStartEdit={startEdit}
-        onSaveGeometry={saveGeometry}
-        onCancelEdit={cancelEdit}
-        creatingKind={creatingKind}
-        onStartCreate={startCreateDraw}
         settings={settings}
         selectedPOIIcon={selectedPOIIcon}
       />

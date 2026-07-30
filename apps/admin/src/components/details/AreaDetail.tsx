@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { Geometry } from "geojson";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import type { EditMode } from "../../types";
 import { updateEntity, createEntity, deleteEntity } from "../../db";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
+import { useMapEditStore } from "../../store/mapEditStore";
 
 interface Props {
   /** Undefined in create mode. */
@@ -16,11 +16,6 @@ interface Props {
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
   goBack?: () => void;
   bumpMapKey: () => void;
-  pendingGeometryRef: React.RefObject<Geometry | null>;
-  onCancelEdit: () => void;
-  /** Current global edit mode — used to block Save while an unsaved
-   *  draw session is still open on the map (Save/Cancel on the toolbar). */
-  editMode: EditMode;
   /** Called with the new area's id after a successful create. */
   onAfterCreate?: (entityId: string) => void;
 }
@@ -32,12 +27,13 @@ export default function AreaDetail({
   setEntities,
   goBack,
   bumpMapKey,
-  pendingGeometryRef,
-  onCancelEdit,
-  editMode,
   onAfterCreate,
 }: Props) {
   const isCreate = !entity;
+
+  // Only editMode is subscribed reactively — it drives canSave/hasOpenDrawSession
+  // and needs to trigger a re-render when a draw session starts/ends.
+  const editMode = useMapEditStore((s) => s.editMode);
 
   const [name, setName] = useState(entity?.name ?? "");
   const [tagline, setTagline] = useState(entity?.tagline ?? "");
@@ -48,7 +44,10 @@ export default function AreaDetail({
 
   const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
 
-  const geometry = pendingGeometry ?? pendingGeometryRef.current ?? entity?.geometry ?? null;
+  // Prefer local GeometryEditor edits, then map tool edits from the store
+  // (read imperatively — same non-reactive semantics as the original ref),
+  // then fall back to the entity's existing geometry.
+  const geometry = pendingGeometry ?? useMapEditStore.getState().pendingGeometry ?? entity?.geometry ?? null;
 
   // Block form save while a draw session is still open on the map —
   // force the user to Save/Cancel that session first.
@@ -81,9 +80,9 @@ export default function AreaDetail({
       onAfterCreate?.(created.id);
     }
 
-    pendingGeometryRef.current = null;
+    useMapEditStore.getState().setPendingGeometry(null);
     bumpMapKey();
-    onCancelEdit();
+    useMapEditStore.getState().cancelEdit();
     setIsSaving(false);
   };
 
@@ -92,7 +91,7 @@ export default function AreaDetail({
     await deleteEntity(entity.id);
     setEntities((prev) => prev.filter((e) => e.id !== entity.id));
     goBack?.();
-    onCancelEdit();
+    useMapEditStore.getState().cancelEdit();
   };
 
   return (

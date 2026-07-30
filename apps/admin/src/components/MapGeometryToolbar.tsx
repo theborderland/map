@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useMap } from "react-leaflet";
-import type { EditMode, EntityKind } from "../types";
+import type { EntityKind } from "../types";
 import { CREATE_DRAW_MODE_BY_KIND } from "../types";
+import { useMapEditStore } from "../store/mapEditStore";
 
 const BUTTONS = {
   EDIT_VERTICES: "geo-edit-vertices",
@@ -11,57 +12,31 @@ const BUTTONS = {
   CANCEL: "geo-cancel",
 };
 
-// Per-kind labels for the create flow's "Add …" and "Save …" buttons.
-const CREATE_LABELS: Record<EntityKind, { title: string; className: string; }> = {
+const CREATE_LABELS: Record<EntityKind, { title: string; className: string }> = {
   poi: { title: "Add POI", className: "leaflet-pm-icon-marker" },
   road: { title: "Add road", className: "leaflet-pm-icon-polyline" },
   area: { title: "Add area", className: "leaflet-pm-icon-polygon" },
 };
+
 interface Props {
-  editMode: EditMode;
-  editingEntityId: string | null;
   selectedEntityId: string | null;
   selectedEntityType: EntityKind | null;
-  onStartEdit: (entityId: string, mode: Exclude<EditMode, "idle">) => void;
-  onSaveGeometry: () => Promise<void>;
-  onCancelEdit: () => void;
-  creatingKind: EntityKind | null;
-  onStartCreate: () => void;
 }
 
 /**
  * Adds geometry edit controls to Geoman's native toolbar. Shows different
- * button sets depending on:
- *  - a create flow being active (creatingKind), or
- *  - an existing entity being selected (selectedEntityType).
+ * button sets depending on a create flow being active (creatingKind, from
+ * the store) or an existing entity being selected (selectedEntityType, prop).
+ *
+ * All edit-mode state comes from the Zustand store, so button callbacks
+ * call store actions directly via getState() — no stale-closure ref needed,
+ * since store actions are stable and getState() always reads fresh values.
  */
-export default function MapGeometryToolbar({
-  editMode,
-  editingEntityId,
-  selectedEntityId,
-  selectedEntityType,
-  onStartEdit,
-  onSaveGeometry,
-  onCancelEdit,
-  creatingKind,
-  onStartCreate,
-}: Props) {
+export default function MapGeometryToolbar({ selectedEntityId, selectedEntityType }: Props) {
   const map = useMap();
-
-  // Stable ref so button callbacks always read the latest props
-  // without needing to recreate buttons on every render.
-  const ref = useRef({
-    editMode, editingEntityId, selectedEntityId, selectedEntityType,
-    onStartEdit, onSaveGeometry, onCancelEdit,
-    creatingKind, onStartCreate,
-  });
-  useEffect(() => {
-    ref.current = {
-      editMode, editingEntityId, selectedEntityId, selectedEntityType,
-      onStartEdit, onSaveGeometry, onCancelEdit,
-      creatingKind, onStartCreate,
-    };
-  });
+  const editMode = useMapEditStore((s) => s.editMode);
+  const editingEntityId = useMapEditStore((s) => s.editingEntityId);
+  const creatingKind = useMapEditStore((s) => s.creatingKind);
 
   useEffect(() => {
     const toolbar = map.pm.Toolbar;
@@ -79,7 +54,7 @@ export default function MapGeometryToolbar({
       try { toolbar.deleteControl(name); } catch { /* already absent */ }
     });
 
-    // ── Create flow (POI, Road, or later Area) ────────────
+    // ── Create flow (POI, Road, or Area) ────────────
     if (creatingKind) {
       const labels = CREATE_LABELS[creatingKind];
 
@@ -90,7 +65,7 @@ export default function MapGeometryToolbar({
           title: "Save",
           className: "leaflet-toolbar-icon-save",
           toggle: false,
-          onClick: () => { void ref.current.onSaveGeometry(); },
+          onClick: () => { void useMapEditStore.getState().saveGeometry(); },
         });
         toolbar.createCustomControl({
           name: BUTTONS.CANCEL,
@@ -98,7 +73,7 @@ export default function MapGeometryToolbar({
           title: "Cancel (Esc)",
           className: "leaflet-toolbar-icon-cancel",
           toggle: false,
-          onClick: () => { ref.current.onCancelEdit(); },
+          onClick: () => { useMapEditStore.getState().cancelEdit(); },
         });
       } else {
         toolbar.createCustomControl({
@@ -107,7 +82,7 @@ export default function MapGeometryToolbar({
           title: labels.title,
           className: labels.className,
           toggle: false,
-          onClick: () => { ref.current.onStartCreate(); },
+          onClick: () => { useMapEditStore.getState().startCreateDraw(); },
         });
       }
 
@@ -128,7 +103,7 @@ export default function MapGeometryToolbar({
         title: "Save",
         className: "leaflet-toolbar-icon-save",
         toggle: false,
-        onClick: () => { void ref.current.onSaveGeometry(); },
+        onClick: () => { void useMapEditStore.getState().saveGeometry(); },
       });
       toolbar.createCustomControl({
         name: BUTTONS.CANCEL,
@@ -136,11 +111,11 @@ export default function MapGeometryToolbar({
         title: "Cancel (Esc)",
         className: "leaflet-toolbar-icon-cancel",
         toggle: false,
-        onClick: () => { ref.current.onCancelEdit(); },
+        onClick: () => { useMapEditStore.getState().cancelEdit(); },
       });
     } else if (!isEditing && hasSelection) {
-      const labels = CREATE_LABELS[selectedEntityType];
-      const type = selectedEntityType;
+      const type = selectedEntityType!;
+      const labels = CREATE_LABELS[type];
 
       toolbar.createCustomControl({
         name: BUTTONS.EDIT_VERTICES,
@@ -149,9 +124,11 @@ export default function MapGeometryToolbar({
         className: type === "poi" ? "leaflet-toolbar-icon-move" : "leaflet-pm-icon-edit",
         toggle: false,
         onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
-          if (!id) return;
-          start(id, t === "road" ? "editLine" : t === "poi" ? "movePOI" : "vertices");
+          if (!selectedEntityId) return;
+          useMapEditStore.getState().startEdit(
+            selectedEntityId,
+            type === "road" ? "editLine" : type === "poi" ? "movePOI" : "vertices"
+          );
         },
       });
 
@@ -163,9 +140,8 @@ export default function MapGeometryToolbar({
           className: "leaflet-toolbar-icon-move",
           toggle: false,
           onClick: () => {
-            const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
-            if (!id) return;
-            start(id, t === "road" ? "dragLine" : "drag");
+            if (!selectedEntityId) return;
+            useMapEditStore.getState().startEdit(selectedEntityId, type === "road" ? "dragLine" : "drag");
           },
         });
       }
@@ -177,9 +153,11 @@ export default function MapGeometryToolbar({
         className: labels.className,
         toggle: false,
         onClick: () => {
-          const { selectedEntityId: id, onStartEdit: start, selectedEntityType: t } = ref.current;
-          if (!id) return;
-          start(id, t === "road" ? "drawLine" : t === "poi" ? "drawPOI" : "draw");
+          if (!selectedEntityId) return;
+          useMapEditStore.getState().startEdit(
+            selectedEntityId,
+            type === "road" ? "drawLine" : type === "poi" ? "drawPOI" : "draw"
+          );
         },
       });
     }
