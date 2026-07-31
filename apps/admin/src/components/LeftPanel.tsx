@@ -1,20 +1,14 @@
-import { useRef, useEffect, type ReactNode } from "react";
+import { useRef, useEffect } from "react";
 import type { Tab, PanelView } from "../types";
 import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
 import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, SettingsTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
-import EntityList from "./EntityList";
-import { AreaDetail, RoadDetail, POIDetail, RuleDetail, StyleDetail } from "./details";
 import {
-  buildEntityNavigation, buildGroupNavigation,
-  buildRuleNavigation, buildStyleNavigation,
-  buildRuleCreateNavigation, buildStyleCreateNavigation,
-  buildPOICreateNavigation, buildPOINavigation,
-  buildRoadCreateNavigation, buildRoadNavigation,
-  buildAreaCreateNavigation, buildAreaNavigation,
-  createRoot, getEntityTab,
+  buildEntityNavigation, buildGroupNavigation, buildStyleNavigation,
+  buildRuleNavigation, createRoot,
 } from "../utils/panelNavigation";
+import { VIEW_HANDLERS, getCreateViewForTab, type ViewContext } from "../utils/viewRegistry";
 import { useMapEditStore } from "../store/mapEditStore";
 
 interface Props {
@@ -49,7 +43,6 @@ export default function LeftPanel({
   onSelectedPOIIconChange,
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
-  // Read reactively so the panel-lock className and nav guards update live.
   const isEditing = useMapEditStore((s) => s.editMode !== "idle");
 
   // ── Navigation ──────────────────────────────────────────
@@ -61,179 +54,17 @@ export default function LeftPanel({
   const handleTabClick = (tab: Tab) => { if (isEditing) return; setNavStack([createRoot(tab)]); };
 
   // ── Create button ───────────────────────────────────────
-  // Only shown on root views for Rules and Styles — Areas/Roads/POIs
-  // will get their own create flow when drawing is added later.
-
+  // Looks up which create-view (if any) targets the active tab by scanning
+  // the registry, instead of a hardcoded if-chain per tab.
   const getCreateClick = (): (() => void) | undefined => {
     if (isEditing) return undefined;
     if (currentView.type !== "root") return undefined;
-    if (currentView.tab === "Rules") return () => setNavStack(buildRuleCreateNavigation());
-    if (currentView.tab === "Styles") return () => setNavStack(buildStyleCreateNavigation());
-    if (currentView.tab === "POIs") return () => setNavStack(buildPOICreateNavigation());
-    if (currentView.tab === "Roads") return () => setNavStack(buildRoadCreateNavigation());
-    if (currentView.tab === "Areas") return () => setNavStack(buildAreaCreateNavigation());
-    return undefined;
+    const createView = getCreateViewForTab(currentView.tab);
+    return createView ? () => setNavStack([createView]) : undefined;
   };
 
-  const getTitleForView = (view: PanelView): string => {
-    switch (view.type) {
-      case "root": return view.tab;
-      case "entity-group": return styles.find((s) => s.type === view.styleType)?.displayName ?? view.styleType;
-      case "entity-detail": return entities.find((e) => e.id === view.entityId)?.name ?? "Detail";
-      case "style-detail": return styles.find((s) => s.id === view.styleId)?.displayName ?? "Style";
-      case "style-create": return "New Style";
-      case "rule-detail": return rules.find((r) => r.id === view.ruleId)?.name ?? "Rule";
-      case "rule-create": return "New Rule";
-      case "poi-create": return "New POI";
-      case "road-create": return "New Road";
-      case "area-create": return "New Area";
-    }
-  };
-
-  const renderCurrentView = (view: PanelView): ReactNode => {
-    switch (view.type) {
-      case "root":
-        return tabContent;
-
-      case "entity-group": {
-        const groupEntities = entities.filter((e) => e.styleType === view.styleType);
-        return (
-          <EntityList
-            entities={groupEntities}
-            styles={styles}
-            openEntity={openEntity}
-            groupByStyleType={false}
-          />
-        );
-      }
-
-      case "entity-detail": {
-        const entity = entities.find((e) => e.id === view.entityId);
-        if (!entity) return null;
-        switch (getEntityTab(entity)) {
-          case "Areas":
-            return (
-              <AreaDetail
-                key={entity.id}
-                entity={entity}
-                styles={styles}
-                rules={rules}
-                setEntities={setEntities}
-                goBack={goBack}
-                bumpMapKey={bumpMapKey}
-              />
-            );
-          case "Roads":
-            return <RoadDetail
-              key={entity.id}
-              entity={entity}
-              styles={styles}
-              rules={rules}
-              setEntities={setEntities}
-              goBack={goBack}
-              bumpMapKey={bumpMapKey}
-            />;
-          case "POIs":
-            return <POIDetail
-              key={entity.id}
-              entity={entity}
-              rules={rules}
-              setEntities={setEntities}
-              goBack={goBack}
-              bumpMapKey={bumpMapKey}
-              selectedPOIIcon={selectedPOIIcon}
-              onSelectedPOIIconChange={onSelectedPOIIconChange}
-            />;
-        }
-        break;
-      }
-
-      case "style-detail": {
-        const style = styles.find((s) => s.id === view.styleId);
-        if (!style) return null;
-        return (
-          <StyleDetail
-            key={style.id}
-            style={style}
-            setStyles={setStyles}
-            goBack={goBack}
-          />
-        );
-      }
-
-      case "style-create":
-        return (
-          <StyleDetail
-            setStyles={setStyles}
-            goBack={goBack}
-            // After create, navigate to the new style's detail view.
-            onAfterCreate={(styleId) => setNavStack(buildStyleNavigation(styleId))}
-          />
-        );
-
-      case "rule-detail": {
-        const rule = rules.find((r) => r.id === view.ruleId);
-        if (!rule) return null;
-        return (
-          <RuleDetail
-            key={rule.id}
-            rule={rule}
-            setRules={setRules}
-            goBack={goBack}
-          />
-        );
-      }
-
-      case "rule-create":
-        return (
-          <RuleDetail
-            setRules={setRules}
-            goBack={goBack}
-            // After create, navigate to the new rule's detail view.
-            onAfterCreate={(ruleId) => setNavStack(buildRuleNavigation(ruleId))}
-          />
-        );
-
-      case "poi-create":
-        return (
-          <POIDetail
-            rules={rules}
-            setEntities={setEntities}
-            goBack={goBack}
-            bumpMapKey={bumpMapKey}
-            selectedPOIIcon={selectedPOIIcon}
-            onSelectedPOIIconChange={onSelectedPOIIconChange}
-            onAfterCreate={(entityId) => setNavStack(buildPOINavigation(entityId))}
-          />
-        );
-
-      case "road-create":
-        return (
-          <RoadDetail
-            styles={styles}
-            rules={rules}
-            setEntities={setEntities}
-            goBack={goBack}
-            bumpMapKey={bumpMapKey}
-            onAfterCreate={(entityId) => setNavStack(buildRoadNavigation(entityId))}
-          />
-        );
-
-      case "area-create":
-        return (
-          <AreaDetail
-            styles={styles}
-            rules={rules}
-            setEntities={setEntities}
-            goBack={goBack}
-            bumpMapKey={bumpMapKey}
-            onAfterCreate={(entityId) => setNavStack(buildAreaNavigation(entityId))}
-          />
-        );
-    }
-  };
-
-  const tabContent = (() => {
+  // ── Root tab content ────────────────────────────────────
+  const rootTabContent = (() => {
     switch (activeTab) {
       case "Areas": return <AreasTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
       case "Roads": return <RoadsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
@@ -245,12 +76,26 @@ export default function LeftPanel({
     }
   })();
 
-  // ── Auto-scroll active tab into view in the menu ───────────
+  // ── View context ────────────────────────────────────────
+  // Bundles everything VIEW_HANDLERS entries need. rootTabContent is
+  // attached here (not part of the formal ViewContext type) since only
+  // the "root" handler reads it — keeps the interface honest for every
+  // other handler that doesn't need active-tab-specific content.
+  const ctx: ViewContext & { rootTabContent: React.ReactNode } = {
+    entities, rules, styles,
+    setEntities, setRules, setStyles,
+    setNavStack, bumpMapKey, goBack, openEntity,
+    selectedPOIIcon, onSelectedPOIIconChange,
+    rootTabContent,
+  };
 
+  // ── Auto-scroll active tab into view in the menu ───────────
   const activeRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeTab]);
+
+  const handler = VIEW_HANDLERS[currentView.type] as (typeof VIEW_HANDLERS)[typeof currentView.type];
 
   return (
     <div className={isEditing ? "is-editing left-container" : "left-container"}>
@@ -261,12 +106,12 @@ export default function LeftPanel({
       />
       <div className="content">
         <LeftPanelHeader
-          title={getTitleForView(currentView)}
+          title={handler.title(currentView as never, ctx)}
           showBack={navStack.length > 1}
           onBack={goBack}
           onCreateClick={getCreateClick()}
         />
-        <div>{renderCurrentView(currentView)}</div>
+        <div>{handler.render(currentView as never, ctx)}</div>
       </div>
     </div>
   );
