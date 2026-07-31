@@ -3,6 +3,7 @@ import { useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Geometry } from "geojson";
 import type { EntityRecord, SettingsRecord } from "../db/types";
+import type { EntityKind } from "../types";
 import { createPOIIcon } from "../utils/Icons";
 import { useMapEditStore } from "../store/mapEditStore";
 import "@geoman-io/leaflet-geoman-free";
@@ -26,27 +27,26 @@ interface Props {
   selectedPOIIcon: string;
 }
 
+// ── Shared geometry helpers ──────────────────────────────────
+
 function getSubLayers(layer: L.Layer): L.Layer[] {
   return "getLayers" in layer ? (layer as L.GeoJSON).getLayers() : [layer];
 }
 
 // Reads current polygon geometry from a layer after vertex editing.
 function collectPolygonGeometry(layer: L.Layer): Geometry | null {
-  if ("getLayers" in layer) {
-    const sub = (layer as L.GeoJSON).getLayers();
-    if (!sub.length) return null;
-    if (sub.length === 1) return (sub[0] as GeomanLayer).toGeoJSON().geometry;
-    return {
-      type: "MultiPolygon",
-      coordinates: sub.map((l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.Polygon).coordinates),
-    };
-  }
-  return (layer as GeomanLayer).toGeoJSON().geometry;
+  const sub = getSubLayers(layer);
+  if (!sub.length) return null;
+  if (sub.length === 1) return (sub[0] as GeomanLayer).toGeoJSON().geometry;
+  return {
+    type: "MultiPolygon",
+    coordinates: sub.map((l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.Polygon).coordinates),
+  };
 }
 
 // Reads current line geometry from the temporary source line layer group.
-function collectLineGeometry(layer: L.GeoJSON): Geometry | null {
-  const sub = layer.getLayers();
+function collectLineGeometry(layer: L.Layer): Geometry | null {
+  const sub = getSubLayers(layer);
   if (!sub.length) return null;
   if (sub.length === 1) return (sub[0] as GeomanLayer).toGeoJSON().geometry;
   return {
@@ -111,17 +111,69 @@ function mergePoint(base: Geometry, newPoint: GeoJSON.Point): GeoJSON.MultiPoint
   return { type: "MultiPoint", coordinates: [newPoint.coordinates] };
 }
 
-// Visual style for the temporary source line layer shown during road editing.
-// Shows the raw LineString instead of the buffered polygon.
 const SOURCE_LINE_STYLE = { color: "#3b82f6", weight: 3, opacity: 1, fillOpacity: 0 };
+
+// ── Per-kind geometry strategy ───────────────────────────────
+// Captures the only three things that actually differ between area/road/poi
+// editing: which Geoman draw tool to use, how to read geometry back off a
+// layer, and how to merge a newly drawn shape into an existing geometry.
+
+interface GeometryStrategy {
+  geomanDrawType: "Polygon" | "Line" | "Marker";
+  collectGeometry: (layer: L.Layer) => Geometry | null;
+  mergeGeometry: (base: Geometry, drawn: GeoJSON.Geometry) => Geometry;
+}
+
+const STRATEGIES: Record<EntityKind, GeometryStrategy> = {
+  area: {
+    geomanDrawType: "Polygon",
+    collectGeometry: collectPolygonGeometry,
+    mergeGeometry: (base, drawn) => mergePolygon(base, drawn as GeoJSON.Polygon),
+  },
+  road: {
+    geomanDrawType: "Line",
+    collectGeometry: collectLineGeometry,
+    mergeGeometry: (base, drawn) => mergeLine(base, drawn as GeoJSON.LineString),
+  },
+  poi: {
+    geomanDrawType: "Marker",
+    // Only used by the unified draw effect below — POI has no vertex/drag
+    // edit-existing mode (that's handled separately by movePOI).
+    collectGeometry: () => null,
+    mergeGeometry: (base, drawn) => mergePoint(base, drawn as GeoJSON.Point),
+  },
+};
+
+// Maps each "edit an existing shape" EditMode to its kind + which Geoman
+// interaction to enable. Powers the single unified effect below that
+// replaces what used to be four near-identical effects (vertices, drag,
+// editLine, dragLine).
+interface EditExistingConfig {
+  kind: EntityKind;
+  action: "vertices" | "drag";
+}
+
+const EDIT_EXISTING_MODES: Partial<Record<string, EditExistingConfig>> = {
+  vertices: { kind: "area", action: "vertices" },
+  drag:     { kind: "area", action: "drag" },
+  editLine: { kind: "road", action: "vertices" },
+  dragLine: { kind: "road", action: "drag" },
+};
+
+// Maps each "draw a new/additional shape" EditMode to its kind. Powers the
+// single unified effect that replaces draw, drawLine, and drawPOI.
+const DRAW_MODES: Partial<Record<string, EntityKind>> = {
+  draw: "area",
+  drawLine: "road",
+  drawPOI: "poi",
+};
 
 /**
  * Shared cleanup for any "create from scratch" draw session (POI, Road,
  * Area). On Save, the session's layer(s) graduate into the persistent
  * draft set so the user can keep adding more before finally creating the
  * entity. On Cancel, only this session's layer(s) are discarded and
- * pendingGeometry is restored to the pre-session snapshot. Reads/writes
- * draftAction and pendingGeometry via the store rather than refs.
+ * pendingGeometry is restored to the pre-session snapshot.
  */
 function finalizeDrawSession({
   isCreatingFlow,
@@ -225,78 +277,98 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     };
   }, [creatingKind, map]);
 
-  // ── Area: vertex editing (existing entity only) ────────────
+  // ── Edit existing shape: vertices / drag (area + road, unified) ──
+  // Replaces what used to be four separate near-identical effects.
+  // Areas edit their rendered layer directly. Roads edit a temporary thin
+  // source-line layer that stands in for the buffered polygon — MapView
+  // already hides the buffer for the entity currently being edited.
   useEffect(() => {
-    if (editMode !== "vertices" || !editingEntityId) return;
+    const config = EDIT_EXISTING_MODES[editMode];
+    if (!config || !editingEntityId) return;
 
-    const layer = layerRegistry.current.get(editingEntityId);
     const entity = entities.find((e) => e.id === editingEntityId);
-    if (!layer || !entity) return;
+    if (!entity) return;
+
+    const strategy = STRATEGIES[config.kind];
+    const usesTempLayer = config.kind === "road";
+
+    const targetLayer: L.Layer | undefined = usesTempLayer
+      ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
+      : layerRegistry.current.get(editingEntityId);
+    if (!targetLayer) return;
 
     const original = entity.geometry;
-    const handleEdit = () => { useMapEditStore.getState().setPendingGeometry(collectPolygonGeometry(layer)); };
-    getSubLayers(layer).forEach((l) => {
-      (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
-      l.on("pm:edit", handleEdit);
+    const handleChange = () => {
+      useMapEditStore.getState().setPendingGeometry(strategy.collectGeometry(targetLayer));
+    };
+
+    getSubLayers(targetLayer).forEach((l) => {
+      if (config.action === "vertices") {
+        (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
+        l.on("pm:edit", handleChange);
+      } else {
+        (l as GeomanLayer).pm.enableLayerDrag();
+        l.on("pm:dragend", handleChange);
+      }
     });
 
     return () => {
-      getSubLayers(layer).forEach((l) => {
-        try { (l as GeomanLayer).pm.disable(); } catch { /* no-op */ }
-        l.off("pm:edit", handleEdit);
+      getSubLayers(targetLayer).forEach((l) => {
+        try {
+          if (config.action === "vertices") (l as GeomanLayer).pm.disable();
+          else (l as GeomanLayer).pm.disableLayerDrag();
+        } catch { /* no-op */ }
+        l.off("pm:edit", handleChange);
+        l.off("pm:dragend", handleChange);
       });
-      restoreLayer(layer, original);
+
+      if (usesTempLayer) {
+        map.removeLayer(targetLayer);
+      } else {
+        restoreLayer(targetLayer, original);
+      }
     };
-  }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Area: drag / move (existing entity only) ───────────────
+  // ── Draw new / add-to-existing shape (area + road + poi, unified) ──
+  // Replaces what used to be three separate near-identical effects.
+  // Works both for adding to an existing entity (editingEntityId set,
+  // merges into a Multi* geometry) and for creating a brand new one
+  // (editingEntityId null — the first drawn shape becomes the geometry).
   useEffect(() => {
-    if (editMode !== "drag" || !editingEntityId) return;
+    const kind = DRAW_MODES[editMode];
+    if (!kind) return;
 
-    const layer = layerRegistry.current.get(editingEntityId);
-    const entity = entities.find((e) => e.id === editingEntityId);
-    if (!layer || !entity) return;
-
-    const original = entity.geometry;
-    const handleDragEnd = () => { useMapEditStore.getState().setPendingGeometry(collectPolygonGeometry(layer)); };
-    getSubLayers(layer).forEach((l) => {
-      (l as GeomanLayer).pm.enableLayerDrag();
-      l.on("pm:dragend", handleDragEnd);
-    });
-
-    return () => {
-      getSubLayers(layer).forEach((l) => {
-        try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
-        l.off("pm:dragend", handleDragEnd);
-      });
-      restoreLayer(layer, original);
-    };
-  }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Area: draw polygon — add-to-existing AND brand new creation ──
-  // draw always uses Geoman's Polygon tool. When editingEntityId is set,
-  // each drawn polygon merges into the existing entity's geometry. When
-  // null (brand new area), the first polygon becomes the geometry and
-  // subsequent ones merge, same as roads/POIs during creation.
-  useEffect(() => {
-    if (editMode !== "draw") return;
-
+    const strategy = STRATEGIES[kind];
     const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
-    if (editingEntityId && !entity) return;
-
     const isCreatingFlow = !editingEntityId;
+
     if (isCreatingFlow) {
       draftSessionSnapshotRef.current = useMapEditStore.getState().pendingGeometry;
     }
 
-    map.pm.enableDraw("Polygon", { continueDrawing: false });
+    // Roads show the same thin source-line context layer while drawing an
+    // additional line onto an existing road — visual only, no handlers.
+    const contextLayer = (kind === "road" && entity)
+      ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
+      : null;
+
+    const drawOptions: Record<string, unknown> = { continueDrawing: false };
+    if (kind === "poi") {
+      drawOptions.markerStyle = { icon: createPOIIcon(selectedPOIIcon) };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    map.pm.enableDraw(strategy.geomanDrawType, drawOptions as any);
 
     const handleCreate = (event: GeomanCreateEvent) => {
       const drawnLayer = event.layer;
       drawnLayersRef.current.push(drawnLayer);
-      const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.Polygon;
+      const drawnGeom = drawnLayer.toGeoJSON().geometry;
       const base = useMapEditStore.getState().pendingGeometry ?? entity?.geometry;
-      useMapEditStore.getState().setPendingGeometry(base ? mergePolygon(base, drawnGeom) : drawnGeom);
+      useMapEditStore.getState().setPendingGeometry(
+        base ? strategy.mergeGeometry(base, drawnGeom) : drawnGeom
+      );
     };
 
     map.on("pm:create", handleCreate);
@@ -304,99 +376,24 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     return () => {
       map.pm.disableDraw();
       map.off("pm:create", handleCreate);
+      if (contextLayer) map.removeLayer(contextLayer);
       finalizeDrawSession({
         isCreatingFlow, drawnLayersRef, draftCommittedLayersRef, draftSessionSnapshotRef, map,
       });
     };
-  }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editMode, editingEntityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Road: editLine / dragLine / drawLine ────────────────────
-  // editLine and dragLine always require an existing entity. drawLine works
-  // both ways: adding a line to an existing road (shows source-line context
-  // via a temp layer) and drawing the very first line(s) of a brand new
-  // road (editingEntityId null — no temp layer, nothing exists yet).
-  useEffect(() => {
-    const isRoadMode = editMode === "editLine" || editMode === "dragLine" || editMode === "drawLine";
-    if (!isRoadMode) return;
-
-    const requiresExistingEntity = editMode === "editLine" || editMode === "dragLine";
-    if (requiresExistingEntity && !editingEntityId) return;
-
-    const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
-    if (requiresExistingEntity && !entity) return;
-
-    const isCreatingFlow = editMode === "drawLine" && !editingEntityId;
-    if (isCreatingFlow) {
-      draftSessionSnapshotRef.current = useMapEditStore.getState().pendingGeometry;
-    }
-
-    // Show existing source lines (thin, unstyled) in place of the buffered
-    // polygon — only relevant when there's an entity to show.
-    const tempLayer = entity
-      ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
-      : null;
-
-    if (editMode === "editLine" && tempLayer) {
-      const handleEdit = () => { useMapEditStore.getState().setPendingGeometry(collectLineGeometry(tempLayer)); };
-      tempLayer.getLayers().forEach((l) => {
-        (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
-        l.on("pm:edit", handleEdit);
-      });
-    }
-
-    if (editMode === "dragLine" && tempLayer) {
-      const handleDragEnd = () => { useMapEditStore.getState().setPendingGeometry(collectLineGeometry(tempLayer)); };
-      tempLayer.getLayers().forEach((l) => {
-        (l as GeomanLayer).pm.enableLayerDrag();
-        l.on("pm:dragend", handleDragEnd);
-      });
-    }
-
-    if (editMode === "drawLine") {
-      map.pm.enableDraw("Line", { continueDrawing: false });
-      const handleCreate = (event: GeomanCreateEvent) => {
-        const drawnLayer = event.layer;
-        drawnLayersRef.current.push(drawnLayer);
-        const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.LineString;
-        const base = useMapEditStore.getState().pendingGeometry ?? entity?.geometry;
-        useMapEditStore.getState().setPendingGeometry(base ? mergeLine(base, drawnGeom) : drawnGeom);
-      };
-      map.on("pm:create", handleCreate);
-    }
-
-    return () => {
-      if (tempLayer) {
-        // Disable all Geoman interactions on the temp layer before removing it.
-        tempLayer.getLayers().forEach((l) => {
-          try { (l as GeomanLayer).pm.disable(); } catch { /* no-op */ }
-          try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
-          l.off("pm:edit");
-          l.off("pm:dragend");
-        });
-        map.removeLayer(tempLayer);
-      }
-
-      if (editMode === "drawLine") {
-        map.pm.disableDraw();
-        map.off("pm:create");
-        finalizeDrawSession({
-          isCreatingFlow, drawnLayersRef, draftCommittedLayersRef, draftSessionSnapshotRef, map,
-        });
-      }
-    };
-  }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── POI: move existing point(s) — existing entity only ─────
-  // Enables Geoman drag on the marker(s) that are already on the map.
-  // Snapshots original positions so cancel can restore them without a remount.
+  // ── POI: move existing point(s) — kept separate ─────────────
+  // Fundamentally different from the unified effects above: drags the
+  // marker(s) already on the map directly (no temp layer, no merge), and
+  // restores original positions per-marker on cleanup rather than via
+  // restoreLayer's clear-and-rebuild approach.
   useEffect(() => {
     if (editMode !== "movePOI" || !editingEntityId) return;
-
     const layer = layerRegistry.current.get(editingEntityId);
     const entity = entities.find((e) => e.id === editingEntityId);
     if (!layer || !entity) return;
 
-    // Snapshot original LatLng per sub-layer for cancel restore.
     const originalPositions = new Map<L.Layer, L.LatLng>();
     const handleDragEnd = () => {
       const subLayers = getSubLayers(layer);
@@ -428,42 +425,6 @@ export default function MapEditController({ layerRegistry, entities, settings, s
       });
     };
   }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── POI: draw a point — add-to-existing AND brand new creation ──
-  useEffect(() => {
-    if (editMode !== "drawPOI") return;
-
-    const isCreatingFlow = !editingEntityId;
-    if (isCreatingFlow) {
-      // Snapshot before this session's changes so Cancel can restore precisely.
-      draftSessionSnapshotRef.current = useMapEditStore.getState().pendingGeometry;
-    }
-
-    const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
-
-    map.pm.enableDraw("Marker", {
-      continueDrawing: false,
-      markerStyle: { icon: createPOIIcon(selectedPOIIcon) },
-    });
-
-    const handleCreate = (event: GeomanCreateEvent) => {
-      const drawnLayer = event.layer;
-      drawnLayersRef.current.push(drawnLayer);
-      const drawnGeom = drawnLayer.toGeoJSON().geometry as GeoJSON.Point;
-      const base = useMapEditStore.getState().pendingGeometry ?? entity?.geometry;
-      useMapEditStore.getState().setPendingGeometry(base ? mergePoint(base, drawnGeom) : drawnGeom);
-    };
-
-    map.on("pm:create", handleCreate);
-
-    return () => {
-      map.pm.disableDraw();
-      map.off("pm:create", handleCreate);
-      finalizeDrawSession({
-        isCreatingFlow, drawnLayersRef, draftCommittedLayersRef, draftSessionSnapshotRef, map,
-      });
-    };
-  }, [editMode, editingEntityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
