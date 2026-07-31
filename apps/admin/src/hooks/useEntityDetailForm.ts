@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Geometry } from "geojson";
 import type { AttachedRule, EntityRecord } from "../db/types";
-import { useMapEditStore } from "../store/mapEditStore";
+import { useMapEditStore, useIsEditingLocked } from "../store/mapEditStore";
 
 interface UseEntityDetailFormArgs<T extends EntityRecord> {
     entity?: T;
@@ -41,10 +41,6 @@ export function useEntityDetailForm<T extends EntityRecord>({
 }: UseEntityDetailFormArgs<T>) {
     const isCreate = !entity;
 
-    // Only editMode is subscribed reactively — it drives canSave/hasOpenDrawSession
-    // and needs to trigger a re-render when a draw session starts/ends.
-    const editMode = useMapEditStore((s) => s.editMode);
-
     const [name, setName] = useState(entity?.name ?? "");
     const [tagline, setTagline] = useState(entity?.tagline ?? "");
     const [attachedRules, setAttachedRules] = useState<AttachedRule[]>(entity?.rules ?? []);
@@ -61,7 +57,7 @@ export function useEntityDetailForm<T extends EntityRecord>({
 
     // Block form save while a draw session is still open on the map —
     // force the user to Save/Cancel that session first.
-    const hasOpenDrawSession = editMode !== "idle";
+    const hasOpenDrawSession = useIsEditingLocked();
     const canSave = !hasOpenDrawSession && extraFieldsValid &&
         (isCreate ? (!!name.trim() && !!geometry) : !!name.trim());
 

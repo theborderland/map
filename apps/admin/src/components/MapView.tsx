@@ -9,7 +9,7 @@ import { createPOIIcon, DEFAULT_POI_ICON } from "../utils/Icons";
 import MapEditController from "./MapEditController";
 import type { EntityKind } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
-import { useMapEditStore } from "../store/mapEditStore";
+import { useMapEditStore, isLocked } from "../store/mapEditStore";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -57,6 +57,19 @@ const EntityToFeature = (entity: EntityRecord): MapFeature => ({
   geometry: entity.geometry,
 });
 
+/** Filters entities by predicate and wraps them as a FeatureCollection —
+ *  removes the `{ type: "FeatureCollection", features: ... }` wrapper
+ *  that was previously duplicated across four separate useMemo blocks. */
+function buildFeatureCollection(
+  entities: EntityRecord[],
+  predicate: (e: EntityRecord) => boolean
+): FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: entities.filter(predicate).map(EntityToFeature),
+  };
+}
+
 const getStyle = (style: StyleRecord | undefined, selected: boolean) => ({
   color: selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
   opacity: 1,
@@ -67,30 +80,20 @@ const getStyle = (style: StyleRecord | undefined, selected: boolean) => ({
 });
 
 export default function MapView({
-  entities,
-  styles,
-  mapKey,
-  selectedEntityId,
-  openEntity,
-  settings,
-  selectedPOIIcon,
+  entities, styles, mapKey, selectedEntityId, openEntity, settings, selectedPOIIcon,
 }: Props) {
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
 
-  // Read edit state reactively from the store — these values drive both
-  // this component's own memoized feature filtering and the click-guard ref below.
-  const editMode = useMapEditStore((s) => s.editMode);
-  const editingEntityId = useMapEditStore((s) => s.editingEntityId);
+  const editState = useMapEditStore((s) => s.state);
+  const editingEntityId = editState.status === "editing" ? editState.entityId : null;
+  const isRoadEditMode = editState.status === "editing" && editState.kind === "road";
 
-  // Ref so onEachFeature click handlers always read the live editMode
+  // Ref so onEachFeature click handlers always read the live lock state
   // rather than the stale value captured when each layer was created.
-  const editModeRef = useRef(editMode);
-  useEffect(() => { editModeRef.current = editMode; }, [editMode]);
+  const lockedRef = useRef(isLocked(editState));
+  useEffect(() => { lockedRef.current = isLocked(editState); }, [editState]);
 
-  const styleByType = useMemo(
-    () => new Map(styles.map((s) => [s.type, s])),
-    [styles]
-  );
+  const styleByType = useMemo(() => new Map(styles.map((s) => [s.type, s])), [styles]);
 
   // Derive the type of the selected entity so the toolbar knows which
   // button set to show.
@@ -98,59 +101,48 @@ export default function MapView({
     if (!selectedEntityId) return null;
     const entity = entities.find((e) => e.id === selectedEntityId);
     if (!entity) return null;
-    const t = entity.geometry.type;
-    if (t === "LineString" || t === "MultiLineString") return "road";
-    if (t === "Polygon" || t === "MultiPolygon") return "area";
-    if (t === "Point" || t === "MultiPoint") return "poi";
+    const entityType = entity.geometry.type;
+    if (entityType === "LineString" || entityType === "MultiLineString") return "road";
+    if (entityType === "Polygon" || entityType === "MultiPolygon") return "area";
+    if (entityType === "Point" || entityType === "MultiPoint") return "poi";
     return null;
   }, [selectedEntityId, entities]);
 
-  const isRoadEditMode = editMode === "editLine" || editMode === "dragLine" || editMode === "drawLine";
-
-  const poiFeatures: FeatureCollection = useMemo(() => ({
-    type: "FeatureCollection",
-    features: entities
-      .filter((e) => e.geometry.type === "Point" || e.geometry.type === "MultiPoint")
-      .map(EntityToFeature),
-  }), [entities]);
+  const poiFeatures = useMemo(
+    () => buildFeatureCollection(entities, (e) => e.geometry.type === "Point" || e.geometry.type === "MultiPoint"),
+    [entities]
+  );
 
   // Exclude the road being edited so the buffered polygon disappears while
   // MapEditController shows the raw source lines instead.
-  const roadFeatures: FeatureCollection = useMemo(() => ({
-    type: "FeatureCollection",
-    features: entities
-      .filter((e) => {
-        if (e.geometry.type !== "LineString" && e.geometry.type !== "MultiLineString") return false;
-        if (isRoadEditMode && e.id === editingEntityId) return false;
-        return true;
-      })
-      .map(EntityToFeature)
-      .map((e) =>
-        // bufferMeters is total road width — halve it since turf.buffer adds
-        // the given distance on each side of the line.
-        buffer(e, e.properties.bufferMeters / 2, { units: "meters" }) as MapFeature),
-  }), [entities, isRoadEditMode, editingEntityId]);
+  const roadFeatures = useMemo(() => {
+    const base = buildFeatureCollection(entities, (e) => {
+      if (e.geometry.type !== "LineString" && e.geometry.type !== "MultiLineString") return false;
+      if (isRoadEditMode && e.id === editingEntityId) return false;
+      return true;
+    });
+    return {
+      type: "FeatureCollection" as const,
+      // bufferMeters is total road width — halve it since turf.buffer adds
+      // the given distance on each side of the line.
+      features: base.features.map((f) => buffer(f, f.properties.bufferMeters / 2, { units: "meters" }) as MapFeature),
+    };
+  }, [entities, isRoadEditMode, editingEntityId]);
 
-  const areaFeatures: FeatureCollection = useMemo(() => ({
-    type: "FeatureCollection",
-    features: entities
-      .filter((e) =>
-        e.styleType !== "propertyborder" &&
-        (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
-      )
-      .map(EntityToFeature),
-  }), [entities]);
+  const areaFeatures = useMemo(
+    () => buildFeatureCollection(entities, (e) =>
+      e.styleType !== "propertyborder" && (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
+    ),
+    [entities]
+  );
 
-  // Rendered in a separate pane so it is drawn below areas and roads.
-  const propertyBorderFeatures: FeatureCollection = useMemo(() => ({
-    type: "FeatureCollection",
-    features: entities
-      .filter((e) =>
-        e.styleType === "propertyborder" &&
-        (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
-      )
-      .map(EntityToFeature),
-  }), [entities]);
+  // Rendered in a separate pane so it draws below areas and roads.
+  const propertyBorderFeatures = useMemo(
+    () => buildFeatureCollection(entities, (e) =>
+      e.styleType === "propertyborder" && (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
+    ),
+    [entities]
+  );
 
   // Binds click handler and tooltip to each rendered layer.
   const onEachFeature = (feature: MapFeature, layer: L.Layer) => {
@@ -160,7 +152,7 @@ export default function MapView({
     layerRegistry.current.set(feature.properties.id, layer);
 
     layer.on("click", (event: L.LeafletMouseEvent) => {
-      if (editModeRef.current !== "idle") return;
+      if (lockedRef.current) return;
       if (event.originalEvent) L.DomEvent.stopPropagation(event);
       openEntity(feature.properties.id);
     });
@@ -187,27 +179,10 @@ export default function MapView({
   };
 
   // mapKey included so layers remount after a geometry save.
-  const areaKey = useMemo(
-    () => areaFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
-    [areaFeatures, mapKey]
-  );
-
-  // roadFeatures changes when a road enters/exits edit mode (entity excluded/restored),
-  // so mapKey alone is sufficient here.
-  const roadKey = useMemo(
-    () => roadFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
-    [roadFeatures, mapKey]
-  );
-
-  const poiKey = useMemo(
-    () => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
-    [poiFeatures, mapKey]
-  );
-
-  const propertyBorderKey = useMemo(
-    () => propertyBorderFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey,
-    [propertyBorderFeatures, mapKey]
-  );
+  const areaKey = useMemo(() => areaFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey, [areaFeatures, mapKey]);
+  const roadKey = useMemo(() => roadFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey, [roadFeatures, mapKey]);
+  const poiKey = useMemo(() => poiFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey, [poiFeatures, mapKey]);
+  const propertyBorderKey = useMemo(() => propertyBorderFeatures.features.map((f) => f.properties.id).join(",") + "|" + mapKey, [propertyBorderFeatures, mapKey]);
 
   return (
     <div className="map-container" style={{ height: "100%", width: "100%" }}>
@@ -269,7 +244,7 @@ export default function MapView({
         />
         <MapClickHandler
           onClearSelection={() => {
-            if (editModeRef.current !== "idle") return;
+            if (lockedRef.current) return;
             openEntity(null);
           }}
         />

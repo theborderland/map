@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Geometry } from "geojson";
@@ -137,35 +137,9 @@ const STRATEGIES: Record<EntityKind, GeometryStrategy> = {
   },
   poi: {
     geomanDrawType: "Marker",
-    // Only used by the unified draw effect below — POI has no vertex/drag
-    // edit-existing mode (that's handled separately by movePOI).
-    collectGeometry: () => null,
+    collectGeometry: () => null, // POI has no vertex/drag-existing mode
     mergeGeometry: (base, drawn) => mergePoint(base, drawn as GeoJSON.Point),
   },
-};
-
-// Maps each "edit an existing shape" EditMode to its kind + which Geoman
-// interaction to enable. Powers the single unified effect below that
-// replaces what used to be four near-identical effects (vertices, drag,
-// editLine, dragLine).
-interface EditExistingConfig {
-  kind: EntityKind;
-  action: "vertices" | "drag";
-}
-
-const EDIT_EXISTING_MODES: Partial<Record<string, EditExistingConfig>> = {
-  vertices: { kind: "area", action: "vertices" },
-  drag:     { kind: "area", action: "drag" },
-  editLine: { kind: "road", action: "vertices" },
-  dragLine: { kind: "road", action: "drag" },
-};
-
-// Maps each "draw a new/additional shape" EditMode to its kind. Powers the
-// single unified effect that replaces draw, drawLine, and drawPOI.
-const DRAW_MODES: Partial<Record<string, EntityKind>> = {
-  draw: "area",
-  drawLine: "road",
-  drawPOI: "poi",
 };
 
 /**
@@ -210,9 +184,7 @@ function finalizeDrawSession({
 
 export default function MapEditController({ layerRegistry, entities, settings, selectedPOIIcon }: Props) {
   const map = useMap();
-  const editMode = useMapEditStore((s) => s.editMode);
-  const editingEntityId = useMapEditStore((s) => s.editingEntityId);
-  const creatingKind = useMapEditStore((s) => s.creatingKind);
+  const editState = useMapEditStore((s) => s.state);
 
   // Tracks layers drawn in 'draw' mode so they can be removed on cleanup.
   const drawnLayersRef = useRef<L.Layer[]>([]);
@@ -225,6 +197,52 @@ export default function MapEditController({ layerRegistry, entities, settings, s
   // Snapshot of pendingGeometryRef.current taken at the start of each
   // creation draw session, so Cancel can restore precisely to it.
   const draftSessionSnapshotRef = useRef<Geometry | null>(null);
+
+  // ── Derived, typed sessions ──────────────────────────────
+  // Each of these is null unless editState represents that specific kind
+  // of session, collapsing the old string-keyed lookup tables (EDIT_
+  // EXISTING_MODES / DRAW_MODES) into direct pattern matching on the
+  // union — the compiler verifies every case is handled.
+
+  /** Vertex-edit or whole-shape-drag on an already-saved area/road. */
+  const existingEdit = useMemo(() => {
+    if (editState.status !== "editing") return null;
+    const { kind, entityId, action } = editState;
+    if (kind === "area" && (action === "vertices" || action === "dragPolygon")) {
+      return { kind, entityId, isDrag: action === "dragPolygon" };
+    }
+    if (kind === "road" && (action === "editLine" || action === "dragLine")) {
+      return { kind, entityId, isDrag: action === "dragLine" };
+    }
+    return null;
+  }, [editState]);
+
+  /** Drawing a new shape — either merging into an existing entity, or
+   *  (entityId null) drawing the very first shape of a brand new one. */
+  const drawSession = useMemo(() => {
+    if (editState.status === "editing") {
+      const { kind, entityId, action } = editState;
+      const isDrawAction =
+        (kind === "area" && action === "drawPolygon") ||
+        (kind === "road" && action === "drawLine") ||
+        (kind === "poi" && action === "drawPOI");
+      return isDrawAction ? { kind, entityId: entityId as string | null } : null;
+    }
+    if (editState.status === "creating" && editState.drawing) {
+      return { kind: editState.kind, entityId: null as string | null };
+    }
+    return null;
+  }, [editState]);
+
+  /** Dragging existing point marker(s) directly — POI-only, no temp layer. */
+  const moveSession = useMemo(() => {
+    if (editState.status === "editing" && editState.kind === "poi" && editState.action === "movePOI") {
+      return { entityId: editState.entityId };
+    }
+    return null;
+  }, [editState]);
+
+  const creatingKind = editState.status === "creating" ? editState.kind : null;
 
   // ── Toolbar init (once) ─────────────────────────────────────
   useEffect(() => {
@@ -256,11 +274,11 @@ export default function MapEditController({ layerRegistry, entities, settings, s
 
   // Escape key cancels whichever edit/draw mode is active.
   useEffect(() => {
-    if (editMode === "idle") return;
+    if (editState.status === "idle") return;
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") useMapEditStore.getState().cancelEdit(); };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [editMode]);
+  }, [editState.status]);
 
   // ── Draft creation flow lifecycle (any entity kind) ─────────
   useEffect(() => {
@@ -277,24 +295,20 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     };
   }, [creatingKind, map]);
 
-  // ── Edit existing shape: vertices / drag (area + road, unified) ──
-  // Replaces what used to be four separate near-identical effects.
-  // Areas edit their rendered layer directly. Roads edit a temporary thin
-  // source-line layer that stands in for the buffered polygon — MapView
-  // already hides the buffer for the entity currently being edited.
+  // ── Edit existing shape: vertices/drag (area), editLine/dragLine (road) ──
   useEffect(() => {
-    const config = EDIT_EXISTING_MODES[editMode];
-    if (!config || !editingEntityId) return;
+    if (!existingEdit) return;
+    const { kind, entityId, isDrag } = existingEdit;
 
-    const entity = entities.find((e) => e.id === editingEntityId);
+    const entity = entities.find((e) => e.id === entityId);
     if (!entity) return;
 
-    const strategy = STRATEGIES[config.kind];
-    const usesTempLayer = config.kind === "road";
+    const strategy = STRATEGIES[kind];
+    const usesTempLayer = kind === "road";
 
     const targetLayer: L.Layer | undefined = usesTempLayer
       ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
-      : layerRegistry.current.get(editingEntityId);
+      : layerRegistry.current.get(entityId);
     if (!targetLayer) return;
 
     const original = entity.geometry;
@@ -303,45 +317,37 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     };
 
     getSubLayers(targetLayer).forEach((l) => {
-      if (config.action === "vertices") {
-        (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
-        l.on("pm:edit", handleChange);
-      } else {
+      if (isDrag) {
         (l as GeomanLayer).pm.enableLayerDrag();
         l.on("pm:dragend", handleChange);
+      } else {
+        (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
+        l.on("pm:edit", handleChange);
       }
     });
 
     return () => {
       getSubLayers(targetLayer).forEach((l) => {
         try {
-          if (config.action === "vertices") (l as GeomanLayer).pm.disable();
-          else (l as GeomanLayer).pm.disableLayerDrag();
+          if (isDrag) (l as GeomanLayer).pm.disableLayerDrag();
+          else (l as GeomanLayer).pm.disable();
         } catch { /* no-op */ }
         l.off("pm:edit", handleChange);
         l.off("pm:dragend", handleChange);
       });
-
-      if (usesTempLayer) {
-        map.removeLayer(targetLayer);
-      } else {
-        restoreLayer(targetLayer, original);
-      }
+      if (usesTempLayer) map.removeLayer(targetLayer);
+      else restoreLayer(targetLayer, original);
     };
-  }, [editMode, editingEntityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [existingEdit?.kind, existingEdit?.entityId, existingEdit?.isDrag, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Draw new / add-to-existing shape (area + road + poi, unified) ──
-  // Replaces what used to be three separate near-identical effects.
-  // Works both for adding to an existing entity (editingEntityId set,
-  // merges into a Multi* geometry) and for creating a brand new one
-  // (editingEntityId null — the first drawn shape becomes the geometry).
   useEffect(() => {
-    const kind = DRAW_MODES[editMode];
-    if (!kind) return;
+    if (!drawSession) return;
+    const { kind, entityId } = drawSession;
 
     const strategy = STRATEGIES[kind];
-    const entity = editingEntityId ? entities.find((e) => e.id === editingEntityId) : undefined;
-    const isCreatingFlow = !editingEntityId;
+    const entity = entityId ? entities.find((e) => e.id === entityId) : undefined;
+    const isCreatingFlow = !entityId;
 
     if (isCreatingFlow) {
       draftSessionSnapshotRef.current = useMapEditStore.getState().pendingGeometry;
@@ -381,17 +387,17 @@ export default function MapEditController({ layerRegistry, entities, settings, s
         isCreatingFlow, drawnLayersRef, draftCommittedLayersRef, draftSessionSnapshotRef, map,
       });
     };
-  }, [editMode, editingEntityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [drawSession?.kind, drawSession?.entityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── POI: move existing point(s) — kept separate ─────────────
-  // Fundamentally different from the unified effects above: drags the
-  // marker(s) already on the map directly (no temp layer, no merge), and
-  // restores original positions per-marker on cleanup rather than via
-  // restoreLayer's clear-and-rebuild approach.
+  // Fundamentally different from the effects above: drags the marker(s)
+  // already on the map directly (no temp layer, no merge), and restores
+  // original positions per-marker on cleanup.
   useEffect(() => {
-    if (editMode !== "movePOI" || !editingEntityId) return;
-    const layer = layerRegistry.current.get(editingEntityId);
-    const entity = entities.find((e) => e.id === editingEntityId);
+    if (!moveSession) return;
+    const { entityId } = moveSession;
+    const layer = layerRegistry.current.get(entityId);
+    const entity = entities.find((e) => e.id === entityId);
     if (!layer || !entity) return;
 
     const originalPositions = new Map<L.Layer, L.LatLng>();
@@ -424,7 +430,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
         if (orig) (l as L.Marker).setLatLng(orig);
       });
     };
-  }, [editMode, editingEntityId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [moveSession?.entityId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }

@@ -19,7 +19,6 @@ export default function RuleCard({
         </div>
         <span className={`badge severity-${rule.severity}`}>{rule.severity}</span>
       </div>
-      <p className="tagline">{rule.id}</p>
       <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem" }}>
         <span className="badge">{rule.ruleType}</span>
       </div>

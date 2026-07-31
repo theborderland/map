@@ -1,7 +1,8 @@
+import * as L from "leaflet"
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import type { EntityKind } from "../types";
-import { CREATE_DRAW_MODE_BY_KIND } from "../types";
+import type { AreaEditAction, RoadEditAction, PoiEditAction } from "../store/mapEditStore";
 import { useMapEditStore } from "../store/mapEditStore";
 
 const BUTTONS = {
@@ -12,10 +13,10 @@ const BUTTONS = {
   CANCEL: "geo-cancel",
 };
 
-const CREATE_LABELS: Record<EntityKind, { title: string; className: string }> = {
-  poi: { title: "Add POI", className: "leaflet-pm-icon-marker" },
-  road: { title: "Add road", className: "leaflet-pm-icon-polyline" },
-  area: { title: "Add area", className: "leaflet-pm-icon-polygon" },
+const CREATE_LABELS: Record<EntityKind, { title: string; addIconClassName: string }> = {
+  poi: { title: "Add POI", addIconClassName: "leaflet-pm-icon-marker" },
+  road: { title: "Add road", addIconClassName: "leaflet-pm-icon-polyline" },
+  area: { title: "Add area", addIconClassName: "leaflet-pm-icon-polygon" },
 };
 
 interface Props {
@@ -23,152 +24,126 @@ interface Props {
   selectedEntityType: EntityKind | null;
 }
 
+function clearButtons(toolbar: L.PM.PMMapToolbar) {
+  Object.values(BUTTONS).forEach((name) => {
+    try { toolbar.deleteControl(name); } catch { /* already absent */ }
+  });
+}
+
+function addSaveCancelButtons(toolbar: L.PM.PMMapToolbar) {
+  toolbar.createCustomControl({
+    name: BUTTONS.SAVE,
+    block: "custom",
+    title: "Save",
+    className: "leaflet-toolbar-icon-save",
+    toggle: false,
+    onClick: () => { void useMapEditStore.getState().saveGeometry(); },
+  });
+  toolbar.createCustomControl({
+    name: BUTTONS.CANCEL,
+    block: "custom",
+    title: "Cancel (Esc)",
+    className: "leaflet-toolbar-icon-cancel",
+    toggle: false,
+    onClick: () => { useMapEditStore.getState().cancelEdit(); },
+  });
+}
+
+/** Starts the correctly-typed edit session for whichever button was
+ *  pressed, keeping the per-kind action mapping in one place instead of
+ *  scattered across three separate onClick handlers. */
+function startEditForKind(entityId: string, kind: EntityKind, purpose: "primary" | "move" | "add") {
+  const store = useMapEditStore.getState();
+  if (kind === "area") {
+    const action: AreaEditAction = purpose === "primary" ? "vertices" : purpose === "move" ? "dragPolygon" : "drawPolygon";
+    store.startEdit(entityId, "area", action);
+  } else if (kind === "road") {
+    const action: RoadEditAction = purpose === "primary" ? "editLine" : purpose === "move" ? "dragLine" : "drawLine";
+    store.startEdit(entityId, "road", action);
+  } else {
+    // POI has no separate "move" button — its primary action IS moving.
+    const action: PoiEditAction = purpose === "add" ? "drawPOI" : "movePOI";
+    store.startEdit(entityId, "poi", action);
+  }
+}
+
+function addExistingEntityButtons(toolbar: L.PM.PMMapToolbar, entityId: string, kind: EntityKind) {
+  const labels = CREATE_LABELS[kind];
+
+  toolbar.createCustomControl({
+    name: BUTTONS.EDIT_VERTICES,
+    block: "custom",
+    title: kind === "road" ? "Edit road" : kind === "poi" ? "Move POI(s)" : "Edit shape",
+    className: kind === "poi" ? "leaflet-toolbar-icon-move" : "leaflet-pm-icon-edit",
+    toggle: false,
+    onClick: () => startEditForKind(entityId, kind, "primary"),
+  });
+
+  if (kind !== "poi") {
+    toolbar.createCustomControl({
+      name: BUTTONS.MOVE,
+      block: "custom",
+      title: kind === "road" ? "Move road(s)" : "Move shape(s)",
+      className: "leaflet-toolbar-icon-move",
+      toggle: false,
+      onClick: () => startEditForKind(entityId, kind, "move"),
+    });
+  }
+
+  toolbar.createCustomControl({
+    name: BUTTONS.ADD_SHAPE,
+    block: "custom",
+    title: labels.title,
+    className: labels.addIconClassName,
+    toggle: false,
+    onClick: () => startEditForKind(entityId, kind, "add"),
+  });
+}
+
+function addCreateWaitingButton(toolbar: L.PM.PMMapToolbar, kind: EntityKind) {
+  const labels = CREATE_LABELS[kind];
+  toolbar.createCustomControl({
+    name: BUTTONS.ADD_SHAPE,
+    block: "custom",
+    title: labels.title,
+    className: labels.addIconClassName,
+    toggle: false,
+    onClick: () => { useMapEditStore.getState().startCreateDraw(); },
+  });
+}
+
 /**
- * Adds geometry edit controls to Geoman's native toolbar. Shows different
- * button sets depending on a create flow being active (creatingKind, from
- * the store) or an existing entity being selected (selectedEntityType, prop).
- *
- * All edit-mode state comes from the Zustand store, so button callbacks
- * call store actions directly via getState() — no stale-closure ref needed,
- * since store actions are stable and getState() always reads fresh values.
+ * Adds geometry edit controls to Geoman's native toolbar. Which buttons
+ * show is a direct, exhaustive match on the store's MapEditState — no
+ * stale-closure ref needed (store actions are stable, getState() always
+ * reads fresh), and no ad-hoc "is a create flow active" boolean to keep
+ * in sync (the union's `status` field is the single source of truth).
  */
 export default function MapGeometryToolbar({ selectedEntityId, selectedEntityType }: Props) {
   const map = useMap();
-  const editMode = useMapEditStore((s) => s.editMode);
-  const editingEntityId = useMapEditStore((s) => s.editingEntityId);
-  const creatingKind = useMapEditStore((s) => s.creatingKind);
+  const editState = useMapEditStore((s) => s.state);
 
   useEffect(() => {
-    const toolbar = map.pm.Toolbar;
-    const isEditing = editMode !== "idle";
-    const hasSelection = !!selectedEntityId && selectedEntityType !== null;
+    const toolbar: L.PM.PMMapToolbar = map.pm.Toolbar;
+    clearButtons(toolbar);
 
-    // A create flow's draw session is "active" once the user has clicked
-    // "Add …" and is mid-draw (editingEntityId is always null during create).
-    const isCreatingActive =
-      creatingKind !== null &&
-      editMode === CREATE_DRAW_MODE_BY_KIND[creatingKind] &&
-      editingEntityId === null;
-
-    Object.values(BUTTONS).forEach((name) => {
-      try { toolbar.deleteControl(name); } catch { /* already absent */ }
-    });
-
-    // ── Create flow (POI, Road, or Area) ────────────
-    if (creatingKind) {
-      const labels = CREATE_LABELS[creatingKind];
-
-      if (isCreatingActive) {
-        toolbar.createCustomControl({
-          name: BUTTONS.SAVE,
-          block: "custom",
-          title: "Save",
-          className: "leaflet-toolbar-icon-save",
-          toggle: false,
-          onClick: () => { void useMapEditStore.getState().saveGeometry(); },
-        });
-        toolbar.createCustomControl({
-          name: BUTTONS.CANCEL,
-          block: "custom",
-          title: "Cancel (Esc)",
-          className: "leaflet-toolbar-icon-cancel",
-          toggle: false,
-          onClick: () => { useMapEditStore.getState().cancelEdit(); },
-        });
-      } else {
-        toolbar.createCustomControl({
-          name: BUTTONS.ADD_SHAPE,
-          block: "custom",
-          title: labels.title,
-          className: labels.className,
-          toggle: false,
-          onClick: () => { useMapEditStore.getState().startCreateDraw(); },
-        });
-      }
-
-      return () => {
-        Object.values(BUTTONS).forEach((name) => {
-          try { toolbar.deleteControl(name); } catch { /* already absent */ }
-        });
-      };
+    if (editState.status === "creating") {
+      if (editState.drawing) addSaveCancelButtons(toolbar);
+      else addCreateWaitingButton(toolbar, editState.kind);
+      return () => clearButtons(toolbar);
     }
 
-    // ── Existing selection (edit an already-saved entity) ─
-    if (!hasSelection && !isEditing) return;
-
-    if (isEditing && editingEntityId === selectedEntityId) {
-      toolbar.createCustomControl({
-        name: BUTTONS.SAVE,
-        block: "custom",
-        title: "Save",
-        className: "leaflet-toolbar-icon-save",
-        toggle: false,
-        onClick: () => { void useMapEditStore.getState().saveGeometry(); },
-      });
-      toolbar.createCustomControl({
-        name: BUTTONS.CANCEL,
-        block: "custom",
-        title: "Cancel (Esc)",
-        className: "leaflet-toolbar-icon-cancel",
-        toggle: false,
-        onClick: () => { useMapEditStore.getState().cancelEdit(); },
-      });
-    } else if (!isEditing && hasSelection) {
-      const type = selectedEntityType!;
-      const labels = CREATE_LABELS[type];
-
-      toolbar.createCustomControl({
-        name: BUTTONS.EDIT_VERTICES,
-        block: "custom",
-        title: type === "road" ? "Edit road" : type === "poi" ? "Move POI(s)" : "Edit shape",
-        className: type === "poi" ? "leaflet-toolbar-icon-move" : "leaflet-pm-icon-edit",
-        toggle: false,
-        onClick: () => {
-          if (!selectedEntityId) return;
-          useMapEditStore.getState().startEdit(
-            selectedEntityId,
-            type === "road" ? "editLine" : type === "poi" ? "movePOI" : "vertices"
-          );
-        },
-      });
-
-      if (type !== "poi") {
-        toolbar.createCustomControl({
-          name: BUTTONS.MOVE,
-          block: "custom",
-          title: type === "road" ? "Move road(s)" : "Move shape(s)",
-          className: "leaflet-toolbar-icon-move",
-          toggle: false,
-          onClick: () => {
-            if (!selectedEntityId) return;
-            useMapEditStore.getState().startEdit(selectedEntityId, type === "road" ? "dragLine" : "drag");
-          },
-        });
-      }
-
-      toolbar.createCustomControl({
-        name: BUTTONS.ADD_SHAPE,
-        block: "custom",
-        title: labels.title,
-        className: labels.className,
-        toggle: false,
-        onClick: () => {
-          if (!selectedEntityId) return;
-          useMapEditStore.getState().startEdit(
-            selectedEntityId,
-            type === "road" ? "drawLine" : type === "poi" ? "drawPOI" : "draw"
-          );
-        },
-      });
+    if (editState.status === "editing") {
+      if (editState.entityId === selectedEntityId) addSaveCancelButtons(toolbar);
+      return () => clearButtons(toolbar);
     }
 
-    // Clean up buttons when dependencies change or component unmounts.
-    return () => {
-      Object.values(BUTTONS).forEach((name) => {
-        try { toolbar.deleteControl(name); } catch { /* already absent */ }
-      });
-    };
-  }, [map, editMode, editingEntityId, selectedEntityId, selectedEntityType, creatingKind]);
+    // idle
+    if (selectedEntityId && selectedEntityType) {
+      addExistingEntityButtons(toolbar, selectedEntityId, selectedEntityType);
+    }
+    return () => clearButtons(toolbar);
+  }, [map, editState, selectedEntityId, selectedEntityType]);
 
   return null;
 }

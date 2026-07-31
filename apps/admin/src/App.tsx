@@ -10,7 +10,7 @@ import {
 } from "./db";
 import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 import { DEFAULT_POI_ICON } from "./utils/Icons";
-import { useMapEditStore } from "./store/mapEditStore";
+import { useMapEditStore, isLocked } from "./store/mapEditStore";
 
 function App() {
   const [selectedPOIIcon, setSelectedPOIIcon] = useState(DEFAULT_POI_ICON);
@@ -40,7 +40,7 @@ function App() {
   // being threaded down as props through MapView/LeftPanel/Detail components.
   useEffect(() => {
     useMapEditStore.getState().bindEntityCallbacks(setEntities, bumpMapKey);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync the nav-derived creatingKind into the store — navStack itself
   // stays as App-owned React state, only its derived edit-relevant value
@@ -50,7 +50,7 @@ function App() {
   }, [creatingKind]);
 
   const openEntity = (entityId: string | null) => {
-    if (useMapEditStore.getState().editMode !== "idle") return; // Block selection changes during edit
+    if (isLocked(useMapEditStore.getState().state)) return; // Block selection changes during edit
     if (entityId === null) {
       setNavStack([createRoot(activeTab)]);
       return;

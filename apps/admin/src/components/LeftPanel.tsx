@@ -9,7 +9,7 @@ import {
   buildRuleNavigation, createRoot,
 } from "../utils/panelNavigation";
 import { VIEW_HANDLERS, getCreateViewForTab, type ViewContext } from "../utils/viewRegistry";
-import { useMapEditStore } from "../store/mapEditStore";
+import { useIsEditingLocked } from "../store/mapEditStore";
 
 interface Props {
   activeTab: Tab;
@@ -43,7 +43,7 @@ export default function LeftPanel({
   onSelectedPOIIconChange,
 }: Props) {
   const currentView = navStack[navStack.length - 1]!;
-  const isEditing = useMapEditStore((s) => s.editMode !== "idle");
+  const isEditing = useIsEditingLocked();
 
   // ── Navigation ──────────────────────────────────────────
   const openGroup = (tab: Tab, styleType: string) => { if (isEditing) return; setNavStack(buildGroupNavigation(tab, styleType)); };
