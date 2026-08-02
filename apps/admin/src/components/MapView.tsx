@@ -9,7 +9,7 @@ import { createPOIIcon, DEFAULT_POI_ICON } from "../utils/Icons";
 import MapEditController from "./MapEditController";
 import type { EntityKind } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
-import { useMapEditStore, isLocked } from "../store/mapEditStore";
+import { useMapEditStore, isLocked, useEditingEntityId } from "../store/mapEditStore";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
@@ -85,7 +85,7 @@ export default function MapView({
   const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
 
   const editState = useMapEditStore((s) => s.state);
-  const editingEntityId = editState.status === "editing" ? editState.entityId : null;
+  const editingEntityId = useEditingEntityId();
   const isRoadEditMode = editState.status === "editing" && editState.kind === "road";
 
   // Ref so onEachFeature click handlers always read the live lock state

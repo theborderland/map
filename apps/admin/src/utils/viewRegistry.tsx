@@ -23,34 +23,37 @@ export interface ViewContext {
     openEntity: (entity: EntityRecord) => void;
     selectedPOIIcon: string;
     onSelectedPOIIconChange: (icon: string) => void;
+    /** Content for the currently active root tab — only the "root" handler reads this. */
+    rootTabContent: ReactNode;
 }
 
-interface ViewHandler<V extends PanelView> {
-    title: (view: V, ctx: ViewContext) => string;
-    render: (view: V, ctx: ViewContext) => ReactNode;
-    /** Only "root" views can show the header's Create button — see getCreateAction below. */
-    createTargetTab?: Tab;
+interface ViewHandler {
+    title: (view: PanelView, ctx: ViewContext) => string;
+    render: (view: PanelView, ctx: ViewContext) => ReactNode;
 }
-
-// Narrows PanelView to just the variant matching a given "type" literal.
-type ViewOfType<K extends PanelView["type"]> = Extract<PanelView, { type: K }>;
 
 /**
- * Every PanelView type has exactly one entry here — its title and how to
- * render it. Adding a new view (a future "poi-create"-style flow, etc.)
- * means adding one entry, not touching three separate switch statements
- * scattered through LeftPanel.
+ * One entry per PanelView type. Each handler receives the *full* PanelView
+ * union and narrows it itself with a plain `if (view.type !== "...")` guard
+ * whenever it needs type-specific fields — ordinary TypeScript control-flow
+ * narrowing, so no casts are needed anywhere in this file or at the call
+ * site in LeftPanel. `Record<PanelView["type"], ViewHandler>` still forces
+ * every view type to have exactly one entry — add a new PanelView variant
+ * and TypeScript will refuse to compile until you add its handler here.
  */
-export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K>> } = {
+export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
     root: {
-        title: (view) => view.tab,
-        render: (_view, ctx) => ctx.rootTabContent, // set by LeftPanel
+        title: (view) => (view.type === "root" ? view.tab : ""),
+        render: (_view, ctx) => ctx.rootTabContent,
     },
 
     "entity-group": {
-        title: (view, ctx) =>
-            ctx.styles.find((s) => s.type === view.styleType)?.displayName ?? view.styleType,
+        title: (view, ctx) => {
+            if (view.type !== "entity-group") return "";
+            return ctx.styles.find((s) => s.type === view.styleType)?.displayName ?? view.styleType;
+        },
         render: (view, ctx) => {
+            if (view.type !== "entity-group") return null;
             const groupEntities = ctx.entities.filter((e) => e.styleType === view.styleType);
             return (
                 <EntityList
@@ -64,8 +67,12 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
     },
 
     "entity-detail": {
-        title: (view, ctx) => ctx.entities.find((e) => e.id === view.entityId)?.name ?? "Detail",
+        title: (view, ctx) => {
+            if (view.type !== "entity-detail") return "";
+            return ctx.entities.find((e) => e.id === view.entityId)?.name ?? "Detail";
+        },
         render: (view, ctx) => {
+            if (view.type !== "entity-detail") return null;
             const entity = ctx.entities.find((e) => e.id === view.entityId);
             if (!entity) return null;
             switch (getEntityTab(entity)) {
@@ -113,8 +120,12 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
     },
 
     "style-detail": {
-        title: (view, ctx) => ctx.styles.find((s) => s.id === view.styleId)?.displayName ?? "Style",
+        title: (view, ctx) => {
+            if (view.type !== "style-detail") return "";
+            return ctx.styles.find((s) => s.id === view.styleId)?.displayName ?? "Style";
+        },
         render: (view, ctx) => {
+            if (view.type !== "style-detail") return null;
             const style = ctx.styles.find((s) => s.id === view.styleId);
             if (!style) return null;
             return (
@@ -130,7 +141,6 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
 
     "style-create": {
         title: () => "New Style",
-        createTargetTab: "Styles",
         render: (_view, ctx) => (
             <StyleDetail
                 setStyles={ctx.setStyles}
@@ -141,8 +151,12 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
     },
 
     "rule-detail": {
-        title: (view, ctx) => ctx.rules.find((r) => r.id === view.ruleId)?.name ?? "Rule",
+        title: (view, ctx) => {
+            if (view.type !== "rule-detail") return "";
+            return ctx.rules.find((r) => r.id === view.ruleId)?.name ?? "Rule";
+        },
         render: (view, ctx) => {
+            if (view.type !== "rule-detail") return null;
             const rule = ctx.rules.find((r) => r.id === view.ruleId);
             if (!rule) return null;
             return (
@@ -158,7 +172,6 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
 
     "rule-create": {
         title: () => "New Rule",
-        createTargetTab: "Rules",
         render: (_view, ctx) => (
             <RuleDetail
                 setRules={ctx.setRules}
@@ -170,7 +183,6 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
 
     "poi-create": {
         title: () => "New POI",
-        createTargetTab: "POIs",
         render: (_view, ctx) => (
             <POIDetail
                 rules={ctx.rules}
@@ -186,7 +198,6 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
 
     "road-create": {
         title: () => "New Road",
-        createTargetTab: "Roads",
         render: (_view, ctx) => (
             <RoadDetail
                 styles={ctx.styles}
@@ -201,7 +212,6 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
 
     "area-create": {
         title: () => "New Area",
-        createTargetTab: "Areas",
         render: (_view, ctx) => (
             <AreaDetail
                 styles={ctx.styles}
@@ -216,12 +226,18 @@ export const VIEW_HANDLERS: { [K in PanelView["type"]]: ViewHandler<ViewOfType<K
 };
 
 /**
- * Given the active root tab, returns the PanelView the header's Create
- * button should navigate to — derived by scanning VIEW_HANDLERS for the
- * one whose createTargetTab matches, rather than a hardcoded if-chain.
+ * Explicit map from root tab to the create view it opens. A plain object —
+ * no registry scanning, no `as any`, trivial to extend when a new
+ * create-flow tab is added.
  */
+const CREATE_VIEW_BY_TAB: Partial<Record<Tab, PanelView>> = {
+    Styles: { type: "style-create" },
+    Rules: { type: "rule-create" },
+    POIs: { type: "poi-create" },
+    Roads: { type: "road-create" },
+    Areas: { type: "area-create" },
+};
+
 export function getCreateViewForTab(tab: Tab): PanelView | undefined {
-    const entry = (Object.entries(VIEW_HANDLERS) as [PanelView["type"], ViewHandler<any>][])
-        .find(([, handler]) => handler.createTargetTab === tab);
-    return entry ? ({ type: entry[0] } as PanelView) : undefined;
+    return CREATE_VIEW_BY_TAB[tab];
 }

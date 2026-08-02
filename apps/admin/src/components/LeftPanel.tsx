@@ -77,10 +77,7 @@ export default function LeftPanel({
   })();
 
   // ── View context ────────────────────────────────────────
-  // Bundles everything VIEW_HANDLERS entries need. rootTabContent is
-  // attached here (not part of the formal ViewContext type) since only
-  // the "root" handler reads it — keeps the interface honest for every
-  // other handler that doesn't need active-tab-specific content.
+  // Bundles everything VIEW_HANDLERS entries need.
   const ctx: ViewContext & { rootTabContent: React.ReactNode } = {
     entities, rules, styles,
     setEntities, setRules, setStyles,
@@ -95,7 +92,7 @@ export default function LeftPanel({
     activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeTab]);
 
-  const handler = VIEW_HANDLERS[currentView.type] as (typeof VIEW_HANDLERS)[typeof currentView.type];
+  const handler = VIEW_HANDLERS[currentView.type];
 
   return (
     <div className={isEditing ? "is-editing left-container" : "left-container"}>
@@ -106,12 +103,12 @@ export default function LeftPanel({
       />
       <div className="content">
         <LeftPanelHeader
-          title={handler.title(currentView as never, ctx)}
+          title={handler.title(currentView, ctx)}
           showBack={navStack.length > 1}
           onBack={goBack}
           onCreateClick={getCreateClick()}
         />
-        <div>{handler.render(currentView as never, ctx)}</div>
+        <div>{handler.render(currentView, ctx)}</div>
       </div>
     </div>
   );

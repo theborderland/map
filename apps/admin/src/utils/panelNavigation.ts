@@ -58,39 +58,14 @@ export function buildRuleNavigation(ruleId: string): PanelView[] {
     return [createRoot("Rules"), { type: "rule-detail", ruleId }];
 }
 
-/** Navigates to a blank create form for a new style. */
-export function buildStyleCreateNavigation(): PanelView[] {
-    return [createRoot("Styles"), { type: "style-create" }];
-}
-
-/** Navigates to a blank create form for a new rule. */
-export function buildRuleCreateNavigation(): PanelView[] {
-    return [createRoot("Rules"), { type: "rule-create" }];
-}
-
-/** Navigates to a blank create form for a new POI. */
-export function buildPOICreateNavigation(): PanelView[] {
-    return [createRoot("POIs"), { type: "poi-create" }];
-}
-
 /** Navigates to the newly created POI's own detail view. */
 export function buildPOINavigation(entityId: string): PanelView[] {
     return [createRoot("POIs"), { type: "entity-detail", entityId }];
 }
 
-/** Navigates to a blank create form for a new road. */
-export function buildRoadCreateNavigation(): PanelView[] {
-    return [createRoot("Roads"), { type: "road-create" }];
-}
-
 /** Navigates directly to the newly created road's detail view. */
 export function buildRoadNavigation(entityId: string): PanelView[] {
     return [createRoot("Roads"), { type: "entity-detail", entityId }];
-}
-
-/** Navigates to a blank create form for a new area. */
-export function buildAreaCreateNavigation(): PanelView[] {
-    return [createRoot("Areas"), { type: "area-create" }];
 }
 
 /** Navigates directly to the newly created area's detail view. */

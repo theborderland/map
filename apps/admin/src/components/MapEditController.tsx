@@ -5,7 +5,7 @@ import type { Geometry } from "geojson";
 import type { EntityRecord, SettingsRecord } from "../db/types";
 import type { EntityKind } from "../types";
 import { createPOIIcon } from "../utils/Icons";
-import { useMapEditStore } from "../store/mapEditStore";
+import { useCreatingKind, useMapEditStore } from "../store/mapEditStore";
 import "@geoman-io/leaflet-geoman-free";
 
 type GeomanLayer = L.Layer & {
@@ -242,7 +242,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     return null;
   }, [editState]);
 
-  const creatingKind = editState.status === "creating" ? editState.kind : null;
+  const creatingKind = useCreatingKind();
 
   // ── Toolbar init (once) ─────────────────────────────────────
   useEffect(() => {
