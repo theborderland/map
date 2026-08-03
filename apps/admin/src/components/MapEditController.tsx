@@ -111,8 +111,43 @@ function mergePoint(base: Geometry, newPoint: GeoJSON.Point): GeoJSON.MultiPoint
   return { type: "MultiPoint", coordinates: [newPoint.coordinates] };
 }
 
-const SOURCE_LINE_STYLE = { color: "#3b82f6", weight: 3, opacity: 1, fillOpacity: 0 };
+// Splits a Multi* geometry into one geometry per constituent part.
+// Single-part geometries (Polygon/LineString) pass through unchanged.
+function splitGeometryParts(geometry: Geometry): Geometry[] {
+  if (geometry.type === "MultiPolygon") {
+    return geometry.coordinates.map(
+      (coords): GeoJSON.Polygon => ({ type: "Polygon", coordinates: coords })
+    );
+  }
+  if (geometry.type === "MultiLineString") {
+    return geometry.coordinates.map(
+      (coords): GeoJSON.LineString => ({ type: "LineString", coordinates: coords })
+    );
+  }
+  return [geometry];
+}
 
+// Builds a flat LayerGroup with one simple Leaflet layer per constituent
+// part of the geometry. A plain `L.geoJSON(geometry)` call collapses a
+// MultiPolygon/MultiLineString into a single compound layer that Geoman
+// drags as one rigid body — every part moves together. This instead
+// produces genuinely separate layers so each part can be dragged
+// independently, matching how MultiPoint already renders as separate
+// marker layers (which is why POI dragging already works per-point).
+function buildPartsLayerGroup(geometry: Geometry, style: L.PathOptions): L.LayerGroup {
+  const subLayers = splitGeometryParts(geometry)
+    .map((part) => L.geoJSON(part).getLayers()[0])
+    .filter((l): l is L.Layer => !!l);
+  return L.layerGroup(subLayers);
+}
+
+const EDIT_PREVIEW_STYLE: L.PathOptions = {
+  color: "#3b82f6",
+  weight: 3,
+  opacity: 1,
+  fillColor: "#3b82f6",
+  fillOpacity: 0.2,
+};
 // ── Per-kind geometry strategy ───────────────────────────────
 // Captures the only three things that actually differ between area/road/poi
 // editing: which Geoman draw tool to use, how to read geometry back off a
@@ -304,11 +339,22 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     if (!entity) return;
 
     const strategy = STRATEGIES[kind];
-    const usesTempLayer = kind === "road";
 
-    const targetLayer: L.Layer | undefined = usesTempLayer
-      ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
-      : layerRegistry.current.get(entityId);
+    // Vertex editing (area) operates on the real rendered layer in place —
+    // Geoman already adds vertex handles per ring/part of a compound Multi*
+    // layer, so no synthetic layer is needed there. Roads always use a thin
+    // source-line preview instead of their buffered polygon, for both
+    // actions. Drag mode always uses a synthetic "parts" layer group so
+    // each constituent shape of a Multi* geometry can be dragged
+    // independently — MapView hides the real rendered layer while this is
+    // active (see isRoadEditMode / isAreaDragMode there).
+    const usesTempLayer = kind === "road" || isDrag;
+
+    const targetLayer: L.Layer | undefined = isDrag
+      ? buildPartsLayerGroup(entity.geometry, EDIT_PREVIEW_STYLE).addTo(map)
+      : usesTempLayer
+        ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE }).addTo(map)
+        : layerRegistry.current.get(entityId);
     if (!targetLayer) return;
 
     const original = entity.geometry;
@@ -356,7 +402,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     // Roads show the same thin source-line context layer while drawing an
     // additional line onto an existing road — visual only, no handlers.
     const contextLayer = (kind === "road" && entity)
-      ? L.geoJSON(entity.geometry, { style: () => SOURCE_LINE_STYLE }).addTo(map)
+      ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE }).addTo(map)
       : null;
 
     const drawOptions: Record<string, unknown> = { continueDrawing: false };

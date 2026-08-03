@@ -87,6 +87,9 @@ export default function MapView({
   const editState = useMapEditStore((s) => s.state);
   const editingEntityId = useEditingEntityId();
   const isRoadEditMode = editState.status === "editing" && editState.kind === "road";
+  // True only while an area's whole-shape drag is active — vertex editing
+  // manipulates the real rendered layer in place and doesn't need this.
+  const isAreaDragMode = editState.status === "editing" && editState.kind === "area" && editState.action === "dragPolygon";
 
   // Ref so onEachFeature click handlers always read the live lock state
   // rather than the stale value captured when each layer was created.
@@ -130,10 +133,13 @@ export default function MapView({
   }, [entities, isRoadEditMode, editingEntityId]);
 
   const areaFeatures = useMemo(
-    () => buildFeatureCollection(entities, (e) =>
-      e.styleType !== "propertyborder" && (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
-    ),
-    [entities]
+    () => buildFeatureCollection(entities, (e) => {
+      if (e.styleType === "propertyborder") return false;
+      if (e.geometry.type !== "Polygon" && e.geometry.type !== "MultiPolygon") return false;
+      if (isAreaDragMode && e.id === editingEntityId) return false;
+      return true;
+    }),
+    [entities, isAreaDragMode, editingEntityId]
   );
 
   // Rendered in a separate pane so it draws below areas and roads.
