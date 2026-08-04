@@ -142,12 +142,16 @@ export default function MapView({
     [entities, isAreaDragMode, editingEntityId]
   );
 
-  // Rendered in a separate pane so it draws below areas and roads.
+  // Rendered property borders in a separate pane so it draws below areas and roads.
   const propertyBorderFeatures = useMemo(
-    () => buildFeatureCollection(entities, (e) =>
-      e.styleType === "propertyborder" && (e.geometry.type === "Polygon" || e.geometry.type === "MultiPolygon")
+    () => buildFeatureCollection(entities, (e) => {
+      if (e.styleType !== "propertyborder") return false;
+      if (e.geometry.type !== "Polygon" && e.geometry.type !== "MultiPolygon") return false;
+      if (isAreaDragMode && e.id === editingEntityId) return false;
+      return true;
+    }
     ),
-    [entities]
+    [entities, isAreaDragMode, editingEntityId]
   );
 
   // Binds click handler and tooltip to each rendered layer.
@@ -242,6 +246,11 @@ export default function MapView({
             onEachFeature={onEachFeature}
           />
         </Pane>
+        {/* Dedicated pane for temporary edit/preview layers created by
+          MapEditController (drag-mode parts, road source-line previews, etc).
+          A high explicit zIndex guarantees these always render above every
+          other pane. */}
+        <Pane name="edit-overlay" style={{ zIndex: 650 }} />
         <MapEditController
           layerRegistry={layerRegistry}
           entities={entities}

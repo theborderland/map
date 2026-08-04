@@ -136,7 +136,7 @@ function splitGeometryParts(geometry: Geometry): Geometry[] {
 // marker layers (which is why POI dragging already works per-point).
 function buildPartsLayerGroup(geometry: Geometry, style: L.PathOptions): L.LayerGroup {
   const subLayers = splitGeometryParts(geometry)
-    .map((part) => L.geoJSON(part).getLayers()[0])
+    .map((part) => L.geoJSON(part, { style: () => style, pane: "edit-overlay" }).getLayers()[0])
     .filter((l): l is L.Layer => !!l);
   return L.layerGroup(subLayers);
 }
@@ -353,9 +353,18 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     const targetLayer: L.Layer | undefined = isDrag
       ? buildPartsLayerGroup(entity.geometry, EDIT_PREVIEW_STYLE).addTo(map)
       : usesTempLayer
-        ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE }).addTo(map)
+        ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE, pane: "edit-overlay" }).addTo(map)
         : layerRegistry.current.get(entityId);
     if (!targetLayer) return;
+
+    // Bring the layer(s) being edited to the top of the stack so they're
+    // always clickable/draggable, even if another shape was rendered on
+    // top of them originally.
+    getSubLayers(targetLayer).forEach((l) => {
+      if ("bringToFront" in l && typeof (l as L.Path).bringToFront === "function") {
+        (l as L.Path).bringToFront();
+      }
+    });
 
     const original = entity.geometry;
     const handleChange = () => {
@@ -402,7 +411,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     // Roads show the same thin source-line context layer while drawing an
     // additional line onto an existing road — visual only, no handlers.
     const contextLayer = (kind === "road" && entity)
-      ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE }).addTo(map)
+      ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE, pane: "edit-overlay" }).addTo(map)
       : null;
 
     const drawOptions: Record<string, unknown> = { continueDrawing: false };
