@@ -28,12 +28,30 @@ export default function POIDetail({
   const [description, setDescription] = useState(entity?.description ?? "");
   const [link, setLink] = useState(entity?.link ?? "");
 
-  const form = useEntityDetailForm({ entity, setEntities, bumpMapKey, goBack });
+  const [extraBaseline, setExtraBaseline] = useState({
+    description: entity?.description ?? "",
+    link: entity?.link ?? "",
+    icon: entity?.icon ?? DEFAULT_POI_ICON,
+  });
+
+  const form = useEntityDetailForm({
+    entity, setEntities, bumpMapKey, goBack,
+    extraFieldsDirty:
+      description !== extraBaseline.description ||
+      link !== extraBaseline.link ||
+      selectedPOIIcon !== extraBaseline.icon,
+  });
 
   // Sync the shared icon state to this entity's icon on mount / when
   // switching between entities, so the map draw preview matches this POI.
   useEffect(() => {
-    onSelectedPOIIconChange(entity?.icon ?? DEFAULT_POI_ICON);
+    const icon = entity?.icon ?? DEFAULT_POI_ICON;
+    onSelectedPOIIconChange(icon);
+    setExtraBaseline({
+      description: entity?.description ?? "",
+      link: entity?.link ?? "",
+      icon,
+    });
   }, [entity?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = () =>
@@ -48,6 +66,8 @@ export default function POIDetail({
         updateEntity: (id, payload) => updateEntity(id, payload),
         createEntity: (payload) => createEntity(payload),
         onCreate: (created) => onAfterCreate?.(created.id),
+        onSaved: () =>
+          setExtraBaseline({ description: description.trim(), link: link.trim(), icon: selectedPOIIcon }),
       }
     );
 

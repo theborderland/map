@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { RuleRecord } from "../../db/types";
 import { updateRule, createRule, deleteRule } from "../../db";
 import DeleteButton from "./DeleteButton";
+import { useDirtyState } from "../../hooks/useDirtyState";
 
 interface Props {
   /** Undefined in create mode. */
@@ -24,7 +25,22 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
   const [overrideOpacity, setOverrideOpacity] = useState(rule?.styleOverride?.fillOpacity ?? 0.6);
   const [isSaving, setIsSaving] = useState(false);
 
-  const canSave = !!name.trim() && !!message.trim();
+  const dirty = useDirtyState({
+    name: rule?.name ?? "",
+    ruleType: rule?.ruleType ?? "overlap",
+    severity: rule?.severity ?? "medium",
+    message: rule?.message ?? "",
+    hasOverride: !!rule?.styleOverride,
+    overrideColor: rule?.styleOverride?.fillColor ?? "#ff0000",
+    overrideOpacity: rule?.styleOverride?.fillOpacity ?? 0.6,
+  });
+
+  const currentValues = { name, ruleType, severity, message, hasOverride, overrideColor, overrideOpacity };
+
+  // In create mode Save just needs the required fields filled in. In edit
+  // mode it also requires something to actually have changed.
+  const canSave = !!name.trim() && !!message.trim() &&
+    (isCreate || dirty.isDirty(currentValues));
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -43,6 +59,7 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
     if (rule) {
       const updated = await updateRule(rule.id, payload);
       setRules((prev) => prev.map((r) => r.id === updated.id ? updated : r));
+      dirty.commit(currentValues);
     } else {
       const created = await createRule(payload);
       setRules((prev) => [...prev, created]);
@@ -107,6 +124,7 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
         <div className="form-field">
           <wa-checkbox
             defaultChecked={hasOverride || undefined}
+            checked={hasOverride}
             onChange={(e: Event) => setHasOverride((e.target as HTMLInputElement).checked)}
           >
             Apply style override on violation

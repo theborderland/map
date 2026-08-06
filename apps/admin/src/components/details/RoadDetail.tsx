@@ -24,12 +24,18 @@ export default function RoadDetail({
   const [bufferMeters, setBufferMeters] = useState(
     entity?.bufferMeters ?? (entity?.styleType === "fireroad" ? 5 : 2)
   );
-
+  const [extraBaseline, setExtraBaseline] = useState({
+    styleType: entity?.styleType ?? "",
+    bufferMeters: entity?.bufferMeters ?? (entity?.styleType === "fireroad" ? 5 : 2),
+  });
   const compatibleStyles = styles.filter((s) => ROAD_TYPES.has(s.type));
 
   const form = useEntityDetailForm({
     entity, setEntities, bumpMapKey, goBack,
     extraFieldsValid: !!styleType,
+    extraFieldsDirty:
+      styleType !== extraBaseline.styleType ||
+      bufferMeters !== extraBaseline.bufferMeters,
   });
 
   // Auto-fill a sensible buffer default the first time a type is chosen —
@@ -46,6 +52,7 @@ export default function RoadDetail({
         updateEntity: (id, payload) => updateEntity(id, payload),
         createEntity: (payload) => createEntity(payload),
         onCreate: (created) => onAfterCreate?.(created.id),
+        onSaved: () => setExtraBaseline({ styleType, bufferMeters }),
       }
     );
 

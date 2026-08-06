@@ -24,10 +24,14 @@ export default function AreaDetail({
 }: Props) {
   const [styleType, setStyleType] = useState(entity?.styleType ?? "");
   const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
+  // Last-saved styleType — compared against current styleType to feed
+  // extraFieldsDirty so the shared hook's Save button reacts to this too.
+  const [styleTypeBaseline, setStyleTypeBaseline] = useState(entity?.styleType ?? "");
 
   const form = useEntityDetailForm({
     entity, setEntities, bumpMapKey, goBack,
     extraFieldsValid: !!styleType,
+    extraFieldsDirty: styleType !== styleTypeBaseline,
   });
 
   const handleSave = () =>
@@ -37,6 +41,7 @@ export default function AreaDetail({
         updateEntity: (id, payload) => updateEntity(id, payload),
         createEntity: (payload) => createEntity(payload),
         onCreate: (created) => onAfterCreate?.(created.id),
+        onSaved: () => setStyleTypeBaseline(styleType),
       }
     );
 

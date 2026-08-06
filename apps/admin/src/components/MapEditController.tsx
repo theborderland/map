@@ -142,10 +142,10 @@ function buildPartsLayerGroup(geometry: Geometry, style: L.PathOptions): L.Layer
 }
 
 const EDIT_PREVIEW_STYLE: L.PathOptions = {
-  color: "#3b82f6",
+  color: "#fff",
   weight: 3,
   opacity: 1,
-  fillColor: "#3b82f6",
+  fillColor: "#fff",
   fillOpacity: 0.2,
 };
 // ── Per-kind geometry strategy ───────────────────────────────

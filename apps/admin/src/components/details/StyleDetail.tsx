@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { StyleRecord } from "../../db/types";
 import { updateStyle, createStyle, deleteStyle } from "../../db";
 import DeleteButton from "./DeleteButton";
+import { useDirtyState } from "../../hooks/useDirtyState";
 
 interface Props {
   /** Undefined in create mode. */
@@ -26,9 +27,22 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
   const [dashPattern, setDashPattern] = useState(style?.dashPattern ?? "");
   const [isSaving, setIsSaving] = useState(false);
 
+  const dirty = useDirtyState({
+    displayName: style?.displayName ?? "",
+    fillColor: style?.fillColor ?? "#3b82f6",
+    borderColor: style?.borderColor ?? "#1d4ed8",
+    fillOpacity: style?.fillOpacity ?? 0.3,
+    borderWidth: style?.borderWidth ?? 2,
+    dashPattern: style?.dashPattern ?? "",
+    // typeKey intentionally excluded — it's read-only after creation, so
+    // it can never be the reason an edit is dirty.
+  });
+
+  const currentValues = { displayName, fillColor, borderColor, fillOpacity, borderWidth, dashPattern };
+
   const canSave = isCreate
     ? !!typeKey.trim() && !!displayName.trim()
-    : !!displayName.trim();
+    : !!displayName.trim() && dirty.isDirty(currentValues);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -47,6 +61,7 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
     if (style) {
       const updated = await updateStyle(style.id, payload);
       setStyles((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+      dirty.commit(currentValues);
     } else {
       const created = await createStyle(payload);
       setStyles((prev) => [...prev, created]);

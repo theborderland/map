@@ -1,10 +1,31 @@
 import { useEffect, useState } from "react";
 import type { SettingsRecord } from "../../db/types";
 import { getSettings, updateSettings } from "../../db";
+import { useDirtyState } from "../../hooks/useDirtyState";
 
 interface Props {
     onSettingsSaved: (settings: SettingsRecord) => void;
 }
+
+interface SettingsFields {
+    snapDistance: number;
+    editButtonInfoText: string;
+    editModePassword: string;
+    mapEditModeEnabled: boolean;
+    adminLoginPassword: string;
+    autoDeleteEnabled: boolean;
+    autoDeleteTime: string;
+}
+
+const EMPTY_FIELDS: SettingsFields = {
+    snapDistance: 0,
+    editButtonInfoText: "",
+    editModePassword: "",
+    mapEditModeEnabled: true,
+    adminLoginPassword: "",
+    autoDeleteEnabled: false,
+    autoDeleteTime: "03:00",
+};
 
 export default function SettingsTab({ onSettingsSaved }: Props) {
     const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +37,16 @@ export default function SettingsTab({ onSettingsSaved }: Props) {
     const [adminLoginPassword, setAdminLoginPassword] = useState("");
     const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
     const [autoDeleteTime, setAutoDeleteTime] = useState("03:00");
+
+    // Initial value is a placeholder — actual baseline is committed once the
+    // async load resolves, via dirty.commit() below, since the real values
+    // aren't known yet when this hook first runs.
+    const dirty = useDirtyState<SettingsFields>(EMPTY_FIELDS);
+
+    const currentValues: SettingsFields = {
+        snapDistance, editButtonInfoText, editModePassword,
+        mapEditModeEnabled, adminLoginPassword, autoDeleteEnabled, autoDeleteTime,
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -29,23 +60,28 @@ export default function SettingsTab({ onSettingsSaved }: Props) {
             setAdminLoginPassword(s.adminLoginPassword);
             setAutoDeleteEnabled(s.autoDeleteEnabled);
             setAutoDeleteTime(s.autoDeleteTime);
+            dirty.commit({
+                snapDistance: s.snapDistance,
+                editButtonInfoText: s.editButtonInfoText,
+                editModePassword: s.editModePassword,
+                mapEditModeEnabled: s.mapEditModeEnabled,
+                adminLoginPassword: s.adminLoginPassword,
+                autoDeleteEnabled: s.autoDeleteEnabled,
+                autoDeleteTime: s.autoDeleteTime,
+            });
             setIsLoading(false);
         })();
         return () => { cancelled = true; };
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const canSave = !isLoading && dirty.isDirty(currentValues);
 
     const handleSave = async () => {
+        if (!canSave) return;
         setIsSaving(true);
-        const updated = await updateSettings({
-            snapDistance,
-            editButtonInfoText,
-            editModePassword,
-            mapEditModeEnabled,
-            adminLoginPassword,
-            autoDeleteEnabled,
-            autoDeleteTime,
-        });
+        const updated = await updateSettings(currentValues);
         onSettingsSaved(updated);
+        dirty.commit(currentValues);
         setIsSaving(false);
     };
 
@@ -137,7 +173,7 @@ export default function SettingsTab({ onSettingsSaved }: Props) {
                     style={{ marginLeft: "auto" }}
                     size="xs"
                     appearance="outlined"
-                    disabled={isSaving || undefined}
+                    disabled={(!canSave || isSaving) || undefined}
                     onClick={handleSave}
                 >
                     <wa-icon slot="start" name="floppy-disk"></wa-icon>
