@@ -685,7 +685,8 @@ export class Editor {
                     for (const e of entities) {
                         const n = (seen[e.name] = (seen[e.name] || 0) + 1);
                         const key = `${e.name} [${n}]`;
-                        const latlng: any = e.layer.getBounds().getCenter();
+                        const center = e.nameMarker.getLatLng();
+                        const latlng: any = L.latLng(center.lat, center.lng);
                         latlng.layer = e.layer;
                         latlng.name = e.name;
                         result[key] = latlng;
