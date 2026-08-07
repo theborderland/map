@@ -55,10 +55,10 @@ export class Editor {
     private _lastEnityFetch: number;
     private _autoRefreshIntervall: number;
 
-    private campWarningTooltip: L.Tooltip; //The tooltip that shows some warning messages under the name and area size.
     private _nameTooltips: Record<number, L.Marker>;
     private _shapeEditTooltip: ShapeEditTooltip;
     private stopwatch: number;
+    private _adminApi: AdminAPI;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -144,7 +144,7 @@ export class Editor {
         if (this._mode == 'moving-shape' && nextEntity) {
             this.setSelected(nextEntity);
             this.setPopup('none');
-            this.UpdateOnScreenDisplay(nextEntity, 'Drag to move');
+            this.refreshEntityTooltip(nextEntity, 'Drag to move');
             nextEntity.layer._layers[nextEntity.layer._leaflet_id - 1].dragging.enable();
             return;
         }
@@ -162,7 +162,7 @@ export class Editor {
             await this.saveEntity(prevEntity);
         }
         if (this._isEditMode || nextEntity == null) {
-            this.UpdateOnScreenDisplay(nextEntity);
+            this.UpdateEntityTooltipWithRuleMessages(nextEntity);
         }
 
         // Select the next entity
@@ -305,8 +305,6 @@ export class Editor {
         // Update the entity with the response from the API
         const entityInResponse = await this._repository.updateEntity(entity);
 
-        this.UpdateOnScreenDisplay(null); // null hides tooltip text
-
         // Redraw shape efter a successful update.
         // Because the repository updates the revision by 1, otherwise we'll get diff warnings when trying to edit it further
         if (entityInResponse) {
@@ -396,21 +394,27 @@ export class Editor {
         this._nameTooltips[entity.id] = this.createEntityTooltip(entity);
         this._nameTooltips[entity.id].addTo(this._groups['names']);
 
-        // Update the buffered layer when the layer is being edited
+        // Dragging a vertex of a camp, also known as edit shape :)
         entity.layer.on('pm:markerdrag', () => {
-            entity.updateBufferedLayer();
             this.refreshEntityLite(entity);
-            this.UpdateOnScreenDisplay(entity);
+            entity.updateBufferedLayer();
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
         entity.layer.on('pm:markerdragend', () => {
             this.refreshEntity(entity);
             this.isAreaTooBig(entity.toGeoJSON());
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
+        // Dragging a camp
         entity.layer._layers[entity.layer._leaflet_id - 1].on('drag', () => {
+            this.refreshEntityLite(entity);
             entity.updateBufferedLayer();
-            this.UpdateOnScreenDisplay(null);
+        });
+        entity.layer._layers[entity.layer._leaflet_id - 1].on('dragend', () => {
+            this.refreshEntity(entity);
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
         // Update the buffered layer when the layer has a vertex removed
@@ -422,7 +426,7 @@ export class Editor {
 
             entity.updateBufferedLayer();
             this.refreshEntity(entity); //important that the buffer get updated before the rules are checked
-            this.UpdateOnScreenDisplay(entity);
+            this.UpdateEntityTooltipWithRuleMessages(entity);
         });
 
         //Instead of adding directly to the map, add the layer and its buffer to the layergroups
@@ -440,14 +444,13 @@ export class Editor {
         if (checkRules) this.refreshEntity(entity);
     }
     /**
-     * Check rules, update area and update warning color.
+     * Check rules and update warning color.
      */
     private refreshEntityLite(entity: MapEntity) {
         if (entity == null) {
             return;
         }
 
-        this.refreshEntityTooltip(entity);
         entity.checkAllRules();
         let hideWarnings = this._hideWarningColors || this._isCleanAndQuietMode;
         entity.setLayerStyle('severity', hideWarnings);
@@ -463,7 +466,6 @@ export class Editor {
         let posEntity = entity.layer.getBounds().getCenter();
 
         if (posEntity.lat != posMarker.lat || posEntity.lng != posMarker.lng) {
-            // console.log('entity pos changed');
             entity.nameMarker.setLatLng(posEntity);
         }
         this.refreshEntityTooltip(entity);
@@ -493,12 +495,13 @@ export class Editor {
         }
     }
 
-    private refreshEntityTooltip(entity: MapEntity | null) {
-        if (!entity || !entity.nameMarker) {
+    private refreshEntityTooltip(entity: MapEntity | null, customMsg: string | null = null) {
+        if (!entity?.nameMarker) {
             return;
         }
+        const tooltipContent = this.buildTooltipName(entity) + (customMsg ? `<br>${customMsg}` : '');
 
-        entity.nameMarker.setTooltipContent(this.buildTooltipName(entity));
+        entity.nameMarker.setTooltipContent(tooltipContent);
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
@@ -586,6 +589,7 @@ export class Editor {
     }
 
     constructor(map: L.Map, hideWarningColors: boolean, isCleanAndQuietMode: boolean = false) {
+        this._adminApi = new AdminAPI();
         // Keep track of the map
         this._map = map;
         this._hideWarningColors = hideWarningColors;
@@ -654,15 +658,6 @@ export class Editor {
 
         this.setupMapEvents(this._map);
 
-        this.campWarningTooltip = new L.Tooltip({
-            permanent: true,
-            interactive: false,
-            direction: 'center',
-            className: 'shape-tooltip',
-        });
-        this.campWarningTooltip.setLatLng([0, 0]);
-        this.campWarningTooltip.addTo(this._map);
-        this.campWarningTooltip.closeTooltip();
         this._nameTooltips = {};
         this._shapeEditTooltip = new ShapeEditTooltip(this._map);
         this.stopwatch = 0;
@@ -671,16 +666,42 @@ export class Editor {
             this.keyEscapeListener(evt);
         };
 
-        // Add search control
+        // Add search control. We feed the entities through sourceData/formatData
+        // (instead of `layer`) so we can control the result keys: the plugin keys
+        // results by name and silently drops duplicates. We give same-named camps a
+        // unique internal key (a [n] suffix) so all of them survive, but buildTip
+        // renders the clean name, so the dropdown shows the duplicates unaltered.
         if (!this._isCleanAndQuietMode) {
+            const revisions = this._currentRevisions;
             //@ts-ignore
-            map.addControl(new L.Control.Search({
-                layer: this._placementLayers,
-                propertyName: 'name',
+            const search = new L.Control.Search({
+                sourceData: (_text, cb) => (cb(Object.values(revisions)), { abort() {} }),
+                formatData: (entities) => {
+                    const seen: Record<string, number> = {};
+                    const result: Record<string, L.LatLng> = {};
+                    for (const e of entities) {
+                        const n = (seen[e.name] = (seen[e.name] || 0) + 1);
+                        const key = `${e.name} [${n}]`;
+                        const center = e.nameMarker.getLatLng();
+                        const latlng: any = L.latLng(center.lat, center.lng);
+                        latlng.layer = e.layer;
+                        latlng.name = e.name;
+                        result[key] = latlng;
+                    }
+                    return result;
+                },
+                // Show the clean name (not the internal [n] key) for each result.
+                buildTip: (_key, latlng) => `<li>${latlng.name}</li>`,
                 marker: false,
                 zoom: SHOW_NAME_TOOLTIP_ZOOM_LEVEL,
                 initial: false,
-            }));
+                // Internal keys carry the [n] suffix; don't let autotype pull it into the box.
+                autoType: false,
+            });
+            search.on('search:locationfound', (e: any) => {
+                search.searchText(e.latlng.name);
+            });
+            map.addControl(search);
         }
     }
 
@@ -694,18 +715,18 @@ export class Editor {
 
     private async addToggleEditButton() {
         // Edit button might be still shown in users browser because of cache, so lets check if editing actually is possible.
-        if (await AdminAPI.isEditAllowed()) {
+        if (await this._adminApi.isEditAllowed()) {
             this._map.addControl(ButtonsFactory.edit(this._isEditMode, async () => {
                 // This callback should return true if edit mode should be toggled on, false if not.
                 if (!this._isEditMode) {
-                    const isSecretSet = await AdminAPI.isEditButtonSecretSet();
+                    const isSecretSet = await this._adminApi.isEditButtonSecretSet();
 
                     if (isSecretSet) {
                         const pw = prompt('Password? 🤐');
                         if (pw == null || pw.trim() === '')
                             return false;
 
-                        const success = await AdminAPI.CheckIfSecretIsSet(pw);
+                        const success = await this._adminApi.CheckIfSecretIsSet(pw);
                         if (!success) {
                             alert('Wrong password! 😢');
                             return false;
@@ -724,7 +745,7 @@ export class Editor {
     }
 
     private async addEditButtonText() {
-        let editText = await AdminAPI.getEditText();
+        let editText = await this._adminApi.getEditText();
         if (editText) {
             this._map.addControl(Messages.editing(editText));
         }
@@ -732,7 +753,7 @@ export class Editor {
 
     public async toggleEditMode() {
         // Doublecheck if editing still is allowed.
-        if (!await AdminAPI.isEditAllowed()) {
+        if (!await this._adminApi.isEditAllowed()) {
             this._isEditMode = false;
             return;
             // Perhaps remove the button or show a message?
@@ -740,7 +761,7 @@ export class Editor {
 
         this._isEditMode = !this._isEditMode;
 
-        // Refresh tooltips for all entities, because edit mode changes the tooltip text.
+        // Refresh tooltips for all entities, because edit mode adds the size to the tooltip text.
         for (const entityId in this._currentRevisions) {
             this.refreshEntityTooltip(this._currentRevisions[entityId]);
         }
@@ -924,25 +945,16 @@ export class Editor {
         this._mapControls.forEach(control => this._map.removeControl(control));
     }
 
-    private UpdateOnScreenDisplay(entity: MapEntity | null, customMsg: string | null = null) {
-        if (entity || customMsg) {
-            let tooltipText = '';
+    /** Update area (if in edit mode) and show triggered rule messages */
+    private UpdateEntityTooltipWithRuleMessages(entity: MapEntity | null) {
+        if (entity) {
+            const tooltipText = entity
+                .getAllTriggeredRules()
+                .filter(rule => rule.severity >= 2)
+                .map(rule => rule.shortMessage)
+                .join('<br>');
 
-            if (customMsg) {
-                tooltipText = customMsg;
-            } else {
-                for (const rule of entity!.getAllTriggeredRules()) {
-                    if (rule.severity >= 2) {
-                        tooltipText += '<br>' + rule.shortMessage;
-                    }
-                }
-            }
-
-            this.campWarningTooltip.openOn(this._map);
-            this.campWarningTooltip.setLatLng(entity!.layer.getBounds().getCenter());
-            this.campWarningTooltip.setContent(tooltipText);
-        } else {
-            this.campWarningTooltip.close();
+            this.refreshEntityTooltip(entity, tooltipText);
         }
     }
 

@@ -2,8 +2,15 @@ import L, { Layer, Map, Point } from 'leaflet';
 import { GRID_CONFIG, GridOptions, rotate } from '../utils/gridUtils';
 
 /**
+ * 
+ * 
+ * YOU MIGHT ALSO NEED TO UPDATE THE gridUtil.ts 
+ * FILE WHEN DOING CHANGES HERE!
+ * 
+ * 
+ * 
  * Canvas-based reference grid layer.
- *
+ * 
  * Draws:
  * - 50x50m grid cells
  * - Rotated by configured bearing
@@ -81,7 +88,7 @@ export class ReferenceGridLayer extends Layer {
 
         const { origin, cellSize, bearing, rows, cols, strokeStyle, lineWidth, font, textColor } = this.gridOptions;
 
-        const crs = map.options.crs!;
+        const crs = L.CRS.EPSG3857;
         this.originProj = crs.project(origin);
 
         ctx.strokeStyle = strokeStyle;

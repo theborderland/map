@@ -34,6 +34,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         terrain: 'Terrain',
         kidszones: 'Kids zones',
         drawnmap: 'Handdrawn',
+        waterProtectedZone: "50m greywater zone"
     }
 
     // Define the default layers to be visible on load if no layers are specified in the URL hash
@@ -64,7 +65,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         placement: new L.LayerGroup(),
         mapstuff: new L.LayerGroup(),
         neighbourhoods: new L.LayerGroup(),
-        ok_to_camp: new L.LayerGroup(),
+        neighbourhoods_merged: new L.LayerGroup(),
         plazas: new L.LayerGroup(),
         poi: new L.LayerGroup(),
         powergrid: new L.LayerGroup(),
@@ -72,6 +73,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         soundguide: new L.LayerGroup(),
         names: new L.LayerGroup(),
         kidszones: new L.LayerGroup(),
+        waterProtectedZone: new L.LayerGroup(),
     };
     
     const referenceGridLayer = new ReferenceGridLayer();
@@ -107,7 +109,8 @@ export const createMap = async (_isCleanAndQuietMode) => {
         { name: LAYER_NAMES.aftermath24, layer: map.groups.aftermath24, type: 'Background' },
         { name: LAYER_NAMES.aftermath25, layer: map.groups.aftermath25, type: 'Background' },
         { name: LAYER_NAMES.warnings, layer: L.layerGroup(), type: 'Misc.' }, // Dummy layer for toggling warnings
-        { name: "Grid", layer: referenceGridLayer, type: 'Misc.' }, // Grid layer for toggling grid
+        { name: "Reference grid", layer: referenceGridLayer, type: 'Misc.' }, // Grid layer for toggling grid
+        { name: LAYER_NAMES.waterProtectedZone, layer: map.groups.waterProtectedZone, type: 'Misc.' },
     ];
 
     // Make all layers in the URL hash visible on load

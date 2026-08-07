@@ -64,6 +64,7 @@ export default function POIDetail({
       }),
       {
         updateEntity: (id, payload) => updateEntity(id, payload),
+        // @ts-ignore
         createEntity: (payload) => createEntity(payload),
         onCreate: (created) => onAfterCreate?.(created.id),
         onSaved: () =>

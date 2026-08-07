@@ -1,9 +1,8 @@
-import { MapEntity, EntityDTO } from './entity';
+import { MapEntity } from './entity';
 import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
-import { REPOSITORY_URL } from '../../SETTINGS';
-
-const ENTITY_API_ADDRESS = REPOSITORY_URL + '/api/v1/mapentities';
+import { REPOSITORY_URL_OVERRIDE } from '../../SETTINGS';
+import { EntityDTO } from './interfaces';
 
 export interface EntityChanges {
     refreshedDeleted: Array<number>;
@@ -13,11 +12,12 @@ export interface EntityChanges {
 
 /**
  * Singleton class that manages entity data from the API
- *
- * Loads all the latest entities on load and when the constraints are changed.
- * The constraints allows limiting what entities are fetched to a given date range.
- */
+*
+* Loads all the latest entities on load and when the constraints are changed.
+* The constraints allows limiting what entities are fetched to a given date range.
+*/
 export class MapEntityRepository {
+    private ENTITY_API_ADDRESS = (REPOSITORY_URL_OVERRIDE ? REPOSITORY_URL_OVERRIDE : process.env.API_URL) + '/api/v1/mapentities';
     private _rulesGenerator: () => Array<Rule>;
     /** Keeps the latest revisions of each unique entity */
     private _latestRevisions: Record<MapEntity['id'], MapEntity> = {};
@@ -33,7 +33,7 @@ export class MapEntityRepository {
 
     /** Loads the latest entity data revisions from the server given the set constraints, if any */
     private async _update(): Promise<void> {
-        const res = await fetch(ENTITY_API_ADDRESS);
+        const res = await fetch(this.ENTITY_API_ADDRESS);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
         this._latestRevisions = {};
         for (const data of entityDTOs) {
@@ -50,7 +50,7 @@ export class MapEntityRepository {
     /** Reloads data */
     public async reload(): Promise<EntityChanges> {
         // Fetch all entities
-        const res = await fetch(ENTITY_API_ADDRESS);
+        const res = await fetch(this.ENTITY_API_ADDRESS);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
         const fetchedEntities: Array<MapEntity> = new Array<MapEntity>();
         const refresh: EntityChanges = {
@@ -139,7 +139,7 @@ export class MapEntityRepository {
     /** Creates a new map entity from the given geoJSON */
     public async createEntity(geoJson: object): Promise<MapEntity | null> {
         console.log('createEntity', geoJson);
-        const response = await fetch(ENTITY_API_ADDRESS, {
+        const response = await fetch(this.ENTITY_API_ADDRESS, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -161,7 +161,7 @@ export class MapEntityRepository {
 
     /** Creates a new revision of the current entity in the database */
     public async updateEntity(entity: MapEntity) {
-        const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`, {
+        const response = await fetch(`${this.ENTITY_API_ADDRESS}/${entity.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -183,7 +183,7 @@ export class MapEntityRepository {
 
     /** Deletes the entity in the database */
     public async deleteEntity(entity: MapEntity, reason: string = 'No reason given') {
-        const response = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}?reason=${DOMPurify.sanitize(reason)}`, {
+        const response = await fetch(`${this.ENTITY_API_ADDRESS}/${entity.id}?reason=${DOMPurify.sanitize(reason)}`, {
             method: 'DELETE',
         });
         if (response.ok) {
@@ -202,7 +202,7 @@ export class MapEntityRepository {
 
     /** Load all revisions of an entity */
     public async getRevisionsForEntity(entity: MapEntity) {
-        const res = await fetch(`${ENTITY_API_ADDRESS}/${entity.id}`);
+        const res = await fetch(`${this.ENTITY_API_ADDRESS}/${entity.id}`);
         const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
         for (const data of entityDTOs) {
             entity.revisions[data.revision] = new MapEntity(data, this._rulesGenerator());

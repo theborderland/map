@@ -4,7 +4,7 @@
     "description": "A borderland map interface in Javascript",
     "main": "index.js",
     "scripts": {
-        "build": "esbuild src/main.js --minify --format=iife --bundle --outdir=../../public",
+        "build": "esbuild src/main.js --minify --format=iife --bundle --outdir=../../public --define:process.env.API_URL=\\\"$API_URL\\\"",
         "dev": "esbuild src/main.js --sourcemap --format=iife --bundle --outdir=../../public --watch --servedir=../../public --serve=127.0.0.1:3000",
         "serve": "esbuild src/main.js --sourcemap --format=iife --bundle --outdir=../../public --servedir=../../public --serve=127.0.0.1:3000"
     },
@@ -33,11 +33,13 @@
         "leaflet-search": "^4.0.0",
         "leaflet.locatecontrol": "^0.84.2",
         "leaflet.path.drag": "^0.0.6",
+        "leaflet.pattern": "^0.1.0",
         "leaflet.polylinemeasure": "^3.0.0",
         "tabulator-tables": "^6.3.1"
     },
     "devDependencies": {
         "@types/dompurify": "^3.2.0",
+        "@types/leaflet": "^1.9.18",
         "esbuild": "^0.25.4",
         "prettier": "^3.5.3"
     }

@@ -39,7 +39,8 @@ export default function AreaDetail({
       () => ({ styleType }),
       {
         updateEntity: (id, payload) => updateEntity(id, payload),
-        createEntity: (payload) => createEntity(payload),
+        // @ts-ignore
+        createEntity: (payload) => createEntity(payload), 
         onCreate: (created) => onAfterCreate?.(created.id),
         onSaved: () => setStyleTypeBaseline(styleType),
       }

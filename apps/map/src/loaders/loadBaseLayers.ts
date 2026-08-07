@@ -1,7 +1,8 @@
-import L from 'leaflet';
+import L, { PathOptions } from 'leaflet';
+import 'leaflet.pattern';
 import { loadDrawnMap } from './loadDrawnMap';
 import { loadGeoJsonFeatureCollections } from './loadGeoJsonFeatureCollections';
-import { getKidzoneStyle, getSoundStyle } from './layerStyles';
+import { getKidzoneStyle, getRedStripedStyle, getSoundStyle } from './layerStyles';
 import { getSoundspotDescription, soundSpotType, soundPropertyKey, soundLayers } from '../utils/soundData';
 import { filterFeatures } from './filterFeatures';
 import { loadImageOverlay } from './loadImageOverlay';
@@ -67,7 +68,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	// Loads "neighbourhood"
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/neighbourhoods.geojson');
 	// this is neighborhoods merged together so there is no gap between adjecent neighborhoods, used for rules only, not visible
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/ok_to_camp.geojson');
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/neighbourhoods_merged.geojson');
 
 	// Loads kids zones with feature-specific fill colors
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/kids_zones.geojson', {
@@ -75,13 +76,40 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 		styleFn: (_value: string, feature: any) => getKidzoneStyle(feature),
 	});
 
+	// should probably move this someplace else..
+	var stripes = new L.StripePattern({
+		patternContentUnits: 'objectBoundingBox',
+		patternUnits: 'objectBoundingBox',
+		weight: 0.02,
+		spaceWeight: 0.02,
+		height: 0.04,
+		angle: 45,
+		color: '#2666cd',
+		opacity: 0.5,
+		spaceColor: '#757575',
+		spaceOpacity: 0.8
+	});
+	stripes.addTo(map);
+	function pattern(): PathOptions {
+		return {
+			color: '#2666cd',
+			fillPattern: stripes,
+            fillOpacity: 1
+		};
+	}
+
+	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/water_50m.geojson', {
+		propertyRenameFn: () => 'waterProtectedZone',
+		styleFn: (_value: string, feature: any) => pattern(),
+	});
+
 	// Load sound areas
 	await loadGeoJsonFeatureCollections(map, soundPropertyKey, 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=polygons', {
 		styleFn: (_value: string, feature: any) => getSoundStyle(feature),
 	});
-    soundLayers.forEach((layer) => {
-        map.groups[layer].addTo(map.groups.soundguide);
-    });
+	soundLayers.forEach((layer) => {
+		map.groups[layer].addTo(map.groups.soundguide);
+	});
 
 	// Soundspots have to be added as a Feature, in order to have properties (For isBreakingSoundLimit)
 	await loadGeoJsonFeatureCollections(map, "type", 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=points', {
@@ -91,19 +119,19 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 	});
 	map.groups[soundSpotType].addTo(map.groups.soundguide);
 	map.removeLayer(map.groups[soundSpotType]);
-	
+
 	// Add soundspots to the soundguide layer, needs to be after the feature which adds buffer, otherwise they are not clickable.
 	await addPointsOfInterestsTomap('https://alversjomaps.vercel.app/geoapi/maps/map2?features=points', map.groups.soundspots, {
 		description: getSoundspotDescription,
 		link: '#page:soundspot',
 	}, _isCleanAndQuietMode);
-	
+
 	map.groups.soundspots.addTo(map.groups.soundguide);
 	map.removeLayer(map.groups.soundspots);
 
 	await addPointsOfInterestsTomap('./data/bl26/poi.json', map.groups.poi, undefined, _isCleanAndQuietMode);
 	await addPowerGridTomap(map.groups.powergrid);
-	
+
 	// Load lakes with 50m buffer (for rules only, not visible)
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/lakes.geojson', {
 		buffer: 50,
