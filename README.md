@@ -37,6 +37,8 @@ This installs dependencies for all workspaces (`map` and `admin`).
 
 ### Development
 
+First you need an API url, see `apps\map\SETTINGS.ts`
+
 ```bash
 npm run dev
 ```
@@ -44,7 +46,7 @@ npm run dev
 This starts both apps using [concurrently](https://www.npmjs.com/package/concurrently):
 
 * **Admin (React)** runs on Vite dev server
-* **Map (vanilla)** rebuilds on file changes via esbuild (is served via proxy from Vite)
+* **Map (vanilla)** is served via proxy from Vite
 
 ### Local URLs
 
@@ -71,17 +73,8 @@ This will:
 2. Build the **admin app** into `public/admin/`
 
 
-### Output
+This folder can be deployed to any static hosting provider (e.g. GitHub Pages). Make sure the `API_URL` is set in GitHub Actions variables as it is needed for the workflow, otherwise you need to define the override repository url in `SETTINGS.ts`.
 
-All production assets are written to:
-
-```
-public/
-  index.html        # map app + other files
-  admin/            # React app
-```
-
-This folder can be deployed to any static hosting provider (e.g. GitHub Pages).
 
 ---
 
