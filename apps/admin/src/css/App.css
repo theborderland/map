@@ -19,7 +19,7 @@
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
+  font: 16px var(--sans);
   letter-spacing: 0.18px;
   color-scheme: light;
   color: var(--text);
@@ -28,10 +28,6 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
 #root {
@@ -52,25 +48,16 @@ h2 {
 }
 
 h1 {
-  font-size: 56px;
+  font-size: 48px;
   letter-spacing: -1.68px;
   margin: 32px 0;
-
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
 }
 
 h2 {
-  font-size: 24px;
+  font-size: 22px;
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
-
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
 }
 
 p {
@@ -85,16 +72,17 @@ body {
   display: flex;
   height: 100vh;
 }
+.map-container {
+  flex: 1;
+}
 
 .left-container {
-  width: 40%;
+  flex: 0 0 40%;
+  min-width: 300px;
+  max-width: 500px;
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-}
-
-.map-container {
-  width: 60%;
 }
 
 .left-container .content {
@@ -200,6 +188,10 @@ body {
 }
 
 .form-hint-warning {
+  background-color: rgb(255, 149, 149);
+  border: 1px solid darkred;
+  border-radius: 5px;
+  padding: 5px;
   color: darkred;
   font-weight: bold;
 }

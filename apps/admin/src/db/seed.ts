@@ -30,7 +30,6 @@ export const SEED_STYLES: StyleRecord[] = [
   { id: "style-parking",        type: "parking",        displayName: "Parking",          fillColor: "#6366f1", borderColor: "#4338ca", fillOpacity: 0.35, borderWidth: 2, dashPattern: "",     createdAt: "2025-01-01T00:00:00Z" },
   { id: "style-slope",          type: "slope",          displayName: "Slope",            fillColor: "#d97706", borderColor: "#92400e", fillOpacity: 0.30, borderWidth: 2, dashPattern: "5,5", createdAt: "2025-01-01T00:00:00Z" },
   { id: "style-hiddenforbidden",type: "hiddenforbidden",displayName: "Hidden Forbidden", fillColor: "#dc2626", borderColor: "#991b1b", fillOpacity: 0.00, borderWidth: 0, dashPattern: "",     createdAt: "2025-01-01T00:00:00Z" },
-  { id: "style-poi",            type: "poi",            displayName: "POI",              fillColor: "#f43f5e", borderColor: "#be123c", fillOpacity: 0.40, borderWidth: 2, dashPattern: "",     createdAt: "2025-01-01T00:00:00Z" },
   { id: "style-lake",           type: "lake",           displayName: "Lake",             fillColor: "#38bdf8", borderColor: "#0369a1", fillOpacity: 0.50, borderWidth: 2, dashPattern: "",     createdAt: "2025-01-01T00:00:00Z" },
   { id: "style-friends",        type: "friends",        displayName: "Friends",          fillColor: "#fb923c", borderColor: "#c2410c", fillOpacity: 0.30, borderWidth: 2, dashPattern: "",     createdAt: "2025-01-01T00:00:00Z" },
 ]
