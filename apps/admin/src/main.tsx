@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
-import 'leaflet/dist/leaflet.css';
+import { StrictMode } from "react"
+import { createRoot } from "react-dom/client"
+import App from "./App.tsx"
+import "./css/App.css";
+import "./css/menu.css";
+import "./css/cards.css";
+import "./css/map.css";
+import "leaflet/dist/leaflet.css";
+import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />
   </StrictMode>,

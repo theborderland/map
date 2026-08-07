@@ -18,5 +18,9 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      quotes: ["error", "double"],
+      "@typescript-eslint/ban-ts-comment": "off"
+    },
   },
 ])

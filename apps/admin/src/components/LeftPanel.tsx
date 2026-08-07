@@ -1,115 +1,115 @@
-import { useState, useRef, useEffect, type ReactNode } from "react";
-import type { Tab } from "../types";
-import AreasTab from "../tabs/AreasTab";
-import RoadsTab from "../tabs/RoadsTab";
-import POIsTab from "../tabs/POIsTab";
-import RulesTab from "../tabs/RulesTab";
-import StylesTab from "../tabs/StylesTab";
+import { useRef, useEffect } from "react";
+import type { Tab, PanelView } from "../types";
+import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
+import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, SettingsTab } from "./tabs";
+import LeftPanelHeader from "./LeftPanelHeader";
+import LeftPanelMenu from "./LeftPanelMenu";
+import {
+  buildEntityNavigation, buildGroupNavigation, buildStyleNavigation,
+  buildRuleNavigation, createRoot,
+} from "../utils/panelNavigation";
+import { VIEW_HANDLERS, getCreateViewForTab, type ViewContext } from "../utils/viewRegistry";
+import { useIsEditingLocked } from "../store/mapEditStore";
 
 interface Props {
   activeTab: Tab;
-  setActiveTab: (tab: Tab) => void;
+  entities: EntityRecord[];
+  rules: RuleRecord[];
+  styles: StyleRecord[];
+  setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+  setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
+  setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
+  navStack: PanelView[];
+  setNavStack: React.Dispatch<React.SetStateAction<PanelView[]>>;
+  bumpMapKey: () => void;
+  onSettingsSaved: (settings: SettingsRecord) => void;
+  selectedPOIIcon: string;
+  onSelectedPOIIconChange: (icon: string) => void;
 }
 
-type ChildPage = {
-  parent: Tab;
-  title: string;
-  content: ReactNode;
-};
+export default function LeftPanel({
+  activeTab,
+  entities,
+  rules,
+  styles,
+  setEntities,
+  setRules,
+  setStyles,
+  navStack,
+  setNavStack,
+  bumpMapKey,
+  onSettingsSaved,
+  selectedPOIIcon,
+  onSelectedPOIIconChange,
+}: Props) {
+  const currentView = navStack[navStack.length - 1]!;
+  const isEditing = useIsEditingLocked();
 
-type ViewState =
-  | { type: "root" }
-  | { type: "child"; stack: ChildPage[] };
+  // ── Navigation ──────────────────────────────────────────
+  const openGroup = (tab: Tab, styleType: string) => { if (isEditing) return; setNavStack(buildGroupNavigation(tab, styleType)); };
+  const openStyle = (styleId: string) => { if (isEditing) return; setNavStack(buildStyleNavigation(styleId)); };
+  const openRule = (ruleId: string) => { if (isEditing) return; setNavStack(buildRuleNavigation(ruleId)); };
+  const openEntity = (entity: EntityRecord) => { if (isEditing) return; setNavStack(buildEntityNavigation(entity)); };
+  const goBack = () => { if (isEditing) return; setNavStack((prev) => prev.length > 1 ? prev.slice(0, -1) : prev); };
+  const handleTabClick = (tab: Tab) => { if (isEditing) return; setNavStack([createRoot(tab)]); };
 
-export default function LeftPanel({ activeTab, setActiveTab }: Props) {
-  const [view, setView] = useState<ViewState>({ type: "root" });
-
-  const tabs: Tab[] = ["Areas", "Roads", "POIs", "Rules", "Styles"];
-
-  const handleTabClick = (tab: Tab) => {
-    setActiveTab(tab);
-    setView({ type: "root" });
+  // ── Create button ───────────────────────────────────────
+  // Looks up which create-view (if any) targets the active tab by scanning
+  // the registry, instead of a hardcoded if-chain per tab.
+  const getCreateClick = (): (() => void) | undefined => {
+    if (isEditing) return undefined;
+    if (currentView.type !== "root") return undefined;
+    const createView = getCreateViewForTab(currentView.tab);
+    return createView ? () => setNavStack([createView]) : undefined;
   };
 
-  const openChild = (content: ReactNode, title = "Details") => {
-    setView((prev) => {
-      const page: ChildPage = { parent: activeTab, title, content };
-      if (prev.type === "child") {
-        return { type: "child", stack: [...prev.stack, page] };
-      }
-      return { type: "child", stack: [page] };
-    });
-  };
-
-  const goBack = () => {
-    setView((prev) => {
-      if (prev.type !== "child") return prev;
-      if (prev.stack.length <= 1) return { type: "root" };
-      return { type: "child", stack: prev.stack.slice(0, -1) };
-    });
-  };
-
-  const renderTab = () => {
+  // ── Root tab content ────────────────────────────────────
+  const rootTabContent = (() => {
     switch (activeTab) {
-      case "Areas":
-        return <AreasTab openChild={openChild} />;
-      case "Roads":
-        return <RoadsTab openChild={openChild} />;
-      case "POIs":
-        return <POIsTab openChild={openChild} />;
-      case "Rules":
-        return <RulesTab openChild={openChild} />;
-      case "Styles":
-        return <StylesTab openChild={openChild} />;
-      default:
-        return null;
+      case "Areas": return <AreasTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
+      case "Roads": return <RoadsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
+      case "POIs": return <POIsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
+      case "Rules": return <RulesTab entities={entities} rules={rules} openRule={openRule} />;
+      case "Styles": return <StylesTab entities={entities} styles={styles} openStyle={openStyle} />;
+      case "Settings": return <SettingsTab onSettingsSaved={onSettingsSaved} />;
+      default: return null;
     }
+  })();
+
+  // ── View context ────────────────────────────────────────
+  // Bundles everything VIEW_HANDLERS entries need.
+  const ctx: ViewContext & { rootTabContent: React.ReactNode } = {
+    entities, rules, styles,
+    setEntities, setRules, setStyles,
+    setNavStack, bumpMapKey, goBack, openEntity,
+    selectedPOIIcon, onSelectedPOIIconChange,
+    rootTabContent,
   };
 
-  // Auto-scroll active tab into view
+  // ── Auto-scroll active tab into view in the menu ───────────
   const activeRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    activeRef.current?.scrollIntoView({
-      behavior: "smooth",
-      inline: "center",
-      block: "nearest",
-    });
+    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeTab]);
 
+  const handler = VIEW_HANDLERS[currentView.type];
+
   return (
-    <>
-      {/* Menu */}
-      <div className="menu">
-        <div className="menu-inner">
-          {tabs.map((tab) => (
-            <div
-              key={tab}
-              ref={activeTab === tab ? activeRef : null}
-              className={`menu-item ${activeTab === tab ? "active" : ""}`}
-              onClick={() => handleTabClick(tab)}
-            >
-              {tab}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
+    <div className={isEditing ? "is-editing left-container" : "left-container"}>
+      <LeftPanelMenu
+        activeTab={activeTab}
+        onTabClick={handleTabClick}
+        activeRef={activeRef}
+      />
       <div className="content">
-        {view.type === "root" && renderTab()}
-
-        {view.type === "child" && (
-          <div>
-            <div style={{ position: "relative", marginBottom: "1rem" }}>
-              <wa-button size="xs" onClick={goBack} style={{ position: "absolute", left: 0 }}>
-                <wa-icon name="caret-left"></wa-icon>
-              </wa-button>
-              <h3 style={{ textAlign: "center", margin: 0 }}>{view.stack[view.stack.length - 1].title}</h3>
-            </div>
-            <div>{view.stack[view.stack.length - 1].content}</div>
-          </div>
-        )}
+        <LeftPanelHeader
+          title={handler.title(currentView, ctx)}
+          showBack={navStack.length > 1}
+          onBack={goBack}
+          onCreateClick={getCreateClick()}
+        />
+        <div>{handler.render(currentView, ctx)}</div>
       </div>
-    </>
+    </div>
   );
 }
