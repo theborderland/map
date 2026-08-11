@@ -66,7 +66,8 @@ export default function RoadDetail({
           <label className="form-label">Name</label>
           <wa-input
             value={form.name}
-            placeholder="Name"
+            placeholder="Road name"
+            autocomplete="off"
             onInput={(e: Event) => form.setName((e.target as HTMLInputElement).value)}
           />
         </div>

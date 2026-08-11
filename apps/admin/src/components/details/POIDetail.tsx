@@ -81,7 +81,8 @@ export default function POIDetail({
           <label className="form-label">Name</label>
           <wa-input
             value={form.name}
-            placeholder="Name"
+            placeholder="POI name"
+            autocomplete="off"
             onInput={(e: Event) => form.setName((e.target as HTMLInputElement).value)}
           />
         </div>
