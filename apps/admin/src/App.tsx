@@ -4,17 +4,14 @@ import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
 import type { PanelView, Tab, EntityKind } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
-import {
-  isAuthenticated, resetAndReseed,
-  getEntities, getStyles, getRules, getSettings,
-} from "./db";
+import { resetAndReseed, getEntities, getStyles, getRules, getSettings } from "./db";
+import { useAuthStore } from "./store/authStore";
 import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 import { DEFAULT_POI_ICON } from "./utils/Icons";
 import { useMapEditStore, isLocked } from "./store/mapEditStore";
 
 function App() {
   const [selectedPOIIcon, setSelectedPOIIcon] = useState(DEFAULT_POI_ICON);
-  const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [entities, setEntities] = useState<EntityRecord[]>([]);
   const [styles, setStyles] = useState<StyleRecord[]>([]);
   const [rules, setRules] = useState<RuleRecord[]>([]);
@@ -22,15 +19,20 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [navStack, setNavStack] = useState<PanelView[]>([createRoot("Areas")]);
   const [mapKey, setMapKey] = useState(0);
+  const authStatus = useAuthStore((s) => s.status);
+  const checkSession = useAuthStore((s) => s.checkSession);
 
   const currentView = navStack[navStack.length - 1];
   const activeTab: Tab = getActiveTabFromNav(navStack, entities);
   const selectedEntityId = currentView.type === "entity-detail" ? currentView.entityId : null;
   const creatingKind: EntityKind | null =
     currentView.type === "poi-create" ? "poi" :
-    currentView.type === "road-create" ? "road" :
-    currentView.type === "area-create" ? "area" :
-    null;
+      currentView.type === "road-create" ? "road" :
+        currentView.type === "area-create" ? "area" :
+          null;
+
+  // Restore an existing session on first load
+  useEffect(() => { checkSession(); }, [checkSession]);
 
   /** Bumps mapKey so MapView GeoJSON layers remount after a geometry save. */
   const bumpMapKey = () => setMapKey((k) => k + 1);
@@ -62,7 +64,7 @@ function App() {
 
   useEffect(() => {
     const initializeApp = async () => {
-      if (authenticated) {
+      if (authStatus === "authenticated") {
         setIsLoading(true);
 
         // During development its nice to reset and reseed the database on each load to have a consistent starting point. :)
@@ -78,10 +80,10 @@ function App() {
       setIsLoading(false);
     };
     initializeApp();
-  }, [authenticated]);
+  }, [authStatus]);
 
-  if (!authenticated) return <LoginPage onLoginSuccess={() => setAuthenticated(true)} />;
-  // Guard loading until settings is ready too — settings can be null initially:
+  if (authStatus === "checking") return <div className="loading">Checking session…</div>;
+  if (authStatus === "unauthenticated") return <LoginPage />;
   if (isLoading || !settings) return <div className="loading">Loading data…</div>;
 
   return (

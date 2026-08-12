@@ -1,43 +1,25 @@
-// LoginPage
-// Simple development login page used to gate the admin UI.
-// - Uses `login(password)` from the local DB to perform dev auth (non-secure)
-// - Calls `onLoginSuccess` when login succeeds
 import { useState } from "react";
-import { login } from "../db";
+import { useAuthStore } from "../store/authStore";
 import "../css/LoginPage.css";
 
-interface LoginPageProps {
-  onLoginSuccess: () => void;
-}
-
-export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
+export default function LoginPage() {
+  const login = useAuthStore((s) => s.login);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle login form submission: call the dev login function and simulate a
-  // brief async delay. If successful, reset form and notify parent. Otherwise,
-  // show an error message.
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    const success = login(password);
-    await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate async login delay
-    if (success) {
-      setPassword("");
-      onLoginSuccess();
-    } else {
-      setError("Invalid password. Please try again.");
-      setPassword("");
-    }
-    
+    const result = await login(password);
+    setPassword("");
+    if (!result.ok) setError(result.error);
+
     setIsLoading(false);
   };
 
-  // Render the login form with a password input, error message display, and a
-  // submit button that becomes disabled during async login.
   return (
     <div className="login-container">
       <div className="login-box">
