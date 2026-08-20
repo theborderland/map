@@ -17,7 +17,7 @@ import { setCookie, getCookie } from "../utils/cookie";
 
 const CAMP_NAME_LABEL_PANE = 'campNameLabels';
 const SHOW_NAME_TOOLTIP_ZOOM_LEVEL = 19;
-
+const SKIP_ENTITY_VALIDATION = true;
 /**
  * The Editor class keeps track of the user status regarding editing and
  * renders the map entities in the repository as editable layers on the map
@@ -505,16 +505,21 @@ export class Editor {
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
-        Messages.showNotification('Validating, hold on...', undefined, undefined, 7000);
-        if (entitysToRefresh) {
-            this._validateEntitiesQueue = entitysToRefresh;
-        } else {
-            for (const entityid in this._currentRevisions) {
-                this._validateEntitiesQueue.push(this._currentRevisions[entityid]);
+        if (SKIP_ENTITY_VALIDATION)
+            return;
+        else 
+        {
+            Messages.showNotification('Validating, hold on...', undefined, undefined, 7000);
+            if (entitysToRefresh) {
+                this._validateEntitiesQueue = entitysToRefresh;
+            } else {
+                for (const entityid in this._currentRevisions) {
+                    this._validateEntitiesQueue.push(this._currentRevisions[entityid]);
+                }
             }
+            this.stopwatch = new Date().getTime();
+            requestAnimationFrame(this.checkRulesSlowly.bind(this));
         }
-        this.stopwatch = new Date().getTime();
-        requestAnimationFrame(this.checkRulesSlowly.bind(this));
     }
 
     // Slowly validate entities in chunks so that the user does not percive the application as frozen during validation
