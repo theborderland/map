@@ -29,6 +29,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         aftermath23: "Aftermath '23",
         aftermath24: "Aftermath '24",
         aftermath25: "Aftermath '25",
+        aftermath26: "Aftermath '26",
         slopemap: 'Slope',
         heightmap: 'Height',
         terrain: 'Terrain',
@@ -108,6 +109,7 @@ export const createMap = async (_isCleanAndQuietMode) => {
         { name: LAYER_NAMES.aftermath23, layer: map.groups.aftermath23, type: 'Background' },
         { name: LAYER_NAMES.aftermath24, layer: map.groups.aftermath24, type: 'Background' },
         { name: LAYER_NAMES.aftermath25, layer: map.groups.aftermath25, type: 'Background' },
+        { name: LAYER_NAMES.aftermath26, layer: map.groups.aftermath26, type: 'Background' },
         { name: LAYER_NAMES.warnings, layer: L.layerGroup(), type: 'Misc.' }, // Dummy layer for toggling warnings
         { name: "Reference grid", layer: referenceGridLayer, type: 'Misc.' }, // Grid layer for toggling grid
         { name: LAYER_NAMES.waterProtectedZone, layer: map.groups.waterProtectedZone, type: 'Misc.' },

@@ -196,6 +196,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 		maxNativeZoom: 19,
 		tms: false,
 	};
+	map.groups.aftermath26 = L.tileLayer('./data/bl26/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 	map.groups.aftermath25 = L.tileLayer('./data/bl25/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 	map.groups.aftermath24 = L.tileLayer('./data/bl24/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 	map.groups.aftermath23 = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', aftermathOptions);
