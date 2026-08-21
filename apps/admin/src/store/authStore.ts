@@ -17,38 +17,48 @@ export const useAuthStore = create<AuthStore>((set) => ({
     status: "checking",
 
     checkSession: async () => {
-        try {
-            const res = await apiFetch("/auth/auth-check", { method: "GET" });
-            set({ status: res.ok ? "authenticated" : "unauthenticated" });
-        } catch {
-            // Network error, or the auth check endpoint doesn't exist yet — fail
-            // closed and just show the login screen.
-            set({ status: "unauthenticated" });
-        }
+        // During testing: show loginpage on reload
+        set({ status: "unauthenticated" });
+        return;
+
+        // try {
+        //     const res = await apiFetch("/auth/auth-check", { method: "GET" });
+        //     set({ status: res.ok ? "authenticated" : "unauthenticated" });
+        // } catch {
+        //     // Network error, or the auth check endpoint doesn't exist yet — fail
+        //     // closed and just show the login screen.
+        //     set({ status: "unauthenticated" });
+        // }
     },
 
     login: async (password) => {
-        const res = await apiFetch("/auth/login", {
-            method: "POST",
-            body: { password },
-        });
-        
-        if (res.ok) {
+        // During testing: simple check
+        if (password == "dev") {
             set({ status: "authenticated" });
             return { ok: true };
         }
+
+        // const res = await apiFetch("/auth/login", {
+        //     method: "POST",
+        //     body: { password },
+        // });
+
+        // if (res.ok) {
+        //     set({ status: "authenticated" });
+        //     return { ok: true };
+        // }
 
         // Backend returns the error as a plain JSON string, e.g.
         // "Invalid password." or "Too many failed login attempts." —
         // surfaced verbatim rather than re-worded.
         let message = "Invalid password.";
-        try {
-            const data = await res.text();
-            console.log(data);
-            if (typeof data === "string" && data.trim()) message = data;
-        } catch {
-            /* fall back to the generic message above */
-        }
+        // try {
+        //     const data = await res.text();
+        //     console.log(data);
+        //     if (typeof data === "string" && data.trim()) message = data;
+        // } catch {
+        //     /* fall back to the generic message above */
+        // }
 
         return { ok: false, error: message };
     },
