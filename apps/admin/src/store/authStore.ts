@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
     checkSession: async () => {
         try {
-            const res = await apiFetch("/auth-check", { method: "GET" });
+            const res = await apiFetch("/auth/auth-check", { method: "GET" });
             set({ status: res.ok ? "authenticated" : "unauthenticated" });
         } catch {
             // Network error, or the auth check endpoint doesn't exist yet — fail
@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     },
 
     login: async (password) => {
-        const res = await apiFetch("/login", {
+        const res = await apiFetch("/auth/login", {
             method: "POST",
             body: { password },
         });
