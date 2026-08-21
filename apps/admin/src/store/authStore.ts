@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { apiFetch, registerUnauthorizedHandler } from "../lib/httpClient";
+import { registerUnauthorizedHandler } from "../lib/httpClient";
 
 type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 type LoginResult = { ok: true } | { ok: false; error: string };
