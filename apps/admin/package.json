@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && VITE_API_BASE_URL=\"$API_URL\" vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

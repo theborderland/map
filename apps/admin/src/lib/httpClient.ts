@@ -26,7 +26,7 @@ export interface ApiFetchOptions extends Omit<RequestInit, "body"> {
 export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
     const { body, headers, ...rest } = options;
 
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${BASE_URL}/api/v1${path}`, {
         ...rest,
         credentials: "include",
         headers: {
