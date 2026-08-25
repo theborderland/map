@@ -188,7 +188,14 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 		maxNativeZoom: 17,
 		tms: false,
 	});
-
+	
+	const aftermathOptions26 = {
+		minZoom: 13,
+		maxZoom: 21,
+		minNativeZoom: 15,
+		maxNativeZoom: 21,
+		tms: false,
+	};
 	const aftermathOptions = {
 		minZoom: 13,
 		maxZoom: 21,
@@ -196,7 +203,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 		maxNativeZoom: 19,
 		tms: false,
 	};
-	map.groups.aftermath26 = L.tileLayer('./data/bl26/aftermath/{z}/{x}/{y}.png', aftermathOptions);
+	map.groups.aftermath26 = L.tileLayer('https://tiles.openaerialmap.org/6a82fe4909bfcbdf0ea094f2/0/6a82fe4909bfcbdf0ea094f3/{z}/{x}/{y}.png', aftermathOptions26);
 	map.groups.aftermath25 = L.tileLayer('./data/bl25/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 	map.groups.aftermath24 = L.tileLayer('./data/bl24/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 	map.groups.aftermath23 = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', aftermathOptions);
