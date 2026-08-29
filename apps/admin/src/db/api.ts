@@ -48,21 +48,6 @@ export async function seedIfEmpty(): Promise<void> {
   })
 }
 
-/**
- * Wipe all tables and re-seed from scratch.
- * Useful during development when you want a clean known state.
- */
-export async function resetAndReseed(): Promise<void> {
-  await db.transaction("rw", [db.styles, db.entities, db.rules], async () => {
-    await db.styles.clear()
-    await db.entities.clear()
-    await db.rules.clear()
-    await db.styles.bulkAdd(SEED_STYLES)
-    await db.rules.bulkAdd(SEED_RULES)
-    await db.entities.bulkAdd(SEED_ENTITIES)
-  })
-}
-
 // ── Styles ────────────────────────────────────────────────
 
 /** Return all style definitions, ordered by displayName. */

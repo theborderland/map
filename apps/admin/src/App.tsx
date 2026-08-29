@@ -4,7 +4,7 @@ import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
 import type { PanelView, Tab, EntityKind } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
-import { resetAndReseed, getEntities, getStyles, getRules, getSettings } from "./db";
+import { getEntities, getStyles, getRules, getSettings } from "./db";
 import { useAuthStore } from "./store/authStore";
 import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 import { DEFAULT_POI_ICON } from "./utils/Icons";
@@ -67,8 +67,9 @@ function App() {
       if (authStatus === "authenticated") {
         setIsLoading(true);
 
-        // During development its nice to reset and reseed the database on each load to have a consistent starting point. :)
-        await resetAndReseed();
+        // The backend is the real system of record now - no more wipe-and-
+        // reseed on load (that was a Dexie dev-convenience; see handoff doc
+        // 04 "RISKS / THINGS TO WATCH" for why this needed to go).
         const [entitiesData, stylesData, rulesData, settingsData] = await Promise.all([
           getEntities(), getStyles(), getRules(), getSettings(),
         ]);

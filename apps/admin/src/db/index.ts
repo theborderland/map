@@ -14,9 +14,6 @@
  *   const entities = await getEntities();
  */
 
-// Auth
-export { login, logout, isAuthenticated } from "./auth"
-
 // Seeding / reset
 export { seedIfEmpty, resetAndReseed } from "./api"
 
