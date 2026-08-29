@@ -1,7 +1,7 @@
 import { createMap } from './map';
 import { createStats } from './stats';
 import { showDrawers } from './messages';
-import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY, SOUND_GUIDE_URL, REPOSITORY_URL_OVERRIDE } from '../SETTINGS';
+import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY, SOUND_GUIDE_URL } from '../SETTINGS';
 import { setCookie, getCookie } from "./utils/cookie";
 
 /** Main method for index.html */
@@ -10,8 +10,7 @@ async function index() {
     try {
         var checking_for_url = process.env.API_URL;
     } catch (error) {
-        if (!REPOSITORY_URL_OVERRIDE)
-            throw new Error("You need to provide a URL to the API");
+        throw new Error("You need to provide a URL to the API");
     }
 
     /* 

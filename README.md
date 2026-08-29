@@ -2,12 +2,25 @@
 
 https://www.theborderland.se/map/
 
-## Project Structure
-
 This project consists of two separate applications:
 
-* **map** → Vanilla JavaScript app (built with esbuild)
-* **admin** → React + TypeScript app (built with Vite)
+* **map** → Vanilla JavaScript app (built with esbuild)  
+This is the placement map
+* **admin** → React + TypeScript app (built with Vite)  
+This is an admin control app for managing stuff visible on the map like areas, roads, edit-mode etc
+
+
+## Setup
+
+All commands are run from the project root.
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+This installs dependencies for all workspaces (`map` and `admin`).
 
 Both apps are managed using **npm workspaces** and are combined into a single static output in the `public/` folder.
 
@@ -21,23 +34,10 @@ public/       # final build output (deploy this)
 
 ---
 
-## Available Commands
-
-All commands are run from the project root.
-
-### Install dependencies
-
-```bash
-npm install
-```
-
-This installs dependencies for all workspaces (`map` and `admin`).
-
----
-
 ### Development
 
-First you need an API url, see `apps\map\SETTINGS.ts`
+First you need to set the backend API url in `.env` (see the template `.env.template`).  
+Then there are some settings related to the placement map see `apps\map\SETTINGS.ts`
 
 ```bash
 npm run dev
@@ -73,7 +73,7 @@ This will:
 2. Build the **admin app** into `public/admin/`
 
 
-This folder can be deployed to any static hosting provider (e.g. GitHub Pages). Make sure the `API_URL` is set in GitHub Actions variables as it is needed for the workflow, otherwise you need to define the override repository url in `SETTINGS.ts`.
+This folder can be deployed to any static hosting provider (e.g. GitHub Pages). Make sure the `API_URL` is set in GitHub Actions variables as it is needed as an environment variable.
 
 
 ---
@@ -84,13 +84,13 @@ The admin app is served under `/admin`.
 * On prod its currently `/map/admin`
 * On dev its just `/admin`
 
-This is mapped in `vite.config.ts`
+This is mapped in `apps/admin/vite.config.ts`
 
 ---
 
 ## Notes
 
-* The `public/` folder should not contain source files — only build output
+* The root `public/` folder should not contain source files — only build output
 * Always run installs and scripts from the root (workspace-managed)
 * The admin app uses Vite, which handles fast refresh and dev server features
 * The map app uses esbuild for fast bundling

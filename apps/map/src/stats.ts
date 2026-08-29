@@ -1,6 +1,6 @@
 import { TabulatorFull } from 'tabulator-tables';
 import ExcelJS from 'exceljs';
-import { REPOSITORY_URL_OVERRIDE, TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
+import { TOTAL_MEMBERSHIPS_SOLD } from '../SETTINGS';
 import * as Turf from '@turf/turf';
 import L from 'leaflet';
 import { getGridReference } from './utils/gridUtils';
@@ -325,7 +325,7 @@ export const createStats = async () => {
     }
     await neighbourhoodLookup.load("./data/bl26/neighbourhoods.geojson");
 
-    const ENTITIES_URL = (REPOSITORY_URL_OVERRIDE ? REPOSITORY_URL_OVERRIDE : process.env.API_URL) + '/api/v1/mapentities';
+    const ENTITIES_URL = process.env.API_URL + 'api/mapentities';
     const entries = await fetchEntries(ENTITIES_URL, ID);
     const stats = createOverviewStats(entries, IsSingleEntity);
     const table: TabulatorFull = createTable(entries);

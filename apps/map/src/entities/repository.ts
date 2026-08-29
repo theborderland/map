@@ -1,7 +1,6 @@
 import { MapEntity } from './entity';
 import type { Rule } from '../rule';
 import DOMPurify from 'dompurify';
-import { REPOSITORY_URL_OVERRIDE } from '../../SETTINGS';
 import { EntityDTO } from './interfaces';
 
 export interface EntityChanges {
@@ -17,7 +16,7 @@ export interface EntityChanges {
 * The constraints allows limiting what entities are fetched to a given date range.
 */
 export class MapEntityRepository {
-    private ENTITY_API_ADDRESS = (REPOSITORY_URL_OVERRIDE ? REPOSITORY_URL_OVERRIDE : process.env.API_URL) + '/api/v1/mapentities';
+    private ENTITY_API_ADDRESS = process.env.API_URL + 'api/mapentities';
     private _rulesGenerator: () => Array<Rule>;
     /** Keeps the latest revisions of each unique entity */
     private _latestRevisions: Record<MapEntity['id'], MapEntity> = {};

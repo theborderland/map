@@ -2,9 +2,6 @@
  * Configuration file for variables that can be changed
  */
 
-// Repository url override for development purposes
-export const REPOSITORY_URL_OVERRIDE: string = '';
-
 // Rules
 export const MAX_CLUSTER_SIZE: number = 1250;
 export const MAX_POWER_NEED: number = 8000;

@@ -1,7 +1,5 @@
-import { REPOSITORY_URL_OVERRIDE } from '../../SETTINGS';
-
 export class AdminAPI {
-    private ENTITY_API_ADDRESS = (REPOSITORY_URL_OVERRIDE ? REPOSITORY_URL_OVERRIDE : process.env.API_URL) + '/api/v1/admin';
+    private ENTITY_API_ADDRESS = process.env.API_URL + 'api/admin';
 
     public async isEditAllowed(): Promise<boolean> {
         try {
