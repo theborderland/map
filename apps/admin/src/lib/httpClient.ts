@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = import.meta.env.API_URL;
 
 type UnauthorizedHandler = () => void;
 let unauthorizedHandler: UnauthorizedHandler | null = null;
@@ -26,7 +26,7 @@ export interface ApiFetchOptions extends Omit<RequestInit, "body"> {
 export async function apiFetch(path: string, options: ApiFetchOptions = {}): Promise<Response> {
     const { body, headers, ...rest } = options;
 
-    const res = await fetch(`${BASE_URL}/api${path}`, {
+    const res = await fetch(`${BASE_URL}api${path}`, {
         ...rest,
         credentials: "include",
         headers: {

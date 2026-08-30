@@ -4,3 +4,4 @@ export { default as POIsTab } from "./POIsTab";
 export { default as RulesTab } from "./RulesTab";
 export { default as StylesTab } from "./StylesTab";
 export { default as SettingsTab } from "./SettingsTab";
+export { default as DeletedCampsTab } from "./DeletedCampsTab";

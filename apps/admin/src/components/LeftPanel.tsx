@@ -1,7 +1,7 @@
 import { useRef, useEffect } from "react";
 import type { Tab, PanelView } from "../types";
 import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
-import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, SettingsTab } from "./tabs";
+import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, DeletedCampsTab, SettingsTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
 import {
@@ -71,6 +71,7 @@ export default function LeftPanel({
       case "POIs": return <POIsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
       case "Rules": return <RulesTab entities={entities} rules={rules} openRule={openRule} />;
       case "Styles": return <StylesTab entities={entities} styles={styles} openStyle={openStyle} />;
+      case "Deleted camps": return <DeletedCampsTab />;
       case "Settings": return <SettingsTab onSettingsSaved={onSettingsSaved} />;
       default: return null;
     }

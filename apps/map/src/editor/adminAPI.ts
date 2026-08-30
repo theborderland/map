@@ -1,5 +1,5 @@
 export class AdminAPI {
-    private ENTITY_API_ADDRESS = process.env.API_URL + 'api/admin';
+    private ENTITY_API_ADDRESS = process.env.API_URL + 'api/settings';
 
     public async isEditAllowed(): Promise<boolean> {
         try {

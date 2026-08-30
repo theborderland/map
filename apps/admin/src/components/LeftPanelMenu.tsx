@@ -4,7 +4,7 @@
 import type { Tab } from "../types";
 import type { RefObject } from "react";
 
-const TABS: Tab[] = ["Areas", "Roads", "POIs", "Rules", "Styles", "Settings"];
+const TABS: Tab[] = ["Areas", "Roads", "POIs", "Rules", "Styles", "Deleted camps", "Settings"];
 
 export default function LeftPanelMenu({
   activeTab,

@@ -1,4 +1,4 @@
-export type Tab = "Areas" | "Roads" | "POIs" | "Rules" | "Styles" | "Settings";
+export type Tab = "Areas" | "Roads" | "POIs" | "Rules" | "Styles" | "Deleted camps" | "Settings";
 
 /** The three entity kinds that can be drawn on the map. */
 export type EntityKind = "poi" | "road" | "area";

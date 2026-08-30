@@ -739,8 +739,7 @@ export class Editor {
                     }
                 }
 
-                this.toggleEditMode();
-                return true;
+                return await this.toggleEditMode();
             }));
             // Auto click the button to enable edit mode
             setTimeout(() => {
@@ -756,11 +755,11 @@ export class Editor {
         }
     }
 
-    public async toggleEditMode() {
+    public async toggleEditMode(): Promise<boolean> {
         // Doublecheck if editing still is allowed.
         if (!await this._adminApi.isEditAllowed()) {
             this._isEditMode = false;
-            return;
+            return false;
             // Perhaps remove the button or show a message?
         }
 
@@ -815,7 +814,15 @@ export class Editor {
         };
 
         // This function is called when the user starts drawing a new polygon, it adds the distance to the tooltip
-        this._map.on("pm:drawstart", ({ workingLayer }) => {
+        this._map.on("pm:drawstart", async ({ workingLayer }) => {
+            // Doublecheck if editing still is allowed.
+            if (!await this._adminApi.isEditAllowed()) {
+                this._isEditMode = false;
+                this._map.pm.disableDraw();
+                this._map.pm.addControls({
+                    drawPolygon: false, // remove draw button
+                });
+            }
             // calculate the distance between the latest and previous vertices
             workingLayer.on("pm:vertexadded", (e) => {
                 let coords = e.workingLayer._latlngs;
@@ -855,6 +862,7 @@ export class Editor {
                 workingLayer.on("pm:snapdrag", snapdragFn);
             });
         });
+        return true;
     }
 
     /** Add each existing map entity from the API as an editable layer */
