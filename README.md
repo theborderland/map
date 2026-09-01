@@ -100,3 +100,9 @@ This is mapped in `apps/admin/vite.config.ts`
 
 ## QGIS tips & tricks
 See [wiki](QGIS-tips-&-Tricks)
+
+## Yearly archive of camps
+You can access old camp placements by adding the query string `?year=2025` to the url. For example [theborderland.se/map?year=2025](https://www.theborderland.se/map/?year=2025)
+
+Every year after the event, download the placement via the existing export function and save it to `public/data/blxx/all_camps.geojson`.
+Don't forget to anonymize by clearing out the contact info fields.

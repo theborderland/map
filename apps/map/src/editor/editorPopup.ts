@@ -13,7 +13,8 @@ export class EditorPopup {
         repository: MapEntityRepository,
         compareRevDiffLayer: L.LayerGroup<any>,
         map: L.Map,
-        editEntityCallback: (...args: any[]) => void
+        editEntityCallback: (...args: any[]) => void,
+        isReadOnlyView: boolean = false,
     ): HTMLElement {
         const content = document.createElement('div');
 
@@ -131,6 +132,21 @@ export class EditorPopup {
                 entityEditor.render();
             };
             content.appendChild(editInfoButton);
+        } else if (isReadOnlyView) {
+            const viewDetailsButton = document.createElement('button');
+            viewDetailsButton.innerHTML = "View details";
+            viewDetailsButton.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                const entityEditor = new EditorDrawer(
+                    entity,
+                    repository,
+                    compareRevDiffLayer,
+                    editEntityCallback
+                );
+                entityEditor.render();
+            };
+            content.appendChild(viewDetailsButton);
         }
         return content;
     }

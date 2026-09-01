@@ -12,6 +12,7 @@ import 'leaflet-search';
 import { EditorPopup } from './editorPopup';
 import { ShapeEditTooltip } from './ShapeEditTooltip';
 import { AdminAPI } from './adminAPI';
+import { YearCampLoader } from '../loaders/yearCampLoader';
 import { HAS_SEEN_EDITOR_INSTRUCTIONS_COOKIE_KEY } from '../../SETTINGS';
 import { setCookie, getCookie } from "../utils/cookie";
 
@@ -59,6 +60,8 @@ export class Editor {
     private _shapeEditTooltip: ShapeEditTooltip;
     private stopwatch: number;
     private _adminApi: AdminAPI;
+    private readonly _isReadOnlyView: boolean;
+    private readonly _year: number | null;
 
     /** Updates current editor status - blur indicates that the current mode should be redacted */
     private async setMode(nextMode: Editor['_mode'] | 'blur', nextEntity?: MapEntity) {
@@ -158,8 +161,10 @@ export class Editor {
     /** Updates the currently selected map entity */
     private async setSelected(nextEntity: MapEntity | null, prevEntity: MapEntity | null = null) {
         // When a map entity is unselected, save it to the database if it has changes (used when dragging or edit shape)
-        if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
-            await this.saveEntity(prevEntity);
+        if (!this._isReadOnlyView) {
+            if (prevEntity && nextEntity != prevEntity && prevEntity.hasChanges()) {
+                await this.saveEntity(prevEntity);
+            }
         }
         if (this._isEditMode || nextEntity == null) {
             this.UpdateEntityTooltipWithRuleMessages(nextEntity);
@@ -190,6 +195,10 @@ export class Editor {
 
         // Move this logic to the entityInfoEditor?
         let editEntityCallback = async (action: string, extraInfo?: string) => {
+            // Disable any permanent changes to not unintentionally edit current stuff.
+            if (this._isReadOnlyView) {
+                return;
+            }
             switch (action) {
                 case "delete":
                     this.deleteAndRemoveEntity(this._selected, extraInfo);
@@ -232,6 +241,7 @@ export class Editor {
                 this._compareRevDiffLayer,
                 this._map,
                 editEntityCallback.bind(this),
+                this._isReadOnlyView,
             );
             this._popup.setContent(content).openOn(this._map);
 
@@ -248,6 +258,7 @@ export class Editor {
                 this._compareRevDiffLayer,
                 this._map,
                 editEntityCallback.bind(this),
+                this._isReadOnlyView,
             );
             var fullScreenPopup: HTMLElement = document.getElementById("fullScreenPopup")!;
             fullScreenPopup.innerHTML = ""; // Need to remove the old info
@@ -505,10 +516,9 @@ export class Editor {
     }
 
     private checkEntityRules(entitysToRefresh: Array<MapEntity> | null = null) {
-        if (SKIP_ENTITY_VALIDATION)
+        if (this._isReadOnlyView || SKIP_ENTITY_VALIDATION)
             return;
-        else 
-        {
+        else {
             Messages.showNotification('Validating, hold on...', undefined, undefined, 7000);
             if (entitysToRefresh) {
                 this._validateEntitiesQueue = entitysToRefresh;
@@ -593,8 +603,10 @@ export class Editor {
         }
     }
 
-    constructor(map: L.Map, hideWarningColors: boolean, isCleanAndQuietMode: boolean = false) {
+    constructor(map: L.Map, hideWarningColors: boolean, isCleanAndQuietMode: boolean = false, yearView: number | null = null) {
         this._adminApi = new AdminAPI();
+        this._isReadOnlyView = yearView != null;
+        this._year = yearView;
         // Keep track of the map
         this._map = map;
         this._hideWarningColors = hideWarningColors;
@@ -680,7 +692,7 @@ export class Editor {
             const revisions = this._currentRevisions;
             //@ts-ignore
             const search = new L.Control.Search({
-                sourceData: (_text, cb) => (cb(Object.values(revisions)), { abort() {} }),
+                sourceData: (_text, cb) => (cb(Object.values(revisions)), { abort() { } }),
                 formatData: (entities) => {
                     const seen: Record<string, number> = {};
                     const result: Record<string, L.LatLng> = {};
@@ -865,8 +877,31 @@ export class Editor {
         return true;
     }
 
+    private async loadStaticYearEntities() {
+        if (!this._isCleanAndQuietMode) {
+            await Messages.showNotification(`Loading archive camps from ${this._year}...`);
+        }
+        const entities = await new YearCampLoader(this._year).load();
+
+        for (const entity of entities) {
+            this.addEntityToMap(entity, false);
+        }
+
+        this.refreshAllEntities(false);
+        this._map.pm.addControls({
+            drawPolygon: false,
+            editControls: false,
+            removalMode: false,
+        });
+    }
+
     /** Add each existing map entity from the API as an editable layer */
     public async addAPIEntities() {
+        if (this._isReadOnlyView) {
+            await this.loadStaticYearEntities();
+            return;
+        }
+
         if (!this._isCleanAndQuietMode) {
             await Messages.showNotification('Loading your drawn polygons from da interweb!');
         }

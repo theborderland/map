@@ -14,7 +14,7 @@ import { initMario } from './mario';
 import { ReferenceGridLayer } from './referenceGridLayer.js';
 
 /** Initializes the leaflet map and load data to create layers */
-export const createMap = async (_isCleanAndQuietMode) => {
+export const createMap = async (_isCleanAndQuietMode, yearView = null) => {
     const LAYER_NAMES = {
         warnings: 'Warning colors',
         placement: 'Camps',
@@ -223,8 +223,9 @@ export const createMap = async (_isCleanAndQuietMode) => {
     }
 
     // Load all entities from the API
+    // or from a static yearly export file when the URL has query string year=YYYY
     let hideWarningColors = !visibleLayers.has(LAYER_NAMES.warnings);
-    const editor = new Editor(map, hideWarningColors, _isCleanAndQuietMode);
+    const editor = new Editor(map, hideWarningColors, _isCleanAndQuietMode, yearView);
     await editor.addAPIEntities();
 
     if (hasNamesLayer) {

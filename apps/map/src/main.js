@@ -3,6 +3,7 @@ import { createStats } from './stats';
 import { showDrawers } from './messages';
 import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY, SOUND_GUIDE_URL } from '../SETTINGS';
 import { setCookie, getCookie } from "./utils/cookie";
+import { getYearFromQuery } from './loaders/yearCampLoader';
 
 /** Main method for index.html */
 async function index() {
@@ -24,7 +25,8 @@ async function index() {
     let _isCleanAndQuietMode = urlParams.has('cleanandquiet');
     // Create the map
     try {
-        var map = await createMap(_isCleanAndQuietMode);
+        const yearView = getYearFromQuery();
+        var map = await createMap(_isCleanAndQuietMode, yearView);
         window.toggleLayerByName = map.toggleLayerByName;
     } catch (err) {
         console.error(err);
