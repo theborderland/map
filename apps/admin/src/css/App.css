@@ -72,6 +72,7 @@ body {
   display: flex;
   height: 100vh;
 }
+
 .map-container {
   flex: 1;
 }
@@ -262,7 +263,7 @@ body {
 }
 
 .form-field {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   /* padding-bottom: 0.25rem;
   border-bottom: 1px lightgray solid; */
 }
@@ -311,22 +312,4 @@ wa-dialog {
     font-size: 0.85rem;
     color: var(--text);
   }
-}
-
-/* block area while editing */
-.is-editing .menu,
-.is-editing .back-button {
-  filter: grayscale(100%);
-  pointer-events: none;
-  opacity: 0.3;
-}
-
-/* block area while editing */
-.is-editing .menu::after,
-.is-editing .back-button::after {
-  position: absolute;
-  inset: 0;
-  background: rgba(240, 240, 240, 0.75);
-  z-index: 10;
-  pointer-events: none;
 }

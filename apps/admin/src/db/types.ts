@@ -62,20 +62,23 @@ export interface RuleRecord {
   createdAt: string
 }
 
-// Settings (singleton record)
+// Settings (singleton record) — fully backed by the real API now (see
+// api/adminSettings.ts). Fields mirror the backend's JSON
+// response directly (System.Text.Json camelCases the C# property names),
+// so no separate translation layer is needed here.
 export interface SettingsRecord {
-  id: string; // Always "app-settings" — singleton row.
-  /** Pixels. 0 disables snapping entirely; any positive value enables it at that distance. */
-  snapDistance: number;
-  editButtonInfoText: string;
-  /** Empty string means no password required. */
-  editModePassword: string;
-  mapEditModeEnabled: boolean;
-  adminLoginPassword: string;
-  autoDeleteEnabled: boolean;
-  /** 24h "HH:MM" format, Swedish time. */
-  autoDeleteTime: string;
-  updatedAt: string;
+  isEditEnabled: boolean
+  editText: string
+  /** Empty/null means no password required to enter edit mode. */
+  editButtonPassword: string | null
+  isDeleteJobEnabled: boolean
+  /** 24h "HH:mm" format, Swedish time. */
+  deleteJobScheduledTime: string
+  deleteJobLastRunAtUtc: string | null
+  /** Pixels. 0 disables Geoman's snap-to-existing-geometry; any positive value enables it at that distance. */
+  snapDistance: number
+  /** Opaque optimistic-concurrency token - must be echoed back on every write. */
+  concurrencyToken: string
 }
 
 // ── Payload types (fields the caller provides; id + createdAt are generated) ─
@@ -83,7 +86,6 @@ export interface SettingsRecord {
 export type StylePayload = Omit<StyleRecord, "id" | "createdAt">
 export type EntityPayload = Omit<EntityRecord, "id" | "createdAt">
 export type RulePayload = Omit<RuleRecord, "id" | "createdAt">
-export type SettingsPayload = Omit<SettingsRecord, "id" | "updatedAt">;
 
 // ── Export shape ──────────────────────────────────────────
 

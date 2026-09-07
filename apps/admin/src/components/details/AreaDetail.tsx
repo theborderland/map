@@ -1,5 +1,5 @@
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import { updateEntity, createEntity, deleteEntity } from "../../db";
+import { updateEntity, createEntity, deleteArea } from "../../db";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
@@ -46,7 +46,7 @@ export default function AreaDetail({
       }
     );
 
-  const handleDelete = () => form.runDelete(deleteEntity);
+  const handleDelete = () => form.runDelete(deleteArea);
 
   return (
     <div className="entity-detail">

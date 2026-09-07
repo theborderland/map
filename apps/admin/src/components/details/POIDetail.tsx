@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { EntityRecord, RuleRecord } from "../../db/types";
-import { updateEntity, createEntity, deleteEntity } from "../../db";
+import { updateEntity, createEntity, deletePoi } from "../../db";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
@@ -72,7 +72,7 @@ export default function POIDetail({
       }
     );
 
-  const handleDelete = () => form.runDelete(deleteEntity);
+  const handleDelete = () => form.runDelete(deletePoi);
 
   return (
     <div className="entity-detail">

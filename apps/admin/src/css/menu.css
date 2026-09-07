@@ -36,3 +36,21 @@
   border-bottom: 3px solid var(--accent);
   font-weight: bold;
 }
+
+/* block area while editing */
+.is-editing .menu,
+.is-editing .back-button {
+  filter: grayscale(100%);
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* block area while editing */
+.is-editing .menu::after,
+.is-editing .back-button::after {
+  position: absolute;
+  inset: 0;
+  background: rgba(240, 240, 240, 0.75);
+  z-index: 10;
+  pointer-events: none;
+}

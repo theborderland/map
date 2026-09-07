@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import { updateEntity, createEntity, deleteEntity } from "../../db";
+import { updateEntity, createEntity, deleteRoad } from "../../db";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
@@ -57,7 +57,7 @@ export default function RoadDetail({
       }
     );
 
-  const handleDelete = () => form.runDelete(deleteEntity);
+  const handleDelete = () => form.runDelete(deleteRoad);
 
   return (
     <div className="entity-detail">
