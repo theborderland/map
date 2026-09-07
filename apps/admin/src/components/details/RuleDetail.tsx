@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { RuleRecord } from "../../db/types";
-import { updateRule, createRule, deleteRule } from "../../db";
+import { updateRule, createRule, deleteRule } from "../../api";
 import DeleteButton from "./DeleteButton";
 import { useDirtyState } from "../../hooks/useDirtyState";
 

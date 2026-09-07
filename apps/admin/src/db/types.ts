@@ -62,10 +62,7 @@ export interface RuleRecord {
   createdAt: string
 }
 
-// Settings (singleton record) — fully backed by the real API now (see
-// api/adminSettings.ts). Fields mirror the backend's JSON
-// response directly (System.Text.Json camelCases the C# property names),
-// so no separate translation layer is needed here.
+// Settings (singleton record)
 export interface SettingsRecord {
   isEditEnabled: boolean
   editText: string

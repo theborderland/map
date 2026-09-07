@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { SettingsRecord } from "../../db/types";
-import { getSettings, updateSettings, updateAdminPassword } from "../../db";
+import { getSettings, updateSettings, updateAdminPassword } from "../../api";
 import { useDirtyState } from "../../hooks/useDirtyState";
 
 interface Props {

@@ -1,5 +1,5 @@
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import { updateEntity, createEntity, deleteArea } from "../../db";
+import { updateEntity, createEntity, deleteArea } from "../../api";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";

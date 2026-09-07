@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
-import { updateEntity, createEntity, deleteRoad } from "../../db";
+import { updateEntity, createEntity, deleteRoad } from "../../api";
 import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";

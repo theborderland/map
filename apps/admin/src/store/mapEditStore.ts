@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { Geometry } from "geojson";
 import type { EntityRecord } from "../db/types";
 import type { EntityKind } from "../types";
-import { updateEntity } from "../db";
+import { updateEntity } from "../api";
 
 export type AreaEditAction = "vertices" | "dragPolygon" | "drawPolygon";
 export type RoadEditAction = "editLine" | "dragLine" | "drawLine";

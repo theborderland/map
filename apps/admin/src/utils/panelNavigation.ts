@@ -1,4 +1,4 @@
-import type { EntityRecord } from "../db";
+import type { EntityRecord } from "../api";
 import type { PanelView, Tab } from "../types";
 
 export function getActiveTabFromNav(navStack: PanelView[], entities: EntityRecord[]): Tab {

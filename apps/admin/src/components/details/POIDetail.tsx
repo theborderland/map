@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { EntityRecord, RuleRecord } from "../../db/types";
-import { updateEntity, createEntity, deletePoi } from "../../db";
+import { updateEntity, createEntity, deletePoi } from "../../api";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";

@@ -4,7 +4,7 @@ import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
 import type { PanelView, Tab, EntityKind } from "./types";
 import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
-import { getEntities, getStyles, getRules, getSettings } from "./db";
+import { getEntities, getStyles, getRules, getSettings } from "./api";
 import { useAuthStore } from "./store/authStore";
 import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 import { DEFAULT_POI_ICON } from "./utils/Icons";
