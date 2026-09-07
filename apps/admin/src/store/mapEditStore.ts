@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Geometry } from "geojson";
-import type { EntityRecord } from "../db/types";
+import type { EntityCollections } from "../db/types";
 import type { EntityKind } from "../types";
 import { updateEntity } from "../api";
 
@@ -42,7 +42,7 @@ export function isLocked(state: MapEditState): boolean {
   return true;
 }
 
-type EntitiesSetter = React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+type EntitiesSetter = React.Dispatch<React.SetStateAction<EntityCollections>>;
 
 interface MapEditStore {
   state: MapEditState;
@@ -127,7 +127,10 @@ export const useMapEditStore = create<MapEditStore>((set, get) => ({
 
     if (state.status === "editing" && pendingGeometry) {
       const updated = await updateEntity(state.entityId, { geometry: pendingGeometry });
-      _setEntities?.((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+      _setEntities?.((prev) => ({
+        ...prev,
+        [state.kind]: prev[state.kind].map((e) => (e.id === updated.id ? updated : e)),
+      }));
       _bumpMapKey?.();
       set({ pendingGeometry: null });
     }

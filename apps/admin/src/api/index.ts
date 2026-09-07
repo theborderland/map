@@ -15,15 +15,16 @@ export {
   deleteStyle,
 } from "./styles"
 
-// Entities (Areas + Roads + POIs, merged)
+// Entities (areas, roads, and POIs are fetched separately)
 export {
-  getEntities,
-  getEntitiesByType,
-  getEntitiesByTypes,
   getEntity,
   createEntity,
   updateEntity,
 } from "./entities"
+
+export { getAreas } from "./areas"
+export { getRoads } from "./roads"
+export { getPois } from "./pois"
 
 // Kind-specific delete. AreaDetail/RoadDetail/POIDetail import these directly
 // since they already know their own kind.

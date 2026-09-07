@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import type { Tab, PanelView } from "../types";
-import type { EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
+import type { EntityCollections, EntityRecord, RuleRecord, SettingsRecord, StyleRecord } from "../db/types";
 import { AreasTab, RoadsTab, POIsTab, RulesTab, StylesTab, DeletedCampsTab, SettingsTab } from "./tabs";
 import LeftPanelHeader from "./LeftPanelHeader";
 import LeftPanelMenu from "./LeftPanelMenu";
@@ -13,10 +13,10 @@ import { useIsEditingLocked } from "../store/mapEditStore";
 
 interface Props {
   activeTab: Tab;
-  entities: EntityRecord[];
+  entities: EntityCollections;
   rules: RuleRecord[];
   styles: StyleRecord[];
-  setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+  setEntities: React.Dispatch<React.SetStateAction<EntityCollections>>;
   setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
   setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
   navStack: PanelView[];
@@ -66,11 +66,11 @@ export default function LeftPanel({
   // ── Root tab content ────────────────────────────────────
   const rootTabContent = (() => {
     switch (activeTab) {
-      case "Areas": return <AreasTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
-      case "Roads": return <RoadsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
-      case "POIs": return <POIsTab entities={entities} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
-      case "Rules": return <RulesTab entities={entities} rules={rules} openRule={openRule} />;
-      case "Styles": return <StylesTab entities={entities} styles={styles} openStyle={openStyle} />;
+      case "Areas": return <AreasTab entities={entities.area} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
+      case "Roads": return <RoadsTab entities={entities.road} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
+      case "POIs": return <POIsTab entities={entities.poi} styles={styles} openGroup={openGroup} openEntity={openEntity} />;
+      case "Rules": return <RulesTab entities={entities.flatten()} rules={rules} openRule={openRule} />;
+      case "Styles": return <StylesTab entities={entities.flatten()} styles={styles} openStyle={openStyle} />;
       case "Deleted camps": return <DeletedCampsTab />;
       case "Settings": return <SettingsTab onSettingsSaved={onSettingsSaved} />;
       default: return null;

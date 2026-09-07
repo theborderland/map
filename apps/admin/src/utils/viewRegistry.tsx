@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { PanelView, Tab } from "../types";
-import type { EntityRecord, RuleRecord, StyleRecord } from "../db/types";
+import type { EntityCollections, EntityRecord, RuleRecord, StyleRecord } from "../db/types";
 import EntityList from "../components/EntityList";
 import { AreaDetail, RoadDetail, POIDetail, RuleDetail, StyleDetail } from "../components/details";
 import { getEntityTab } from "./panelNavigation";
@@ -11,10 +11,10 @@ import {
 
 /** Everything a view handler needs to compute its title or render its content. */
 export interface ViewContext {
-    entities: EntityRecord[];
+    entities: EntityCollections;
     rules: RuleRecord[];
     styles: StyleRecord[];
-    setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
+    setEntities: React.Dispatch<React.SetStateAction<EntityCollections>>;
     setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
     setStyles: React.Dispatch<React.SetStateAction<StyleRecord[]>>;
     setNavStack: React.Dispatch<React.SetStateAction<PanelView[]>>;
@@ -25,6 +25,16 @@ export interface ViewContext {
     onSelectedPOIIconChange: (icon: string) => void;
     /** Content for the currently active root tab — only the "root" handler reads this. */
     rootTabContent: ReactNode;
+}
+
+function setKindEntities(
+    ctx: ViewContext,
+    kind: "area" | "road" | "poi",
+): React.Dispatch<React.SetStateAction<EntityRecord[]>> {
+    return (update) => ctx.setEntities((prev) => ({
+        ...prev,
+        [kind]: typeof update === "function" ? update(prev[kind]) : update,
+    }));
 }
 
 interface ViewHandler {
@@ -54,7 +64,8 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
         },
         render: (view, ctx) => {
             if (view.type !== "entity-group") return null;
-            const groupEntities = ctx.entities.filter((e) => e.styleType === view.styleType);
+            const source = view.tab === "Areas" ? ctx.entities.area : ctx.entities.road;
+            const groupEntities = source.filter((e) => e.styleType === view.styleType);
             return (
                 <EntityList
                     entities={groupEntities}
@@ -69,11 +80,11 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
     "entity-detail": {
         title: (view, ctx) => {
             if (view.type !== "entity-detail") return "";
-            return ctx.entities.find((e) => e.id === view.entityId)?.name ?? "Detail";
+            return ctx.entities.flatten().find((e) => e.id === view.entityId)?.name ?? "Detail";
         },
         render: (view, ctx) => {
             if (view.type !== "entity-detail") return null;
-            const entity = ctx.entities.find((e) => e.id === view.entityId);
+            const entity = ctx.entities.flatten().find((e) => e.id === view.entityId);
             if (!entity) return null;
             switch (getEntityTab(entity)) {
                 case "Areas":
@@ -83,7 +94,7 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
                             entity={entity}
                             styles={ctx.styles}
                             rules={ctx.rules}
-                            setEntities={ctx.setEntities}
+                            setEntities={update => ctx.setEntities(prev => ({ ...prev, area: typeof update === "function" ? update(prev.area) : update }))}
                             goBack={ctx.goBack}
                             bumpMapKey={ctx.bumpMapKey}
                         />
@@ -95,7 +106,7 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
                             entity={entity}
                             styles={ctx.styles}
                             rules={ctx.rules}
-                            setEntities={ctx.setEntities}
+                            setEntities={update => ctx.setEntities(prev => ({ ...prev, road: typeof update === "function" ? update(prev.road) : update }))}
                             goBack={ctx.goBack}
                             bumpMapKey={ctx.bumpMapKey}
                         />
@@ -106,7 +117,7 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
                             key={entity.id}
                             entity={entity}
                             rules={ctx.rules}
-                            setEntities={ctx.setEntities}
+                            setEntities={update => ctx.setEntities(prev => ({ ...prev, poi: typeof update === "function" ? update(prev.poi) : update }))}
                             goBack={ctx.goBack}
                             bumpMapKey={ctx.bumpMapKey}
                             selectedPOIIcon={ctx.selectedPOIIcon}
@@ -186,7 +197,7 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
         render: (_view, ctx) => (
             <POIDetail
                 rules={ctx.rules}
-                setEntities={ctx.setEntities}
+                setEntities={setKindEntities(ctx, "poi")}
                 goBack={ctx.goBack}
                 bumpMapKey={ctx.bumpMapKey}
                 selectedPOIIcon={ctx.selectedPOIIcon}
@@ -202,7 +213,7 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
             <RoadDetail
                 styles={ctx.styles}
                 rules={ctx.rules}
-                setEntities={ctx.setEntities}
+                setEntities={setKindEntities(ctx, "road")}
                 goBack={ctx.goBack}
                 bumpMapKey={ctx.bumpMapKey}
                 onAfterCreate={(entityId) => ctx.setNavStack(buildRoadNavigation(entityId))}
@@ -216,7 +227,7 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
             <AreaDetail
                 styles={ctx.styles}
                 rules={ctx.rules}
-                setEntities={ctx.setEntities}
+                setEntities={setKindEntities(ctx, "area")}
                 goBack={ctx.goBack}
                 bumpMapKey={ctx.bumpMapKey}
                 onAfterCreate={(entityId) => ctx.setNavStack(buildAreaNavigation(entityId))}

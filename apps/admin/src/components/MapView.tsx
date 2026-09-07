@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { MapContainer, TileLayer, GeoJSON, Pane } from "react-leaflet";
 import { buffer } from "@turf/turf";
 import L from "leaflet";
-import type { EntityRecord, SettingsRecord, StyleRecord } from "../db/types";
+import type { EntityCollections, EntityRecord, SettingsRecord, StyleRecord } from "../db/types";
 import "leaflet/dist/leaflet.css";
 import { MapClickHandler } from "./MapClickHandler";
 import { createPOIIcon, DEFAULT_POI_ICON } from "../utils/Icons";
@@ -11,12 +11,13 @@ import type { EntityKind } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
 import { useMapEditStore, isLocked, useEditingEntityId } from "../store/mapEditStore";
 import MapLayerControl from "./MapLayerControl";
+import { entityKindFromGeometry } from "../utils/entityKindFromGeometry";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
 
 interface Props {
-  entities: EntityRecord[];
+  entities: EntityCollections;
   styles: StyleRecord[];
   mapKey: number;
   selectedEntityId: string | null;
@@ -27,6 +28,7 @@ interface Props {
 
 type FeatureProperties = {
   id: string;
+  kind: EntityKind;
   name: string | undefined;
   styleType: string;
   geometryType: string;
@@ -45,10 +47,11 @@ type FeatureCollection = {
   features: MapFeature[];
 };
 
-const EntityToFeature = (entity: EntityRecord): MapFeature => ({
+const EntityToFeature = (entity: EntityRecord, kind: EntityKind): MapFeature => ({
   type: "Feature",
   properties: {
     id: entity.id,
+    kind,
     name: entity.name,
     styleType: entity.styleType,
     geometryType: entity.geometry.type,
@@ -63,11 +66,12 @@ const EntityToFeature = (entity: EntityRecord): MapFeature => ({
  *  that was previously duplicated across four separate useMemo blocks. */
 function buildFeatureCollection(
   entities: EntityRecord[],
+  kind: EntityKind,
   predicate: (e: EntityRecord) => boolean
 ): FeatureCollection {
   return {
     type: "FeatureCollection",
-    features: entities.filter(predicate).map(EntityToFeature),
+    features: entities.filter(predicate).map((entity) => EntityToFeature(entity, kind)),
   };
 }
 
@@ -122,7 +126,7 @@ export default function MapView({
   const layerControlEntries = useMemo(() => {
     const seen = new Set<string>();
     const entries: { styleType: string; displayName: string; fillColor: string }[] = [];
-    for (const entity of entities) {
+    for (const entity of entities.flatten()) {
       if (seen.has(entity.styleType)) continue;
       seen.add(entity.styleType);
       const style = styleByType.get(entity.styleType);
@@ -139,19 +143,14 @@ export default function MapView({
   // button set to show.
   const selectedEntityType = useMemo((): EntityKind | null => {
     if (!selectedEntityId) return null;
-    const entity = entities.find((e) => e.id === selectedEntityId);
+    const entity = entities.flatten().find((e) => e.id === selectedEntityId);
     if (!entity) return null;
-    const entityType = entity.geometry.type;
-    if (entityType === "LineString" || entityType === "MultiLineString") return "road";
-    if (entityType === "Polygon" || entityType === "MultiPolygon") return "area";
-    if (entityType === "Point" || entityType === "MultiPoint") return "poi";
-    return null;
+    return entityKindFromGeometry(entity.geometry);
   }, [selectedEntityId, entities]);
 
   const poiFeatures = useMemo(
-    () => buildFeatureCollection(entities, (e) => {
+    () => buildFeatureCollection(entities.poi, "poi", (e) => {
       if (isStyleHidden(e.styleType)) return false;
-      if (e.geometry.type !== "Point" && e.geometry.type !== "MultiPoint") return false;
       return true;
     }),
     [entities, isStyleHidden]
@@ -160,9 +159,8 @@ export default function MapView({
   // Exclude the road being edited so the buffered polygon disappears while
   // MapEditController shows the raw source lines instead.
   const roadFeatures = useMemo(() => {
-    const base = buildFeatureCollection(entities, (e) => {
+    const base = buildFeatureCollection(entities.road, "road", (e) => {
       if (isStyleHidden(e.styleType)) return false;
-      if (e.geometry.type !== "LineString" && e.geometry.type !== "MultiLineString") return false;
       if (isRoadEditMode && e.id === editingEntityId) return false;
       return true;
     });
@@ -175,10 +173,9 @@ export default function MapView({
   }, [entities, isStyleHidden, isRoadEditMode, editingEntityId]);
 
   const areaFeatures = useMemo(
-    () => buildFeatureCollection(entities, (e) => {
+    () => buildFeatureCollection(entities.area, "area", (e) => {
       if (isStyleHidden(e.styleType)) return false;
       if (e.styleType === "propertyborder") return false;
-      if (e.geometry.type !== "Polygon" && e.geometry.type !== "MultiPolygon") return false;
       if (isAreaDragMode && e.id === editingEntityId) return false;
       return true;
     }),
@@ -187,10 +184,9 @@ export default function MapView({
 
   // Rendered property borders in a separate pane so it draws below areas and roads.
   const propertyBorderFeatures = useMemo(
-    () => buildFeatureCollection(entities, (e) => {
+    () => buildFeatureCollection(entities.area, "area", (e) => {
       if (isStyleHidden(e.styleType)) return false;
       if (e.styleType !== "propertyborder") return false;
-      if (e.geometry.type !== "Polygon" && e.geometry.type !== "MultiPolygon") return false;
       if (isAreaDragMode && e.id === editingEntityId) return false;
       return true;
     }
@@ -226,7 +222,7 @@ export default function MapView({
   };
 
   const styleFeature = (feature: MapFeature) => {
-    const entity = entities.find((e) => e.id === feature.properties.id);
+    const entity = entities[feature.properties.kind].find((e) => e.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
     const selected = selectedEntityId === feature.properties.id;
     return getStyle(style, selected);

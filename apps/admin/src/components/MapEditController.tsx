@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Geometry } from "geojson";
-import type { EntityRecord, SettingsRecord } from "../db/types";
+import type { EntityCollections, SettingsRecord } from "../db/types";
 import type { EntityKind } from "../types";
 import { createPOIIcon } from "../utils/Icons";
 import { useCreatingKind, useMapEditStore } from "../store/mapEditStore";
@@ -22,7 +22,7 @@ type GeomanCreateEvent = { layer: L.Layer & { toGeoJSON: () => GeoJSON.Feature }
 
 interface Props {
   layerRegistry: React.RefObject<Map<string, L.Layer>>;
-  entities: EntityRecord[];
+  entities: EntityCollections;
   settings: SettingsRecord;
   selectedPOIIcon: string;
 }
@@ -335,7 +335,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     if (!existingEdit) return;
     const { kind, entityId, isDrag } = existingEdit;
 
-    const entity = entities.find((e) => e.id === entityId);
+    const entity = entities[kind].find((e) => e.id === entityId);
     if (!entity) return;
 
     const strategy = STRATEGIES[kind];
@@ -401,7 +401,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     const { kind, entityId } = drawSession;
 
     const strategy = STRATEGIES[kind];
-    const entity = entityId ? entities.find((e) => e.id === entityId) : undefined;
+    const entity = entityId ? entities[kind].find((e) => e.id === entityId) : undefined;
     const isCreatingFlow = !entityId;
 
     if (isCreatingFlow) {
@@ -452,7 +452,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     if (!moveSession) return;
     const { entityId } = moveSession;
     const layer = layerRegistry.current.get(entityId);
-    const entity = entities.find((e) => e.id === entityId);
+    const entity = entities.poi.find((e) => e.id === entityId);
     if (!layer || !entity) return;
 
     const originalPositions = new Map<L.Layer, L.LatLng>();

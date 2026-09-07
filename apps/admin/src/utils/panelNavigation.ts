@@ -1,11 +1,11 @@
-import type { EntityRecord } from "../api";
+import type { EntityCollections, EntityRecord } from "../db/types";
 import type { PanelView, Tab } from "../types";
 
-export function getActiveTabFromNav(navStack: PanelView[], entities: EntityRecord[]): Tab {
+export function getActiveTabFromNav(navStack: PanelView[], entities: EntityCollections): Tab {
     const current = navStack[navStack.length - 1];
     switch (current.type) {
         case "entity-detail": {
-            const entity = entities.find(e => e.id === current.entityId);
+            const entity = entities.flatten().find(e => e.id === current.entityId);
             return entity ? getEntityTab(entity) : "Areas";
         }
         case "entity-group": return current.tab;

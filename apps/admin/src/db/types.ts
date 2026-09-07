@@ -47,6 +47,28 @@ export interface EntityRecord {
   createdAt: string;
 }
 
+export interface EntityCollections {
+  area: EntityRecord[]
+  road: EntityRecord[]
+  poi: EntityRecord[]
+  flatten(): EntityRecord[]
+}
+
+export function createEntityCollections(
+  area: EntityRecord[] = [],
+  road: EntityRecord[] = [],
+  poi: EntityRecord[] = [],
+): EntityCollections {
+  return {
+    area,
+    road,
+    poi,
+    flatten() {
+      return [...this.area, ...this.road, ...this.poi];
+    },
+  }
+}
+
 export interface RuleRecord {
   id: string
   name: string

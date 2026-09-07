@@ -3,8 +3,8 @@ import LeftPanel from "./components/LeftPanel";
 import MapView from "./components/MapView";
 import LoginPage from "./components/LoginPage";
 import type { PanelView, Tab, EntityKind } from "./types";
-import type { EntityRecord, RuleRecord, StyleRecord, SettingsRecord } from "./db/types";
-import { getEntities, getStyles, getRules, getSettings } from "./api";
+import { createEntityCollections, type EntityCollections, type RuleRecord, type StyleRecord, type SettingsRecord } from "./db/types";
+import { getAreas, getRoads, getPois, getStyles, getRules, getSettings } from "./api";
 import { useAuthStore } from "./store/authStore";
 import { buildEntityNavigation, createRoot, getActiveTabFromNav } from "./utils/panelNavigation";
 import { DEFAULT_POI_ICON } from "./utils/Icons";
@@ -12,7 +12,7 @@ import { useMapEditStore, isLocked } from "./store/mapEditStore";
 
 function App() {
   const [selectedPOIIcon, setSelectedPOIIcon] = useState(DEFAULT_POI_ICON);
-  const [entities, setEntities] = useState<EntityRecord[]>([]);
+  const [entities, setEntities] = useState<EntityCollections>(() => createEntityCollections());
   const [styles, setStyles] = useState<StyleRecord[]>([]);
   const [rules, setRules] = useState<RuleRecord[]>([]);
   const [settings, setSettings] = useState<SettingsRecord | null>(null);
@@ -57,7 +57,7 @@ function App() {
       setNavStack([createRoot(activeTab)]);
       return;
     }
-    const entity = entities.find((e) => e.id === entityId);
+    const entity = entities.flatten().find((e) => e.id === entityId);
     if (!entity) return;
     setNavStack(buildEntityNavigation(entity));
   };
@@ -70,10 +70,10 @@ function App() {
         // The backend is the real system of record now - no more wipe-and-
         // reseed on load (that was a Dexie dev-convenience; see handoff doc
         // 04 "RISKS / THINGS TO WATCH" for why this needed to go).
-        const [entitiesData, stylesData, rulesData, settingsData] = await Promise.all([
-          getEntities(), getStyles(), getRules(), getSettings(),
+        const [[area, road, poi], stylesData, rulesData, settingsData] = await Promise.all([
+          Promise.all([getAreas(), getRoads(), getPois()]), getStyles(), getRules(), getSettings(),
         ]);
-        setEntities(entitiesData);
+        setEntities(createEntityCollections(area, road, poi));
         setStyles(stylesData);
         setRules(rulesData);
         setSettings(settingsData);

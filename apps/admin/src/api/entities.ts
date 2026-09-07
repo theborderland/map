@@ -1,31 +1,12 @@
 import type { FeatureCollection, Feature } from "geojson";
 import type { EntityKind } from "../types";
 import type { EntityRecord, EntityPayload, FeatureProperties } from "../db/types";
-import { entityKindFromGeometry } from "./mappers";
+import { entityKindFromGeometry } from "../utils/entityKindFromGeometry";
 import { getAreas, getArea, createArea, updateArea, deleteArea } from "./areas";
 import { getRoads, getRoad, createRoad, updateRoad, deleteRoad } from "./roads";
 import { getPois, getPoi, createPoi, updatePoi, deletePoi } from "./pois";
 import { getStyles } from "./styles";
 import { getRules } from "./rules";
-
-/** Return all entities (areas + roads + POIs), ordered by creation date (newest last). */
-export async function getEntities(): Promise<EntityRecord[]> {
-  const [areas, roads, pois] = await Promise.all([getAreas(), getRoads(), getPois()]);
-  return [...areas, ...roads, ...pois].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-}
-
-/** Return all entities of a specific style type. Filters the merged list client-side. */
-export async function getEntitiesByType(styleType: string): Promise<EntityRecord[]> {
-  const all = await getEntities();
-  return all.filter((e) => e.styleType === styleType);
-}
-
-/** Return all entities whose styleType is one of the provided values. */
-export async function getEntitiesByTypes(styleTypes: string[]): Promise<EntityRecord[]> {
-  const set = new Set(styleTypes);
-  const all = await getEntities();
-  return all.filter((e) => set.has(e.styleType));
-}
 
 /**
  * Return a single entity by id. The caller must state which table to look
@@ -137,7 +118,12 @@ export async function deleteEntity(id: string, kind: EntityKind): Promise<void> 
  * for now, just sourced from the real API instead of local IndexedDB tables.
  */
 export async function exportGeoJSON(): Promise<FeatureCollection> {
-  const [entities, styles, rules] = await Promise.all([getEntities(), getStyles(), getRules()]);
+  const [[areas, roads, pois], styles, rules] = await Promise.all([
+    Promise.all([getAreas(), getRoads(), getPois()]),
+    getStyles(),
+    getRules(),
+  ]);
+  const entities = [...areas, ...roads, ...pois];
 
   const styleIndex = new Map(styles.map((s) => [s.type, s]));
   const ruleIndex = new Map(rules.map((r) => [r.id, r]));
