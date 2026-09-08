@@ -44,8 +44,8 @@ export {
 // Settings (real backend - edit-mode, edit-button text/password, auto-delete
 // schedule, and snap distance all live in one AdminControlPanel row now;
 // nothing settings-related stays on Dexie)
-export { getSettings, updateSettings, updateAdminPassword } from "./adminSettings"
-export type { SettingsUpdate } from "./adminSettings"
+export { getSettings, updateSettings, updateAdminPassword } from "./settings"
+export type { SettingsUpdate } from "./settings"
 
 // Export
 export { exportGeoJSON } from "./entities"
