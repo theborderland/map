@@ -31,7 +31,7 @@ export class AdminAPI {
         return data;
     }
 
-    public async CheckIfSecretIsSet(secret: string): Promise<boolean> {
+    public async ValidateSecret(secret: string): Promise<boolean> {
         try {
             const res = await fetch(this.ENTITY_API_ADDRESS + '/edit-button-secret', {
                 method: 'POST',

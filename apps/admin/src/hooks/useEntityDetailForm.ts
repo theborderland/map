@@ -59,6 +59,7 @@ export function useEntityDetailForm<T extends EntityRecord>({
     const [attachedRules, setAttachedRules] = useState<AttachedRule[]>(entity?.rules ?? []);
     const [pendingGeometry, setPendingGeometry] = useState<Geometry | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     // Snapshot of the fields this hook owns, as of the last successful save
     // (or the entity's original values, for an existing entity that hasn't
@@ -119,36 +120,42 @@ export function useEntityDetailForm<T extends EntityRecord>({
     ) => {
         if (!canSave || !geometry) return;
         setIsSaving(true);
+        setSaveError(null);
 
-        const basePayload = {
-            name: name.trim(),
-            tagline: tagline.trim(),
-            rules: attachedRules,
-            geometry,
-            ...buildPayload(geometry),
-        };
-
-        if (entity) {
-            const updated = await ops.updateEntity(entity.id, basePayload);
-            setEntities((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
-            // Reset baseline to what was just saved so Save re-disables immediately.
-            setBaseline({
+        try {
+            const basePayload = {
                 name: name.trim(),
                 tagline: tagline.trim(),
                 rules: attachedRules,
                 geometry,
-            });
-            ops.onSaved?.();
-        } else {
-            const created = await ops.createEntity(basePayload);
-            setEntities((prev) => [...prev, created]);
-            ops.onCreate?.(created);
-        }
+                ...buildPayload(geometry),
+            };
 
-        useMapEditStore.getState().setPendingGeometry(null);
-        bumpMapKey();
-        useMapEditStore.getState().cancelEdit();
-        setIsSaving(false);
+            if (entity) {
+                const updated = await ops.updateEntity(entity.id, basePayload);
+                setEntities((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+                // Reset baseline to what was just saved so Save re-disables immediately.
+                setBaseline({
+                    name: name.trim(),
+                    tagline: tagline.trim(),
+                    rules: attachedRules,
+                    geometry,
+                });
+                ops.onSaved?.();
+            } else {
+                const created = await ops.createEntity(basePayload);
+                setEntities((prev) => [...prev, created]);
+                ops.onCreate?.(created);
+            }
+
+            useMapEditStore.getState().setPendingGeometry(null);
+            bumpMapKey();
+            useMapEditStore.getState().cancelEdit();
+        } catch (error) {
+            setSaveError(error instanceof Error ? error.message : "Could not save entity.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const runDelete = async (deleteEntity: (id: string) => Promise<void>) => {
@@ -168,6 +175,7 @@ export function useEntityDetailForm<T extends EntityRecord>({
         hasOpenDrawSession,
         canSave,
         isSaving,
+        saveError,
         runSave,
         runDelete,
     };

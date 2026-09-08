@@ -13,11 +13,15 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    const result = await login(password);
-    setPassword("");
-    if (!result.ok) setError(result.error);
-
-    setIsLoading(false);
+    try {
+      const result = await login(password);
+      setPassword("");
+      if (!result.ok) setError(result.error);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to log in. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

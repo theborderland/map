@@ -1,6 +1,6 @@
 import { createMap } from './map';
 import { createStats } from './stats';
-import { showDrawers } from './messages';
+import { showDrawers, showNotification } from './messages';
 import { HAS_SEEN_PLACEMENT_WELCOME_COOKIE_KEY, SOUND_GUIDE_URL } from '../SETTINGS';
 import { setCookie, getCookie } from "./utils/cookie";
 import { getYearFromQuery } from './loaders/yearCampLoader';
@@ -30,6 +30,8 @@ async function index() {
         window.toggleLayerByName = map.toggleLayerByName;
     } catch (err) {
         console.error(err);
+        await showNotification('Unable to load map data. Please try again later.', 'danger', 'exclamation-triangle', 0);
+        return;
     }
 
     // Only show message if user has not seen the welcome message yet

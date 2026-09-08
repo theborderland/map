@@ -30,10 +30,23 @@ export class MapEntityRepository {
     /** Indicates that the API has loaded data successfully */
     public loaded: Promise<boolean>;
 
+    private async fetchEntities(): Promise<Array<EntityDTO>> {
+        const response = await fetch(this.ENTITY_API_ADDRESS);
+        if (!response.ok) {
+            throw new Error(`Failed to load map entities (${response.status})`);
+        }
+
+        const entities = await response.json();
+        if (!Array.isArray(entities)) {
+            throw new Error('Map entities response was not an array');
+        }
+
+        return entities;
+    }
+
     /** Loads the latest entity data revisions from the server given the set constraints, if any */
     private async _update(): Promise<void> {
-        const res = await fetch(this.ENTITY_API_ADDRESS);
-        const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
+        const entityDTOs = await this.fetchEntities();
         this._latestRevisions = {};
         for (const data of entityDTOs) {
             if (this._entityConstraints) {
@@ -49,8 +62,7 @@ export class MapEntityRepository {
     /** Reloads data */
     public async reload(): Promise<EntityChanges> {
         // Fetch all entities
-        const res = await fetch(this.ENTITY_API_ADDRESS);
-        const entityDTOs: Array<EntityDTO> = res.ok ? await res.json() : [];
+        const entityDTOs = await this.fetchEntities();
         const fetchedEntities: Array<MapEntity> = new Array<MapEntity>();
         const refresh: EntityChanges = {
             refreshedDeleted: new Array<number>(),
@@ -103,7 +115,7 @@ export class MapEntityRepository {
     constructor(rulesGenerator: () => Array<Rule>) {
         this._rulesGenerator = rulesGenerator;
         // Update on page load
-        this.loaded = new Promise((resolve) => this._update().then(() => resolve(true)));
+        this.loaded = this._update().then(() => true);
     }
 
     /** Set the entity constraints, will trigger a reload of the api */

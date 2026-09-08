@@ -66,17 +66,17 @@ function App() {
     const initializeApp = async () => {
       if (authStatus === "authenticated") {
         setIsLoading(true);
-
-        // The backend is the real system of record now - no more wipe-and-
-        // reseed on load (that was a Dexie dev-convenience; see handoff doc
-        // 04 "RISKS / THINGS TO WATCH" for why this needed to go).
-        const [[area, road, poi], stylesData, rulesData, settingsData] = await Promise.all([
-          Promise.all([getAreas(), getRoads(), getPois()]), getStyles(), getRules(), getSettings(),
-        ]);
-        setEntities(createEntityCollections(area, road, poi));
-        setStyles(stylesData);
-        setRules(rulesData);
-        setSettings(settingsData);
+        try {
+          const [area, road, poi, stylesData, rulesData, settingsData] = await Promise.all([
+            getAreas(), getRoads(), getPois(), getStyles(), getRules(), getSettings()
+          ]);
+          setEntities(createEntityCollections(area, road, poi));
+          setStyles(stylesData);
+          setRules(rulesData);
+          setSettings(settingsData);
+        } catch (error) {
+          console.error("Could not load admin data", error);
+        }
       }
       setIsLoading(false);
     };

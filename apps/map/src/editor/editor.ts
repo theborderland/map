@@ -743,7 +743,7 @@ export class Editor {
                         if (pw == null || pw.trim() === '')
                             return false;
 
-                        const success = await this._adminApi.CheckIfSecretIsSet(pw);
+                        const success = await this._adminApi.ValidateSecret(pw);
                         if (!success) {
                             alert('Wrong password! 😢');
                             return false;

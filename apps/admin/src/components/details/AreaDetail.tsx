@@ -104,6 +104,8 @@ export default function AreaDetail({
         )}
       </div>
 
+      {form.saveError && <p className="error-message">{form.saveError}</p>}
+
       <div className="form-actions">
         {!form.isCreate && (
           <DeleteButton

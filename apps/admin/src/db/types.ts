@@ -74,7 +74,7 @@ export interface RuleRecord {
   name: string
   ruleType: RuleType
   severity: Severity
-  /** Shown to the festival visitor when the rule is violated. */
+  /** Shown to the map visitor when the rule is violated. */
   message: string
   /** If present, overrides the fill of the visitor's drawn camp on violation. */
   styleOverride?: {
@@ -88,7 +88,7 @@ export interface RuleRecord {
 export interface SettingsRecord {
   isEditEnabled: boolean
   editText: string
-  /** Empty/null means no password required to enter edit mode. */
+  /** This password is always visible. Empty/null means no password required to enter edit mode. */
   editButtonPassword: string | null
   isDeleteJobEnabled: boolean
   /** 24h "HH:mm" format, Swedish time. */
