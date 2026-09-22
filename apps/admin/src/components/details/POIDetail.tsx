@@ -73,6 +73,20 @@ export default function POIDetail({
     );
 
   const handleDelete = () => form.runDelete(deletePoi);
+  const reset = () => {
+    setDescription(extraBaseline.description);
+    setLink(extraBaseline.link);
+    onSelectedPOIIconChange(extraBaseline.icon);
+    form.reset();
+  };
+
+  const handleCancel = () => {
+    if (form.isDirty) {
+      reset();
+    } else {
+      goBack?.();
+    }
+  };
 
   return (
     <div className="entity-detail">
@@ -142,12 +156,20 @@ export default function POIDetail({
       {form.saveError && <p className="error-message">{form.saveError}</p>}
 
       <div className="form-actions">
-        {!form.isCreate && (
-          <DeleteButton
-            message={`Delete "${entity!.name ?? "this POI"}"? This cannot be undone.`}
-            onDelete={handleDelete}
-          />
-        )}
+        <DeleteButton
+          message={`Delete "${entity?.name ?? "this POI"}"? This cannot be undone.`}
+          onDelete={handleDelete}
+          disabled={form.isCreate}
+        />
+        <wa-button
+          size="xs"
+          appearance="outlined"
+          onClick={handleCancel}
+          disabled={form.isSaving}
+          >
+          <wa-icon slot="start" name={form.isDirty ? "xmark" : "chevron-left"}></wa-icon>
+          {form.isDirty ? "Cancel" : "Back"}
+        </wa-button>
         <wa-button
           size="xs"
           appearance="outlined"

@@ -43,6 +43,7 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
   const canSave = isCreate
     ? !!typeKey.trim() && !!displayName.trim()
     : !!displayName.trim() && dirty.isDirty(currentValues);
+  const isDirty = dirty.isDirty(currentValues) || (isCreate && !!typeKey.trim());
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -76,6 +77,24 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
     await deleteStyle(style.id);
     setStyles((prev) => prev.filter((s) => s.id !== style.id));
     goBack?.();
+  };
+
+  const reset = () => {
+    setTypeKey(style?.type ?? "");
+    setDisplayName(dirty.baseline.displayName);
+    setFillColor(dirty.baseline.fillColor);
+    setBorderColor(dirty.baseline.borderColor);
+    setFillOpacity(dirty.baseline.fillOpacity);
+    setBorderWidth(dirty.baseline.borderWidth);
+    setDashPattern(dirty.baseline.dashPattern);
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      reset();
+    } else {
+      goBack?.();
+    }
   };
 
   return (
@@ -175,12 +194,15 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
       </div>
 
       <div className="form-actions">
-        {!isCreate && (
           <DeleteButton
-            message={`Delete "${style.displayName}"? Entities using it will fall back to the default style.`}
+            message={`Delete "${style?.displayName}"? Entities using it will fall back to the default style.`}
             onDelete={handleDelete}
+            disabled={isCreate}
           />
-        )}
+        <wa-button size="xs" appearance="outlined" onClick={handleCancel} disabled={isSaving}>
+          <wa-icon slot="start" name={isDirty ? "xmark" : "chevron-left"}></wa-icon>
+          {isDirty ? "Cancel" : "Back"}
+        </wa-button>
         <wa-button
           size="xs"
           appearance="outlined"

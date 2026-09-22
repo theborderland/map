@@ -1,6 +1,5 @@
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
 import { updateEntity, createEntity, deleteArea } from "../../api";
-import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
@@ -23,7 +22,6 @@ export default function AreaDetail({
   entity, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
 }: Props) {
   const [styleType, setStyleType] = useState(entity?.styleType ?? "");
-  const compatibleStyles = styles.filter((s) => !ROAD_TYPES.has(s.type));
   // Last-saved styleType — compared against current styleType to feed
   // extraFieldsDirty so the shared hook's Save button reacts to this too.
   const [styleTypeBaseline, setStyleTypeBaseline] = useState(entity?.styleType ?? "");
@@ -40,13 +38,25 @@ export default function AreaDetail({
       {
         updateEntity: (id, payload) => updateEntity(id, payload),
         // @ts-ignore
-        createEntity: (payload) => createEntity(payload), 
+        createEntity: (payload) => createEntity(payload),
         onCreate: (created) => onAfterCreate?.(created.id),
         onSaved: () => setStyleTypeBaseline(styleType),
       }
     );
 
   const handleDelete = () => form.runDelete(deleteArea);
+  const reset = () => {
+    setStyleType(styleTypeBaseline);
+    form.reset();
+  };
+
+  const handleCancel = () => {
+    if (form.isDirty) {
+      reset();
+    } else {
+      goBack?.();
+    }
+  };
 
   return (
     <div className="entity-detail">
@@ -68,7 +78,7 @@ export default function AreaDetail({
             onChange={(e: Event) => setStyleType((e.target as HTMLSelectElement).value)}
           >
             {form.isCreate && <wa-option value="">Select style…</wa-option>}
-            {compatibleStyles.map((s) => (
+            {styles.map((s) => (
               <wa-option key={s.id} value={s.type}>{s.displayName}</wa-option>
             ))}
           </wa-select>
@@ -107,12 +117,19 @@ export default function AreaDetail({
       {form.saveError && <p className="error-message">{form.saveError}</p>}
 
       <div className="form-actions">
-        {!form.isCreate && (
-          <DeleteButton
-            message={`Delete "${entity!.name ?? "this area"}"? This cannot be undone.`}
-            onDelete={handleDelete}
-          />
-        )}
+        <DeleteButton
+          message={`Delete "${entity?.name ?? "this area"}"? This cannot be undone.`}
+          onDelete={handleDelete}
+          disabled={form.isCreate}
+        />
+        <wa-button
+          size="xs"
+          appearance="outlined"
+          onClick={handleCancel}
+          disabled={form.isSaving}>
+          <wa-icon slot="start" name={form.isDirty ? "xmark" : "chevron-left"}></wa-icon>
+          {form.isDirty ? "Cancel" : "Back"}
+        </wa-button>
         <wa-button
           size="xs"
           appearance="outlined"

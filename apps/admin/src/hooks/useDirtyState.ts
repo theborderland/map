@@ -20,5 +20,5 @@ export function useDirtyState<T>(initial: T) {
   /** Call after a successful save with the just-saved values. */
   const commit = (values: T) => setBaseline(values);
 
-  return { isDirty, commit };
+  return { baseline, isDirty, commit };
 }

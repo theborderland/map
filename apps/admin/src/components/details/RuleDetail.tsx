@@ -41,6 +41,7 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
   // mode it also requires something to actually have changed.
   const canSave = !!name.trim() && !!message.trim() &&
     (isCreate || dirty.isDirty(currentValues));
+  const isDirty = dirty.isDirty(currentValues);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -74,6 +75,24 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
     await deleteRule(rule.id);
     setRules((prev) => prev.filter((r) => r.id !== rule.id));
     goBack?.();
+  };
+
+  const reset = () => {
+    setName(dirty.baseline.name);
+    setRuleType(dirty.baseline.ruleType);
+    setSeverity(dirty.baseline.severity);
+    setMessage(dirty.baseline.message);
+    setHasOverride(dirty.baseline.hasOverride);
+    setOverrideColor(dirty.baseline.overrideColor);
+    setOverrideOpacity(dirty.baseline.overrideOpacity);
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      reset();
+    } else {
+      goBack?.();
+    }
   };
 
   return (
@@ -157,12 +176,15 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
       </div>
 
       <div className="form-actions">
-        {!isCreate && (
-          <DeleteButton
-            message={`Delete "${rule.name}"? It will be detached from all entities.`}
-            onDelete={handleDelete}
-          />
-        )}
+        <DeleteButton
+          message={`Delete "${rule?.name}"? It will be detached from all entities.`}
+          onDelete={handleDelete}
+          disabled={isCreate}
+        />
+        <wa-button size="xs" appearance="outlined" onClick={handleCancel} disabled={isSaving}>
+          <wa-icon slot="start" name={isDirty ? "xmark" : "chevron-left"}></wa-icon>
+          {isDirty ? "Cancel" : "Back"}
+        </wa-button>
         <wa-button
           size="xs"
           appearance="outlined"

@@ -165,6 +165,16 @@ export function useEntityDetailForm<T extends EntityRecord>({
         goBack?.();
     };
 
+    const reset = () => {
+        setName(baseline.name);
+        setTagline(baseline.tagline);
+        setAttachedRules(baseline.rules);
+        setPendingGeometry(baseline.geometry);
+        setSaveError(null);
+        useMapEditStore.getState().setPendingGeometry(null);
+        useMapEditStore.getState().cancelEdit();
+    };
+
     return {
         isCreate,
         name, setName,
@@ -173,10 +183,12 @@ export function useEntityDetailForm<T extends EntityRecord>({
         geometry,
         setPendingGeometry,
         hasOpenDrawSession,
+        isDirty,
         canSave,
         isSaving,
         saveError,
         runSave,
         runDelete,
+        reset,
     };
 }

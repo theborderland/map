@@ -60,7 +60,7 @@ export default function LeftPanel({
     if (isEditing) return undefined;
     if (currentView.type !== "root") return undefined;
     const createView = getCreateViewForTab(currentView.tab);
-    return createView ? () => setNavStack([createView]) : undefined;
+    return createView ? () => setNavStack((prev) => [...prev, createView]) : undefined;
   };
 
   // ── Root tab content ────────────────────────────────────

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
 import { updateEntity, createEntity, deleteRoad } from "../../api";
-import { ROAD_TYPES } from "../../types";
 import DeleteButton from "./DeleteButton";
 import GeometryEditor from "./GeometryEditor";
 import RulesSelector from "./RulesSelector";
 import { useEntityDetailForm } from "../../hooks/useEntityDetailForm";
 
+const DEFAULT_ROAD_WIDTH_METER = 2;
 interface Props {
   entity?: EntityRecord;
   styles: StyleRecord[];
@@ -21,14 +21,11 @@ export default function RoadDetail({
   entity, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
 }: Props) {
   const [styleType, setStyleType] = useState(entity?.styleType ?? "");
-  const [bufferMeters, setBufferMeters] = useState(
-    entity?.bufferMeters ?? (entity?.styleType === "fireroad" ? 5 : 2)
-  );
+  const [bufferMeters, setBufferMeters] = useState(entity?.bufferMeters ?? DEFAULT_ROAD_WIDTH_METER);
   const [extraBaseline, setExtraBaseline] = useState({
     styleType: entity?.styleType ?? "",
-    bufferMeters: entity?.bufferMeters ?? (entity?.styleType === "fireroad" ? 5 : 2),
+    bufferMeters: entity?.bufferMeters,
   });
-  const compatibleStyles = styles.filter((s) => ROAD_TYPES.has(s.type));
 
   const form = useEntityDetailForm({
     entity, setEntities, bumpMapKey, goBack,
@@ -37,13 +34,6 @@ export default function RoadDetail({
       styleType !== extraBaseline.styleType ||
       bufferMeters !== extraBaseline.bufferMeters,
   });
-
-  // Auto-fill a sensible buffer default the first time a type is chosen —
-  // only in create mode, never overrides an existing road's saved value.
-  const handleStyleTypeChange = (newType: string) => {
-    setStyleType(newType);
-    if (form.isCreate) setBufferMeters(newType === "fireroad" ? 5 : 2);
-  };
 
   const handleSave = () =>
     form.runSave(
@@ -58,6 +48,19 @@ export default function RoadDetail({
     );
 
   const handleDelete = () => form.runDelete(deleteRoad);
+  const reset = () => {
+    setStyleType(extraBaseline.styleType);
+    setBufferMeters(extraBaseline.bufferMeters ?? DEFAULT_ROAD_WIDTH_METER);
+    form.reset();
+  };
+
+  const handleCancel = () => {
+    if (form.isDirty) {
+      reset();
+    } else {
+      goBack?.();
+    }
+  };
 
   return (
     <div className="entity-detail">
@@ -73,13 +76,13 @@ export default function RoadDetail({
         </div>
 
         <div className="form-field">
-          <label className="form-label">Type</label>
+          <label className="form-label">Style</label>
           <wa-select
             value={styleType}
-            onChange={(e: Event) => handleStyleTypeChange((e.target as HTMLSelectElement).value)}
+            onChange={(e: Event) => setStyleType((e.target as HTMLSelectElement).value)}
           >
-            {form.isCreate && <wa-option value="">Select type…</wa-option>}
-            {compatibleStyles.map((s) => (
+            {form.isCreate && <wa-option value="">Select style</wa-option>}
+            {styles.map((s) => (
               <wa-option key={s.id} value={s.type}>{s.displayName}</wa-option>
             ))}
           </wa-select>
@@ -130,12 +133,15 @@ export default function RoadDetail({
       {form.saveError && <p className="error-message">{form.saveError}</p>}
 
       <div className="form-actions">
-        {!form.isCreate && (
-          <DeleteButton
-            message={`Delete "${entity!.name ?? "this road"}"? This cannot be undone.`}
-            onDelete={handleDelete}
-          />
-        )}
+        <DeleteButton
+          message={`Delete "${entity?.name ?? "this road"}"? This cannot be undone.`}
+          onDelete={handleDelete}
+          disabled={form.isCreate}
+        />
+        <wa-button size="xs" appearance="outlined" onClick={handleCancel} disabled={form.isSaving}>
+          <wa-icon slot="start" name={form.isDirty ? "xmark" : "chevron-left"}></wa-icon>
+          {form.isDirty ? "Cancel" : "Back"}
+        </wa-button>
         <wa-button
           size="xs"
           appearance="outlined"
