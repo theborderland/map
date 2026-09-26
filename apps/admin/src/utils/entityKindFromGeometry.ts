@@ -1,5 +1,7 @@
-import type { Geometry } from "geojson";
+import type { Geometry, MultiLineString, MultiPoint, MultiPolygon } from "geojson";
 import type { EntityKind } from "../types";
+
+type MultiGeometry = MultiPoint | MultiLineString | MultiPolygon;
 
 /**
  * Determines which backend table (Area/Road/Poi) a geometry belongs to.
@@ -26,4 +28,14 @@ export function entityKindFromGeometry(geometry: Geometry): EntityKind {
       throw new Error("Unsupported kind");
 
   }
+}
+
+export const MULTI_TO_SINGLE_TYPES = {
+  MultiPoint: "Point",
+  MultiLineString: "LineString",
+  MultiPolygon: "Polygon",
+} as const;
+
+export function isMultiGeometry(geometry: Geometry): geometry is MultiGeometry {
+  return geometry.type in MULTI_TO_SINGLE_TYPES;
 }

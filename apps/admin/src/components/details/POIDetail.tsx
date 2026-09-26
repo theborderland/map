@@ -47,11 +47,6 @@ export default function POIDetail({
   useEffect(() => {
     const icon = entity?.icon ?? DEFAULT_POI_ICON;
     onSelectedPOIIconChange(icon);
-    setExtraBaseline({
-      description: entity?.description ?? "",
-      link: entity?.link ?? "",
-      icon,
-    });
   }, [entity?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSave = () =>

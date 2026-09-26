@@ -1,5 +1,6 @@
 import * as L from "leaflet"
 import { useEffect } from "react";
+import type { Geometry } from "geojson";
 import { useMap } from "react-leaflet";
 import type { EntityKind } from "../types";
 import type { AreaEditAction, RoadEditAction, PoiEditAction } from "../store/mapEditStore";
@@ -9,6 +10,7 @@ const BUTTONS = {
   EDIT_VERTICES: "geo-edit-vertices",
   MOVE: "geo-move",
   ADD_SHAPE: "geo-add-shape",
+  DELETE: "geo-delete",
   SAVE: "geo-save",
   CANCEL: "geo-cancel",
 };
@@ -22,6 +24,10 @@ const CREATE_LABELS: Record<EntityKind, { title: string; addIconClassName: strin
 interface Props {
   selectedEntityId: string | null;
   selectedEntityType: EntityKind | null;
+  selectedEntityGeometry: Geometry | null;
+  selectedPartIndex: number | null;
+  onDeleted: (entityRemoved: boolean) => void;
+  onDeleteError: (error: unknown) => void;
 }
 
 function clearButtons(toolbar: L.PM.PMMapToolbar) {
@@ -67,7 +73,15 @@ function startEditForKind(entityId: string, kind: EntityKind, purpose: "primary"
   }
 }
 
-function addExistingEntityButtons(toolbar: L.PM.PMMapToolbar, entityId: string, kind: EntityKind) {
+function addExistingEntityButtons(
+  toolbar: L.PM.PMMapToolbar,
+  entityId: string,
+  kind: EntityKind,
+  geometry: Geometry,
+  selectedPartIndex: number | null,
+  onDeleted: (entityRemoved: boolean) => void,
+  onDeleteError: (error: unknown) => void,
+) {
   const labels = CREATE_LABELS[kind];
 
   toolbar.createCustomControl({
@@ -98,6 +112,24 @@ function addExistingEntityButtons(toolbar: L.PM.PMMapToolbar, entityId: string, 
     toggle: false,
     onClick: () => startEditForKind(entityId, kind, "add"),
   });
+
+  toolbar.createCustomControl({
+    name: BUTTONS.DELETE,
+    block: "custom",
+    title: selectedPartIndex === null ? "Delete map entity" : "Delete selected part",
+    className: "leaflet-toolbar-icon-delete",
+    toggle: false,
+    onClick: () => {
+      const message = selectedPartIndex === null
+        ? "Delete this ENTIRE map entity? This cannot be undone."
+        : "Delete the selected map part? This cannot be undone.";
+      if (!window.confirm(message)) return;
+      void useMapEditStore.getState()
+        .deleteMapEntity(entityId, kind, geometry, selectedPartIndex)
+        .then((entityRemoved) => onDeleted(entityRemoved))
+        .catch(onDeleteError);
+    },
+  });
 }
 
 function addCreateWaitingButton(toolbar: L.PM.PMMapToolbar, kind: EntityKind) {
@@ -119,7 +151,9 @@ function addCreateWaitingButton(toolbar: L.PM.PMMapToolbar, kind: EntityKind) {
  * reads fresh), and no ad-hoc "is a create flow active" boolean to keep
  * in sync (the union's `status` field is the single source of truth).
  */
-export default function MapGeometryToolbar({ selectedEntityId, selectedEntityType }: Props) {
+export default function MapGeometryToolbar({
+  selectedEntityId, selectedEntityType, selectedEntityGeometry, selectedPartIndex, onDeleted, onDeleteError,
+}: Props) {
   const map = useMap();
   const editState = useMapEditStore((s) => s.state);
 
@@ -139,11 +173,19 @@ export default function MapGeometryToolbar({ selectedEntityId, selectedEntityTyp
     }
 
     // idle
-    if (selectedEntityId && selectedEntityType) {
-      addExistingEntityButtons(toolbar, selectedEntityId, selectedEntityType);
+    if (selectedEntityId && selectedEntityType && selectedEntityGeometry) {
+      addExistingEntityButtons(
+        toolbar,
+        selectedEntityId,
+        selectedEntityType,
+        selectedEntityGeometry,
+        selectedPartIndex,
+        onDeleted,
+        onDeleteError,
+      );
     }
     return () => clearButtons(toolbar);
-  }, [map, editState, selectedEntityId, selectedEntityType]);
+  }, [map, editState, selectedEntityId, selectedEntityType, selectedEntityGeometry, selectedPartIndex, onDeleted, onDeleteError]);
 
   return null;
 }

@@ -2,7 +2,8 @@ import { create } from "zustand";
 import type { Geometry } from "geojson";
 import type { EntityCollections } from "../db/types";
 import type { EntityKind } from "../types";
-import { updateEntity } from "../api";
+import { deleteEntity, updateEntity } from "../api";
+import { isMultiGeometry, MULTI_TO_SINGLE_TYPES } from "../utils/entityKindFromGeometry";
 
 export type AreaEditAction = "vertices" | "dragPolygon" | "drawPolygon";
 export type RoadEditAction = "editLine" | "dragLine" | "drawLine";
@@ -76,7 +77,45 @@ interface MapEditStore {
   startCreateDraw: () => void;
 
   saveGeometry: () => Promise<void>;
+  deleteMapEntity: (entityId: string, kind: EntityKind, geometry: Geometry, partIndex: number | null) => Promise<boolean>;
   cancelEdit: () => void;
+}
+
+function removeGeometryPart(geometry: Geometry, partIndex: number): Geometry | null {
+  if (!isMultiGeometry(geometry)) {
+    return geometry;
+  }
+
+  const singleType = MULTI_TO_SINGLE_TYPES[geometry.type];
+  const coordinates = geometry.coordinates.filter((_, i) => i !== partIndex);
+
+  if (!coordinates.length) {
+    return null;
+  }
+
+  if (coordinates.length === 1) {
+    return {
+      type: singleType,
+      coordinates: coordinates[0]!,
+    } as Geometry;
+  }
+
+  return {
+    type: geometry.type,
+    coordinates,
+  } as Geometry;
+}
+
+
+function removeEntityFromCollections(
+  prev: EntityCollections,
+  kind: EntityKind,
+  entityId: string,
+): EntityCollections {
+  return {
+    ...prev,
+    [kind]: prev[kind].filter((candidate) => candidate.id !== entityId),
+  };
 }
 
 export const useMapEditStore = create<MapEditStore>((set, get) => ({
@@ -142,6 +181,34 @@ export const useMapEditStore = create<MapEditStore>((set, get) => ({
       }
       return { state: { status: "idle" } };
     });
+  },
+
+  deleteMapEntity: async (entityId, kind, geometry, partIndex) => {
+    const { _setEntities, _bumpMapKey } = get();
+    if (!_setEntities) return false;
+
+    if (partIndex === null || !geometry.type.startsWith("Multi")) {
+      await deleteEntity(entityId, kind);
+      _setEntities((prev) => removeEntityFromCollections(prev, kind, entityId));
+      _bumpMapKey?.();
+      return true;
+    }
+
+    const remainingGeometry = removeGeometryPart(geometry, partIndex);
+    if (!remainingGeometry) {
+      await deleteEntity(entityId, kind);
+      _setEntities((prev) => removeEntityFromCollections(prev, kind, entityId));
+      _bumpMapKey?.();
+      return true;
+    }
+
+    const updated = await updateEntity(entityId, { geometry: remainingGeometry });
+    _setEntities((prev) => ({
+      ...prev,
+      [kind]: prev[kind].map((candidate) => candidate.id === updated.id ? updated : candidate),
+    }));
+    _bumpMapKey?.();
+    return false;
   },
 
   cancelEdit: () => {

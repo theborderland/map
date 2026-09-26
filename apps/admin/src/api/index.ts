@@ -20,6 +20,7 @@ export {
   getEntity,
   createEntity,
   updateEntity,
+  deleteEntity,
 } from "./entities"
 
 export { getAreas } from "./areas"

@@ -11,10 +11,12 @@ import type { EntityKind } from "../types";
 import MapGeometryToolbar from "./MapGeometryToolbar";
 import { useMapEditStore, isLocked, useEditingEntityId } from "../store/mapEditStore";
 import MapLayerControl from "./MapLayerControl";
-import { entityKindFromGeometry } from "../utils/entityKindFromGeometry";
+import { entityKindFromGeometry, isMultiGeometry, MULTI_TO_SINGLE_TYPES } from "../utils/entityKindFromGeometry";
+import type { LineString, Point, Polygon } from "geojson";
 
 const DEFAULT_COLOR = "#2563eb";
 const SELECTED_BORDER_COLOR = "#fff";
+const RELATED_SELECTED_BORDER_COLOR = "#b8b8b8";
 
 interface Props {
   entities: EntityCollections;
@@ -28,6 +30,7 @@ interface Props {
 
 type FeatureProperties = {
   id: string;
+  partIndex: number | null;
   kind: EntityKind;
   name: string | undefined;
   styleType: string;
@@ -47,9 +50,9 @@ type FeatureCollection = {
   features: MapFeature[];
 };
 
-const EntityToFeature = (entity: EntityRecord, kind: EntityKind): MapFeature => ({
-  type: "Feature",
-  properties: {
+function EntityToFeatures(entity: EntityRecord, kind: EntityKind): MapFeature[] {
+  const { geometry } = entity;
+  const properties = {
     id: entity.id,
     kind,
     name: entity.name,
@@ -57,9 +60,26 @@ const EntityToFeature = (entity: EntityRecord, kind: EntityKind): MapFeature => 
     geometryType: entity.geometry.type,
     icon: entity.icon,
     bufferMeters: entity.bufferMeters ?? 0,
-  },
-  geometry: entity.geometry,
-});
+  };
+
+  if (!isMultiGeometry(geometry)) {
+    return [
+      {
+        type: "Feature",
+        properties: { ...properties, partIndex: null },
+        geometry,
+      },
+    ];
+  }
+  
+  const type = MULTI_TO_SINGLE_TYPES[geometry.type];
+
+  return geometry.coordinates.map((coordinates, partIndex) => ({
+    type: "Feature",
+    properties: { ...properties, partIndex },
+    geometry: { type, coordinates } as Point | LineString | Polygon,
+  }));
+}
 
 /** Filters entities by predicate and wraps them as a FeatureCollection —
  *  removes the `{ type: "FeatureCollection", features: ... }` wrapper
@@ -71,33 +91,57 @@ function buildFeatureCollection(
 ): FeatureCollection {
   return {
     type: "FeatureCollection",
-    features: entities.filter(predicate).map((entity) => EntityToFeature(entity, kind)),
+    features: entities.filter(predicate).flatMap((entity) => EntityToFeatures(entity, kind)),
   };
 }
 
-const getStyle = (style: StyleRecord | undefined, selected: boolean) => ({
-  color: selected ? SELECTED_BORDER_COLOR : (style?.borderColor ?? DEFAULT_COLOR),
-  opacity: 1,
-  dashArray: style?.dashPattern || undefined,
-  weight: selected ? (style?.borderWidth ?? 2) + 2 : (style?.borderWidth ?? 2),
-  fillColor: style?.fillColor ?? DEFAULT_COLOR,
-  fillOpacity: style?.fillOpacity ?? 0.35,
-});
+const getStyle = (style: StyleRecord | undefined, selected: boolean, relatedSelected = false) => {
+  const borderWidth = style?.borderWidth ?? 2;
+  let color = style?.borderColor ?? DEFAULT_COLOR;
+  let weight = borderWidth;
+  let dashArray = style?.dashPattern || undefined;
+
+  if (relatedSelected) {
+    color = RELATED_SELECTED_BORDER_COLOR;
+    weight += 1;
+  }
+
+  if (selected) {
+    color = SELECTED_BORDER_COLOR;
+    weight += 1;
+    dashArray = "10"
+  }
+
+  return {
+    color,
+    opacity: 1,
+    dashArray,
+    weight,
+    fillColor: style?.fillColor ?? DEFAULT_COLOR,
+    fillOpacity: style?.fillOpacity ?? 0.35,
+  };
+};
 
 export default function MapView({
   entities, styles, mapKey, selectedEntityId, openEntity, settings, selectedPOIIcon,
 }: Props) {
-  const layerRegistry = useRef<Map<string, L.Layer>>(new Map());
   // Which styleTypes are currently hidden. New types are visible by default
   // simply by not being in this set — nothing needs to happen when a new type first appears
   const [hiddenTypes, setHiddenTypes] = useState<Set<string>>(new Set());
+  const [selectedPartSelection, setSelectedPartSelection] = useState<{
+    entityId: string;
+    partIndex: number | null;
+  } | null>(null);
+  const selectedPartIndex = selectedPartSelection?.entityId === selectedEntityId
+    ? selectedPartSelection.partIndex
+    : null;
 
   const editState = useMapEditStore((s) => s.state);
   const editingEntityId = useEditingEntityId();
   const isRoadEditMode = editState.status === "editing" && editState.kind === "road";
-  // True only while an area's whole-shape drag is active — vertex editing
-  // manipulates the real rendered layer in place and doesn't need this.
+  const isAreaVertexMode = editState.status === "editing" && editState.kind === "area" && editState.action === "vertices";
   const isAreaDragMode = editState.status === "editing" && editState.kind === "area" && editState.action === "dragPolygon";
+  const isPoiMoveMode = editState.status === "editing" && editState.kind === "poi" && editState.action === "movePOI";
 
   // Ref so onEachFeature click handlers always read the live lock state
   // rather than the stale value captured when each layer was created.
@@ -148,12 +192,18 @@ export default function MapView({
     return entityKindFromGeometry(entity.geometry);
   }, [selectedEntityId, entities]);
 
+  const selectedEntityGeometry = useMemo(
+    () => entities.flatten().find((entity) => entity.id === selectedEntityId)?.geometry ?? null,
+    [selectedEntityId, entities]
+  );
+
   const poiFeatures = useMemo(
     () => buildFeatureCollection(entities.poi, "poi", (e) => {
       if (isStyleHidden(e.styleType)) return false;
+      if (isPoiMoveMode && e.id === editingEntityId) return false;
       return true;
     }),
-    [entities, isStyleHidden]
+    [entities, isStyleHidden, isPoiMoveMode, editingEntityId]
   );
 
   // Exclude the road being edited so the buffered polygon disappears while
@@ -176,10 +226,10 @@ export default function MapView({
     () => buildFeatureCollection(entities.area, "area", (e) => {
       if (isStyleHidden(e.styleType)) return false;
       if (e.styleType === "propertyborder") return false;
-      if (isAreaDragMode && e.id === editingEntityId) return false;
+      if ((isAreaVertexMode || isAreaDragMode) && e.id === editingEntityId) return false;
       return true;
     }),
-    [entities, isStyleHidden, isAreaDragMode, editingEntityId]
+    [entities, isStyleHidden, isAreaVertexMode, isAreaDragMode, editingEntityId]
   );
 
   // Rendered property borders in a separate pane so it draws below areas and roads.
@@ -187,23 +237,24 @@ export default function MapView({
     () => buildFeatureCollection(entities.area, "area", (e) => {
       if (isStyleHidden(e.styleType)) return false;
       if (e.styleType !== "propertyborder") return false;
-      if (isAreaDragMode && e.id === editingEntityId) return false;
+      if ((isAreaVertexMode || isAreaDragMode) && e.id === editingEntityId) return false;
       return true;
     }
     ),
-    [entities, isStyleHidden, isAreaDragMode, editingEntityId]
+    [entities, isStyleHidden, isAreaVertexMode, isAreaDragMode, editingEntityId]
   );
 
   // Binds click handler and tooltip to each rendered layer.
   const onEachFeature = (feature: MapFeature, layer: L.Layer) => {
     if (!feature.properties?.id) return;
 
-    // Register every rendered layer so MapEditController can find it by entity id.
-    layerRegistry.current.set(feature.properties.id, layer);
-
     layer.on("click", (event: L.LeafletMouseEvent) => {
       if (lockedRef.current) return;
       if (event.originalEvent) L.DomEvent.stopPropagation(event);
+      setSelectedPartSelection({
+        entityId: feature.properties.id,
+        partIndex: feature.properties.partIndex ?? null,
+      });
       openEntity(feature.properties.id);
     });
 
@@ -224,8 +275,13 @@ export default function MapView({
   const styleFeature = (feature: MapFeature) => {
     const entity = entities[feature.properties.kind].find((e) => e.id === feature.properties.id);
     const style = entity ? styleByType.get(entity.styleType) : undefined;
-    const selected = selectedEntityId === feature.properties.id;
-    return getStyle(style, selected);
+    const selected = selectedEntityId === feature.properties.id &&
+      (feature.properties.partIndex === null || feature.properties.partIndex === selectedPartIndex);
+    const relatedSelected = selectedEntityId === feature.properties.id &&
+      feature.properties.partIndex !== null &&
+      selectedPartIndex !== null &&
+      feature.properties.partIndex !== selectedPartIndex;
+    return getStyle(style, selected, relatedSelected);
   };
 
   // mapKey included so layers remount after a geometry save.
@@ -245,6 +301,16 @@ export default function MapView({
         <MapGeometryToolbar
           selectedEntityId={selectedEntityId}
           selectedEntityType={selectedEntityType}
+          selectedEntityGeometry={selectedEntityGeometry}
+          selectedPartIndex={selectedPartIndex}
+          onDeleted={(entityRemoved) => {
+            if (entityRemoved) openEntity(null);
+            else setSelectedPartSelection(null);
+          }}
+          onDeleteError={(error) => {
+            console.error("Could not delete map geometry", error);
+            window.alert("Could not delete the map geometry.");
+          }}
         />
         <TileLayer
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
@@ -292,7 +358,6 @@ export default function MapView({
           other pane. */}
         <Pane name="edit-overlay" style={{ zIndex: 650 }} />
         <MapEditController
-          layerRegistry={layerRegistry}
           entities={entities}
           settings={settings}
           selectedPOIIcon={selectedPOIIcon}
@@ -300,6 +365,7 @@ export default function MapView({
         <MapClickHandler
           onClearSelection={() => {
             if (lockedRef.current) return;
+            setSelectedPartSelection(null);
             openEntity(null);
           }}
         />

@@ -21,7 +21,6 @@ type GeomanLayer = L.Layer & {
 type GeomanCreateEvent = { layer: L.Layer & { toGeoJSON: () => GeoJSON.Feature } };
 
 interface Props {
-  layerRegistry: React.RefObject<Map<string, L.Layer>>;
   entities: EntityCollections;
   settings: SettingsRecord;
   selectedPOIIcon: string;
@@ -30,7 +29,8 @@ interface Props {
 // ── Shared geometry helpers ──────────────────────────────────
 
 function getSubLayers(layer: L.Layer): L.Layer[] {
-  return "getLayers" in layer ? (layer as L.GeoJSON).getLayers() : [layer];
+  if (!("getLayers" in layer)) return [layer];
+  return (layer as L.LayerGroup).getLayers().flatMap((child) => getSubLayers(child));
 }
 
 // Reads current polygon geometry from a layer after vertex editing.
@@ -53,26 +53,6 @@ function collectLineGeometry(layer: L.Layer): Geometry | null {
     type: "MultiLineString",
     coordinates: sub.map((l) => ((l as GeomanLayer).toGeoJSON().geometry as GeoJSON.LineString).coordinates),
   };
-}
-
-// Restores a Leaflet layer to its original geometry.
-// Called in effect cleanup for both save and cancel paths. On save,
-// bumpMapKey() immediately remounts the layer with the correct saved geometry,
-// so the brief restore is invisible to the user.
-function restoreLayer(layer: L.Layer, original: Geometry): void {
-  if ("clearLayers" in layer) {
-    const gl = layer as L.GeoJSON;
-    gl.clearLayers();
-    gl.addData(original as GeoJSON.GeoJsonObject);
-    return;
-  }
-  const restored = L.geoJSON(original);
-  const rl = restored.getLayers()[0] as L.Path & { getLatLngs?: () => unknown };
-  const path = layer as L.Path & { setLatLngs?: (ll: unknown) => void };
-  if (rl?.getLatLngs && path.setLatLngs) {
-    path.setLatLngs(rl.getLatLngs());
-    path.redraw();
-  }
 }
 
 // Merges a newly drawn polygon into the area's existing geometry,
@@ -217,7 +197,7 @@ function finalizeDrawSession({
   resetDraftAction();
 }
 
-export default function MapEditController({ layerRegistry, entities, settings, selectedPOIIcon }: Props) {
+export default function MapEditController({ entities, settings, selectedPOIIcon }: Props) {
   const map = useMap();
   const editState = useMapEditStore((s) => s.state);
 
@@ -340,22 +320,10 @@ export default function MapEditController({ layerRegistry, entities, settings, s
 
     const strategy = STRATEGIES[kind];
 
-    // Vertex editing (area) operates on the real rendered layer in place —
-    // Geoman already adds vertex handles per ring/part of a compound Multi*
-    // layer, so no synthetic layer is needed there. Roads always use a thin
-    // source-line preview instead of their buffered polygon, for both
-    // actions. Drag mode always uses a synthetic "parts" layer group so
-    // each constituent shape of a Multi* geometry can be dragged
-    // independently — MapView hides the real rendered layer while this is
-    // active (see isRoadEditMode / isAreaDragMode there).
-    const usesTempLayer = kind === "road" || isDrag;
-
-    const targetLayer: L.Layer | undefined = isDrag
-      ? buildPartsLayerGroup(entity.geometry, EDIT_PREVIEW_STYLE).addTo(map)
-      : usesTempLayer
-        ? L.geoJSON(entity.geometry, { style: () => EDIT_PREVIEW_STYLE, pane: "edit-overlay" }).addTo(map)
-        : layerRegistry.current.get(entityId);
-    if (!targetLayer) return;
+    // Always edit a dedicated layer group with one editable Leaflet layer per
+    // geometry part. A compound MultiPolygon/MultiLineString layer does not
+    // expose its coordinate arrays as independently editable Geoman layers.
+    const targetLayer = buildPartsLayerGroup(entity.geometry, EDIT_PREVIEW_STYLE).addTo(map);
 
     // Bring the layer(s) being edited to the top of the stack so they're
     // always clickable/draggable, even if another shape was rendered on
@@ -366,7 +334,6 @@ export default function MapEditController({ layerRegistry, entities, settings, s
       }
     });
 
-    const original = entity.geometry;
     const handleChange = () => {
       useMapEditStore.getState().setPendingGeometry(strategy.collectGeometry(targetLayer));
     };
@@ -390,8 +357,7 @@ export default function MapEditController({ layerRegistry, entities, settings, s
         l.off("pm:edit", handleChange);
         l.off("pm:dragend", handleChange);
       });
-      if (usesTempLayer) map.removeLayer(targetLayer);
-      else restoreLayer(targetLayer, original);
+      map.removeLayer(targetLayer);
     };
   }, [existingEdit?.kind, existingEdit?.entityId, existingEdit?.isDrag, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -445,17 +411,19 @@ export default function MapEditController({ layerRegistry, entities, settings, s
   }, [drawSession?.kind, drawSession?.entityId, map, selectedPOIIcon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── POI: move existing point(s) — kept separate ─────────────
-  // Fundamentally different from the effects above: drags the marker(s)
-  // already on the map directly (no temp layer, no merge), and restores
-  // original positions per-marker on cleanup.
   useEffect(() => {
     if (!moveSession) return;
     const { entityId } = moveSession;
-    const layer = layerRegistry.current.get(entityId);
     const entity = entities.poi.find((e) => e.id === entityId);
-    if (!layer || !entity) return;
+    if (!entity) return;
 
-    const originalPositions = new Map<L.Layer, L.LatLng>();
+    const layer = L.geoJSON(entity.geometry, {
+      pointToLayer: (_feature, latlng) => L.marker(latlng, {
+        icon: createPOIIcon(entity.icon ?? selectedPOIIcon),
+        pane: "edit-overlay",
+      }),
+    }).addTo(map);
+
     const handleDragEnd = () => {
       const subLayers = getSubLayers(layer);
       const coords = subLayers.map((l) => {
@@ -470,7 +438,6 @@ export default function MapEditController({ layerRegistry, entities, settings, s
     };
 
     getSubLayers(layer).forEach((l) => {
-      originalPositions.set(l, (l as L.Marker).getLatLng());
       (l as GeomanLayer).pm.enableLayerDrag();
       l.on("pm:dragend", handleDragEnd);
     });
@@ -479,13 +446,10 @@ export default function MapEditController({ layerRegistry, entities, settings, s
       getSubLayers(layer).forEach((l) => {
         try { (l as GeomanLayer).pm.disableLayerDrag(); } catch { /* no-op */ }
         l.off("pm:dragend", handleDragEnd);
-        // Restore original position on cancel. On save, bumpMapKey()
-        // remounts the layer so this restore is immediately overridden.
-        const orig = originalPositions.get(l);
-        if (orig) (l as L.Marker).setLatLng(orig);
       });
+      map.removeLayer(layer);
     };
-  }, [moveSession?.entityId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [moveSession?.entityId, map]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
