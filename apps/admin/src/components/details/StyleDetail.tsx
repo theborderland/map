@@ -169,7 +169,7 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
         <div className="form-field">
           <label className="form-label">
             Dash pattern
-            <span className="form-hint"> — e.g. 5,5 or empty for solid</span>
+            <span className="form-hint"> — e.g. 5,5 for small dashed or empty for solid</span>
           </label>
           <wa-input
             value={dashPattern}

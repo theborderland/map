@@ -1,4 +1,5 @@
 import * as Turf from '@turf/turf';
+import type * as L from 'leaflet';
 import { Severity, Rule } from '../index';
 import { MapEntity } from '../../entities';
 
@@ -7,7 +8,9 @@ export const isOverlappingOrContained = (
     severity: Severity, 
     shortMsg: string, 
     message: string,
-    skipFor: (entity: MapEntity) => boolean = () => false
+    skipFor: (entity: MapEntity) => boolean = () => false,
+    styleOverride?: L.PathOptions,
+    isApiRule: boolean = false,
 ) => new Rule(severity, shortMsg, message, (entity) => {
     if (skipFor(entity)) {
         return { triggered: false };
@@ -40,4 +43,4 @@ export const isOverlappingOrContained = (
     });
 
     return { triggered: overlap };
-});
+}, styleOverride, isApiRule);

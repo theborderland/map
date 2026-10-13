@@ -296,6 +296,7 @@ export default function MapView({
         // @ts-ignore
         center={[57.6226, 14.9276]}
         zoom={15}
+        maxZoom={21}
         style={{ height: "100%", width: "100%" }}
       >
         <MapGeometryToolbar
@@ -316,6 +317,8 @@ export default function MapView({
           url="http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
           // @ts-ignore
           subdomains={["mt0", "mt1", "mt2", "mt3"]}
+          maxZoom={21}
+          maxNativeZoom={20}
         />
         <Pane name="property-borders">
           <GeoJSON

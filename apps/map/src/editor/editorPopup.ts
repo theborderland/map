@@ -88,12 +88,12 @@ export class EditorPopup {
 
             for (const rule of sortedRules) {
                 if (rule.severity >= 3) {
-                    ruleMessages.innerHTML += `<div class="error">${' ' + rule.message}</div>`;
-                } else if (!entity.suppressWarnings) {
+                    ruleMessages.innerHTML += `<div class="error">${' ' + DOMPurify.sanitize(rule.message)}</div>`;
+                } else if (!entity.suppressWarnings || rule.isApiRule) {
                     if (rule.severity >= 2) {
-                        ruleMessages.innerHTML += `<div class="warning">${' ' + rule.message}</div>`;
+                        ruleMessages.innerHTML += `<div class="warning">${' ' + DOMPurify.sanitize(rule.message)}</div>`;
                     } else {
-                        ruleMessages.innerHTML += `<div class="info">${' ' + rule.message}</div>`;
+                        ruleMessages.innerHTML += `<div class="info">${' ' + DOMPurify.sanitize(rule.message)}</div>`;
                     }
                 }
             }

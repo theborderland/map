@@ -73,6 +73,11 @@ function addLabelToFeature(
     }).addTo(layerGroup);
 }
 
+/** Escapes text for use inside svg markup, since labels are API-provided and set through innerHTML. */
+function escapeXml(text: string): string {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function createSVGTextElement(text: string, font: string, color: string, rotation: number) {
     // creates and returns svg element
     // If using a custom font like bradleyHand you need to load them in index.css first.
@@ -84,7 +89,7 @@ function createSVGTextElement(text: string, font: string, color: string, rotatio
     let innerText: string = '';
     const splitString = text.split('\n');
     for (let split of splitString) {
-        innerText += `<tspan x="0" dy=".8em">${split}</tspan>`; // a line of text
+        innerText += `<tspan x="0" dy=".8em">${escapeXml(split)}</tspan>`; // a line of text
     }
     elem.innerHTML = `<text transform="rotate(${rotation})" id="text" fill="${color}" font-family="${font}" x="0" y="0" text-anchor="middle" fill="white" >${innerText}</text>`;
 

@@ -156,16 +156,19 @@ export class MapEntity implements EntityDTO {
 
         if (mode == 'severity') {
             let severity = this.severityOfRulesBroken;
+            let style: L.PathOptions;
             if (severity >= 3) {
-                //@ts-ignore
-                this.layer.setStyle(LayerStyles.Danger);
+                style = LayerStyles.Danger;
             } else if (severity == 2 && !this.suppressWarnings) {
-                //@ts-ignore
-                this.layer.setStyle(LayerStyles.Warning);
+                style = LayerStyles.Warning;
             } else {
-                //@ts-ignore
-                this.layer.setStyle(this._getDefaultLayerStyle());
+                style = this._getDefaultLayerStyle();
             }
+            const ruleStyle = this.getAllTriggeredRules()
+                .filter((rule) => rule.isApiRule && rule.styleOverride)
+                .sort((a, b) => b.severity - a.severity)[0]?.styleOverride;
+            //@ts-ignore
+            this.layer.setStyle(ruleStyle ? { ...style, ...ruleStyle } : style);
         } else if (mode == 'sound') {
             let color = Colors.Green;
             if (!this.amplifiedSound) color = Colors.LightGrey;

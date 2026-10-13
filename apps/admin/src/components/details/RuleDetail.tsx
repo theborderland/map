@@ -124,9 +124,9 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
             value={severity}
             onChange={(e: Event) => setSeverity((e.target as HTMLSelectElement).value as RuleRecord["severity"])}
           >
-            <wa-option value="low">Low</wa-option>
-            <wa-option value="medium">Medium</wa-option>
-            <wa-option value="high">High</wa-option>
+            <wa-option value="low">ℹ️ Low</wa-option>
+            <wa-option value="medium">⚠️ Medium</wa-option>
+            <wa-option value="high">🚫 High</wa-option>
           </wa-select>
         </div>
 

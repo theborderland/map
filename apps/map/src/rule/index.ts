@@ -6,6 +6,8 @@ import { ClusterCache } from '../entities/ClusterCache';
 import * as Rules from './rules';
 import { FIRE_BUFFER_IN_METER } from '../../SETTINGS';
 import { soundLayers, soundSpotType } from '../utils/soundData';
+import { buildApiRules } from './apiRules';
+import type { ApiRuleZone } from '../loaders/loadApiLayers';
 
 export const clusterCache = new ClusterCache(); // instantiate here and use it as a global cache when calculating clusters
 export const ruler = new CheapRuler(57.5, 'meters');
@@ -29,6 +31,8 @@ export class Rule {
     public shouldShowFireBuffer: boolean;
     public message: string;
     public shortMessage: string;
+    public styleOverride?: L.PathOptions;
+    public readonly isApiRule: boolean;
 
     public get severity(): Severity {
         return this._triggered ? this._severity : Severity.None;
@@ -46,17 +50,30 @@ export class Rule {
         if (result.message) this.message = result.message;
     }
 
-    constructor(severity: Severity, shortMessage: string, message: string, callback: Rule['_callback']) {
+    constructor(
+        severity: Severity,
+        shortMessage: string,
+        message: string,
+        callback: Rule['_callback'],
+        styleOverride?: L.PathOptions,
+        isApiRule: boolean = false,
+    ) {
         this._severity = severity;
         this._triggered = false;
         this._callback = callback;
         this.shortMessage = shortMessage;
         this.message = message;
+        this.styleOverride = styleOverride;
+        this.isApiRule = isApiRule;
     }
 }
 
 /** Utility function to generate a rule generator function to be used with the editor */
-export function generateRulesForEditor(groups: any, placementLayers: any): () => Array<Rule> {
+export function generateRulesForEditor(
+    groups: any,
+    placementLayers: any,
+    apiRuleZones: ApiRuleZone[] = [],
+): () => Array<Rule> {
     return () => [
         Rules.isBiggerThanNeeded(),
         Rules.isCalculatedAreaTooBig(),
@@ -87,29 +104,11 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Overlapping other area!',
             'Your area is overlapping someone elses, plz fix <3',
         ),
-        Rules.isOverlappingOrContained(
-            groups.slope,
-            Severity.Low,
-            'Slope warning!',
-            'Your area is in slopey or uneven terrain, make sure to check the slope map layer to make sure that you know what you are doing :)',
-        ),
-        Rules.isOverlappingOrContained(
-            groups.fireroad,
-            Severity.High,
-            'Touching fireroad!',
-            'Plz move this area away from the fire road!',
-        ),
         Rules.isNotInsideBoundaries(
             groups.propertyborder,
             Severity.High,
             'Outside border!',
             'You have placed yourself outside our land, please fix that <3',
-        ),
-        Rules.isOverlappingOrContained(
-            groups.hiddenforbidden,
-            Severity.High,
-            'Inside forbidden zone!',
-            'You are inside a zone that can not be used this year.',
         ),
         Rules.isBufferOverlappingRecursive(
             placementLayers,
@@ -125,29 +124,6 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Outside placement areas.',
             'You are outside the main placement area. Make sure you know what you are doing.',
         ),
-        Rules.isOverlappingOrContained(
-            groups.publicplease,
-            Severity.Low,
-            'Close to fire road',
-            'You are adjacent to a fire road, please use this space for public offerings and not just for sleeping',
-            (entity) => {
-                // skip this rule for public offering, sound camps and art, since they are public offerings
-                return  ['public-offering', 'sound-camp', 'art'].includes(entity.areaType);
-            }
-        ),
-        Rules.isOverlappingOrContained(
-            groups.minorroad,
-            Severity.Medium,
-            'Blocking a path',
-            'You are possibly blocking a path for walking around (the thin yellow lines). Keep it clean if possible or plan accordingly!',
-        ),
-        // Special notification when close to sanctuary
-        Rules.isOverlappingOrContained(
-            groups.closetosanctuary,
-            Severity.Low,
-            'Close to the sanctuary',
-            'This area is in the viscinity of the sanctuary, please be mindful of what energy your camp is releasing and how it may effect the santuarcy',
-        ),
         Rules.isInLowPowerArea(
             groups.lowpowerarea,
             Severity.Low,
@@ -160,6 +136,8 @@ export function generateRulesForEditor(groups: any, placementLayers: any): () =>
             'Water protection area',
             'You are placed near water (lake or drinking water well). NO cars/RVs, pee pee, poo poo, soap or greywater here.',
         ),
+        // Rules for roads, areas and POIs (fire roads, borders, slopes, water, ...) are defined in the API
+        ...buildApiRules(apiRuleZones),
     ];
 }
 

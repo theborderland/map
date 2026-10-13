@@ -632,7 +632,8 @@ export class Editor {
         this._currentRevisions = {};
 
         // Generate rules that the entities must follow
-        const rules = generateRulesForEditor(this._groups, this._placementLayers);
+        // apiRuleZones is set on the map by loadApiLayers (rules defined in the API)
+        const rules = generateRulesForEditor(this._groups, this._placementLayers, (map as any).apiRuleZones);
 
         // Keep track of the entities repository
         this._repository = new MapEntityRepository(rules);

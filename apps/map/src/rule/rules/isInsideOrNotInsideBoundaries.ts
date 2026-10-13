@@ -22,6 +22,10 @@ const checkEntityBoundaries = (
     message: string,
     shouldBeInside: boolean
 ) => new Rule(severity, shortMsg, message, (entity) => {
+    if (!layerGroup) {
+        return { triggered: false };
+    }
+
     const layers = layerGroup.getLayers();
     const entityGeoJson = entity.toGeoJSON();
     
