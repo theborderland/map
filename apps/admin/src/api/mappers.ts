@@ -17,7 +17,7 @@ export interface AreaResponseDto {
 }
 
 export interface RoadResponseDto extends AreaResponseDto {
-  bufferMeters: number;
+  widthMeters: number;
 }
 
 export interface PoiResponseDto {
@@ -50,7 +50,7 @@ export function areaDtoToEntity(dto: AreaResponseDto): EntityRecord {
 }
 
 export function roadDtoToEntity(dto: RoadResponseDto): EntityRecord {
-  return { ...areaDtoToEntity(dto), bufferMeters: dto.bufferMeters };
+  return { ...areaDtoToEntity(dto), widthMeters: dto.widthMeters };
 }
 
 export function poiDtoToEntity(dto: PoiResponseDto): EntityRecord {

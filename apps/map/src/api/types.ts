@@ -48,7 +48,7 @@ interface BaseEntityDto {
 export interface AreaResponseDto extends BaseEntityDto {}
 
 export interface RoadResponseDto extends BaseEntityDto {
-    bufferMeters?: number;
+    widthMeters?: number;
 }
 
 export interface PoiResponseDto extends BaseEntityDto {

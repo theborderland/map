@@ -40,8 +40,8 @@ export interface EntityRecord {
   /** Icon filename without extension, e.g. 'toilet' → /icons/toilet.png */
   icon?: string;
   link?: string;
-  /** Total road width in metres. Buffer applied = bufferMeters / 2 on each side. Only used for road entities. */
-  bufferMeters?: number;
+  /** Total road width in metres. Buffer applied = widthMeters / 2 on each side. Only used for road entities. */
+  widthMeters?: number;
   geometry: Geometry;
   rules: AttachedRule[];
   createdAt: string;

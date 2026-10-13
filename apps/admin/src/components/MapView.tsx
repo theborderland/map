@@ -36,7 +36,7 @@ type FeatureProperties = {
   styleType: string;
   geometryType: string;
   icon: string | undefined;
-  bufferMeters: number;
+  widthMeters: number;
 };
 
 type MapFeature = {
@@ -59,7 +59,7 @@ function EntityToFeatures(entity: EntityRecord, kind: EntityKind): MapFeature[] 
     styleType: entity.styleType,
     geometryType: entity.geometry.type,
     icon: entity.icon,
-    bufferMeters: entity.bufferMeters ?? 0,
+    widthMeters: entity.widthMeters ?? 0,
   };
 
   if (!isMultiGeometry(geometry)) {
@@ -216,9 +216,9 @@ export default function MapView({
     });
     return {
       type: "FeatureCollection" as const,
-      // bufferMeters is total road width — halve it since turf.buffer adds
+      // widthMeters is total road width — halve it since turf.buffer adds
       // the given distance on each side of the line.
-      features: base.features.map((f) => buffer(f, f.properties.bufferMeters / 2, { units: "meters" }) as MapFeature),
+      features: base.features.map((f) => buffer(f, f.properties.widthMeters / 2, { units: "meters" }) as MapFeature),
     };
   }, [entities, isStyleHidden, isRoadEditMode, editingEntityId]);
 

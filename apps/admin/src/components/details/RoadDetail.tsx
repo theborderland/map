@@ -21,10 +21,10 @@ export default function RoadDetail({
   entity, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
 }: Props) {
   const [styleType, setStyleType] = useState(entity?.styleType ?? "");
-  const [bufferMeters, setBufferMeters] = useState(entity?.bufferMeters ?? DEFAULT_ROAD_WIDTH_METER);
+  const [widthMeters, setWidthMeters] = useState(entity?.widthMeters ?? DEFAULT_ROAD_WIDTH_METER);
   const [extraBaseline, setExtraBaseline] = useState({
     styleType: entity?.styleType ?? "",
-    bufferMeters: entity?.bufferMeters,
+    widthMeters: entity?.widthMeters,
   });
 
   const form = useEntityDetailForm({
@@ -32,25 +32,25 @@ export default function RoadDetail({
     extraFieldsValid: !!styleType,
     extraFieldsDirty:
       styleType !== extraBaseline.styleType ||
-      bufferMeters !== extraBaseline.bufferMeters,
+      widthMeters !== extraBaseline.widthMeters,
   });
 
   const handleSave = () =>
     form.runSave(
-      () => ({ styleType, bufferMeters }),
+      () => ({ styleType, widthMeters: widthMeters }),
       {
         updateEntity: (id, payload) => updateEntity(id, payload),
         // @ts-ignore
         createEntity: (payload) => createEntity(payload),
         onCreate: (created) => onAfterCreate?.(created.id),
-        onSaved: () => setExtraBaseline({ styleType, bufferMeters }),
+        onSaved: () => setExtraBaseline({ styleType, widthMeters }),
       }
     );
 
   const handleDelete = () => form.runDelete(deleteRoad);
   const reset = () => {
     setStyleType(extraBaseline.styleType);
-    setBufferMeters(extraBaseline.bufferMeters ?? DEFAULT_ROAD_WIDTH_METER);
+    setWidthMeters(extraBaseline.widthMeters ?? DEFAULT_ROAD_WIDTH_METER);
     form.reset();
   };
 
@@ -101,11 +101,11 @@ export default function RoadDetail({
           <label className="form-label">Road width (metres)</label>
           <wa-input
             type="number"
-            value={bufferMeters.toString()}
+            value={widthMeters.toString()}
             min={1}
             max={100}
             step={1}
-            onInput={(e: Event) => setBufferMeters(Number((e.target as HTMLInputElement).value))}
+            onInput={(e: Event) => setWidthMeters(Number((e.target as HTMLInputElement).value))}
           />
         </div>
 

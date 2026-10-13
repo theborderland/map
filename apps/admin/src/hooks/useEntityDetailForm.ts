@@ -39,7 +39,7 @@ const sameGeometry = (a: Geometry | null, b: Geometry | null) => JSON.stringify(
  *    changes, and re-disables immediately after a successful save
  *  - wiring handleSave/handleDelete through useMapEditStore + the DB
  *
- * Callers provide their own extra fields (styleType, bufferMeters, icon, …)
+ * Callers provide their own extra fields (styleType, widthMeters, icon, …)
  * and pass a payload-building function into runSave, plus `extraFieldsDirty`
  * so their own fields participate in the dirty check.
  */
@@ -98,7 +98,7 @@ export function useEntityDetailForm<T extends EntityRecord>({
     /**
      * Runs the save flow. `buildPayload` receives the resolved geometry and
      * must return the fields specific to this entity kind (styleType,
-     * bufferMeters, icon, description, link, …) — name/tagline/rules/geometry
+     * widthMeters, icon, description, link, …) — name/tagline/rules/geometry
      * are already included in the base payload merged in here.
      *
      * On a successful update (not create), this hook's own baseline resets

@@ -7,7 +7,7 @@ export interface RoadWriteFields {
   styleType: string;
   name: string;
   tagline?: string;
-  bufferMeters: number;
+  widthMeters: number;
   geometry: Geometry;
   rules: AttachedRule[];
 }
@@ -17,7 +17,7 @@ function toRequestBody(fields: RoadWriteFields) {
     styleType: fields.styleType,
     name: fields.name,
     tagline: fields.tagline,
-    bufferMeters: fields.bufferMeters,
+    widthMeters: fields.widthMeters,
     geometry: fields.geometry,
     rules: fields.rules.map((r): AttachedRuleDto => ({ ruleId: r.ruleId, distanceMeters: r.distanceMeters })),
   };
@@ -58,7 +58,7 @@ export async function updateRoad(id: string, changes: Partial<RoadWriteFields>):
     styleType: changes.styleType ?? current.styleType,
     name: changes.name ?? current.name ?? "",
     tagline: changes.tagline ?? current.tagline,
-    bufferMeters: changes.bufferMeters ?? current.bufferMeters ?? 0,
+    widthMeters: changes.widthMeters ?? current.widthMeters ?? 0,
     geometry: changes.geometry ?? current.geometry,
     rules: changes.rules ?? current.rules,
   };

@@ -65,7 +65,7 @@ function isInvisible(style: L.PathOptions): boolean {
 
 /**
  * Decides which geometry a rule is checked against: the geometry as drawn (roads already buffered
- * by bufferMeters), with distanceMeters added on top of that. No distance means the drawn geometry itself.
+ * by widthMeters), with distanceMeters added on top of that. No distance means the drawn geometry itself.
  */
 function getZoneFeature(drawn: GeoJSON.Feature, distanceMeters: number | null | undefined): GeoJSON.Feature {
     if (!distanceMeters || distanceMeters <= 0) return drawn;
@@ -130,11 +130,11 @@ export async function loadApiLayers(map: MapWithGroups, isCleanAndQuietMode: boo
     };
 
     // Areas and roads are drawn as polygon layers, one group per style type.
-    const polygonSources: Array<{ dto: AreaResponseDto | RoadResponseDto; bufferMeters: number }> = [
-        ...data.areas.map((dto) => ({ dto, bufferMeters: 0 })),
-        ...data.roads.map((dto) => ({ dto, bufferMeters: dto.bufferMeters ?? 0 })),
+    const polygonSources: Array<{ dto: AreaResponseDto | RoadResponseDto; widthMeters: number }> = [
+        ...data.areas.map((dto) => ({ dto, widthMeters: 0 })),
+        ...data.roads.map((dto) => ({ dto, widthMeters: dto.widthMeters ?? 0 })),
     ];
-    for (const { dto, bufferMeters } of polygonSources) {
+    for (const { dto, widthMeters } of polygonSources) {
         const geometry = parseGeometry(dto.geometry);
         if (!geometry) continue; // needs coordinates to be added, same as before
 
@@ -144,7 +144,9 @@ export async function loadApiLayers(map: MapWithGroups, isCleanAndQuietMode: boo
             geometry,
             properties: { id: dto.id, name: dto.name, tagline: dto.tagline, type },
         };
-        const drawn = bufferMeters > 0 ? bufferFeature(raw, bufferMeters) : raw;
+        
+        // bufferMeters from API has the total width, so we need to divide it by 2.
+        const drawn = widthMeters > 0 ? bufferFeature(raw, widthMeters / 2) : raw;
 
         attachRules(dto.rules, drawn, `${type} "${dto.name}"`);
 

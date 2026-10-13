@@ -46,7 +46,7 @@ export async function createEntity(payload: EntityPayload): Promise<EntityRecord
         styleType: payload.styleType,
         name: payload.name ?? "",
         tagline: payload.tagline,
-        bufferMeters: payload.bufferMeters ?? 0,
+        widthMeters: payload.widthMeters ?? 0,
         geometry: payload.geometry,
         rules: payload.rules,
       });
