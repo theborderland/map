@@ -19,7 +19,7 @@ export default function AreasTab({
 
   return (
     <EntityList
-      subtitle="Manage geographic areas and polygons on the map."
+      subtitle="Grouped by style"
       entities={areaEntities}
       styles={styles}
       openGroup={(styleType) => openGroup("Areas", styleType)}

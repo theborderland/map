@@ -19,7 +19,7 @@ export default function RoadsTab({
 
   return (
     <EntityList
-      subtitle="Browse and inspect road features for routing and access."
+      subtitle="Grouped by style"
       entities={roadEntities}
       styles={styles}
       openGroup={(styleType) => openGroup("Roads", styleType)}

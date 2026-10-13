@@ -72,6 +72,7 @@ export default function DeletedCampsTab() {
                 <div className="deleted-camp-heading-actions">
                   <span className="deleted-camp-id">#{camp.id}</span>
                   <wa-button
+                    id={`restore-${camp.id}`}
                     size="xs"
                     appearance="outlined"
                     aria-label={`Restore ${camp.name || camp.id}`}
@@ -81,6 +82,9 @@ export default function DeletedCampsTab() {
                   >
                     <wa-icon name="rotate-left"></wa-icon>
                   </wa-button>
+                  <wa-tooltip placement="bottom" for={`restore-${camp.id}`}>
+                    Restore
+                  </wa-tooltip>
                 </div>
               </div>
               <p className="deleted-camp-date">Deleted {formatDate(camp.timeStamp)}</p>

@@ -13,6 +13,15 @@ interface Props {
   onAfterCreate?: (styleId: string) => void;
 }
 
+function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
 export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }: Props) {
   const isCreate = !style;
 
@@ -26,6 +35,7 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
   const [borderWidth, setBorderWidth] = useState(style?.borderWidth ?? 2);
   const [dashPattern, setDashPattern] = useState(style?.dashPattern ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const dirty = useDirtyState({
     displayName: style?.displayName ?? "",
@@ -48,9 +58,10 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
   const handleSave = async () => {
     if (!canSave) return;
     setIsSaving(true);
+    setSaveError(null);
 
     const payload = {
-      type: typeKey.trim().replace(/\s+/g, ""),   // Slugify: strip whitespace from type key.
+      type: slugify(typeKey),
       displayName: displayName.trim(),
       fillColor,
       borderColor,
@@ -59,17 +70,21 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
       dashPattern,
     };
 
-    if (style) {
-      const updated = await updateStyle(style.id, payload);
-      setStyles((prev) => prev.map((s) => s.id === updated.id ? updated : s));
-      dirty.commit(currentValues);
-    } else {
-      const created = await createStyle(payload);
-      setStyles((prev) => [...prev, created]);
-      onAfterCreate?.(created.id);
+    try {
+      if (style) {
+        const updated = await updateStyle(style.id, payload);
+        setStyles((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+        dirty.commit(currentValues);
+      } else {
+        const created = await createStyle(payload);
+        setStyles((prev) => [...prev, created]);
+        onAfterCreate?.(created.id);
+      }
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "Could not save style.");
+    } finally {
+      setIsSaving(false);
     }
-
-    setIsSaving(false);
   };
 
   const handleDelete = async () => {
@@ -101,6 +116,20 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
     <div className="style-detail">
       <div className="form-fields">
         <div className="form-field">
+          <label className="form-label">Display name</label>
+          <wa-input
+            value={displayName}
+            placeholder="e.g. Neighbourhood"
+            onInput={(e: Event) => {
+              const value = (e.target as HTMLInputElement).value;
+              setDisplayName(value);
+              if (isCreate) setTypeKey(slugify(value));
+              setSaveError(null);
+            }}
+          />
+        </div>
+
+        <div className="form-field">
           <label className="form-label">
             Type key
             {isCreate
@@ -113,17 +142,11 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
             disabled={!isCreate || undefined}
             style={!isCreate ? { opacity: 0.5 } : undefined}
             onInput={(e: Event) => {
-              if (isCreate) setTypeKey((e.target as HTMLInputElement).value);
+              if (isCreate) {
+                setTypeKey((e.target as HTMLInputElement).value);
+                setSaveError(null);
+              }
             }}
-          />
-        </div>
-
-        <div className="form-field">
-          <label className="form-label">Display name</label>
-          <wa-input
-            value={displayName}
-            placeholder="e.g. Neighbourhood"
-            onInput={(e: Event) => setDisplayName((e.target as HTMLInputElement).value)}
           />
         </div>
 
@@ -193,12 +216,14 @@ export default function StyleDetail({ style, setStyles, goBack, onAfterCreate }:
         </div>
       </div>
 
+      {saveError && <p className="error-message">{saveError}</p>}
+
       <div className="form-actions">
-          <DeleteButton
-            message={`Delete "${style?.displayName}"? Entities using it will fall back to the default style.`}
-            onDelete={handleDelete}
-            disabled={isCreate}
-          />
+        <DeleteButton
+          message={`Delete "${style?.displayName}"? Entities using it will fall back to the default style.`}
+          onDelete={handleDelete}
+          disabled={isCreate}
+        />
         <wa-button size="xs" appearance="outlined" onClick={handleCancel} disabled={isSaving}>
           <wa-icon slot="start" name={isDirty ? "xmark" : "chevron-left"}></wa-icon>
           {isDirty ? "Cancel" : "Back"}
