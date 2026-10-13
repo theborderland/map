@@ -37,16 +37,19 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
     // Load low power area (for rules only, not visible)
 	map.groups.lowpowerarea = new L.LayerGroup();
 	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/low_power_area.geojson');
-
+    // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
+	await loadGeoJsonFeatureCollections(map, 'type', './data/borders.geojson');
+    map.groups.propertyborder.addTo(map.groups.mapstuff);
+	map.removeLayer(map.groups.propertyborder);
+    
     // Areas, roads, POIs, styles and rules all come from the API.
     // Creates map.groups[<styleType>] (fireroad, neighbourhood, plaza, ...) and map.apiRuleZones.
     await loadApiLayers(map, _isCleanAndQuietMode);
 
-    // Derived group for areas where camping is not allowed. Only works if the API still exposes
-    // this as a property on the neighbourhood features, otherwise model it as a rule in the API.
+    // Derive forbidden camping areas from the API's neighbourhood property.
     map.groups.hiddenforbidden = filterFeatures(
         map.groups.neighbourhood,
-        (feature) => feature.properties && feature.properties.camping_allowed === false,
+        (feature) => feature.properties?.camping_allowed === false,
     );
 
     // Loads kids zones with feature-specific fill colors
@@ -77,8 +80,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
 		};
 	}
 
-    await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/water_50m.geojson', {
-		propertyRenameFn: () => 'waterProtectedZone',
+    await loadGeoJsonFeatureCollections(map, 'type', './data/waterProtectedZone.geojson', {
 		styleFn: (_value: string, feature: any) => pattern(),
 	});
 

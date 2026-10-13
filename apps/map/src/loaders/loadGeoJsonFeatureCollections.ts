@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import * as Turf from '@turf/turf';
+import { getStyle } from './layerStyles';
 
 /**
  * Loads GeoJSON data and creates a layer per unique value of a property.
@@ -53,7 +54,7 @@ export const loadGeoJsonFeatureCollections = async (
     uniqueNames.forEach((value) => {
         const geojsonLayer = L.geoJSON(geojsonData, {
             filter: filterByProperty(groupByProperty, value),
-            style: operations.styleFn ? (feature) => operations.styleFn(value, feature) : () => ({}),
+            style: operations.styleFn ? (feature) => operations.styleFn(value, feature) : () => getStyle(value),
         });
 
         map.groups[value] = geojsonLayer;

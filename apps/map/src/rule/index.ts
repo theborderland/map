@@ -118,12 +118,6 @@ export function generateRulesForEditor(
             FIRE_BUFFER_IN_METER +
             'm) between this and the neighboring camps (or if not next to any camps, this camp simply too big). <a href="#page:guide-rules">Read more</a>',
         ),
-        Rules.isNotInsideBoundaries(
-            groups.neighbourhoods_merged,
-            Severity.Medium,
-            'Outside placement areas.',
-            'You are outside the main placement area. Make sure you know what you are doing.',
-        ),
         Rules.isInLowPowerArea(
             groups.lowpowerarea,
             Severity.Low,
