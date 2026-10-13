@@ -209,8 +209,9 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
 
     "road-create": {
         title: () => "New Road",
-        render: (_view, ctx) => (
+        render: (view, ctx) => (
             <RoadDetail
+                initialStyleType={view.type === "road-create" ? view.styleType : undefined}
                 styles={ctx.styles}
                 rules={ctx.rules}
                 setEntities={setKindEntities(ctx, "road")}
@@ -223,8 +224,9 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
 
     "area-create": {
         title: () => "New Area",
-        render: (_view, ctx) => (
+        render: (view, ctx) => (
             <AreaDetail
+                initialStyleType={view.type === "area-create" ? view.styleType : undefined}
                 styles={ctx.styles}
                 rules={ctx.rules}
                 setEntities={setKindEntities(ctx, "area")}
@@ -249,6 +251,15 @@ const CREATE_VIEW_BY_TAB: Partial<Record<Tab, PanelView>> = {
     Areas: { type: "area-create" },
 };
 
-export function getCreateViewForTab(tab: Tab): PanelView | undefined {
-    return CREATE_VIEW_BY_TAB[tab];
+/**
+ * Returns the create view for a tab, optionally preselecting the style
+ * when creation starts from an Area or Road style group.
+ */
+export function getCreateViewForTab(tab: Tab, styleType?: string): PanelView | undefined {
+    const createView = CREATE_VIEW_BY_TAB[tab];
+    if (!createView || !styleType) return createView;
+    if (createView.type === "area-create" || createView.type === "road-create") {
+        return { ...createView, styleType };
+    }
+    return createView;
 }

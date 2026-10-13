@@ -9,6 +9,7 @@ import { useEntityDetailForm } from "../../hooks/useEntityDetailForm";
 const DEFAULT_ROAD_WIDTH_METER = 2;
 interface Props {
   entity?: EntityRecord;
+  initialStyleType?: string;
   styles: StyleRecord[];
   rules: RuleRecord[];
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
@@ -18,12 +19,12 @@ interface Props {
 }
 
 export default function RoadDetail({
-  entity, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
+  entity, initialStyleType, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
 }: Props) {
-  const [styleType, setStyleType] = useState(entity?.styleType ?? "");
+  const [styleType, setStyleType] = useState(entity?.styleType ?? initialStyleType ?? "");
   const [widthMeters, setWidthMeters] = useState(entity?.widthMeters ?? DEFAULT_ROAD_WIDTH_METER);
   const [extraBaseline, setExtraBaseline] = useState({
-    styleType: entity?.styleType ?? "",
+    styleType: entity?.styleType ?? initialStyleType ?? "",
     widthMeters: entity?.widthMeters,
   });
 

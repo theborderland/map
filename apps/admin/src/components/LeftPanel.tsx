@@ -54,12 +54,12 @@ export default function LeftPanel({
   const handleTabClick = (tab: Tab) => { if (isEditing) return; setNavStack([createRoot(tab)]); };
 
   // ── Create button ───────────────────────────────────────
-  // Looks up which create-view (if any) targets the active tab by scanning
-  // the registry, instead of a hardcoded if-chain per tab.
+  // Root views create without a pre selected style; grouped entity views inherit their style.
   const getCreateClick = (): (() => void) | undefined => {
     if (isEditing) return undefined;
-    if (currentView.type !== "root") return undefined;
-    const createView = getCreateViewForTab(currentView.tab);
+    if (currentView.type !== "root" && currentView.type !== "entity-group") return undefined;
+    const styleType = currentView.type === "entity-group" ? currentView.styleType : undefined;
+    const createView = getCreateViewForTab(currentView.tab, styleType);
     return createView ? () => setNavStack((prev) => [...prev, createView]) : undefined;
   };
 

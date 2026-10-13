@@ -9,6 +9,7 @@ import { useState } from "react";
 interface Props {
   /** Undefined in create mode. */
   entity?: EntityRecord;
+  initialStyleType?: string;
   styles: StyleRecord[];
   rules: RuleRecord[];
   setEntities: React.Dispatch<React.SetStateAction<EntityRecord[]>>;
@@ -19,12 +20,12 @@ interface Props {
 }
 
 export default function AreaDetail({
-  entity, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
+  entity, initialStyleType, styles, rules, setEntities, goBack, bumpMapKey, onAfterCreate,
 }: Props) {
-  const [styleType, setStyleType] = useState(entity?.styleType ?? "");
+  const [styleType, setStyleType] = useState(entity?.styleType ?? initialStyleType ?? "");
   // Last-saved styleType — compared against current styleType to feed
   // extraFieldsDirty so the shared hook's Save button reacts to this too.
-  const [styleTypeBaseline, setStyleTypeBaseline] = useState(entity?.styleType ?? "");
+  const [styleTypeBaseline, setStyleTypeBaseline] = useState(entity?.styleType ?? initialStyleType ?? "");
 
   const form = useEntityDetailForm({
     entity, setEntities, bumpMapKey, goBack,
