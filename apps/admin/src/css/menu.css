@@ -1,17 +1,15 @@
 
 .menu {
   display: flex;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-  gap: 4px;
-  scroll-snap-type: x proximity;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
+  flex: 0 0 64px;
+  justify-content: center;
+  border-right: 1px solid var(--border);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .menu::-webkit-scrollbar {
-  height: 6px;
+  width: 4px;
 }
 
 .menu::-webkit-scrollbar-thumb {
@@ -21,20 +19,57 @@
 
 .menu-inner {
   display: flex;
-  margin: 0 auto;
-  width: max-content;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 6px;
+  box-sizing: border-box;
 }
 
 .menu-item {
-  padding: 10px 15px;
+  position: relative;
+  display: flex;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 20px;
   cursor: pointer;
-  scroll-snap-align: center;
-  flex: 0 0 auto;
+}
+
+.menu-item:hover {
+  background: var(--accent-bg);
 }
 
 .menu-item.active {
-  border-bottom: 3px solid var(--accent);
-  font-weight: bold;
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.menu-item.active::before {
+  position: absolute;
+  inset-block: 8px;
+  inset-inline-start: -6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  content: "";
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.left-container > .content {
+  min-width: 0;
 }
 
 /* block area while editing */

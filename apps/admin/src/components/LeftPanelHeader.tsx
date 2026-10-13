@@ -23,11 +23,8 @@ export default function LeftPanelHeader({
             onClick={onBack}
             className="back-button"
           >
-            <wa-icon name="chevron-left"></wa-icon>
+            <wa-icon name="chevron-left"></wa-icon> Back
           </wa-button>
-          <wa-tooltip placement="right" for="tooltip-back">
-            Go back
-          </wa-tooltip>
         </>
       )}
 

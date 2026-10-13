@@ -82,7 +82,7 @@ export default function DeletedCampsTab() {
                   >
                     <wa-icon name="rotate-left"></wa-icon>
                   </wa-button>
-                  <wa-tooltip placement="bottom" for={`restore-${camp.id}`}>
+                  <wa-tooltip show-delay={50} placement="bottom" for={`restore-${camp.id}`}>
                     Restore
                   </wa-tooltip>
                 </div>

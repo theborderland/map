@@ -111,7 +111,7 @@ export default function RulesSelector({ attachedRules, allRules, onChange }: Pro
           )}
 
           <wa-button
-            size="xs"
+            size="s"
             appearance="outlined"
             disabled={!selectedRuleId || undefined}
             onClick={handleAdd}

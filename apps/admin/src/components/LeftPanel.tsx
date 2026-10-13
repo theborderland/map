@@ -88,9 +88,9 @@ export default function LeftPanel({
   };
 
   // ── Auto-scroll active tab into view in the menu ───────────
-  const activeRef = useRef<HTMLDivElement | null>(null);
+  const activeRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
-    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    activeRef.current?.scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
   }, [activeTab]);
 
   const handler = VIEW_HANDLERS[currentView.type];

@@ -55,7 +55,7 @@ export default function IconPicker({ value, onChange }: Props) {
                                 width={36}
                                 height={36}
                             />
-                            <wa-tooltip for={"tooltip-" + name} placement="top">{name}</wa-tooltip>
+                            <wa-tooltip show-delay={50} for={"tooltip-" + name} placement="top">{name}</wa-tooltip>
                         </button>
 
                     );

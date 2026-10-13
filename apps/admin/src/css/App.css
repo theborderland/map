@@ -83,7 +83,7 @@ body {
   max-width: 500px;
   border-right: 1px solid var(--border);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .left-container .content {
