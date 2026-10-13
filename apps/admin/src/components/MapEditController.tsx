@@ -10,7 +10,13 @@ import "@geoman-io/leaflet-geoman-free";
 
 type GeomanLayer = L.Layer & {
   pm: {
-    enable: (opts?: { allowSelfIntersection?: boolean }) => void;
+    enable: (opts?: {
+      allowSelfIntersection?: boolean;
+      snappable?: boolean;
+      snapDistance?: number;
+      removeVertexOn?: string;
+      removeVertexValidation?: (args: { event: L.LeafletMouseEvent }) => boolean;
+    }) => void;
     disable: () => void;
     enableLayerDrag: () => void;
     disableLayerDrag: () => void;
@@ -262,6 +268,11 @@ export default function MapEditController({ entities, settings, selectedPOIIcon 
   // ── Toolbar init (once) ─────────────────────────────────────
   useEffect(() => {
     if (!map.pm?.Toolbar) return;
+    const vertexPane = map.getPane("edit-vertices") ?? map.createPane("edit-vertices");
+    vertexPane.style.zIndex = "675";
+    map.pm.setGlobalOptions({
+      panes: { vertexPane: "edit-vertices" },
+    });
     try {
       map.pm.addControls({
         position: "topleft",
@@ -278,14 +289,6 @@ export default function MapEditController({ entities, settings, selectedPOIIcon 
       });
     } catch { /* already initialised */ }
   }, [map]);
-
-  // Applies the configurable snap settings whenever they change.
-  useEffect(() => {
-    map.pm.setGlobalOptions({
-      snappable: settings.snapDistance > 0,
-      snapDistance: settings.snapDistance,
-    });
-  }, [map, settings.snapDistance]);
 
   // Escape key cancels whichever edit/draw mode is active.
   useEffect(() => {
@@ -338,12 +341,41 @@ export default function MapEditController({ entities, settings, selectedPOIIcon 
       useMapEditStore.getState().setPendingGeometry(strategy.collectGeometry(targetLayer));
     };
 
+    let hintTooltip: L.Tooltip | undefined;
+    let moveHint: ((event: MouseEvent) => void) | undefined;
+    if (!isDrag) {
+      hintTooltip = L.tooltip({
+        direction: "bottom",
+        offset: L.point(0, 22),
+        className: "vertex-edit-hint",
+        interactive: false,
+      })
+        .setContent("Ctrl-click a vertex to remove it")
+        .setLatLng(map.getCenter())
+        .addTo(map);
+      moveHint = (event) => {
+        const containerPoint = map.mouseEventToContainerPoint(event);
+        hintTooltip?.setLatLng(map.containerPointToLatLng(containerPoint));
+      };
+      map.getContainer().addEventListener("mousemove", moveHint);
+    }
+
     getSubLayers(targetLayer).forEach((l) => {
       if (isDrag) {
         (l as GeomanLayer).pm.enableLayerDrag();
         l.on("pm:dragend", handleChange);
       } else {
-        (l as GeomanLayer).pm.enable({ allowSelfIntersection: false });
+        (l as GeomanLayer).pm.enable({
+          allowSelfIntersection: false,
+          snappable: settings.snapDistance > 0,
+          snapDistance: settings.snapDistance,
+          removeVertexOn: "click contextmenu",
+          removeVertexValidation: ({ event }) => {
+            if (!event.originalEvent.ctrlKey) return false;
+            event.originalEvent.preventDefault();
+            return true;
+          },
+        });
         l.on("pm:edit", handleChange);
       }
     });
@@ -358,6 +390,8 @@ export default function MapEditController({ entities, settings, selectedPOIIcon 
         l.off("pm:dragend", handleChange);
       });
       map.removeLayer(targetLayer);
+      if (moveHint) map.getContainer().removeEventListener("mousemove", moveHint);
+      if (hintTooltip) map.removeLayer(hintTooltip);
     };
   }, [existingEdit?.kind, existingEdit?.entityId, existingEdit?.isDrag, map]); // eslint-disable-line react-hooks/exhaustive-deps
 

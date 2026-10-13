@@ -19,7 +19,7 @@ interface SettingsFields {
 }
 
 const EMPTY_FIELDS: SettingsFields = {
-    snapDistance: 0,
+    snapDistance: 20,
     editText: "",
     editButtonPassword: "",
     isEditEnabled: true,
