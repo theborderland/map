@@ -13,7 +13,7 @@ const modeArgs = {
 }[mode];
 
 if (!modeArgs) {
-  console.error("Usage: node --env-file=../../.env run-esbuild.mjs <build|dev|serve>");
+  console.error("Usage: node --env-file-if-exists=../../.env run-esbuild.mjs <build|dev|serve>");
   process.exitCode = 1;
 } else {
   const result = spawnSync(esbuildPath, [...commonArgs, ...modeArgs], {

@@ -4,9 +4,9 @@
     "description": "A borderland map interface in Javascript",
     "main": "index.js",
     "scripts": {
-        "build": "node --env-file=../../.env run-esbuild.mjs build",
-        "dev": "node --env-file=../../.env run-esbuild.mjs dev",
-        "serve": "node --env-file=../../.env run-esbuild.mjs serve"
+        "build": "node --env-file-if-exists=../../.env run-esbuild.mjs build",
+        "dev": "node --env-file-if-exists=../../.env run-esbuild.mjs dev",
+        "serve": "node --env-file-if-exists=../../.env run-esbuild.mjs serve"
     },
     "repository": {
         "type": "git",
