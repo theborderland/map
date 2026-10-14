@@ -174,8 +174,14 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
                 <RuleDetail
                     key={rule.id}
                     rule={rule}
+                    entities={ctx.entities.flatten()}
+                    styles={ctx.styles}
                     setRules={ctx.setRules}
                     goBack={ctx.goBack}
+                    onOpenEntity={(entity) => ctx.setNavStack((previous) => [
+                        ...previous,
+                        { type: "entity-detail", entityId: entity.id },
+                    ])}
                 />
             );
         },
@@ -185,8 +191,11 @@ export const VIEW_HANDLERS: Record<PanelView["type"], ViewHandler> = {
         title: () => "New Rule",
         render: (_view, ctx) => (
             <RuleDetail
+                entities={ctx.entities.flatten()}
+                styles={ctx.styles}
                 setRules={ctx.setRules}
                 goBack={ctx.goBack}
+                onOpenEntity={ctx.openEntity}
                 onAfterCreate={(ruleId) => ctx.setNavStack(buildRuleNavigation(ruleId))}
             />
         ),

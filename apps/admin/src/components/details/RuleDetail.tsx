@@ -1,20 +1,29 @@
 import { useState } from "react";
-import type { RuleRecord } from "../../db/types";
+import type { EntityRecord, RuleRecord, StyleRecord } from "../../db/types";
 import { updateRule, createRule, deleteRule } from "../../api";
 import DeleteButton from "./DeleteButton";
 import { useDirtyState } from "../../hooks/useDirtyState";
+import EntityCard from "../EntityCard";
 
 interface Props {
   /** Undefined in create mode. */
   rule?: RuleRecord;
+  entities: EntityRecord[];
+  styles: StyleRecord[];
   setRules: React.Dispatch<React.SetStateAction<RuleRecord[]>>;
   goBack?: () => void;
+  onOpenEntity: (entity: EntityRecord) => void;
   /** Called with the new rule's id after a successful create. */
   onAfterCreate?: (ruleId: string) => void;
 }
 
-export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Props) {
+export default function RuleDetail({
+  rule, entities, styles, setRules, goBack, onOpenEntity, onAfterCreate,
+}: Props) {
   const isCreate = !rule;
+  const usedEntities = rule
+    ? entities.filter((entity) => entity.rules.some((attachedRule) => attachedRule.ruleId === rule.id))
+    : [];
 
   const [name, setName] = useState(rule?.name ?? "");
   const [ruleType, setRuleType] = useState(rule?.ruleType ?? "overlap");
@@ -134,7 +143,7 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
           <label className="form-label">Message</label>
           <wa-textarea
             value={message}
-            placeholder="Shown to the visitor when this rule is violated"
+            placeholder="Shown on the camp when this rule is violated"
             rows={3}
             onInput={(e: Event) => setMessage((e.target as HTMLTextAreaElement).value)}
           />
@@ -146,7 +155,7 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
             checked={hasOverride}
             onChange={(e: Event) => setHasOverride((e.target as HTMLInputElement).checked)}
           >
-            Apply style override on violation
+            Apply camp style override on violation
           </wa-checkbox>
         </div>
 
@@ -198,6 +207,30 @@ export default function RuleDetail({ rule, setRules, goBack, onAfterCreate }: Pr
 
       {rule && (
         <p className="tagline">Created: {new Date(rule.createdAt).toLocaleString()}</p>
+      )}
+
+      
+      {rule && (
+        <>
+        <br/>
+        <details className="form-field">
+          <summary className="cursor-pointer">Used by ({usedEntities.length})</summary>
+          {usedEntities.length > 0 ? (
+            <div className="left-entity-grid">
+              {usedEntities.map((entity) => (
+                <EntityCard
+                key={entity.id}
+                entity={entity}
+                style={styles.find((style) => style.type === entity.styleType)}
+                onOpen={() => onOpenEntity(entity)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="item-meta">This rule is not attached to any entities.</p>
+          )}
+        </details>
+          </>
       )}
     </div>
   );
