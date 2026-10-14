@@ -12,18 +12,18 @@ import * as Turf from '@turf/turf';
 import { loadApiLayers } from './loadApiLayers';
 
 export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) => {
-	// Add the Google Satellite layer if online, otherwise load the drawn map
-	//if (!window.navigator.onLine) {
-	//console.log("offline, loading local drawn map");
-	await loadDrawnMap(map);
-	//map.addLayer(map.groups.drawnmap);
-	//} else{
-	map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-		maxZoom: 21,
-		maxNativeZoom: 20,
-		subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-	}).addTo(map);
-	//}
+    // Add the Google Satellite layer if online, otherwise load the drawn map
+    //if (!window.navigator.onLine) {
+    //console.log("offline, loading local drawn map");
+    await loadDrawnMap(map);
+    //map.addLayer(map.groups.drawnmap);
+    //} else{
+    map.groups.googleSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        maxZoom: 21,
+        maxNativeZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    }).addTo(map);
+    //}
 
     // Load contours
     fetch('./data/analysis/contours_simplified.geojson')
@@ -34,14 +34,13 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
             );
         });
 
-    // Load low power area (for rules only, not visible)
-	map.groups.lowpowerarea = new L.LayerGroup();
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/low_power_area.geojson');
-    // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
-	await loadGeoJsonFeatureCollections(map, 'type', './data/borders.geojson');
-    map.groups.propertyborder.addTo(map.groups.mapstuff);
-	map.removeLayer(map.groups.propertyborder);
-    
+        // Load low power area (for rules only, not visible)
+        map.groups.lowpowerarea = new L.LayerGroup();
+        await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/low_power_area.geojson');
+        // Loads "propertyborder", "naturereserve", "friends", "forbidden", "friends"
+        await loadGeoJsonFeatureCollections(map, 'type', './data/borders.geojson');
+        await loadGeoJsonFeatureCollections(map, 'type', './data/slopes.geojson');
+
     // Areas, roads, POIs, styles and rules all come from the API.
     // Creates map.groups[<styleType>] (fireroad, neighbourhood, plaza, ...) and map.apiRuleZones.
     await loadApiLayers(map, _isCleanAndQuietMode);
@@ -53,38 +52,38 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
     );
 
     // Loads kids zones with feature-specific fill colors
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/kids_zones.geojson', {
-		propertyRenameFn: () => 'kidszones',
-		styleFn: (_value: string, feature: any) => getKidzoneStyle(feature),
-	});
+    await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/kids_zones.geojson', {
+        propertyRenameFn: () => 'kidszones',
+        styleFn: (_value: string, feature: any) => getKidzoneStyle(feature),
+    });
 
     // should probably move this someplace else..
-	var stripes = new L.StripePattern({
-		patternContentUnits: 'objectBoundingBox',
-		patternUnits: 'objectBoundingBox',
-		weight: 0.02,
-		spaceWeight: 0.02,
-		height: 0.04,
-		angle: 45,
-		color: '#2666cd',
-		opacity: 0.5,
-		spaceColor: '#757575',
-		spaceOpacity: 0.8
-	});
-	stripes.addTo(map);
-	function pattern(): PathOptions {
-		return {
-			color: '#2666cd',
-			fillPattern: stripes,
+    var stripes = new L.StripePattern({
+        patternContentUnits: 'objectBoundingBox',
+        patternUnits: 'objectBoundingBox',
+        weight: 0.02,
+        spaceWeight: 0.02,
+        height: 0.04,
+        angle: 45,
+        color: '#2666cd',
+        opacity: 0.5,
+        spaceColor: '#757575',
+        spaceOpacity: 0.8
+    });
+    stripes.addTo(map);
+    function pattern(): PathOptions {
+        return {
+            color: '#2666cd',
+            fillPattern: stripes,
             fillOpacity: 1
-		};
-	}
+        };
+    }
 
     await loadGeoJsonFeatureCollections(map, 'type', './data/waterProtectedZone.geojson', {
-		styleFn: (_value: string, feature: any) => pattern(),
-	});
+        styleFn: (_value: string, feature: any) => pattern(),
+    });
 
-	// Load sound areas
+    // Load sound areas
     await loadGeoJsonFeatureCollections(map, soundPropertyKey, 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=polygons', {
         styleFn: (_value: string, feature: any) => getSoundStyle(feature),
     });
@@ -93,7 +92,7 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
     });
 
     // Soundspots have to be added as a Feature, in order to have properties (For isBreakingSoundLimit)
-	await loadGeoJsonFeatureCollections(map, "type", 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=points', {
+    await loadGeoJsonFeatureCollections(map, "type", 'https://alversjomaps.vercel.app/geoapi/maps/map2?features=points', {
         propertyRenameFn: () => soundSpotType,
         buffer: 10,
         styleFn: (_value: string, feature: any) => getSoundStyle(feature),
@@ -111,11 +110,6 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
     map.removeLayer(map.groups.soundspots);
 
     await addPowerGridTomap(map.groups.powergrid);
-    // Load lakes with 50m buffer (for rules only, not visible)
-	await loadGeoJsonFeatureCollections(map, 'type', './data/bl26/lakes.geojson', {
-		buffer: 50,
-	});
-	await addWellPOIToWaterProtectionArea(map);
 
     map.groups.terrain = await loadImageOverlay(map, './data/terrain.png', [
         [57.6156422900704257, 14.9150971736724536],
@@ -158,18 +152,3 @@ export const loadBaseLayers = async (map: any, _isCleanAndQuietMode?: boolean) =
     map.groups.aftermath23 = L.tileLayer('./data/bl23/aftermath/{z}/{x}/{y}.png', aftermathOptions);
     map.groups.aftermath22 = L.tileLayer('./data/bl22/aftermath/{z}/{x}/{y}.png', aftermathOptions);
 };
-
-
-async function addWellPOIToWaterProtectionArea(map: any) {
-	// Filter for water category POIs
-	const response = await fetch('./data/bl26/poi.json');
-	const poiData = await response.json();
-	const waterPois = poiData.features.filter((f: any) => f.properties.name === 'The Well');
-
-	// Apply 50m buffer and add to waterprotectionarea
-	waterPois.forEach((feature: any) => {
-		const buffered = Turf.buffer(feature, 50, { units: 'meters' });
-		const layer = L.geoJSON(buffered, { interactive: false });
-		map.groups.waterprotectionarea.addLayer(layer);
-	});
-}

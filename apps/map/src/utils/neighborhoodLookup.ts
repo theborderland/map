@@ -8,7 +8,6 @@ type NeighbourhoodFeature = GeoJSON.Feature<
   {
     name: string;
     tagline: string;
-    camping_allowed: boolean;
     _name: string | null;
   }
 >;

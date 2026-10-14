@@ -1,14 +1,14 @@
 import * as Turf from '@turf/turf';
 import { Severity, Rule } from '../index';
 
-export const isInWaterProtectionArea = (
+export const isInWaterProtectedZone = (
     layerGroup: any,
     severity: Severity,
     shortMsg: string,
     message: string
 ) => new Rule(severity, shortMsg, message, (entity) => {
     let geoJson = entity.toGeoJSON();
-    let inWaterProtectionArea = false;
+    let inWaterProtectedZone = false;
 
     // Check if entity overlaps or is contained in water protection area
     layerGroup?.eachLayer((layer) => {
@@ -20,18 +20,18 @@ export const isInWaterProtectionArea = (
             for (let i = 0; i < otherGeoJson.features.length; i++) {
                 if (Turf.booleanOverlap(geoJson, otherGeoJson.features[i]) ||
                     Turf.booleanContains(otherGeoJson.features[i], geoJson)) {
-                    inWaterProtectionArea = true;
+                    inWaterProtectedZone = true;
                     return;
                 }
             }
         } else if (Turf.booleanOverlap(geoJson, otherGeoJson) || Turf.booleanContains(otherGeoJson, geoJson)) {
-            inWaterProtectionArea = true;
+            inWaterProtectedZone = true;
         }
 
-        if (inWaterProtectionArea) {
+        if (inWaterProtectedZone) {
             return;
         }
     });
 
-    return { triggered: inWaterProtectionArea };
+    return { triggered: inWaterProtectedZone };
 });

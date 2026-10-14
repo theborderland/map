@@ -104,6 +104,12 @@ export function generateRulesForEditor(
             'Overlapping other area!',
             'Your area is overlapping someone elses, plz fix <3',
         ),
+        Rules.isOverlappingOrContained(
+            groups.slope,
+            Severity.Low,
+            'Slope warning!',
+            'Your area is in slopey or uneven terrain, check the slope map layer to make sure that you know what you are doing :)',
+        ),
         Rules.isNotInsideBoundaries(
             groups.propertyborder,
             Severity.High,
@@ -124,9 +130,9 @@ export function generateRulesForEditor(
             'Low power supply',
             'Low power supply in this area (<1000W per camp)',
         ),
-        Rules.isInWaterProtectionArea(
-            groups.waterprotectionarea,
-            Severity.Medium,
+        Rules.isInWaterProtectedZone(
+            groups.waterProtectedZone,
+            Severity.Low,
             'Water protection area',
             'You are placed near water (lake or drinking water well). NO cars/RVs, pee pee, poo poo, soap or greywater here.',
         ),

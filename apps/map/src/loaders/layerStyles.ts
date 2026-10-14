@@ -61,5 +61,11 @@ export function getStyle(name: string): L.PathOptions | undefined {
                 fillOpacity: 1,
                 weight: 0,
             };
+        case 'slope':
+            return {
+                ...baseStyle,
+                fillOpacity: 0,
+                opacity: 0,
+            };
     }
 }
