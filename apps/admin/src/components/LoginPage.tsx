@@ -4,6 +4,7 @@ import "../css/LoginPage.css";
 
 export default function LoginPage() {
   const login = useAuthStore((s) => s.login);
+  const notice = useAuthStore((s) => s.notice);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,7 +30,6 @@ export default function LoginPage() {
       <div className="login-box">
         <h1>Map Admin</h1>
         <p className="login-subtitle">Enter password to continue</p>
-        development password: <code>dev</code>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <input
@@ -41,7 +41,7 @@ export default function LoginPage() {
               autoFocus
             />
           </div>
-
+          {notice && !error && <div className="notice-message">{notice}</div>}
           {error && <div className="error-message">{error}</div>}
 
           <button type="submit" disabled={isLoading} className="login-button">

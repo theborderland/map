@@ -8,7 +8,7 @@ export interface DeletedCamp {
 }
 
 export async function getDeletedCamps(): Promise<DeletedCamp[]> {
-  const camps = await fetchJson<DeletedCamp[]>("/camps/deleted");
+  const camps = await fetchJson<DeletedCamp[]>("/mapentities/deleted-latest");
   // recently deleted first
   return [...camps].sort((a, b) => {
     const deletedAtA = Date.parse(a.timeStamp);
@@ -20,7 +20,7 @@ export async function getDeletedCamps(): Promise<DeletedCamp[]> {
 }
 
 export async function restoreCamp(id: number): Promise<void> {
-  await requestOrThrow(`/camps/${encodeURIComponent(id)}/restore`, {
+  await requestOrThrow(`/mapentities/${encodeURIComponent(id)}/restore`, {
     method: "POST",
   });
 }

@@ -65,6 +65,12 @@
   margin-top: -0.5rem;
 }
 
+.notice-message {
+  color: #2e7d32;
+  font-size: 0.875rem;
+  margin-top: -0.5rem;
+}
+
 .login-button {
   padding: 0.75rem;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

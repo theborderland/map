@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import type { SettingsRecord } from "../../db/types";
 import { getSettings, updateSettings, updateAdminPassword } from "../../api";
 import { useDirtyState } from "../../hooks/useDirtyState";
+import { apiFetch } from "../../lib/httpClient";
+import { useAuthStore } from "../../store/authStore";
 
 interface Props {
     onSettingsSaved: (settings: SettingsRecord) => void;
@@ -130,16 +132,8 @@ export default function SettingsTab({ onSettingsSaved }: Props) {
         setSaveError(null);
 
         try {
-            let token = concurrencyToken;
-
-            // Must happen first so the settings PUT below has an up-to-date token.
-            if (adminPassword.trim() !== "") {
-                const result = await updateAdminPassword(token, adminPassword.trim());
-                token = result.concurrencyToken;
-            }
-
             const updated = await updateSettings({
-                concurrencyToken: token,
+                concurrencyToken,
                 isEditEnabled,
                 editText,
                 editButtonPassword,
@@ -149,10 +143,17 @@ export default function SettingsTab({ onSettingsSaved }: Props) {
             });
 
             setConcurrencyToken(updated.concurrencyToken);
+            onSettingsSaved(updated);
+
+            // Must come last: the backend ends every session on a password change, including this one.
+            if (adminPassword.trim() !== "") {
+                await updateAdminPassword(updated.concurrencyToken, adminPassword.trim());
+                await useAuthStore.getState().logout("Password changed, please log in again.");
+                return;
+            }
+
             setAdminPassword(""); // clear the write-only field back to empty after a successful save
             dirty.commit({ ...currentValues, adminPassword: "" });
-
-            onSettingsSaved(updated);
         } catch (err) {
             setSaveError(err instanceof Error ? err.message : "Failed to save settings.");
         } finally {
@@ -164,10 +165,8 @@ export default function SettingsTab({ onSettingsSaved }: Props) {
         setIsExporting(true);
 
         try {
-            const res = await fetch(`${import.meta.env.API_URL}api/settings/geojson`, {
-                credentials: "include",
-                method: "GET",
-            });
+            // Goes through apiFetch so the Bearer token is attached and an expired one is refreshed.
+            const res = await apiFetch("/settings/geojson", { method: "GET" });
 
             if (!res.ok) {
                 throw new Error(await readErrorMessage(res));
