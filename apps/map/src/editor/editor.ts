@@ -882,7 +882,15 @@ export class Editor {
         if (!this._isCleanAndQuietMode) {
             await Messages.showNotification(`Loading archive camps from ${this._year}...`);
         }
-        const entities = await new YearCampLoader(this._year).load();
+        
+        let entities: MapEntity[] = [];
+        try {
+            entities = await new YearCampLoader(this._year).load();
+        } catch (error) {
+            console.error("[loadStaticYearEntities]", error);
+            // Without this the user just sees an empty map and no explanation.
+            await Messages.showNotification(`Could not load archive camps from ${this._year}.`);
+        }
 
         for (const entity of entities) {
             this.addEntityToMap(entity, false);

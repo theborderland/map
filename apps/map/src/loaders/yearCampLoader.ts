@@ -23,7 +23,7 @@ export class YearCampLoader {
             return [];
         }
 
-        const pathToFile = `/data/bl${String(this.year).slice(-2)}/all_camps.geojson`;
+        const pathToFile = `./data/bl${String(this.year).slice(-2)}/all_camps.geojson`;
         let loaded: any = null;
 
         try {
@@ -31,11 +31,11 @@ export class YearCampLoader {
             if (!response.ok) throw new Error("Error loading file");
             loaded = await response.json();
         } catch (error) {
-            console.warn('[YearCampLoader]', 'Static camp export not found at', pathToFile, error);
+            throw new Error(`[YearCampLoader] Static camp export not found at "${pathToFile}" ${error}`);
         }
 
         if (!loaded || !Array.isArray(loaded.features)) {
-            throw new Error(`Could not load a static camp export for year ${this.year}`);
+            throw new Error(`[YearCampLoader] Could not load a static camp export for year ${this.year}`);
         }
 
         const entities: MapEntity[] = [];
